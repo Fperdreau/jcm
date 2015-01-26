@@ -1,0 +1,60 @@
+
+/* Calendar */
+.calendar {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: auto;
+    display: block;
+    float: right;
+    background: #EDEDED;
+    border: 1px solid #DFDFDF;
+}
+
+.cal_nav {
+    border: 1px solid #222222;
+    display: inline-block;
+    text-align: justify;
+    height: 20px;
+    width: 100%;
+    font-weight: bold;
+    background-color: #555555;
+}
+
+.cal_nav > div {
+    display: inline-block;
+    text-align: center;
+    width: auto;
+    vertical-align: bottom;
+    color: #dddddd;
+}
+
+.cal_nav:after {
+    content: "";
+    width: 100%;
+    display: inline-block;
+}
+
+#week {
+    text-align: center;
+    width: 100%;
+    height: auto;
+}
+
+#cal_header {
+    text-align: center;
+    background-color:#555555;
+    color: #dddddd;
+    font-weight: bold;
+}
+
+#cal_row {
+    width: 100%;
+}
+
+#cal_but {
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    height: 20px;
+}

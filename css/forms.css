@@ -1,0 +1,147 @@
+/*
+Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+This file is part of Journal Club Manager.
+
+Journal Club Manager is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Journal Club Manager is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* Form & Input field styles */
+.form{
+    margin-top: 5px; /* Make some more distance away from the description text */
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 5px #CF5151;
+  padding: 9px 17px 9px 44px;
+  border: 1px solid #CF5151;
+}
+
+/* Select input */
+select {
+  	-webkit-appearance: button;
+   -webkit-border-radius: 2px;
+   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+   -webkit-padding-end: 20px;
+   -webkit-padding-start: 2px;
+   -webkit-user-select: none;
+   background-image: -webkit-linear-gradient(#FAFAFA, #F4F4F4 40%, #E5E5E5);
+   background-position: 97% center;
+   background-repeat: no-repeat;
+   border: 1px solid #AAA;
+   color: #555;
+   font-size: inherit;
+   margin: 0;
+   padding: 5px 5px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+   min-width: auto;
+}
+
+select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #CF5151;
+  padding: 5px 5px;
+  border: 1px solid #CF5151;
+}
+
+select#select_wish {
+    width: 400px;
+}
+
+select option {
+    padding:40px;
+    text-shadow:0 1px 0 rgba(0,0,0,0.4);
+}
+
+button {
+    background: #F9F9F9; /* Set button background */
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+input[type=text],input[type=password] {
+    margin: 5px;
+    font-size: 13px;
+    font-weight: 400;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    /* Size and position */
+    width: auto;
+    padding: 10px 18px 10px 45px;
+
+    /* Styles */
+    border: none; /* Remove the default border */
+	outline: none;
+    border-radius: 0px;
+    background: #f9f9f9;
+    color: #777;
+    -webkit-transition: color 0.3s ease-out;
+    -moz-transition: color 0.3s ease-out;
+    -ms-transition: color 0.3s ease-out;
+    -o-transition: color 0.3s ease-out;
+    transition: color 0.3s ease-out;
+}
+
+#submit {
+    background: #F9F9F9; /* Set button background */
+    border: 1px solid #CF5151; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+#submit:hover {
+	color: #FFF;
+    background: #CF5151; /* Set button background */
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+label {
+    width: auto;
+    font-size: 16px;
+    color: #222222;
+    font-weight: bolder;
+    border-bottom: 1px solid #CF5151;
+}
+
+textarea {
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+	margin: 10px;
+    font-size: 13px;
+    font-weight: 400;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    resize: none;
+
+    /* Size and position */
+    width: 85%;
+    height: 200px;
+    padding: 10px 18px 10px 45px;
+
+    /* Styles */
+    border: none; /* Remove the default border */
+	outline: none;
+    border-radius: 0px;
+    background: #f9f9f9;
+    color: #777;
+    -webkit-transition: color 0.3s ease-out;
+    -moz-transition: color 0.3s ease-out;
+    -ms-transition: color 0.3s ease-out;
+    -o-transition: color 0.3s ease-out;
+    transition: color 0.3s ease-out;
+}
+
+input[type=submit]#button {
+    border: none;
+    border: 0;
+    outline: 0;
+}
