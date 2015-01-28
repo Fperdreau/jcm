@@ -190,14 +190,13 @@ class users {
         return $hash;
     }
 
-    function check_account_activation($hash,$email,$result) {
+    function check_account_activation($hash,$email,$result) {	
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'myMail.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
         $db_set = new DB_set();
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
         $this->getuserinfo($username);
-
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
