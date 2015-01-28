@@ -82,7 +82,6 @@ class users {
                 if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
                 	return true;
                 } else {
-                	echo "failed to send email";
                 	return false;
                 }
 	        } else {	        	
@@ -93,7 +92,6 @@ class users {
 	            }
 	        }
 		} else {
-			echo "user already exists";
 			return false;
 		}
     }
@@ -178,7 +176,7 @@ class users {
         $maillist = $db_set -> getinfo($users_table,'email');
         $active = $db_set->getinfo($users_table,'active',array('email'),array("'$prov_mail'"));
 
-        if (in_array($prov_mail,$maillist) && $active == 1) {
+        if (in_array($prov_mail,$maillist)) {
             return true;
         } else {
             return false;

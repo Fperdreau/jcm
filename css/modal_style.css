@@ -34,7 +34,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 /* Publication modal window*/
 /* ******************************************************************************* */
 .popupContainer{
-	position:absolute;
+	position:relative;
 	width:400px;
 	height: auto;
 	left:45%;
