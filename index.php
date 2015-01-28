@@ -50,7 +50,7 @@ if (empty($_SESSION['logok'])) {
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <META NAME="description" CONTENT="Journal Club Manager. Organization. Submit or suggest a presentation. Archives.">
         <META NAME="keywords" CONTENT="Journal Club">
-        <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
         <link type='text/css' rel='stylesheet' href="css/jquery-ui.css"/>
         <link type='text/css' rel='stylesheet' href="css/jquery-ui.theme.css"/>

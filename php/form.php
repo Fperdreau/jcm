@@ -459,6 +459,7 @@ if (!empty($_POST['install_db'])) {
 	if (is_dir($_SESSION['path_to_app']."admin") == false) {
 		mkdir($_SESSION['path_to_app']."admin");
 	}
+	
 	if (is_dir($_SESSION['path_to_app']."admin/conf/") == false) {
 		mkdir($_SESSION['path_to_app']."admin/conf/");
 	}
