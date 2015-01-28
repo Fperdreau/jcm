@@ -448,11 +448,16 @@ if (!empty($_POST['inst_admin'])) {
 }
 
 if (!empty($_POST['install_db'])) {
-	// Delete old config file (e.g. from previous installation)
+
     $filename = $_SESSION['path_to_app']."admin/conf/config.php";
 	$result = "";
 	if (is_file($filename)) {
 		unlink($filename);
+	}
+	
+	// Delete old config file (e.g. from previous installation)
+	if (is_dir($_SESSION['path_to_app']."admin/conf/") == false) {
+		mkdir($_SESSION['path_to_app']."admin/conf/");
 	}
 	
     $string = '<?php
