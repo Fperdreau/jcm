@@ -1,5 +1,5 @@
 # jcm
-<<<<<<< HEAD
+
 Author: Florian Perdreau (Radboud University Nijmegen, Donders Centre for Cognition)
 
 Journal Club Manager is a web-application developed in order to help labs in managing their journal clubs or talks.
