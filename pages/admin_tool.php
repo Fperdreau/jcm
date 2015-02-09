@@ -98,7 +98,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <label for='sitetitle'>Site title</label><input type='text' size='30' name='sitetitle' value='$config->sitetitle' /><br>
                 <label for='site_url'>Site url</label><input type='text' size='30' name='site_url' value='$config->site_url' /></br>
                 <label for='clean_day'>Oldest DB backups to keep (in days)</label><input type='text' size='30' name='clean_day' value='$config->clean_day' />
-                <p style='text-align: right'><input type='submit' name='modify' value='Modidy' id='submit' class='config_form_site'/></p>
+                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_site'/></p>
             </form>
         </div>
 
@@ -112,7 +112,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <label for='lab_postcode'>Post Code</label><input type='text' size='30' name='lab_postcode' value='$config->lab_postcode'/></br>
                 <label for='lab_city'>City</label><input type='text' size='30' name='lab_city' value='$config->lab_city'/></br>
                 <label for='lab_country'>Country</label><input type='text' size='30' name='lab_country' value='$config->lab_country'/>
-                <p style='text-align: right'><input type='submit' name='modify' value='Modidy' id='submit' class='config_form_lab'/></p>
+                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_lab'/></p>
             </form>
         </div>
 
@@ -154,7 +154,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     </select></br>
                 <label for='reminder'>Reminder (D-)</label>
                     <input type='text' name='reminder' value='$config->reminder' size='1'/>
-                    <p style='text-align: right'><input type='submit' name='modify' value='Modidy' id='submit' class='config_form_jc'/></p>
+                    <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_jc'/></p>
             </form>
         </div>
 
@@ -177,7 +177,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <label for='mail_username'>Email username</label><input name='mail_username' type='text' value='$config->mail_username'></br>
                 <label for='mail_password'>Email password</label><input name='mail_password' type='password' value='$config->mail_password'></br>
                 <label for='pre_header'>Email header prefix</label><input name='pre_header' type='text' value='$config->pre_header'>
-                <p style='text-align: right'><input type='submit' name='modify' value='Modidy' id='submit' class='config_form_mail'/></p>
+                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_mail'/></p>
             </form>
         </div>
     </div>
