@@ -28,11 +28,15 @@ echo "
     <section class='popupBody'>
 
         <div class='user_login'>
-            <label for='log_username'>Username</label><input type='text' id='log_username' name='log_username' value=''/>
-            <label for='log_password'>Password</label><input type='password' id='log_password' name='log_password' value=''/>
-            <div class='action_btns'>
-                <div class='one_half'><a href='' class='btn btn_red' id='login'>Log in</a></div>
-            </div>
+            <form>
+                <label for='log_username'>Username</label><input type='text' id='log_username' name='username'/>
+                <label for='log_password'>Password</label><input type='password' id='log_password' name='password'/>
+                <div class='action_btns'>
+                    <div class='one_half'>
+                        <input type='submit' id='submit' value='Log In' class='login'/>
+                    </div>
+                </div>
+            </form>
             <div class='forgot_password'><a href='' class='modal_trigger_changepw'>I forgot my password</a></div>
         </div>
 
