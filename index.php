@@ -18,9 +18,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 session_start();
-$_SESSION['root_path'] = $_SERVER['DOCUMENT_ROOT'];
-$_SESSION['app_name'] = "/jcm/";
-$_SESSION['path_to_app'] = $_SESSION['root_path'].$_SESSION['app_name'];
+$_SESSION['app_name'] = dirname(__FILE__)."/";
+$_SESSION['path_to_app'] = dirname(__FILE__)."/";
 $_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 $_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
@@ -45,7 +44,7 @@ if (empty($_SESSION['logok'])) {
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <META NAME="description" CONTENT="Journal Club Manager. Organization. Submit or suggest a presentation. Archives.">
@@ -56,7 +55,7 @@ if (empty($_SESSION['logok'])) {
         <link type='text/css' rel='stylesheet' href="css/jquery-ui.theme.css"/>
         <link type='text/css' rel="stylesheet" href="css/datepicker.css"/>
         <link type="text/css" rel="stylesheet" href="css/modal_style.css" />
-        
+
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
@@ -67,7 +66,7 @@ if (empty($_SESSION['logok'])) {
     </head>
 
     <body class="mainbody">
-        <?php require($_SESSION['path_to_pages'].'login_form.php'); ?>
+        <?php require($_SESSION['path_to_pages'].'modal.php'); ?>
 
         <div id="mainheader">
             <!-- Header section -->
@@ -94,7 +93,7 @@ if (empty($_SESSION['logok'])) {
              | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
              | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $config->author</a>" ?></span>
         </div>
-        
+
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.js"></script>
 
