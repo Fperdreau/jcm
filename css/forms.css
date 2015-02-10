@@ -24,7 +24,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 input:focus, textarea:focus {
   outline: none;
   box-shadow: 0 0 5px #CF5151;
-  padding: 9px 17px 9px 44px;
+  padding: 9px 17px 9px 44px;f
   border: 1px solid #CF5151;
 }
 
@@ -145,3 +145,18 @@ input[type=submit]#button {
     border: 0;
     outline: 0;
 }
+
+input.field {
+    padding: 10px;
+    display: inline-block;
+    width: 300px;
+}
+
+
+label.label {
+    display: inline-block;
+    width: 150px;
+    text-align: right;
+    padding: 10px 0 10px 0;
+}
+

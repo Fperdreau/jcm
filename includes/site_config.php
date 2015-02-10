@@ -39,6 +39,7 @@ class site_config {
     public $lab_postcode = "Your Lab postal code";
     public $lab_city = "Your Lab city";
     public $lab_country = "Your Lab country";
+    public $lab_mapurl = "";
     // Mail host information
     public $mail_from = "jc@journalclub.com";
     public $mail_from_name = "Journal Club";
@@ -58,7 +59,7 @@ class site_config {
 
     public function get_config() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app']."admin/conf/config.php");
         $db_set = new DB_set();
         $sql = "select variable,value from $config_table";
         $req = $db_set->send_query($sql);
@@ -76,7 +77,7 @@ class site_config {
     // Update config
     public function update_config($post) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app']."admin/conf/config.php");
         $db_set = new DB_set();
         $class_vars = get_class_vars("site_config");
 		$class_keys = array_keys($class_vars);
@@ -98,13 +99,13 @@ class site_config {
     // Get organizers list
     function getadmin($admin=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app']."admin/conf/config.php");
         $db_set = new DB_set();
         $sql = "SELECT username,password,firstname,lastname,position,email,status FROM $users_table WHERE status='organizer'";
         if (null != $admin) {
         	$sql .= "or status='admin'";
         }
-		
+
         $req = $db_set -> send_query($sql);
         $user_info = array();
         $cpt = 0;
@@ -119,11 +120,11 @@ class site_config {
         require_once($_SESSION['path_to_includes'].'users.php');
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
-		
+
 		if (null == $filter) {
 			$filter = 'lastname';
 		}
-		
+
         $db_set = new DB_set();
         $sql = "SELECT username FROM $users_table ORDER BY $filter";
 
@@ -135,7 +136,7 @@ class site_config {
                 <div class='list-heading' style='width: 10%'>User Name</div>
                 <div class='list-heading' style='width: 20%'>Email</div>
                 <div class='list-heading' style='width: 10%'>Activated</div>
-                <div class='list-heading' style='width: 5%'>Submissions</div>                
+                <div class='list-heading' style='width: 5%'>Submissions</div>
                 <div class='list-heading' style='width: 10%'>Status</div>
             </div>
         ";
@@ -147,7 +148,7 @@ class site_config {
             // Compute age
             if ($user->active == 1) {
 
-                $from = strtotime('Y-m-d',$user->date);
+                $from = strtotime('Y-m-d HH:MM:SS',$user->date);
                 $to   = date('Y-m-d');
                 $diff = $to-$from;
 	            $cur_age = date('d',$diff);
@@ -173,8 +174,8 @@ class site_config {
                 <div class='list-section' style='width: 10%'>$user->username</div>
                 <div class='list-section' style='width: 20%'>$user->email</div>
                 <div class='list-section' style='width: 10%'>$cur_trage</div>
-                <div class='list-section' style='width: 5%'>$nbpres</div>                
-                
+                <div class='list-section' style='width: 5%'>$nbpres</div>
+
                 <div class='list-section' style='width: 10%'>
                     <select name='status' id='status' data-user='$user->username' class='modify_status'>
                         <option value='$user->status' selected='selected'>$user->status</option>
@@ -191,4 +192,4 @@ class site_config {
         return $result;
     }
 
-} 
+}

@@ -41,7 +41,7 @@ class users {
 
     // Create user
     function create_user($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
-		$this -> date = date("Y-m-d");		
+		$this -> date = date("Y-m-d HH:MM:SS");
         $this -> username = $username;
         $this -> firstname = $firstname;
         $this -> lastname = $lastname;
@@ -54,13 +54,13 @@ class users {
         if ($this->status == "admin") {
         	$this->active = 1;
 		}
-		
+
 		require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'myMail.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
         $mail = new myMail();
         $db_set = new DB_set();
-		
+
 		// Parse variables and values to store in the table
 		$class_vars = get_class_vars("users");
 		$class_keys = array_keys($class_vars);
@@ -73,7 +73,7 @@ class users {
         if (self :: user_exist($this->username) == false && self :: mail_exist($this->email) == false) {
 			// Add to user table
             $db_set->addcontent($users_table,$variables,$values);
-				
+
         	if ($this->status !=  "admin") {
 				// Add to mailing list
                 $db_set->addcontent($mailinglist_table,"username,email","'$this->username','$this->email'");
@@ -84,7 +84,7 @@ class users {
                 } else {
                 	return false;
                 }
-	        } else {	        	
+	        } else {
 	            if ($mail-> send_confirmation_mail($this->email,$this->username,$this->password)) {
 	            	return true;
 	            } else {
@@ -188,7 +188,7 @@ class users {
         return $hash;
     }
 
-    function check_account_activation($hash,$email,$result) {	
+    function check_account_activation($hash,$email,$result) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'myMail.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
@@ -268,4 +268,4 @@ class users {
     }
 
 
-} 
+}

@@ -42,36 +42,38 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 			$this->bdd = $bdd;
             return $this->bdd;
 		}
-		
+
 		public function tableExists($table) {
 			$sql = 'SHOW COLUMNS FROM '.$table;
-			if (self :: send_query($sql)) {
+			if (self :: send_query($sql,true)) {
 				$result = 1;
 			} else {
 				$result = 0;
 			}
-		
+
 			return $result;
 		}
 
-        function send_query($sql) {
+        function send_query($sql,$silent=false) {
             $bdd = self::bdd_connect();
             $req = mysqli_query($bdd,$sql);
             if (false === $req) {
-                //echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($bdd).'<br>');
+                if ($silent == false) {
+                    echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($bdd).'<br>');
+                }
                 return false;
             } else {
                 self::bdd_close();
                 return $req;
             }
         }
-		
+
 		public function createtable($table_name,$cols_name,$opt = 0) {
 			if (self::tableExists($table_name) == 1 && $opt == 1) {
 				// Delete table if it exists
                 self::deletetable($table_name);
 			}
-					
+
 			if (self::tableExists($table_name) == 0) {
 				// Create table if it does not exist already
 				$sql = 'CREATE TABLE '.$table_name.' ('.$cols_name.')';
@@ -82,7 +84,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
                 }
 			}
 		}
-		
+
 		public function deletetable($table_name) {
 			$sql = 'DROP TABLE '.$table_name;
             return self::send_query($sql);
@@ -107,7 +109,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
                 return false;
             }
         }
-		
+
 		public function addcontent($table_name,$cols_name,$values) {
 			$sql = 'INSERT INTO '.$table_name.'('.$cols_name.') VALUES('.$values.')';
             self::send_query($sql);
@@ -149,13 +151,13 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 				$cond[] = "$ref=".$id[$cpt];
 				$cpt++;
 			}
-			
+
 			if ($nref > 1) {
 				$cond = implode(' AND ',$cond);
 			} else {
 				$cond = implode('',$cond);
 			}
-			
+
 			$sql = "DELETE FROM $table_name WHERE ".$cond;
             self::send_query($sql);
             return true;
@@ -169,7 +171,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 				$cond[] = "$ref=".$id[$cpt];
 				$cpt++;
 			}
-			
+
 			if ($nref > 1) {
 				$cond = implode(' AND ',$cond);
 			} else {
@@ -187,7 +189,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
             } else {
                 $set = "$cols_name=$value";
             }
-			
+
 			$sql = "UPDATE $table_name SET $set WHERE ".$cond;
             if (self::send_query($sql)) {
                 return true;
@@ -196,7 +198,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
             }
 
         }
-		
+
 		public function getinfo($table_name,$cols_name,$refcol = NULL,$id = NULL, $op = NULL) {
             self::bdd_connect();
 
@@ -220,7 +222,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 					$cond[] = "$ref"."$op[$cpt]"."$id[$cpt]";
 					$cpt++;
 				}
-				
+
 				if ($nref > 1) {
 					$cond = implode(' AND ',$cond);
 				} else {
@@ -228,7 +230,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				$cond = "WHERE ".$cond;
 			}
-				
+
 			$sql = "SELECT $cols_name FROM $table_name ".$cond;
             $req = self::send_query($sql);
 			$infos = array();
@@ -241,15 +243,15 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 			if ($refcol !=NULL && is_array($infos) && $nrow == 1) {
 				$infos = $infos[0];
 			}
-			
+
 			return $infos;
 		}
-					
+
 		public function bdd_close() {
 			mysqli_close($this->bdd);
 			$bdd = null;
             return $bdd;
-		} 				
+		}
 	}
 
 ?>
