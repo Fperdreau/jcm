@@ -52,7 +52,7 @@ if (!empty($_POST['proceed'])) {
 
     // Update user table
     $result .=  "<p id='success'> Processing of '$users_table'</p>";
-    $db_set->addcolumn($users_table,"fullname","CHAR(30)","lastname");	
+    $db_set->addcolumn($users_table,"fullname","CHAR(30)","lastname");
     $db_set->addcolumn($users_table,"reminder","INT(1)","notification");
     $db_set->addcolumn($users_table,"notification","INT(1)","email");
     $db_set->addcolumn($users_table,"date","DATETIME","id");
@@ -101,7 +101,7 @@ if (!empty($_POST['proceed'])) {
         if ($data['jc_time'] == NULL) {
             $post['jc_time'] = "$config->jc_time_from,$config->jc_time_to";
         }
-        $pub->update_presentation($post);
+        $pub->update($post);
     }
 
     $result .= "<p id='success'>Update complete<br>You can now delete the update.php file</p>";

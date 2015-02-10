@@ -229,7 +229,7 @@ if (!empty($_POST['submit'])) {
             $_POST['orator'] = $user->fullname;
         }
 
-        $created = $pub -> create_presentation($_POST);
+        $created = $pub -> make($_POST);
         if ($created == "added") {
             $result = "<p id='success'>Your presentation has been submitted.</p>";
         } else {
@@ -256,7 +256,7 @@ if (!empty($_POST['update'])) {
         if ($_POST['type'] == "wishlist") {
             $_POST['type'] = "paper";
         }
-        $created = $pub -> update_presentation($_POST);
+        $created = $pub -> update($_POST);
 
         if ($created == "updated") {
             $result = "<p id='success'>Your presentation has been updated.</p>";
@@ -272,7 +272,7 @@ if (!empty($_POST['update'])) {
 if (isset($_POST['suggest'])) {
     $_POST['date'] = "";
     $_POST['type'] = "wishlist";
-    $created = $presclass -> create_presentation($_POST);
+    $created = $presclass -> make($_POST);
     if ($created == "added") {
         $result = "<p id='success'>Your presentation has been submitted.</p>";
     } elseif ($created == "exist") {
