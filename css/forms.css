@@ -29,7 +29,7 @@ input:focus, textarea:focus {
 }
 
 /* Select input */
-select {
+/*select {
   	-webkit-appearance: button;
    -webkit-border-radius: 2px;
    -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
@@ -47,12 +47,20 @@ select {
    text-overflow: ellipsis;
    white-space: nowrap;
    min-width: auto;
+}*/
+
+select {
+    min-width: 50px;
+    width: auto;
+    height: 30px;
+    line-height:30px;
+    border: 1px solid #CF5151;
+    margin-right: 10px;
 }
 
 select:focus {
   outline: none;
   box-shadow: 0 0 5px #CF5151;
-  padding: 5px 5px;
   border: 1px solid #CF5151;
 }
 
@@ -60,11 +68,9 @@ select#select_wish {
     width: 400px;
 }
 
-select option {
-    padding:40px;
-    text-shadow:0 1px 0 rgba(0,0,0,0.4);
+select option{
+  padding: 5px;
 }
-
 button {
     background: #F9F9F9; /* Set button background */
     border: 1px solid #DFDFDF; /* Small border around our submit button */
@@ -151,7 +157,6 @@ input.field {
     display: inline-block;
     width: 300px;
 }
-
 
 label.label {
     display: inline-block;
