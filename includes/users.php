@@ -41,7 +41,7 @@ class users {
 
     // Create user
     function create_user($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
-		$this -> date = date("Y-m-d HH:MM:SS");
+		$this -> date = date("Y-m-d H:i:s");
         $this -> username = $username;
         $this -> firstname = $firstname;
         $this -> lastname = $lastname;

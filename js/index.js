@@ -449,7 +449,6 @@ $( document ).ready(function() {
                     },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
 					$('#user_list').html(result);
                 }
             });
@@ -574,11 +573,9 @@ $( document ).ready(function() {
                     option: option},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "deleted") {
                         showfeedback('<p id="success">Account successfully deleted!</p>');
-                        $('#'+username).remove();
+                        $('#section_'+username).remove();
                     } else {
                         showfeedback('<p id="success">'+result+'</p>');
                     }

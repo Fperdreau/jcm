@@ -147,8 +147,7 @@ class site_config {
             $nbpres = $user->get_nbpres();
             // Compute age
             if ($user->active == 1) {
-
-                $from = strtotime('Y-m-d HH:MM:SS',$user->date);
+                $from = strtotime($user->date);
                 $to   = date('Y-m-d');
                 $diff = $to-$from;
 	            $cur_age = date('d',$diff);
@@ -168,7 +167,7 @@ class site_config {
             }
 
             $result .= "
-            <div class='list-container' id='$user->username'>
+            <div class='list-container' id='section_$user->username'>
                 <div class='list-section' style='width: 10%'>$user->firstname</div>
                 <div class='list-section' style='width: 10%'>$user->lastname</div>
                 <div class='list-section' style='width: 10%'>$user->username</div>
