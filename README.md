@@ -14,6 +14,8 @@ An administration interface allows admins and organizers of the journal club to 
 to export/back-up the database, to configure the application (frequency of email notifications, etc.).
 
 ##License:
+Copyright &copy; 2014 Florian Perdreau
+
 *Journal Club Manager* is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
