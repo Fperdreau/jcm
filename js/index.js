@@ -347,10 +347,6 @@ $( document ).ready(function() {
                     var jc_day = result.jc_day;
                     var booked_dates = result.booked_dates;
                     var selected_date = $('input#selected_date').val();
-
-                    console.log("returned result:"+booked_dates);
-                    console.log("returned dates:"+selected_date);
-
                     inititdatepicker(jc_day,selected_date,booked_dates);
                 }
             });

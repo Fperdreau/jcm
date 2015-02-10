@@ -27,7 +27,7 @@ function check_login($status=null) {
 			$cond = $cond || $_SESSION['status'] != $status;
 		}
 	}
-	
+
     if ($cond) {
         $result = "
 		    <div id='content'>
@@ -43,11 +43,7 @@ function check_login($status=null) {
 // Generate submission form and automatically fill it up with data provided by presclass object.
 function displayform($user,$presclass,$submit="submit") {
     $config = new site_config('get');
-    if ($presclass->date != "") {
-        $date = $presclass->date;
-    } else {
-        $date = date('Y-m-d');
-    }
+    $date = $presclass->date;
 
     if ($presclass->link != "") {
         $upload_form = "
@@ -79,9 +75,9 @@ function displayform($user,$presclass,$submit="submit") {
     return "
     <div class='feedback'></div>
     <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
-        <input type='hidden' name='selected_date' id='selected_date' value='$date'/>    
+        <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
         <input type='hidden' name='$submit' id='$submit' value='$submit'/>
-        
+
         $idpress
         <label for='type'>Type</label>
             <select name='type' id='type'>
@@ -231,16 +227,16 @@ function exportdbtoxls($tablename) {
             fclose($fp);
         } else {
             $result = "Impossible to write";
-	        echo json_encode($result);		
+	        echo json_encode($result);
 			exit;
         }
     } else {
         $result = "Impossible to open the file";
         echo json_encode($result);
         exit;
-    }	
+    }
     chmod($xls_filename,0644);
-	
+
     return $xls_filename;
 }
 

@@ -1,7 +1,7 @@
 
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau, Radboud University Nijmegen
 =======
 This file is part of RankMyDrawings.
 
