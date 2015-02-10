@@ -27,6 +27,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
+###External sources
 *Journal Club Manager* also depends on external free softwares:
 - PHPMailer, Copyright (c) 2014 Marcus Bointon, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
 - html2text, Copyright (c) 2010 Jevon Wright and others, licenced under ther [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").

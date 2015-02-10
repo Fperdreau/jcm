@@ -57,7 +57,6 @@ if (empty($_SESSION['logok'])) {
         <link type="text/css" rel="stylesheet" href="css/modal_style.css" />
         <link type='text/css' rel="stylesheet" href="css/datepicker.css"/>
 
-
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
