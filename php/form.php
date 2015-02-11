@@ -30,20 +30,27 @@ $db_set = new DB_set();
 if (!empty($_POST['get_calendar_param'])) {
 	$booked = $db_set -> getinfo($presentation_table,"date"); // Get booked out dates from db
 	$formatdate = array();
+    $nb = array();
 	foreach($booked as $date) {
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
 	    $month = $fdate[1];
 	    $year = $fdate[0];
 	    $formatdate[] = "$day-$month-$year";
+
+        $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
+        $req = $db_set->send_query($sql);
+        $nb[] = count(mysqli_fecth_array($req));
 	}
 
 	$js_formatdate = json_encode($formatdate);
-
 	$config = new site_config('get');
-	$jcday = $config->jc_day;
 
-	$result = array("jc_day"=>$jcday,"booked_dates"=>$formatdate);
+	$result = array(
+        "jc_day"=>$config->jcday,
+        "max_session_day" => $config->max_session_day,
+        "booked_dates" => $formatdate,
+        "nb" => $nb);
 	echo json_encode($result);
 }
 

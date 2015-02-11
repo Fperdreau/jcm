@@ -83,9 +83,9 @@ var send_verifmail = function(email) {
 };
 
 // initialize jQuery-UI Calendar
-var inititdatepicker = function(jc_day,selected_date,the_selected_dates) {
+var inititdatepicker = function(jc_day,selected,booked,max_nb_session) {
     $('#datepicker').datepicker({
-        defaultDate: selected_date,
+        defaultDate: selected,
         firstDay: 1,
         dateFormat: 'yy-mm-dd',
         inline: true,
@@ -93,9 +93,14 @@ var inititdatepicker = function(jc_day,selected_date,the_selected_dates) {
         beforeShowDay: function(date) {
             var day = date.getDay();
             var days = new Array("sunday","monday","tuesday","wednesday","thursday","friday","saturday");
-            if( ($.inArray($.datepicker.formatDate('dd-mm-yy',date), the_selected_dates) > -1) && (days[day] == jc_day)) {
-                return [false,"bookedday","Booked out"];
-            } else if( !($.inArray($.datepicker.formatDate('dd-mm-yy',date), the_selected_dates) > -1) && (days[day] == jc_day)) {
+            if( ($.inArray($.datepicker.formatDate('dd-mm-yy',date), booked.dates) > -1) && (days[day] == jc_day)) {
+                if (booked.nb[day] >= max_nb_session) {
+                    var remain = max_nb_session - booked.nb[day];
+                    return [false,"bookedday","Booked out"];
+                } else {
+                    return [true,"bookedday",remain+" session(s) available"]
+                }
+            } else if( !($.inArray($.datepicker.formatDate('dd-mm-yy',date), booked.dates) > -1) && (days[day] == jc_day)) {
                 return [true,"jcday","available"];
             } else {
                 return [false,"","Not a journal club day"];
