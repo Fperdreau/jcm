@@ -27,7 +27,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
         public $dbprefix = "";
 
         function __construct() {
-            require($_SESSION['path_to_app'].'admin/conf/config.php');
+            require($_SESSION['path_to_app'].'config/config.php');
             $this->username = $username;
             $this->host = $host;
             $this->dbname = $dbname;
@@ -66,6 +66,12 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
                 self::bdd_close();
                 return $req;
             }
+        }
+
+        function escape_query($query) {
+            $bdd = self::bdd_connect();
+            return mysqli_real_escape_string($bdd,$query);
+            self::bdd_close();
         }
 
 		public function createtable($table_name,$cols_name,$opt = 0) {

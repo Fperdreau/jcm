@@ -40,7 +40,7 @@ class presclass {
 
     public function get($id_pres) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $sql = "SELECT * FROM $presentation_table WHERE id_pres='$id_pres'";
@@ -82,7 +82,7 @@ class presclass {
     function make($post){
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'users.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $class_vars = get_class_vars("presclass");
         $db_set = new DB_set();
@@ -128,7 +128,7 @@ class presclass {
     // Create an ID for the new presentation
     function create_presID() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $pres_id = date('Ymd').rand(1,10000);
 
@@ -143,7 +143,7 @@ class presclass {
     // Update a presentation (new info)
     function update($post,$id_pres=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
 
         if (null!=$id_pres) {
@@ -197,7 +197,7 @@ class presclass {
     // Delete a presentation
     function delete_pres($pres_id) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         self::get($pres_id);
 
@@ -224,7 +224,7 @@ class presclass {
     // Check if presentation exists in the database
     function pres_exist($prov_pressname) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $presslist = $db_set -> getinfo($presentation_table,'title');
@@ -238,7 +238,7 @@ class presclass {
     // Check if the date of presentation is already booked
     function date_exist($date) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         if ($this->id_pres == "") {
             $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
@@ -257,7 +257,7 @@ class presclass {
     // Get the upcoming presentation
     function get_nextpresentation() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $db_set->bdd_connect();
         $sql = "SELECT id_pres FROM $presentation_table WHERE type!='wishlist' and presented=0 and date>=CURDATE() ORDER BY date ASC";
@@ -277,7 +277,7 @@ class presclass {
     // Display the upcoming presentation(home page/mail)
     function display_nextpresentation() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         if (self :: get_nextpresentation()) {
             $link = "./uploads/".$this->link;
             $nextcontent = "
@@ -303,11 +303,11 @@ class presclass {
     public function get_futuresession($nsession = 4,$mail=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes']."site_config.php");
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         // Get next journal club days
         $config = new site_config();
-        $config->get_config();
+        $config->get();
         $jcday = $config->jc_day; // Journal club day
         $today = strtotime("now");
         $year = date('Y'); // Current year
@@ -383,7 +383,7 @@ class presclass {
     // Collect years of presentations present in the database
     function get_years() {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $dates = $db_set -> getinfo($presentation_table,'date',array('type'),array("'wishlist'"),array('!='));
@@ -415,7 +415,7 @@ class presclass {
     // Get list of publications (sorted)
     function getpublicationlist($filter = NULL,$user_fullname = NULL) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $sql = "SELECT id_pres FROM $presentation_table WHERE ";
@@ -472,10 +472,10 @@ class presclass {
     function getwishlist($number = null,$mail = false) {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require_once($_SESSION['path_to_app'].'/includes/site_config.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $config = new site_config();
-        $config->get_config();
+        $config->get();
 
         $db_set = new DB_set();
         $sql = "SELECT id_pres FROM $presentation_table WHERE type='wishlist' ORDER BY date DESC";
@@ -514,7 +514,7 @@ class presclass {
     // Generate wish list (option menu)
     function generate_selectwishlist() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();

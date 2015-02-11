@@ -17,32 +17,39 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-session_start();
+@session_start();
 date_default_timezone_set('Europe/Paris');
 
 // Includes required files (classes)
 include_once($_SESSION['path_to_includes'].'includes.php');
 
+// Create a database object
 $db_set = new DB_set();
 
-// Get booked dates for calendar
+// Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
 	$booked = $db_set -> getinfo($presentation_table,"date"); // Get booked out dates from db
 	$formatdate = array();
+    $nb_pres = array();
 	foreach($booked as $date) {
+        // Count how many presentations there are for this day
+        $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
+        $req = $db_set->send_query($sql);
+        $pres = mysqli_fetch_array($req);
+
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
 	    $month = $fdate[1];
 	    $year = $fdate[0];
+
 	    $formatdate[] = "$day-$month-$year";
+        $nb_pres[] = count($pres)-1;
 	}
 
-	$js_formatdate = json_encode($formatdate);
-
+    // Get application settings
 	$config = new site_config('get');
-	$jcday = $config->jc_day;
 
-	$result = array("jc_day"=>$jcday,"booked_dates"=>$formatdate);
+	$result = array("max_nb_session"=>$config->max_nb_session,"jc_day"=>$config->jc_day,"today"=>date('d-m-Y'),"booked"=>$formatdate,"nb"=>$nb_pres);
 	echo json_encode($result);
 }
 
@@ -74,7 +81,7 @@ if (!empty($_POST['login'])) {
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
     $result = "nothing";
-    if ($user -> getuserinfo($username) == true) {
+    if ($user -> get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $_SESSION['logok'] = true;
@@ -118,7 +125,7 @@ if (!empty($_POST['register'])) {
             }
         }
     }
-    if ($user -> create_user($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
+    if ($user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
         $result = "created";
     } else {
         $result = "exist";
@@ -131,7 +138,7 @@ if (!empty($_POST['delete_user'])) {
     $user = new users();
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
-    if ($user -> getuserinfo($username) == true) {
+    if ($user -> get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $user ->delete_user($username);
@@ -158,7 +165,7 @@ if (!empty($_POST['change_pw'])) {
 
     if ($user->mail_exist($email)) {
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
-        $user->getuserinfo($username);
+        $user->get($username);
         $reset_url = $mail->site_url."index.php?page=renew_pwd&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
@@ -192,7 +199,7 @@ if (!empty($_POST['conf_changepw'])) {
     if ($password != $conf_password) {
         $result = "mismatch";
     } else {
-        $user->getuserinfo($username);
+        $user->get($username);
         $crypt_pwd = $user->crypt_pwd($password);
         $db_set->updatecontent($users_table,"password","'$crypt_pwd'",array("username"),array("'$username'"));
         $result = "changed";
@@ -204,7 +211,7 @@ if (!empty($_POST['conf_changepw'])) {
 // Process user modifications
 if (!empty($_POST['user_modify'])) {
     $user = new users($_POST['username']);
-    if ($user -> updateuserinfo($_POST)) {
+    if ($user -> update($_POST)) {
         $result = "<p id='success'>The modification has been made!</p>";
     } else {
         $result = "<p id='warning'>Something went wrong!</p>";
@@ -404,7 +411,7 @@ if (!empty($_POST['modify_status'])) {
 
 if (!empty($_POST['config_modify'])) {
     $config = new site_config('get');
-    $config->update_config($_POST);
+    $config->update($_POST);
     $result = "<p id='success'>Modifications have been made!</p>";
     echo json_encode($result);
 }

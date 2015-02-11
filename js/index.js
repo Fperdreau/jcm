@@ -82,9 +82,9 @@ var send_verifmail = function(email) {
 };
 
 // initialize jQuery-UI Calendar
-var inititdatepicker = function(jc_day,selected_date,the_selected_dates) {
+var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb) {
     $('#datepicker').datepicker({
-        defaultDate: selected_date,
+        defaultDate: selected,
         firstDay: 1,
         dateFormat: 'yy-mm-dd',
         inline: true,
@@ -92,48 +92,24 @@ var inititdatepicker = function(jc_day,selected_date,the_selected_dates) {
         beforeShowDay: function(date) {
             var day = date.getDay();
             var days = new Array("sunday","monday","tuesday","wednesday","thursday","friday","saturday");
-            if( ($.inArray($.datepicker.formatDate('dd-mm-yy',date), the_selected_dates) > -1) && (days[day] == jc_day)) {
-                return [false,"bookedday","Booked out"];
-            } else if( !($.inArray($.datepicker.formatDate('dd-mm-yy',date), the_selected_dates) > -1) && (days[day] == jc_day)) {
-                return [true,"jcday","available"];
+            var cur_date = $.datepicker.formatDate('dd-mm-yy',date);
+            var today = new Date();
+            if (days[day] == jc_day && date >= today) {
+                var find = $.inArray(cur_date,booked);
+                if (find > -1) { // If the date is booked
+                    if (nb[find] < max_nb_session) {
+                        return [true,"jcday_rem",max_nb_session-nb[find]+" presentation(s) available"];
+                    } else {
+                        return [false,"bookedday","Booked out"];
+                    }
+                } else {
+                    return [true,"jcday",max_nb_session+" presentation(s) available"];
+                }
             } else {
                 return [false,"","Not a journal club day"];
             }
         }
     });
-};
-
-// Spin animation when a page is loading
-var loadspin =  function (action) {
-    if (typeof action == undefined) {
-        action = "start";
-    }
-    var opts = {
-        lines: 13, // The number of lines to draw
-        length: 20, // The length of each line
-        width: 10, // The line thickness
-        radius: 30, // The radius of the inner circle
-        corners: 1, // Corner roundness (0..1)
-        rotate: 0, // The rotation offset
-        direction: 1, // 1: clockwise, -1: counterclockwise
-        color: '#000', // #rgb or #rrggbb or array of colors
-        speed: 1, // Rounds per second
-        trail: 60, // Afterglow percentage
-        shadow: false, // Whether to render a shadow
-        hwaccel: false, // Whether to use hardware acceleration
-        className: 'spinner', // The CSS class to assign to the spinner
-        zIndex: 2e9, // The z-index (defaults to 2000000000)
-        top: '50%', // Top position relative to parent
-        left: '50%' // Left position relative to parent
-    };
-    var target = document.getElementById('loading');
-    var spinner = new Spinner(opts).spin(target);
-
-    if (action == "start") {
-    } else {
-        spinner.stop(target);
-    }
-
 };
 
 // Set up tinyMCE (rich-text textarea)
@@ -172,13 +148,12 @@ var loadpageonclick = function(pagetoload,param) {
         jQuery.ajax({
             url: 'pages/'+pagetoload+'.php',
             type: 'GET',
-            async: true,
+            async: false,
             data: param,
             success: function(data){
                 var json = jQuery.parseJSON(data);
                 history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload);
 
-                $('#loading').hide();
                 $('#pagecontent')
                     .html('<div>'+json+'</div>')
                     .fadeIn('slow');
@@ -196,7 +171,6 @@ var loadpageonclick = function(pagetoload,param) {
                 var json = jQuery.parseJSON(data);
                 history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload+"&"+param);
 
-                $('#loading').hide();
                 $('#pagecontent')
                     .html('<div>'+json+'</div>')
                     .fadeIn('slow');
@@ -236,9 +210,9 @@ var getParams = function() {
 
 $( document ).ready(function() {
 
-    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Main body
-     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
 
         .ready(function() {
@@ -263,9 +237,9 @@ $( document ).ready(function() {
             }
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Header menu/Sub-menu
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
         // Display/Hide sub-menu
         // Main menu sections
@@ -343,11 +317,8 @@ $( document ).ready(function() {
                 data: {get_calendar_param: true},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-
-                    var jc_day = result.jc_day;
-                    var booked_dates = result.booked_dates;
                     var selected_date = $('input#selected_date').val();
-                    inititdatepicker(jc_day,selected_date,booked_dates);
+                    inititdatepicker(result.jc_day,result.max_nb_session,selected_date,result.booked,result.nb);
                 }
             });
         })
@@ -538,7 +509,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     mailing_send: true,
                     spec_head: spec_head,
@@ -566,7 +537,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     modify_status: true,
                     username: username,
@@ -599,7 +570,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     post_send: true,
                     fullname: fullname,
@@ -662,6 +633,15 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Presentation submission
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         // Select submission type
+         .on('change','select#type',function(e) {
+            var type = $(this).val();
+            $('#guest').hide();
+            if (type == "guest") {
+                $('#guest').fadeIn();
+            }
+         })
+
         // Submit a presentation
         .on('click','.submit',function(e) {
             e.preventDefault();
@@ -671,8 +651,6 @@ $( document ).ready(function() {
             var authors = $("input#authors").val();
             var orator = $("input#orator").val();
             var link = $("input#link").val();
-            console.log('uploaded file:'+link);
-            console.log('orator: '+orator);
 
             if (type == "") {
                 showfeedback('<p id="warning">This field is required</p>');
@@ -686,7 +664,7 @@ $( document ).ready(function() {
                 return false;
             }
 
-            if (date == "" && type !== "wishlist") {
+            if ((date == "0000-00-00" || date == "") && type !== "wishlist") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#datepicker").focus();
                 return false;
@@ -825,7 +803,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     contact_send: true,
                     admin_mail: admin_mail,
@@ -1058,7 +1036,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {username: username,
                     password: password,
                     delete_user: true},
@@ -1098,7 +1076,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {username: username,
                     password: password,
                     login: true
@@ -1187,7 +1165,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     firstname: firstname,
                     lastname: lastname,
@@ -1201,11 +1179,9 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == "created") {
-                        $('.user_register').html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>');
-                    } else if (result === "mismatch") {
-                        showfeedback('<p id="warning">Passwords must match</p>');
-                    } else if (result === "wrong_email") {
-                        showfeedback('<p id="warning">Invalid email address</p>');
+                        $('.user_register')
+                            .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
+                            .show();
                     } else if (result === "exist") {
                         showfeedback('<p id="warning">This username/email address already exist in our database</p>');
                     }

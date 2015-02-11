@@ -30,7 +30,7 @@ class posts {
 
     public function add_post($new_post,$user_fullname) {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $bdd = $db_set->bdd_connect();
         $this->content = mysqli_real_escape_string($bdd,$new_post);
@@ -41,7 +41,7 @@ class posts {
 
     public function getlastnews() {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $sql = "select date,post,username from $post_table where date = (select max(date) from $post_table)";

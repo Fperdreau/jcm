@@ -144,3 +144,11 @@ label.label {
     padding: 10px 0 10px 0;
 }
 
+label.pub_label {
+    display: inline-block;
+    min-width: 70px;
+    width: auto;
+    text-align: right;
+    padding: 10px 0 10px 0;
+}
+

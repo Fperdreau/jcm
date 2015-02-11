@@ -66,7 +66,7 @@ function displayform($user,$presclass,$submit="submit") {
     }
 
     if ($submit != "suggest") {
-        $dateinput = "<label for='date'>Date </label><input type='text' id='datepicker' name='date' value='$date' size='10'/></br>";
+        $dateinput = "<label for='date' class='pub_label'>Date </label><input type='text' id='datepicker' name='date' value='$date' size='10'/></br>";
     } else {
         $dateinput = "";
     }
@@ -78,7 +78,7 @@ function displayform($user,$presclass,$submit="submit") {
         <input type='hidden' name='$submit' id='$submit' value='$submit'/>
 
         $idpress
-        <label for='type'>Type</label>
+        <label for='type' class='pub_label'>Type</label>
             <select name='type' id='type'>
                 <option value='$presclass->type' selected='selected'>$presclass->type</option>
                 <option value='paper'>Paper</option>
@@ -87,10 +87,12 @@ function displayform($user,$presclass,$submit="submit") {
                 <option value='guest'>Guest</option>
             </select>
         $dateinput
-        <label for='orator'>Speaker (only for guest speakers) </label><input type='text' id='orator' name='orator' size='30%'/></br>
-        <label for='title'>Title </label><input type='text' id='title' name='title' value='$presclass->title' size='90%'/><br>
-        <label for='summary'>Abstract </label><br><textarea name='summary' id='summary'>$presclass->summary</textarea><br>
-        <label for='authors'>Authors </label><input type='text' id='authors' name='authors' value='$presclass->authors' size='80%'/></br>
+        <div id='guest' style='display: none;'>
+        <label for='orator' class='pub_label'>Speaker's name</label><input type='text' id='orator' name='orator' size='30%'/>
+        </div>
+        <label for='title' class='pub_label'>Title </label><input type='text' id='title' name='title' value='$presclass->title' size='90%'/><br>
+        <label for='summary' class='pub_label'>Abstract </label><br><textarea name='summary' id='summary'>$presclass->summary</textarea><br>
+        <label for='authors' class='pub_label'>Authors </label><input type='text' id='authors' name='authors' value='$presclass->authors' size='80%'/></br>
         <div style='float: right ; bottom: 5px;'><input type='submit' name='$submit' value='Apply' id='submit' class='$submit'/></div>
     </form>
 	<div class='upload_form'>
@@ -248,7 +250,7 @@ function backup_db(){
     // Declare classes
     $db_set = new DB_set();
     $config = new site_config();
-    $config->get_config();
+    $config->get();
 
     // Create Backup Folder
     $mysqlSaveDir = $_SESSION['path_to_app'].'backup/Mysql';
@@ -318,7 +320,7 @@ function mail_backup($backupfile) {
     require_once($_SESSION['path_to_includes'].'myMail.php');
     $mail = new myMail();
     $admin = new users();
-    $admin->getuserinfo('admin');
+    $admin->get('admin');
 
     // Send backup via email
     $content = "

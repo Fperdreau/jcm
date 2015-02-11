@@ -29,7 +29,7 @@ require_once($_SESSION['path_to_includes']."site_config.php");
 include_once($_SESSION['path_to_includes'].'functions.php');
 
 // Get site config
-$config_file = $_SESSION['path_to_app']."admin/conf/config.php";
+$config_file = $_SESSION['path_to_app']."config/config.php";
 if (is_file($config_file)) {
     require_once($config_file);
 }

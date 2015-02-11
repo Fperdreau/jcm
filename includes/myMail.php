@@ -33,12 +33,12 @@ class myMail {
     public $site_url = "";
 
     function __construct() {
-        self::get_config();
+        self::get();
     }
 
-    public function get_config() {
+    public function get() {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "select variable,value from $config_table";
         $req = $db_set->send_query($sql);
@@ -53,9 +53,9 @@ class myMail {
         return true;
     }
 
-    public function update_config($post) {
+    public function update($post) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $bdd = $db_set->bdd_connect();
         $class_vars = get_class_vars("site_config");
@@ -73,7 +73,7 @@ class myMail {
             }
         }
 
-        self::get_config();
+        self::get();
         return true;
     }
 
@@ -95,7 +95,7 @@ class myMail {
 
         Hello,<br><br>
 
-        <p><strong>$username</strong> wants to create an account.</p>
+        <p><b>$username</b> wants to create an account.</p>
 
         <p><a href='$authorize_url'>Authorize</a><br>
         or<br>
@@ -114,7 +114,7 @@ class myMail {
         require_once($_SESSION['path_to_includes'].'site_config.php');
         require_once($_SESSION['path_to_includes'].'users.php');
         $user = new users();
-        $user->getuserinfo($username);
+        $user->get($username);
 
         $subject = 'Signup | Confirmation'; // Give the email a subject
         $login_url = $this->site_url."index.php?page=login";
@@ -141,7 +141,7 @@ class myMail {
 
     function get_mailinglist($type=null) {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "select username,email from $users_table where active=1";
         if (null!=$type) {
@@ -170,7 +170,7 @@ class myMail {
         require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.phpmailer.php');
         require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.smtp.php');
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $mail = new PHPMailer();
 
@@ -232,7 +232,7 @@ class myMail {
         require_once($_SESSION['path_to_includes']."presclass.php");
         require_once($_SESSION['path_to_includes']."site_config.php");
 
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
@@ -346,12 +346,12 @@ class myMail {
         require_once($_SESSION['path_to_includes']."presclass.php");
         require_once($_SESSION['path_to_includes']."site_config.php");
 
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
         $config = new site_config();
-        $config->get_config();
+        $config->get();
         $nextpub = new presclass();
         $nextpub->get_nextpresentation();
 

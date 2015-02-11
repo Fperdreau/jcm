@@ -24,7 +24,7 @@ check_login();
 // Declare classes
 $presclass = new presclass();
 $user = new users();
-$user->getuserinfo($_SESSION['username']);
+$user->get($_SESSION['username']);
 
 // Get options
 $op = htmlspecialchars($_GET['op']);

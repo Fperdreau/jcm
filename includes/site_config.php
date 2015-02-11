@@ -32,6 +32,7 @@ class site_config {
     public $jc_time_from = "17:00";
     public $jc_time_to = "18:00";
     public $notification = "sunday";
+    public $max_nb_session = 2;
     public $reminder = 1;
     // Lab info
     public $lab_name = "Your Lab name";
@@ -53,37 +54,34 @@ class site_config {
     // Constructor
     public function __construct($get = null) {
         if ($get == 'get') {
-            self::get_config();
+            self::get();
         }
     }
 
-    public function get_config() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."admin/conf/config.php");
+    public function get() {
+        require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
         $sql = "select variable,value from $config_table";
         $req = $db_set->send_query($sql);
         $class_vars = get_class_vars("site_config");
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = $row["value"];
-            if (array_key_exists($varname,$class_vars)) {
-                $this->$varname = $value;
-            }
+            $value = htmlspecialchars($row['value']);
+            $this->$varname = $value;
         }
         return true;
     }
 
     // Update config
-    public function update_config($post) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."admin/conf/config.php");
+    public function update($post) {
+        require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
+
         $class_vars = get_class_vars("site_config");
 		$class_keys = array_keys($class_vars);
         foreach ($post as $name => $value) {
             if (in_array($name,$class_keys)) {
-                $escape_value = htmlspecialchars($value);
+                $escape_value = $db_set->escape_query($value);
 				$exist = $db_set->getinfo($config_table,"variable",array("variable"),array("'$name'"));
 	            if (!empty($exist)) {
 	                $db_set->updatecontent($config_table,"value","'$escape_value'",array("variable"),array("'$name'"));
@@ -92,14 +90,14 @@ class site_config {
 	            }
 			}
         }
-        self::get_config();
+        self::get();
         return true;
     }
 
     // Get organizers list
     function getadmin($admin=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."admin/conf/config.php");
+        require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
         $sql = "SELECT username,password,firstname,lastname,position,email,status FROM $users_table WHERE status='organizer'";
         if (null != $admin) {
@@ -119,7 +117,7 @@ class site_config {
     function generateuserslist($filter = null) {
         require_once($_SESSION['path_to_includes'].'users.php');
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
 		if (null == $filter) {
 			$filter = 'lastname';
@@ -147,10 +145,11 @@ class site_config {
             $nbpres = $user->get_nbpres();
             // Compute age
             if ($user->active == 1) {
-                $from = strtotime($user->date);
-                $to   = date('Y-m-d');
+                $from = $user->date;
+                $to   = date('Y-m-d h:i:s');
                 $diff = $to-$from;
 	            $cur_age = date('d',$diff);
+
 	            $cur_trage = "$cur_age days ago";
 	            if ($cur_age >31) {
 	                $cur_age = date('m',$diff);

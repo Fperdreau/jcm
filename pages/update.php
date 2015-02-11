@@ -32,14 +32,14 @@ $version = "1.2";
 
 if (!empty($_POST['proceed'])) {
     // Get site config
-    $config_file = $_SESSION['path_to_app']."/admin/conf/config.php";
+    $config_file = $_SESSION['path_to_app'].'config/config.php';
     if (file_exists($config_file)) {
         require_once($config_file);
     } else {
         die(json_encode("<p id='warning'>Admin configuration file is missing</p>"));
     }
 
-    $config->update_config($_POST);
+    $config->update($_POST);
 
     /////////// Update database ///////////
     // Connect to database
@@ -71,7 +71,7 @@ if (!empty($_POST['proceed'])) {
         if ($data['date'] == NULL) {
             $post['date'] = date('Y-m-d');
         }
-        $user->updateuserinfo($post);
+        $user->update($post);
     }
 
     // Update presentation table
