@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -33,14 +33,14 @@ function mailing() {
     $config = new site_config('get');
     $pub = new presclass();
     $pub->get_nextpresentation();
-	
+
 	// Number of users
     $nusers = count($mail->get_mailinglist("reminder"));
-	
+
 	// Compare date of the next presentation to today
     $cur_date = strtolower(date("Y-m-d"));
     $reminder_day = date("Y-m-d",strtotime($pub->date." - $config->reminder days"));
-		
+
     if ($cur_date == $reminder_day) {
         $content = $mail->reminder_Mail();
         $body = $mail -> formatmail($content['body']);

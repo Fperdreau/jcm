@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -42,21 +42,21 @@ class posts {
     public function getlastnews() {
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
-		
+
         $db_set = new DB_set();
         $sql = "select date,post,username from $post_table where date = (select max(date) from $post_table)";
         $req = $db_set->send_query($sql);
-        $lastnews = mysqli_fetch_array($req);		
+        $lastnews = mysqli_fetch_array($req);
 		if ($lastnews['post'] != "") {
 	        $this->content = htmlspecialchars_decode($lastnews['post']);
 	        $this->date = $lastnews['date'];
 	        $this->username = $lastnews['username'];
 	        $this->day = date('Y-m-d',strtotime($this->date));
-	        $this->time = date('H:i',strtotime($this->date));	
-			return true;	
+	        $this->time = date('H:i',strtotime($this->date));
+			return true;
 		} else {
 			return false;
 		}
     }
 
-} 
+}

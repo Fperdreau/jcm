@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 	            	<option value='firstname'>First name</option>
 	            	<option value='lastname'>Last name</option>
 	            	<option value='username'>User name</option>
-	            	<option value='email'>Email</option>	            	
+	            	<option value='email'>Email</option>
 	            	<option value='active'>Activation date</option>
 	            	<option value='status'>Status</option>
 	        	</select>
