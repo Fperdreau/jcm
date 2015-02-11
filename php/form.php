@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -74,7 +75,7 @@ if (!empty($_POST['login'])) {
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
     $result = "nothing";
-    if ($user -> getuserinfo($username) == true) {
+    if ($user -> get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $_SESSION['logok'] = true;
@@ -118,7 +119,7 @@ if (!empty($_POST['register'])) {
             }
         }
     }
-    if ($user -> create_user($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
+    if ($user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
         $result = "created";
     } else {
         $result = "exist";
@@ -131,7 +132,7 @@ if (!empty($_POST['delete_user'])) {
     $user = new users();
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
-    if ($user -> getuserinfo($username) == true) {
+    if ($user -> get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $user ->delete_user($username);
@@ -158,7 +159,7 @@ if (!empty($_POST['change_pw'])) {
 
     if ($user->mail_exist($email)) {
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
-        $user->getuserinfo($username);
+        $user->get($username);
         $reset_url = $mail->site_url."index.php?page=renew_pwd&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
@@ -192,7 +193,7 @@ if (!empty($_POST['conf_changepw'])) {
     if ($password != $conf_password) {
         $result = "mismatch";
     } else {
-        $user->getuserinfo($username);
+        $user->get($username);
         $crypt_pwd = $user->crypt_pwd($password);
         $db_set->updatecontent($users_table,"password","'$crypt_pwd'",array("username"),array("'$username'"));
         $result = "changed";
@@ -204,7 +205,7 @@ if (!empty($_POST['conf_changepw'])) {
 // Process user modifications
 if (!empty($_POST['user_modify'])) {
     $user = new users($_POST['username']);
-    if ($user -> updateuserinfo($_POST)) {
+    if ($user -> update($_POST)) {
         $result = "<p id='success'>The modification has been made!</p>";
     } else {
         $result = "<p id='warning'>Something went wrong!</p>";
@@ -404,7 +405,7 @@ if (!empty($_POST['modify_status'])) {
 
 if (!empty($_POST['config_modify'])) {
     $config = new site_config('get');
-    $config->update_config($_POST);
+    $config->update($_POST);
     $result = "<p id='success'>Modifications have been made!</p>";
     echo json_encode($result);
 }

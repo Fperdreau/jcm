@@ -1,23 +1,21 @@
-
 <?php
 /*
-Copyright © 2014, Florian Perdreau, Radboud University Nijmegen
-=======
-This file is part of RankMyDrawings.
+Copyright © 2014, Florian Perdreau
 
-RankMyDrawings is free software: you can redistribute it and/or modify
+This file is part of Journal Club Manager.
+
+Journal Club Manager is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-RankMyDrawings is distributed in the hope that it will be useful,
+Journal Club Manager is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
-along with RankMyDrawings.  If not, see <http://www.gnu.org/licenses/>.
-
+along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 session_set_cookie_params(3600);
@@ -44,7 +42,7 @@ if (!empty($_POST['inst_admin'])) {
     $email = htmlspecialchars($_POST['email']);
 
     $user = new users();
-    $adduser = $user -> create_user($username,$pass_crypte,"","","",$email,"admin");
+    $adduser = $user -> make($username,$pass_crypte,"","","",$email,"admin");
     $result = "<p id='success'>Admin account created</p>";
 
     echo json_encode($result);
@@ -164,7 +162,7 @@ if (!empty($_POST['install_db'])) {
     	$result .= "<p id='success'> '$config_table' created</p>";
     }
 	$config = new site_config();
-    $config->update_config($_POST);
+    $config->update($_POST);
 	$result .= "<p id='success'> '$config_table' updated</p>";
 
     // Create presentations table
@@ -237,10 +235,10 @@ if (!empty($_POST['getpagecontent'])) {
 		$operation = "
 		<div id='form' class='admin_login'>
 			<form method='post' id='admin_creation'>
-				<label for='admin_username' class='label'>UserName : </label><input class='field' id='admin_username' type='text' name='admin_username'><br/>
-				<label for='admin_password' class='label'>Password : </label><input class='field' id='admin_password' type='password' name='admin_password'><br/>
+				<label for='admin_username' class='label'>UserName : </label><input class='field' id='admin_username' type='text' name='username'><br/>
+				<label for='admin_password' class='label'>Password : </label><input class='field' id='admin_password' type='password' name='password'><br/>
 				<label for='admin_confpassword' class='label'>Confirm password: </label><input class='field' id='admin_confpassword' type='password' name='admin_confpassword'><br/>
-				<label for='admin_email' class='label'>Email: </label><input class='field' type='text' name='admin_email' id='admin_email'><br/>
+				<label for='admin_email' class='label'>Email: </label><input class='field' type='text' name='email' id='admin_email'><br/>
 				<input type='hidden' name='inst_admin' value='true' />
 				<input type='submit' name='submit' value='Next' id='submit' class='admin_creation'>
 			</form>
@@ -509,3 +507,4 @@ if (!empty($_POST['getpagecontent'])) {
         </div>
     </body>
 </html>
+

@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -65,9 +66,7 @@ $result = "
 
             <div class='section_header'>Map</div>
             <div class='section_content'>
-                <iframe src='https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2625.1625847749524!2d2.3307604!3d4
-                8.85511!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e671d7b93cd93d%3A0xb8d9c2989da20197!2sRue+des+Saints-P
-                %C3%A8res%2C+Paris!5e0!3m2!1sfr!2sfr!4v1411491314141' width='100%' height='auto' frameborder='0' style='border:0'></iframe>
+                <iframe src='$config->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'></iframe>
             </div>
         </div>
 

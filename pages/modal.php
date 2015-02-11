@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -104,9 +105,4 @@ echo "
 		<div class='pub_modify'></div>
 
     </section>
-</div>
-
-
-    ";
-
-
+</div>";

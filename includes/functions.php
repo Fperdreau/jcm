@@ -1,7 +1,7 @@
-
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -249,7 +249,7 @@ function backup_db(){
     // Declare classes
     $db_set = new DB_set();
     $config = new site_config();
-    $config->get_config();
+    $config->get();
 
     // Create Backup Folder
     $mysqlSaveDir = $_SESSION['path_to_app'].'backup/Mysql';
@@ -319,7 +319,7 @@ function mail_backup($backupfile) {
     require_once($_SESSION['path_to_includes'].'myMail.php');
     $mail = new myMail();
     $admin = new users();
-    $admin->getuserinfo('admin');
+    $admin->get('admin');
 
     // Send backup via email
     $content = "

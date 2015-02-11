@@ -307,7 +307,7 @@ class presclass {
 
         // Get next journal club days
         $config = new site_config();
-        $config->get_config();
+        $config->get();
         $jcday = $config->jc_day; // Journal club day
         $today = strtotime("now");
         $year = date('Y'); // Current year
@@ -475,7 +475,7 @@ class presclass {
         require($_SESSION['path_to_app']."/admin/conf/config.php");
 
         $config = new site_config();
-        $config->get_config();
+        $config->get();
 
         $db_set = new DB_set();
         $sql = "SELECT id_pres FROM $presentation_table WHERE type='wishlist' ORDER BY date DESC";

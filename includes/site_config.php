@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -39,7 +40,9 @@ class site_config {
     public $lab_postcode = "Your Lab postal code";
     public $lab_city = "Your Lab city";
     public $lab_country = "Your Lab country";
-    public $lab_mapurl = "";
+    public $lab_mapurl = "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2625.1625847749524!2d2.3307604!3d4
+                8.85511!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e671d7b93cd93d%3A0xb8d9c2989da20197!2sRue+des+Saints-P
+                %C3%A8res%2C+Paris!5e0!3m2!1sfr!2sfr!4v1411491314141";
     // Mail host information
     public $mail_from = "jc@journalclub.com";
     public $mail_from_name = "Journal Club";
@@ -53,11 +56,11 @@ class site_config {
     // Constructor
     public function __construct($get = null) {
         if ($get == 'get') {
-            self::get_config();
+            self::get();
         }
     }
 
-    public function get_config() {
+    public function get() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."admin/conf/config.php");
         $db_set = new DB_set();
@@ -75,7 +78,7 @@ class site_config {
     }
 
     // Update config
-    public function update_config($post) {
+    public function update($post) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."admin/conf/config.php");
         $db_set = new DB_set();
@@ -92,7 +95,7 @@ class site_config {
 	            }
 			}
         }
-        self::get_config();
+        self::get();
         return true;
     }
 

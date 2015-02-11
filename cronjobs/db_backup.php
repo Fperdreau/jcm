@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -18,8 +19,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 @session_start();
-chdir(dirname(__FILE__));
-$_SESSION['path_to_app'] = '../';
+$_SESSION['app_name'] = basename(dirname(__DIR__);
+$_SESSION['path_to_app'] = dirname($_SESSION['app_name'])."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 date_default_timezone_set('Europe/Paris');
 

@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -18,9 +19,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 session_start();
-$_SESSION['root_path'] = $_SERVER['DOCUMENT_ROOT'];
-$_SESSION['app_name'] = "/jcm/";
-$_SESSION['path_to_app'] = $_SESSION['root_path'].$_SESSION['app_name'];
+$_SESSION['app_name'] = basename(dirname(__DIR__);
+$_SESSION['path_to_app'] = dirname($_SESSION['app_name'])."/";
 $_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 $_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
@@ -46,4 +46,5 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     </div>";
 	
 	echo json_encode($result);
+>>>>>>> af5eb8631e230d4b30840f59ad56113850b383e2
 }

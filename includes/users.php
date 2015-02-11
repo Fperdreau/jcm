@@ -1,6 +1,7 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
+
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -35,12 +36,12 @@ class users {
 
     function __construct($prov_username=null) {
         if ($prov_username != null) {
-            self::getuserinfo($prov_username);
+            self::get($prov_username);
         }
     }
 
     // Create user
-    function create_user($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
+    function make($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
 		$this -> date = date("Y-m-d H:i:s");
         $this -> username = $username;
         $this -> firstname = $firstname;
@@ -96,7 +97,7 @@ class users {
 		}
     }
 
-    function getuserinfo($prov_username) {
+    function get($prov_username) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
 
@@ -137,7 +138,7 @@ class users {
     }
 
     // Update user info
-    function updateuserinfo($post) {
+    function update($post) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
         $db_set = new DB_set();
@@ -150,7 +151,7 @@ class users {
                 $db_set->updatecontent($users_table,"$name","'$value'",array("username"),array("'$this->username'"));
             }
         }
-        self::getuserinfo($this->username);
+        self::get($this->username);
         return true;
     }
 
@@ -194,7 +195,7 @@ class users {
         require($_SESSION['path_to_app']."/admin/conf/config.php");
         $db_set = new DB_set();
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
-        $this->getuserinfo($username);
+        $this->get($username);
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
