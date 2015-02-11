@@ -1,0 +1,444 @@
+/*
+Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+This file is part of Journal Club Manager.
+
+Journal Club Manager is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Journal Club Manager is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+@import url('forms.css');
+
+/* Bodytext */
+html { height: 100%; }
+
+body {
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.2;
+	width: 100%;
+    margin: auto;
+	background-color: #cccccc;
+    -webkit-font-smoothing: antialiased;
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+
+a {
+	text-decoration: none;
+    color: #CF5151;
+}
+
+a:hover {
+    color: #cccccc;
+}
+
+/* Header */
+#mainheader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 10;
+    background-color: #555555;
+    text-align: justify;
+    padding: 0;
+}
+
+.header {
+    width: 100%;
+    background-color: #888888;
+	height: 60px;
+	text-align: justify;
+    margin: 0;
+    padding: 0;
+}
+
+.header_container {
+    position: relative;
+    background-color: #555555;
+    clear: both;
+    width: 1024px;
+    height: 60px;
+    margin: auto;
+}
+
+#title {
+    text-align: left;
+}
+
+#welcome {
+    width: auto;
+    text-align: center;
+    background-color: #333333;
+    border: 1px double #cccccc;
+    padding: 2px;
+    border-radius: 5px;
+}
+
+/* Menu */
+.menu {
+    position: relative;
+    clear: both;
+    width: 1024px;
+    margin: auto;
+    height: 30px;
+    background-color: #cccccc;
+}
+
+.menu-container {
+    position: relative;
+    clear: both;
+    width: 100%;
+    height: 30px;
+    background-color: #333333;
+    box-shadow: 0 2px 2px #555;
+    z-index: 10;
+    text-align: center;
+    margin: auto;
+    padding: 0;
+}
+
+.menu-container > div {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.menu-section {
+    width: 15%; /* Declare your value. Can be in relative units. */
+    height: 100%;
+    text-align: center;
+    font-size: 20px;
+    color: #CF5151;
+}
+
+.menu-section-defaut {
+    background-color: #333333;
+}
+
+.menu-section:hover {
+    cursor: pointer;
+    font-size: 22px;
+    color: #cccccc;
+}
+
+.menu-section-active {
+    background-color: #222222;
+    font-size: 22px;
+    color: #cccccc;
+}
+
+.activepage {
+    font-size: 22px;
+    color: #cccccc;
+}
+
+/* additional menu */
+.addmenu-pres, .addmenu-admin {
+    display: none;
+    position: relative;
+    clear: both;
+    width: auto;
+    height: 30px;
+    background-color: rgba(90,90,90,.9);
+    box-shadow: 0 2px 2px #555;
+    z-index: 10;
+    text-align: center;
+    margin: auto;
+    padding: 0;
+}
+
+.addmenu-pres > div, .addmenu-admin >div {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.addmenu-section {
+    width: 160px; /* Declare your value. Can be in relative units. */
+    height: 100%;
+    text-align: center;
+    font-size: 18px;
+}
+
+#addmenu {
+    text-decoration: none;
+    color: #aaaaaa;
+}
+
+#addmenu:hover {
+    color: #eeeeee;
+}
+
+/* Structure */
+#core {
+    position: relative;
+    z-index: 3;
+    width: 1024px;
+    box-shadow: 0px 0px 12px #555;
+    padding: 0;
+    margin: 0 auto 0 auto;
+    background-color: #eeeeee;
+    min-height: 768px;
+    height: auto !important;
+    height: 100%;
+}
+
+#footer {
+    position: relative;
+    z-index: 0;
+    width: 500px;
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+    padding-top: 5px;
+    padding-bottom: 10px;
+	height: 15px;
+	text-align: center;
+	vertical-align: middle;
+    margin: auto;
+	background-color: rgba(50,50,50,1);
+}
+
+/* Page Content */
+#pagecontent {
+    display: none;
+}
+
+#content {
+    position: relative;
+    padding: 100px 20px;
+    width: 90%;
+    margin: 0 auto;
+    vertical-align: middle;
+}
+
+#loading {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    width:      100%;
+    height: 100%;
+    background: rgba( 0, 0, 0, .7)
+                url('../images/spinner.gif')
+                50% 50%
+                no-repeat;
+}
+
+.page_description {
+    text-align: justify;
+    margin: 10px auto 10px auto;
+    width: 80%;
+    color: #222222;
+    font-style: italic;
+    font-size: 14px; /* Set message font size  */
+    padding: 10px; /* Some padding to make some more space for our text  */
+    background: rgba(207,81,81,.1); /* Add a background color to our status message   */
+    border: 1px solid rgba(207,81,81,.2); /* Add a border arround our status message   */
+}
+
+.section_header {
+    background-color: #CF5151;
+    width: auto;
+    color: #eeeeee;
+    padding: 5px;
+    margin-left: -5px;
+    clear: both;
+    float: left;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    border-bottom: 2px solid #CF5151;
+    margin-top: 20px;
+}
+
+.section_content {
+    line-height: 130%;
+    font-size: 16px;
+    margin: auto 50px auto auto;
+    clear: left;
+    width: 100%;
+    text-align: justify;
+    padding: 10px;
+    border-left: 1px solid #CF5151;
+    background-color: rgba(127,127,127,.1);
+}
+
+.pub_section_content {
+    line-height: 130%;
+    font-size: 16px;
+    margin: auto 50px auto auto;
+    clear: left;
+    width: 100%;
+    text-align: justify;
+    padding: 10px;
+    background-color: rgba(127,127,127,.1);
+}
+
+/* Buttons */
+.operation_button {
+    width: 150px;
+    padding: 5px;
+    text-align: center;
+    background-color: rgba(255,0,0,.2);
+    border-radius: 5px;
+}
+
+.operation_button:hover{
+    background-color: rgba(255,0,0,.5);
+}
+
+.link {
+    background-color: #333333;
+    float: right;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: right;
+    font-weight: bolder;
+}
+
+#author_name {
+    color: #CF5151;
+}
+
+
+/* Archives */
+.current {
+    background: rgba(127,127,127,.3);
+}
+
+.pub_container {
+    background: rgba(200,200,200,.5);
+    width: 100%;
+    padding: 5px;
+    cursor: pointer;
+    height: 30px;
+    vertical-align: middle;
+    line-height: 30px;
+}
+
+.pub_container:hover {
+    background: rgba(127,127,127,.5);
+    color: #eeeeee;
+}
+
+#pub_labels {
+    font-size: 14px;
+    border-bottom: 1px solid #222222;
+}
+
+.show_btn {
+    background-color: #BE4141;
+    padding: 2px;
+    margin: 0;
+    width: 50px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.show_btn a {
+    color: #FFFFFF;
+    text-align: center;
+    text-decoration: none;
+}
+
+/* Submission list */
+.list-container {
+    display: inline-block;
+    font-size: 9pt;
+    vertical-align: baseline;
+    text-align: justify;
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+}
+
+.list-container > div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.list-container:after {
+    content: "";
+    width: 100%;
+    display: inline-block;
+}
+
+.list-heading {
+    font-size: 11pt;
+    font-weight: bold;
+    text-align: left;
+}
+
+.list-section {
+    text-align: left;
+}
+
+/* Text/Messages */
+#sitetitle {
+    display: inline-block;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    border: none;
+    color: rgba(48,48,48,1);
+    text-align: left;
+    text-transform: normal;
+    -o-text-overflow: clip;
+    text-overflow: clip;
+    white-space: pre;
+    text-shadow: 1px 1px 0 rgba(140,140,140,0.6) , -1px -1px 1px rgba(0,0,0,0.67) ;
+
+    margin-left: 30px;
+    font-size: 50px;
+}
+
+#pagename {
+    display: block;
+    margin-left: -10px;
+    color: #555555;
+    font-size: 35px;
+}
+
+#sign {
+    text-align: right;
+    color: #cccccc;
+    font-size: 14px;
+}
+
+/* Alerts */
+#warning {
+    color: #990000;
+    font-size: 13px; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(127,0,0,.2); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+#missfield {
+	width: 100%;
+    color: #990000;
+    font-size: 13px; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(127,0,0,.2); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+#success {
+    color: #009900;
+    font-size: 13px; /* Set message font size  */
+    padding: 3px; /* Some padding to make some more space for our text  */
+    background-color: rgba(0,127,0,.2); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
