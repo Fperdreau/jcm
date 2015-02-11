@@ -30,13 +30,8 @@ date_default_timezone_set('Europe/Paris');
 // Includes required files (classes)
 require_once($_SESSION['path_to_includes'].'includes.php');
 
-$config = new site_config();
-if (!empty($_GET['page']) && $_GET['page'] == "install") {
-    $sitetitle = "Journal Club";
-} else {
-    $config->get_config();
-    $sitetitle = $config->sitetitle;
-}
+// Get application settings
+$config = new site_config('get');
 
 ?>
 
@@ -58,7 +53,7 @@ if (!empty($_GET['page']) && $_GET['page'] == "install") {
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
 
-        <title><?php echo $sitetitle; ?></title>
+        <title><?php echo $config->sitetitle; ?></title>
     </head>
 
     <body class="mainbody">
