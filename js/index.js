@@ -347,10 +347,6 @@ $( document ).ready(function() {
                     var jc_day = result.jc_day;
                     var booked_dates = result.booked_dates;
                     var selected_date = $('input#selected_date').val();
-
-                    console.log("returned result:"+booked_dates);
-                    console.log("returned dates:"+selected_date);
-
                     inititdatepicker(jc_day,selected_date,booked_dates);
                 }
             });
@@ -453,7 +449,6 @@ $( document ).ready(function() {
                     },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
 					$('#user_list').html(result);
                 }
             });
@@ -578,11 +573,9 @@ $( document ).ready(function() {
                     option: option},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "deleted") {
                         showfeedback('<p id="success">Account successfully deleted!</p>');
-                        $('#'+username).remove();
+                        $('#section_'+username).remove();
                     } else {
                         showfeedback('<p id="success">'+result+'</p>');
                     }
@@ -857,7 +850,8 @@ $( document ).ready(function() {
           Login dialog
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Upload a file
-		.on('mouseover','#fileupload').fileupload({
+		.on('mouseover','#upload',function() {
+            $(this).fileupload({
                 dataType: 'json',
                 done: function (e, data) {
                     $.each(data.result.files, function (index, file) {
@@ -865,6 +859,7 @@ $( document ).ready(function() {
                     });
                 }
             })
+        })
 
 		// Trigger modal dialog box for log in/sign up
         .on('mouseover',"a[rel*=leanModal]",function(e) {
@@ -1206,7 +1201,7 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == "created") {
-                        ('.user_register').html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>');
+                        $('.user_register').html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>');
                     } else if (result === "mismatch") {
                         showfeedback('<p id="warning">Passwords must match</p>');
                     } else if (result === "wrong_email") {
