@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -17,8 +17,9 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+session_set_cookie_params(3600);
 session_start();
-$_SESSION['app_name'] = dirname(__FILE__)."/";
+$_SESSION['app_name'] = basename(__DIR__);
 $_SESSION['path_to_app'] = dirname(__FILE__)."/";
 $_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
@@ -37,10 +38,6 @@ if (!empty($_GET['page']) && $_GET['page'] == "install") {
     $sitetitle = $config->sitetitle;
 }
 
-if (empty($_SESSION['logok'])) {
-    $_SESSION['logok'] = false;
-}
-
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -53,14 +50,13 @@ if (empty($_SESSION['logok'])) {
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
         <link type='text/css' rel='stylesheet' href="css/jquery-ui.css"/>
         <link type='text/css' rel='stylesheet' href="css/jquery-ui.theme.css"/>
-        <link type='text/css' rel="stylesheet" href="css/datepicker.css"/>
         <link type="text/css" rel="stylesheet" href="css/modal_style.css" />
+        <link type='text/css' rel="stylesheet" href="css/datepicker.css"/>
 
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
-        <script type="text/javascript" src="js/spin.js"></script>
 
         <title><?php echo $sitetitle; ?></title>
     </head>

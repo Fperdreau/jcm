@@ -23,11 +23,7 @@ date_default_timezone_set('Europe/Paris');
 // Includes required files (classes)
 include_once($_SESSION['path_to_includes'].'includes.php');
 
-// Installation
-if (empty($_POST['install_db'])) {
-	$presclass = new presclass();
-	$db_set = new DB_set();
-}
+$db_set = new DB_set();
 
 // Get booked dates for calendar
 if (!empty($_POST['get_calendar_param'])) {
@@ -40,14 +36,14 @@ if (!empty($_POST['get_calendar_param'])) {
 	    $year = $fdate[0];
 	    $formatdate[] = "$day-$month-$year";
 	}
-	
+
 	$js_formatdate = json_encode($formatdate);
 
 	$config = new site_config('get');
 	$jcday = $config->jc_day;
-	
+
 	$result = array("jc_day"=>$jcday,"booked_dates"=>$formatdate);
-	echo json_encode($result);	
+	echo json_encode($result);
 }
 
 //  delete publication
@@ -132,7 +128,7 @@ if (!empty($_POST['register'])) {
 
 // Delete user
 if (!empty($_POST['delete_user'])) {
-    $user = new users();	
+    $user = new users();
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
     if ($user -> getuserinfo($username) == true) {
@@ -147,7 +143,7 @@ if (!empty($_POST['delete_user'])) {
         } else {
         	$result = "not_activated";
         }
-		
+
     } else {
         $result = "wrong_username";
     }
@@ -216,9 +212,9 @@ if (!empty($_POST['user_modify'])) {
     echo json_encode($result);
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process submissions
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 // Submit a new presentation
 if (!empty($_POST['submit'])) {
@@ -233,7 +229,7 @@ if (!empty($_POST['submit'])) {
             $_POST['orator'] = $user->fullname;
         }
 
-        $created = $pub -> create_presentation($_POST);
+        $created = $pub -> make($_POST);
         if ($created == "added") {
             $result = "<p id='success'>Your presentation has been submitted.</p>";
         } else {
@@ -260,7 +256,7 @@ if (!empty($_POST['update'])) {
         if ($_POST['type'] == "wishlist") {
             $_POST['type'] = "paper";
         }
-        $created = $pub -> update_presentation($_POST);
+        $created = $pub -> update($_POST);
 
         if ($created == "updated") {
             $result = "<p id='success'>Your presentation has been updated.</p>";
@@ -276,7 +272,7 @@ if (!empty($_POST['update'])) {
 if (isset($_POST['suggest'])) {
     $_POST['date'] = "";
     $_POST['type'] = "wishlist";
-    $created = $presclass -> create_presentation($_POST);
+    $created = $presclass -> make($_POST);
     if ($created == "added") {
         $result = "<p id='success'>Your presentation has been submitted.</p>";
     } elseif ($created == "exist") {
@@ -306,23 +302,23 @@ if (!empty($_POST['mod_pub'])) {
     echo json_encode($form);
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Archives
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Select years to display
 if (!empty($_POST['select_year'])) {
 	$presclass = new presclass();
     $selected_year = $_POST['select_year'];
 	if ($selected_year == "" || $selected_year == "all") {
 		$selected_year = null;
-	} 
+	}
     $publist = $presclass -> getpublicationlist($selected_year);
     echo json_encode($publist);
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Contact form
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['contact_send'])) {
     $mail = new myMail();
     $sel_admin_mail = htmlspecialchars($_POST['admin_mail']);
@@ -341,9 +337,9 @@ if (!empty($_POST['contact_send'])) {
     echo json_encode($result);
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Upload file
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['upload'])) {
 	print_r($_FILES['file']);
 	$pub = new presclass();
@@ -351,16 +347,16 @@ if (!empty($_POST['upload'])) {
 	echo json_encode($filename);
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Admin tools
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['user_select'])) {
 	$config = new site_config();
     $filter = htmlspecialchars($_POST['user_select']);
 	if ($filter == "") {
 		$filter = null;
-	} 
-	
+	}
+
     $userlist = $config -> generateuserslist($filter);
     echo json_encode($userlist);
 }
@@ -431,126 +427,3 @@ if (!empty($_POST['delete_temp'])) {
 	}
 	echo json_encode($result);
 }
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Process Installation
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-if (!empty($_POST['inst_admin'])) {
-    $pass_crypte = htmlspecialchars($_POST['password']);
-    $username = htmlspecialchars($_POST['username']);
-    $email = htmlspecialchars($_POST['email']);
-	
-    $user = new users();
-    $adduser = $user -> create_user($username,$pass_crypte,"","","",$email,"admin");
-    $result = "<p id='success'>Admin account created</p>";
-
-    echo json_encode($result);
-}
-
-if (!empty($_POST['install_db'])) {
-
-    $filename = $_SESSION['path_to_app']."admin/conf/config.php";
-	$result = "";
-	if (is_file($filename)) {
-		unlink($filename);
-	}
-	
-	// Delete old config file (e.g. from previous installation)
-	if (is_dir($_SESSION['path_to_app']."admin") == false) {
-		mkdir($_SESSION['path_to_app']."admin");
-	}
-	
-	if (is_dir($_SESSION['path_to_app']."admin/conf/") == false) {
-		mkdir($_SESSION['path_to_app']."admin/conf/");
-	}
-	
-    $string = '<?php
-	$host = "'. $_POST["host"]. '";
-	$username = "'. $_POST["username"]. '";
-	$passw = "'. $_POST["passw"]. '";
-	$dbname = "'. $_POST["dbname"]. '";
-	$db_prefix = "'. $_POST["dbprefix"]. '_";
-	$sitetitle = "'. $_POST["sitetitle"].'";
-    $site_url = "'. $_POST["site_url"].'";
-	$users_table = "'. $_POST["dbprefix"].'_users";
-	$presentation_table = "'. $_POST["dbprefix"].'_presentations";
-	$mailinglist_table = "'. $_POST["dbprefix"].'_mailinglist";
-    $config_table = "'. $_POST["dbprefix"].'_config";
-    $post_table = "'. $_POST["dbprefix"].'_post";
-	?>';
-
-	// Create new config file
-    if ($fp = fopen($filename, "w+")) {
-        if (fwrite($fp, $string) == true) {
-            fclose($fp);
-        } else {
-            $result = "Impossible to write";
-	        echo json_encode($result);		
-			exit;
-        }
-    } else {
-        $result = "Impossible to open the file";
-        echo json_encode($result);
-        exit;
-    }	
-    chmod($filename,0644);
-
-    // Tables to create
-    $users_table = $_POST["dbprefix"]."_users";
-    $presentation_table = $_POST["dbprefix"]."_presentations";
-    $mailing_list = $_POST["dbprefix"]."_mailinglist";
-    $config_table = $_POST["dbprefix"]."_config";
-    $post_table = $_POST["dbprefix"]."_post";
-
-    // Connect to database
-    $db_set = new DB_set();
-    $bdd = $db_set->bdd_connect();
-	
-    // Remove any pre-existent tables
-    $sql = "SHOW TABLES FROM ".$_POST["dbname"]." LIKE '".$_POST["dbprefix"]."_%'";
-    $req = $db_set->send_query($sql);
-    while ($row = mysqli_fetch_row($req)) {
-        $table_name = $row[0];
-        $db_set -> deletetable($table_name);
-    }
-
-    // Create users table
-    $cols_name = "`id` INT NOT NULL AUTO_INCREMENT, `date` DATETIME, `firstname` CHAR(20), `lastname` CHAR(20), `fullname` CHAR(30),`username` CHAR(50),
-	 `password` CHAR(50), `position` CHAR(10), `email` CHAR(50), `notification` INT(1) NOT NULL, `reminder` INT(1) NOT NULL, `nbpres` INT(4) NOT NULL, `status` CHAR(10), `hash` CHAR(32), `active` INT(1) NOT NULL, PRIMARY KEY(id)";
-    if ($db_set->createtable($users_table,$cols_name,1)) {
-	    $result .= "<p id='success'>'$users_table' created</p>";	
-    }
-
-    // Create Post table
-    $cols_name = "`id` INT NOT NULL AUTO_INCREMENT, `date` DATETIME, `post` TEXT(2000), `username` CHAR(50), PRIMARY KEY(id)";
-    if ($db_set->createtable($post_table,$cols_name,1)) {
-	    $result .= "<p id='success'> '$post_table' created</p>";
-    }
-
-    // Create config table
-    $cols_name = "`id` INT NOT NULL AUTO_INCREMENT, `variable` CHAR(20), `value` CHAR(100), PRIMARY KEY(id)";
-    if ($db_set->createtable($config_table,$cols_name,1) == true) {
-    	$result .= "<p id='success'> '$config_table' created</p>";
-    }
-	$config = new site_config();    
-    $config->update_config($_POST);
-	$result .= "<p id='success'> '$config_table' updated</p>";
-    
-    // Create presentations table
-    $cols_name = "`id` INT NOT NULL AUTO_INCREMENT, `up_date` DATETIME, `id_pres` BIGINT(15) NOT NULL, `type` CHAR(20), `date` DATE, `jc_time` CHAR(15), `title` CHAR(100), `authors` CHAR(50),
-	 `summary` TEXT(2000), `link` CHAR(100), `orator` CHAR(50), `presented` INT(1) NOT NULL, `notification` INT(1) NOT NULL,
-	  PRIMARY KEY(id)";
-    if ($db_set->createtable($presentation_table,$cols_name,1)) {
-    	$result .= "<p id='success'>'$presentation_table' created</p>";
-    }
-
-    // Create mailing_list table
-    $cols_name = "`id` INT NOT NULL AUTO_INCREMENT, `username` CHAR(50), `email` CHAR(50), PRIMARY KEY(id)";
-    if ($db_set->createtable($mailing_list,$cols_name,1)) {
-    	$result .= "<p id='success'>'$mailing_list' created</p>";		
-    }
-    echo json_encode($result);
-}
-
-
-

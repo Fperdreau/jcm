@@ -34,33 +34,28 @@ body {
     overflow-x: scroll;
 }
 
-p {
-    margin: 10px 0px 10px 0px;
-	color: #555555;
-}
-
 a {
 	text-decoration: none;
     color: #CF5151;
 }
 
 a:hover {
-    color: #aaaaaa;
+    color: #cccccc;
 }
 
-a#menu {
-    text-decoration: none;
-    color: #CF5151;
-}
-
-a#menu:hover {
-    color: #eeeeee;
-}
-
-#pagecontent {
-    display: none;
-}
 /* Header */
+#mainheader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 10;
+    background-color: #555555;
+    text-align: justify;
+    padding: 0;
+}
+
 .header {
     width: 100%;
     background-color: #888888;
@@ -71,6 +66,7 @@ a#menu:hover {
 }
 
 .header_container {
+    position: relative;
     background-color: #555555;
     clear: both;
     width: 1024px;
@@ -93,6 +89,7 @@ a#menu:hover {
 
 /* Menu */
 .menu {
+    position: relative;
     clear: both;
     width: 1024px;
     margin: auto;
@@ -144,7 +141,7 @@ a#menu:hover {
 
 .activepage {
     font-size: 22px;
-    color: #cccccc;	
+    color: #cccccc;
 }
 
 /* additional menu */
@@ -183,259 +180,113 @@ a#menu:hover {
     color: #eeeeee;
 }
 
-/* Archives */
-.current {
-    background: rgba(127,127,127,.3);
-}
-
-.pub_container {
-    background: rgba(200,200,200,.5);
-	width: 100%;
-    padding: 5px;
-    cursor: pointer;
-    height: 30px;
-    vertical-align: middle;
-}
-
-.pub_container:hover {
-    background: rgba(127,127,127,.5);
-    color: #eeeeee;
-}
-
-#pub_labels {
-	font-size: 14px;
-	border-bottom: 1px solid #222222;
-}
-
-.show_btn {
-    background-color: #BE4141;
-    padding: 5px 5px;
-    width: 50px;
-}
-
-.show_btn a {
-    color: #FFFFFF;
-    text-align: center;
-    text-decoration: none;
-}
-
-
-/* Publication modal dialog */
-.pub_caps {
-    display: block;
-    background-color: #dddddd;
-    padding: 10px;
-}
-
-#pub_date {
-    width:20%;
-    display: inline;
-}
-
-#pub_title {
-    width: 100%;
-    font-size: 18px;
-    margin-bottom: 10px;
-    display: block;
-    font-weight: bold;
-}
-
-#pub_orator {
-    margin-right: 5px;
-    text-align: right;
-    width: 50%;
-    display: inline;
-}
-
-.pub_abstract {
-    display: block;
-    padding: 10px;
-    margin-top: 10px;
-    background-color: #eeeeee;
-}
-
-.pub_action_btn {
-    width: 100%;
-    margin-top: 20px;
-    margin-left: auto;
-    margin-right: 0;
-    text-align: justify;
-    -ms-text-justify: distribute-all-lines;
-    text-justify: distribute-all-lines;
-}
-
-.pub_action_btn>div {
-    vertical-align: top;
-    display: inline-block;
-}
-
-.pub_one_half {width:50%; display: block; float:left; margin-bottom: 10px;}
-.pub_one_half.last {width:45%; margin-left:5%; margin-bottom: 10px; text-align: right;}
-
-.pub_one_half.last>div {
-    vertical-align: top;
-    display: inline-block;
-}
-
-.pub_btn {
-    padding: 10px 10px;
-    height: 20px;
-    background: #E4E4E2;
-    width: 100px;
-    text-align: center;
-}
-
-.pub_btn a {
-    color:#666;
-    text-align: center;
-    text-decoration: none;
-}
-
-.pub_btn a:hover {
-    color:#EEE;
-    text-align: center;
-    text-decoration: none;
-}
-
-.pub_btn:hover {
-    color:#EEE;
-    background: #CF5151;
-}
-
-.pub_delete {
-    display: none;
-}
-
-.publication_form {
-    display: none;
-}
-
-.pub_modify {
-	display: none;
-}
-
-/* Login and register forms */
-.missing_field {
-	background-color: rgba(127,0,0,.5);
-}
-
-.login_form {
-    display: none;
-}
-
-.register_form {
-    display: none;
-}
-
-.changepw_form {
-    display: none;
-}
-
-/* Content */
+/* Structure */
 #core {
     position: relative;
     z-index: 3;
     width: 1024px;
     box-shadow: 0px 0px 12px #555;
     padding: 0;
-	min-height: 750px;
-    margin: auto;
+    margin: 0 auto 0 auto;
     background-color: #eeeeee;
-}
-
-#content {
-    padding: 20px;
-    width: 90%;
-    margin: auto;
-    vertical-align: middle;
+    min-height: 768px;
+    height: auto !important;
+    height: 100%;
 }
 
 #footer {
     position: relative;
     z-index: 0;
-    width: 700px;
+    width: 500px;
     border-bottom-left-radius: 40px;
     border-bottom-right-radius: 40px;
-    padding: 10px;
-    clear: both;
+    padding-top: 5px;
+    padding-bottom: 10px;
 	height: 15px;
 	text-align: center;
 	vertical-align: middle;
     margin: auto;
-	background-color: #222222;
+	background-color: rgba(50,50,50,1);
 }
 
-/* Login */
-.login-container {
-    display: inline-block;
-    clear: both;
+/* Page Content */
+#pagecontent {
+    display: none;
+}
+
+#content {
+    position: relative;
+    padding: 100px 20px;
     width: 90%;
+    margin: 0 auto;
+    vertical-align: middle;
+}
+
+#loading {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    width:      100%;
+    height: 100%;
+    background: rgba( 0, 0, 0, .7)
+                url('../images/spinner.gif')
+                50% 50%
+                no-repeat;
+}
+
+.page_description {
     text-align: justify;
-    margin: auto;
-    padding: 0;
-    vertical-align: top;
+    margin: 10px auto 10px auto;
+    width: 80%;
+    color: #222222;
+    font-style: italic;
+    font-size: 14px; /* Set message font size  */
+    padding: 10px; /* Some padding to make some more space for our text  */
+    background: rgba(207,81,81,.1); /* Add a background color to our status message   */
+    border: 1px solid rgba(207,81,81,.2); /* Add a border arround our status message   */
 }
 
-.login-container > div {
-    display: inline-block;
-    vertical-align: top;
+.section_header {
+    background-color: #CF5151;
+    width: auto;
+    color: #eeeeee;
+    padding: 5px;
+    margin-left: -5px;
+    clear: both;
+    float: left;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    border-bottom: 2px solid #CF5151;
+    margin-top: 20px;
 }
 
-.login-container:after {
-    content: "";
+.section_content {
+    line-height: 130%;
+    font-size: 16px;
+    margin: auto 50px auto auto;
+    clear: left;
     width: 100%;
-    display: inline-block;
+    text-align: justify;
+    padding: 10px;
+    border-left: 1px solid #CF5151;
+    background-color: rgba(127,127,127,.1);
 }
 
-.login {
-    width: 30%;
-}
-
-.register {
-    width: 60%;
+.pub_section_content {
+    line-height: 130%;
+    font-size: 16px;
+    margin: auto 50px auto auto;
+    clear: left;
+    width: 100%;
+    text-align: justify;
+    padding: 10px;
+    background-color: rgba(127,127,127,.1);
 }
 
 /* Buttons */
-.nav_menu {
-    display: inline-block;
-    text-align: justify;
-    width: auto;
-    height: 30px;
-    border-bottom: 1px solid #222222;
-    margin-left: -10px;
- }
-
-.nav_menu > div {
-    width: auto; /* Declare your value. Can be in relative units. */
-    display: inline-block;
-    vertical-align: bottom;
-}
-
-.nav_menu:after {
-    content: "";
-    width: 100%;
-    display: inline-block;
-}
-
-.nav_button {
-    background-color: #333333;
-    padding: 4px;
-    margin: 0;
-    border-radius: 5px;
-    border: 1px solid #777777;
-    font-weight: bolder;
-    text-align: center;
-}
-
-.nav_button < a{
-    text-decoration: none;
-    color: #999999;
-}
-
-.nav_button:hover{
-    background-color: #666666;
-}
-
 .operation_button {
     width: 150px;
     padding: 5px;
@@ -461,31 +312,45 @@ a#menu:hover {
     color: #CF5151;
 }
 
-/* Table */
-.table {
-    display: table;
+
+/* Archives */
+.current {
+    background: rgba(127,127,127,.3);
 }
 
-.title {
-    display: table-caption;
+.pub_container {
+    background: rgba(200,200,200,.5);
+    width: 100%;
+    padding: 5px;
+    cursor: pointer;
+    height: 30px;
+    vertical-align: middle;
+    line-height: 30px;
+}
+
+.pub_container:hover {
+    background: rgba(127,127,127,.5);
+    color: #eeeeee;
+}
+
+#pub_labels {
+    font-size: 14px;
+    border-bottom: 1px solid #222222;
+}
+
+.show_btn {
+    background-color: #BE4141;
+    padding: 2px;
+    margin: 0;
+    width: 50px;
+    height: 25px;
+    line-height: 25px;
+}
+
+.show_btn a {
+    color: #FFFFFF;
     text-align: center;
-    font-weight: bold;
-    font-size: larger;
-}
-
-.heading {
-    display: table-row;
-    font-weight: bold;
-    text-align: center;
-}
-
-.row {
-    display: table-row;
-}
-
-.cell {
-    margin: auto;
-    display: table-cell;
+    text-decoration: none;
 }
 
 /* Submission list */
@@ -495,6 +360,8 @@ a#menu:hover {
     vertical-align: baseline;
     text-align: justify;
     width: 100%;
+    height: 30px;
+    line-height: 30px;
 }
 
 .list-container > div {
@@ -550,6 +417,7 @@ a#menu:hover {
     font-size: 14px;
 }
 
+/* Alerts */
 #warning {
     color: #990000;
     font-size: 13px; /* Set message font size  */
@@ -573,64 +441,4 @@ a#menu:hover {
     padding: 3px; /* Some padding to make some more space for our text  */
     background-color: rgba(0,127,0,.2); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
-}
-
-.page_description {
-    text-align: justify;
-    margin: 10px auto 10px auto;
-    width: 80%;
-    color: #222222;
-    font-style: italic;
-    font-size: 14px; /* Set message font size  */
-    padding: 10px; /* Some padding to make some more space for our text  */
-    background: rgba(207,81,81,.1); /* Add a background color to our status message   */
-    border: 1px solid rgba(207,81,81,.2); /* Add a border arround our status message   */
-}
-
-.divToBeCentered{
-    height: 100px;
-    width:40%;
-    margin:auto;
-}
-
-.fullbackup {
-}
-
-/* Home sections */
-.section_header {
-    background-color: #CF5151;
-    width: auto;
-    color: #eeeeee;
-    padding: 5px;
-    margin-left: -5px;
-    clear: both;
-    float: left;
-    text-align: center;
-    font-weight: bold;
-    font-size: 16px;
-    border-bottom: 2px solid #CF5151;
-    margin-top: 20px;
-}
-
-.section_content {
-    line-height: 130%;
-    font-size: 16px;
-    margin: auto 50px auto auto;
-    clear: left;
-    width: 100%;
-    text-align: justify;
-    padding: 10px;
-    border-left: 1px solid #CF5151;
-    background-color: rgba(127,127,127,.1);
-}
-
-.pub_section_content {
-    line-height: 130%;
-    font-size: 16px;
-    margin: auto 50px auto auto;
-    clear: left;
-    width: 100%;
-    text-align: justify;
-    padding: 10px;
-    background-color: rgba(127,127,127,.1);
 }

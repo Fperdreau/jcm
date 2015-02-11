@@ -24,35 +24,22 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 input:focus, textarea:focus {
   outline: none;
   box-shadow: 0 0 5px #CF5151;
-  padding: 9px 17px 9px 44px;
+  padding: 9px 17px 9px 44px;f
   border: 1px solid #CF5151;
 }
 
-/* Select input */
 select {
-  	-webkit-appearance: button;
-   -webkit-border-radius: 2px;
-   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
-   -webkit-padding-end: 20px;
-   -webkit-padding-start: 2px;
-   -webkit-user-select: none;
-   background-image: -webkit-linear-gradient(#FAFAFA, #F4F4F4 40%, #E5E5E5);
-   background-position: 97% center;
-   background-repeat: no-repeat;
-   border: 1px solid #AAA;
-   color: #555;
-   font-size: inherit;
-   margin: 0;
-   padding: 5px 5px;
-   text-overflow: ellipsis;
-   white-space: nowrap;
-   min-width: auto;
+    min-width: 50px;
+    width: auto;
+    height: 30px;
+    line-height:30px;
+    border: 1px solid #CF5151;
+    margin-right: 10px;
 }
 
 select:focus {
   outline: none;
   box-shadow: 0 0 5px #CF5151;
-  padding: 5px 5px;
   border: 1px solid #CF5151;
 }
 
@@ -60,11 +47,9 @@ select#select_wish {
     width: 400px;
 }
 
-select option {
-    padding:40px;
-    text-shadow:0 1px 0 rgba(0,0,0,0.4);
+select option{
+  padding: 5px;
 }
-
 button {
     background: #F9F9F9; /* Set button background */
     border: 1px solid #DFDFDF; /* Small border around our submit button */
@@ -145,3 +130,17 @@ input[type=submit]#button {
     border: 0;
     outline: 0;
 }
+
+input.field {
+    padding: 10px;
+    display: inline-block;
+    width: 300px;
+}
+
+label.label {
+    display: inline-block;
+    width: 150px;
+    text-align: right;
+    padding: 10px 0 10px 0;
+}
+

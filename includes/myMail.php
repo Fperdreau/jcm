@@ -17,6 +17,9 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Import html2text class
+require_once($_SESSION['path_to_app']."libs/html2text-0.2.2/html2text.php");
+
 class myMail {
     public $mail_from = "";
     public $mail_from_name = "";
@@ -204,7 +207,7 @@ class myMail {
 
         $mail->Subject = $this->pre_header." ".$subject;
         $mail->Body    = $body;
-        $mail->AltBody="To view the message, please use an HTML compatible email viewer!";
+        $mail->AltBody= convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
 
         if($attachment != null){
             if (!$mail->AddAttachment($attachment)) {
@@ -414,4 +417,4 @@ class myMail {
         return $body;
     }
 
-} 
+}

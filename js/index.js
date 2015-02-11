@@ -16,9 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  General functions
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Spin animation when a page is loading
 var $loading = $('#loading').hide();
 var step = 1;
@@ -43,23 +43,10 @@ var processform = function(formid,feedbackid) {
     });
 };
 
-// Process installation forms
-var processinstallform = function(formid) {
-    var data = $("#" + formid).serialize();
-    console.log(data);
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: false,
-        data: data,
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            console.log("returned result:"+result);
-            $('#operation')
-                .html(result)
-                .append("<input type='submit' id='submit' class='next' value='Next'/>");
-        }
-    });
+// Check email validity
+function checkemail(email) {
+    var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
+    return pattern.test(email);
 };
 
 //Show feedback
@@ -178,8 +165,8 @@ var tinymcesetup = function() {
 
 // Load page by clicking on menu sections
 var loadpageonclick = function(pagetoload,param) {
+    param = typeof param !== 'undefined' ? param : false;
     var stateObj = { page: pagetoload };
-    loadspin("start");
 
     if (param == false) {
         jQuery.ajax({
@@ -191,7 +178,6 @@ var loadpageonclick = function(pagetoload,param) {
                 var json = jQuery.parseJSON(data);
                 history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload);
 
-                loadspin("stop");
                 $('#loading').hide();
                 $('#pagecontent')
                     .html('<div>'+json+'</div>')
@@ -210,7 +196,6 @@ var loadpageonclick = function(pagetoload,param) {
                 var json = jQuery.parseJSON(data);
                 history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload+"&"+param);
 
-                loadspin("stop");
                 $('#loading').hide();
                 $('#pagecontent')
                     .html('<div>'+json+'</div>')
@@ -346,111 +331,9 @@ $( document ).ready(function() {
             });
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Installation/Update
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
-        // Go to next installation step
-        .on('click', '.next', function(e) {
-            e.preventDefault();
-            step += 1;
-            loadpageonclick('install','step='+step);
-        })
-
-        // Go to next installation step
-        .on('click', '.finish', function(e) {
-            e.preventDefault();
-            loadpageonclick('home',false);
-        })
-
-		// Create admin account
-        .on('click','.admin_creation',function(e) {
-            e.preventDefault();
-            var username = $("input#admin_username").val();
-            var password = $("input#admin_password").val();
-            var conf_password = $("input#admin_confpassword").val();
-            var email = $("input#admin_email").val();
-
-            if (username == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#admin_username").focus();
-                return false;
-            }
-
-            if (password == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#admin_password").focus();
-                return false;
-            }
-
-            if (conf_password == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#admin_confpassword").focus();
-                return false;
-            }
-
-            if (conf_password != password) {
-                showfeedback('<p id="warning">Password must match</p>');
-                $("input#admin_confpassword").focus();
-                return false;
-            }
-
-            if (email == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#admin_email").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: false,
-                data: {
-                    inst_admin: true,
-                    username: username,
-                    password: password,
-                    email: email,
-                    conf_password: conf_password},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    console.log(result);
-                    showfeedback(result);
-                    loadpageonclick('install','step=3');
-                }
-            });
-        })
-
-		// Launch database setup
-        .on('click','.install_db',function(e) {
-            e.preventDefault();
-            processinstallform("install_db");
-        })
-
-		// Update
-        .on('click','.proceed_update',function(e) {
-            e.preventDefault();
-            var val = $(this).val();
-            console.log(val);
-            if (val == 'Yes') {
-                jQuery.ajax({
-                    url: 'pages/update.php',
-                    type: 'POST',
-                    async: false,
-                    data: {proceed: true},
-                    success: function(data){
-                        var json = jQuery.parseJSON(data);
-                        console.log(json);
-                        $('.section_content').append(json);
-                    }
-                });
-            } else {
-                loadpageonclick('home.php',false);
-            }
-        })
-
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         .on('mouseover','input#datepicker',function(e) {
             e.preventDefault();
             jQuery.ajax({
@@ -464,18 +347,14 @@ $( document ).ready(function() {
                     var jc_day = result.jc_day;
                     var booked_dates = result.booked_dates;
                     var selected_date = $('input#selected_date').val();
-
-                    console.log("returned result:"+booked_dates);
-                    console.log("returned dates:"+selected_date);
-
                     inititdatepicker(jc_day,selected_date,booked_dates);
                 }
             });
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          User Profile
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 		 // Process personal info form
         .on('click',".profile_persoinfo_form",function(e) {
@@ -489,19 +368,25 @@ $( document ).ready(function() {
             processform("profile_emailinfo_form",".feedback_mail");
         })
 
-		// Send a verification email to the user if a change of password is requested 
+		// Send a verification email to the user if a change of password is requested
         .on('click',".change_pwd",function(){
             var email = $(this).attr("id");
             send_verifmail(email);
             showfeedback('<p id="success">An email with instructions has been sent to your address</p>','.feedback_perso');
         })
 
-		// Open a dialog box 
+		// Open a dialog box
         .on('click',"#modal_change_pwd",function(){
             var email = $("input#ch_email").val();
 
             if (email == "") {
                 showfeedback('<p id="warning">This field is required</p>');
+                $("input#ch_email").focus();
+                return false;
+            }
+
+            if (!checkemail(email)) {
+                showfeedback('<p id="warning">Invalid email</p>');
                 $("input#ch_email").focus();
                 return false;
             }
@@ -548,9 +433,9 @@ $( document ).ready(function() {
             });
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin tools
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // User management tool: sort users
 		.on('change','.user_select',function(e) {
             e.preventDefault();
@@ -564,7 +449,6 @@ $( document ).ready(function() {
                     },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
 					$('#user_list').html(result);
                 }
             });
@@ -689,11 +573,9 @@ $( document ).ready(function() {
                     option: option},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "deleted") {
                         showfeedback('<p id="success">Account successfully deleted!</p>');
-                        $('#'+username).remove();
+                        $('#section_'+username).remove();
                     } else {
                         showfeedback('<p id="success">'+result+'</p>');
                     }
@@ -755,9 +637,9 @@ $( document ).ready(function() {
             processform("config_form_mail",".feedback_mail");
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Publication lists (Archives/user publications
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Sort publications by years
 		.on('change','.archive_select',function(e) {
             e.preventDefault();
@@ -777,9 +659,9 @@ $( document ).ready(function() {
             return false;
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Presentation submission
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Submit a presentation
         .on('click','.submit',function(e) {
             e.preventDefault();
@@ -905,9 +787,9 @@ $( document ).ready(function() {
             return false;
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Contact form
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
        // Send an email to the chosen organizer
 	   .on('click','.contact_send',function(e) {
             e.preventDefault();
@@ -924,6 +806,12 @@ $( document ).ready(function() {
 
             if (contact_mail == "Your email") {
                 showfeedback('<p id="warning">This field is required</p>');
+                $("input#contact_mail").focus();
+                return false;
+            }
+
+            if (!checkemail(contact_mail)) {
+                showfeedback('<p id="warning">Invalid email!</p>');
                 $("input#contact_mail").focus();
                 return false;
             }
@@ -958,11 +846,12 @@ $( document ).ready(function() {
             return false;
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           Login dialog
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Upload a file
-		.on('mouseover','#fileupload').fileupload({
+		.on('mouseover','#upload',function() {
+            $(this).fileupload({
                 dataType: 'json',
                 done: function (e, data) {
                     $.each(data.result.files, function (index, file) {
@@ -970,6 +859,7 @@ $( document ).ready(function() {
                     });
                 }
             })
+        })
 
 		// Trigger modal dialog box for log in/sign up
         .on('mouseover',"a[rel*=leanModal]",function(e) {
@@ -1082,7 +972,7 @@ $( document ).ready(function() {
                 }
             });
         })
-        
+
 		// Show publication deletion confirmation
         .on('click',".delete_ref",function(e){
             e.preventDefault();
@@ -1094,7 +984,7 @@ $( document ).ready(function() {
             $(".publication_form").hide();
             $(".header_title").text('Delete confirmation');
         })
-        
+
         // Going back to publication
         .on('click',".pub_back_btn",function(){
             $(".publication_form").show();
@@ -1189,7 +1079,7 @@ $( document ).ready(function() {
         })
 
         // Login form
-        .on('click',"#login",function() {
+        .on('click',".login",function() {
             var username = $("input#log_username").val();
             var password = $("input#log_password").val();
 
@@ -1282,6 +1172,12 @@ $( document ).ready(function() {
                 return false;
             }
 
+            if (!checkemail(email)) {
+                showfeedback('<p id="warning">Invalid email!</p>');
+                $("input#email").focus();
+                return false;
+            }
+
             if (position == "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#position").focus();
@@ -1304,9 +1200,8 @@ $( document ).ready(function() {
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     if (result == "created") {
-                        showfeedback('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>');
+                        $('.user_register').html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>');
                     } else if (result === "mismatch") {
                         showfeedback('<p id="warning">Passwords must match</p>');
                     } else if (result === "wrong_email") {

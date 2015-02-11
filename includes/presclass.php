@@ -22,7 +22,7 @@ class presclass {
     public $type = "";
     public $date = "0000-00-00";
     public $jc_time = "17:00,18:00";
-    public $up_date = "0000-00-00";
+    public $up_date = "0000-00-00 00:00:00";
     public $title = "";
     public $authors = "";
     public $summary = "Abstract (2000 characters maximum)";
@@ -34,11 +34,11 @@ class presclass {
 
     function __construct($id_pres=null){
         if (null != $id_pres) {
-            self::getpresentation_info($id_pres);
+            self::get($id_pres);
         }
     }
 
-    public function getpresentation_info($id_pres) {
+    public function get($id_pres) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
 
@@ -59,7 +59,7 @@ class presclass {
             $pdfpath = $_SESSION['path_to_app'].'uploads/';
             if (!is_file($pdfpath.$this->link)) {
                 $post['link'] = "";
-                self :: update_presentation($post);
+                self :: update($post);
 
             }
 
@@ -69,7 +69,7 @@ class presclass {
                 $post['presented'] = 1;
                 $post['title'] = $this->title;
                 $post['date'] = $pub_day;
-                self :: update_presentation($post);
+                self :: update($post);
             }
             return true;
 
@@ -79,7 +79,7 @@ class presclass {
     }
 
     // Add a presentation to the database
-    function create_presentation($post){
+    function make($post){
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'users.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
@@ -116,11 +116,11 @@ class presclass {
             $db_set->addcontent($presentation_table,$variables,$values);
 
             // Update presentation object
-            self::getpresentation_info($post['title']);
+            self::get($post['title']);
 
             return "added";
         } else {
-            self::getpresentation_info($this->id_pres);
+            self::get($this->id_pres);
             return "exist";
         }
     }
@@ -141,7 +141,7 @@ class presclass {
     }
 
     // Update a presentation (new info)
-    function update_presentation($post,$id_pres=null) {
+    function update($post,$id_pres=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
         $db_set = new DB_set();
@@ -199,7 +199,7 @@ class presclass {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."/admin/conf/config.php");
 
-        self::getpresentation_info($pres_id);
+        self::get($pres_id);
 
         // Delete corresponding file
         self::delete_file($this->link);
@@ -263,7 +263,7 @@ class presclass {
         $sql = "SELECT id_pres FROM $presentation_table WHERE type!='wishlist' and presented=0 and date>=CURDATE() ORDER BY date ASC";
         $req = $db_set -> send_query($sql);
         if ($data = mysqli_fetch_array($req)) {
-            self :: getpresentation_info($data['id_pres']);
+            self :: get($data['id_pres']);
             if ($this->presented == 1) {
                 return false;
             } else {
@@ -435,7 +435,7 @@ class presclass {
         $prev_year = '';
         $content = "";
         while ($data = mysqli_fetch_array($req)) {
-            self::getpresentation_info($data['id_pres']);
+            self::get($data['id_pres']);
             $formated_date = explode('-',$this->date);
             $year = $formated_date[0];
 
@@ -526,7 +526,7 @@ class presclass {
               <label for='id'>Select a wish</label><br><select name='id' id='select_wish'>";
 
         while ($data = mysqli_fetch_array($req)) {
-            self::getpresentation_info($data['id_pres']);
+            self::get($data['id_pres']);
             $option = "$this->authors | $this->title";
             $nextcontent .= "<option value='$this->id_pres'>$option</option>";
         }
@@ -534,4 +534,4 @@ class presclass {
         return $nextcontent;
     }
 
-} 
+}

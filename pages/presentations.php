@@ -32,12 +32,12 @@ $op = htmlspecialchars($_GET['op']);
 // Select a presentation from the wishlist
 if (!empty($_POST['id'])) {
     $id_pres = htmlspecialchars($_POST['id']);
-    $presclass -> getpresentation_info($id_pres);
+    $presclass -> get($id_pres);
 }
 
 if (!empty($_GET['id'])) {
     $id_pres = htmlspecialchars($_GET['id']);
-    $presclass -> getpresentation_info($id_pres);
+    $presclass -> get($id_pres);
 }
 
 // Submit a new presentation

@@ -16,9 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* ******************************************************************************* */
+/* *********************************************************************/
 /* Global overlay */
-/* ******************************************************************************* */
+/* *********************************************************************/
 #lean_overlay {
     position: fixed;
     z-index:100;
@@ -30,14 +30,14 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
     display: none;
 }
 
-/* ******************************************************************************* */
+/* *********************************************************************/
 /* Publication modal window*/
-/* ******************************************************************************* */
+/* *********************************************************************/
 .popupContainer{
-	position:relative;
+	position:absolute;
 	width:400px;
 	height: auto;
-	left:45%;
+	left:400px;
 	top:30px;
 	background: #FFF;
 }
@@ -45,13 +45,17 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 .action_btns {
 	display: inline-block;
 	width: 100%;
-	margin: 20px 0 10px; 
-	clear: both; 
-	text-decoration: none; 
+	margin: 20px 0 10px;
+	clear: both;
+	text-decoration: none;
 	color:#ED6347;
 }
 
-#modal_trigger {}
+#modal_trigger {
+    margin: 100px auto;
+    width: 100px;
+    display: block;
+}
 
 .error {
     display: none;
@@ -74,7 +78,12 @@ a.btn_red {color: #FFF;}
 .popupHeader {background:#F4F4F2; position:relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
 .popupHeader .modal_close {position: absolute; right: 0; top:0; padding:10px 15px; background:#E4E4E2; cursor: pointer; color:#aaa; font-size:16px;}
 
-.popupBody {padding:20px;}
+.popupBody {
+    max-height: 500px;
+    padding:20px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
 
 /* User Login Form */
 .user_login {display: none;}
@@ -85,11 +94,11 @@ a.btn_red {color: #FFF;}
 
 .user_login .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
 .forgot_password {
-	display:block; 
-	margin: 20px 0 10px; 
-	clear: both; 
+	display:block;
+	margin: 20px 0 10px;
+	clear: both;
 	text-align: center;
-	text-decoration: none; 
+	text-decoration: none;
 	color:#ED6347;}
 
 /* User Register Form */
@@ -144,3 +153,89 @@ a.btn_red {color: #FFF;}
 .pub_modify input[type="checkbox"] {float:left; margin-right:5px;}
 .pub_modify input[type="checkbox"]+label {float:left;}
 .pub_modify .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
+
+/* Publication modal dialog */
+.pub_caps {
+    display: block;
+    background-color: #dddddd;
+    padding: 10px;
+}
+
+#pub_date {
+    width:20%;
+    display: inline;
+}
+
+#pub_title {
+    width: 100%;
+    font-size: 18px;
+    margin-bottom: 10px;
+    display: block;
+    font-weight: bold;
+}
+
+#pub_orator {
+    margin-right: 5px;
+    text-align: right;
+    width: 50%;
+    display: inline;
+}
+
+.pub_abstract {
+    display: block;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #eeeeee;
+}
+
+.pub_action_btn {
+    width: 100%;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: 0;
+    text-align: justify;
+    -ms-text-justify: distribute-all-lines;
+    text-justify: distribute-all-lines;
+}
+
+.pub_action_btn>div {
+    vertical-align: top;
+    display: inline-block;
+}
+
+.pub_one_half {width:50%; display: block; float:left; margin-bottom: 10px;}
+.pub_one_half.last {width:45%; margin-left:5%; margin-bottom: 10px; text-align: right;}
+
+.pub_one_half.last>div {
+    vertical-align: top;
+    display: inline-block;
+}
+
+.pub_btn {
+    padding: 10px 10px;
+    height: 20px;
+    background: #E4E4E2;
+    width: 100px;
+    text-align: center;
+}
+
+.pub_btn a {
+    color:#666;
+    text-align: center;
+    text-decoration: none;
+}
+
+.pub_btn a:hover {
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;
+}
+
+.pub_btn:hover {
+    color:#EEE;
+    background: #CF5151;
+}
+
+.pub_delete {
+    display: none;
+}
