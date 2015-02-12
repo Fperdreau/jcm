@@ -1,4 +1,5 @@
 .idea/
-*.pdf
-admin/conf/config.php
+uploads/*.pdf
+config/config.php
+config/version.php
 instruction.docx
