@@ -16,6 +16,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
+require_once($_SESSION['path_to_includes'].'includes.php');
 
 class Press {
 
@@ -39,7 +40,6 @@ class Press {
     }
 
     public function get($id_pres) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
@@ -80,8 +80,6 @@ class Press {
 
     // Add a presentation to the database
     function make($post){
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'users.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $class_vars = get_class_vars("Press");
@@ -127,7 +125,6 @@ class Press {
 
     // Create an ID for the new presentation
     function create_presID() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $pres_id = date('Ymd').rand(1,10000);
@@ -142,7 +139,6 @@ class Press {
 
     // Update a presentation (new info)
     function update($post,$id_pres=null) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
 
@@ -196,7 +192,6 @@ class Press {
 
     // Delete a presentation
     function delete_pres($pres_id) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         self::get($pres_id);
