@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -20,6 +20,11 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 // Import html2text class
 require_once($_SESSION['path_to_app']."libs/html2text-0.2.2/html2text.php");
 
+require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.phpmailer.php');
+require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.smtp.php');
+
+require_once($_SESSION['path_to_app'].'/includes/includes.php');
+
 class myMail {
     public $mail_from = "";
     public $mail_from_name = "";
@@ -33,12 +38,11 @@ class myMail {
     public $site_url = "";
 
     function __construct() {
-        self::get_config();
+        self::get();
     }
 
-    public function get_config() {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+    public function get() {
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "select variable,value from $config_table";
         $req = $db_set->send_query($sql);
@@ -53,9 +57,8 @@ class myMail {
         return true;
     }
 
-    public function update_config($post) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+    public function update($post) {
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $bdd = $db_set->bdd_connect();
         $class_vars = get_class_vars("site_config");
@@ -73,13 +76,11 @@ class myMail {
             }
         }
 
-        self::get_config();
+        self::get();
         return true;
     }
 
     function send_verification_mail($hash,$user_mail,$username) {
-        require_once($_SESSION['path_to_includes'].'site_config.php');
-        require_once($_SESSION['path_to_includes'].'users.php');
         $config = new site_config();
         $admins = $config->getadmin('admin');
         $to = array();
@@ -95,7 +96,7 @@ class myMail {
 
         Hello,<br><br>
 
-        <p><strong>$username</strong> wants to create an account.</p>
+        <p><b>$username</b> wants to create an account.</p>
 
         <p><a href='$authorize_url'>Authorize</a><br>
         or<br>
@@ -111,10 +112,8 @@ class myMail {
     }
 
     function send_confirmation_mail($to,$username) {
-        require_once($_SESSION['path_to_includes'].'site_config.php');
-        require_once($_SESSION['path_to_includes'].'users.php');
         $user = new users();
-        $user->getuserinfo($username);
+        $user->get($username);
 
         $subject = 'Signup | Confirmation'; // Give the email a subject
         $login_url = $this->site_url."index.php?page=login";
@@ -140,8 +139,7 @@ class myMail {
     }
 
     function get_mailinglist($type=null) {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "select username,email from $users_table where active=1";
         if (null!=$type) {
@@ -167,10 +165,7 @@ class myMail {
     }
 
     function send_mail($to,$subject,$body,$attachment = NULL) {
-        require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.phpmailer.php');
-        require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.smtp.php');
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $mail = new PHPMailer();
 
@@ -226,20 +221,14 @@ class myMail {
     }
 
     function advertise_mail() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'myMail.php');
-        require_once($_SESSION['path_to_includes'].'posts.php');
-        require_once($_SESSION['path_to_includes']."presclass.php");
-        require_once($_SESSION['path_to_includes']."site_config.php");
-
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
         $config = new site_config('get');
 
         // Get recent news
-        $last_news = new posts();
+        $last_news = new Posts();
         $last_news->getlastnews();
         $today = date('Y-m-d');
         if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
@@ -247,16 +236,16 @@ class myMail {
         }
 
         // Get future presentations
-        $future_session = new presclass();
+        $future_session = new Press();
         $pres_list = $future_session->get_futuresession(4,'mail');
 
         // Get wishlist
-        $wish = new presclass();
+        $wish = new Press();
         $wish_list = $wish->getwishlist(4,true);
 
         // Get next session
-        $nextpub = new presclass();
-        if ($nextpub->get_nextpresentation()) {
+        $nextpub = new Press();
+        if ($nextpub->getsession()) {
 
             $next_session = "
                 <p>The next session of our journal club will be held on the <strong>$nextpub->date</strong> from $config->jc_time_from to $config->jc_time_to in room $config->room.</p>
@@ -340,20 +329,14 @@ class myMail {
     }
 
     function reminder_Mail() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'myMail.php');
-        require_once($_SESSION['path_to_includes'].'posts.php');
-        require_once($_SESSION['path_to_includes']."presclass.php");
-        require_once($_SESSION['path_to_includes']."site_config.php");
-
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
         $config = new site_config();
-        $config->get_config();
-        $nextpub = new presclass();
-        $nextpub->get_nextpresentation();
+        $config->get();
+        $nextpub = new Press();
+        $nextpub->getsession();
 
         $jc_link = $config->site_url."uploads/".$nextpub->link; // Link to file
 

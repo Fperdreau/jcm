@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -35,12 +35,12 @@ class users {
 
     function __construct($prov_username=null) {
         if ($prov_username != null) {
-            self::getuserinfo($prov_username);
+            self::get($prov_username);
         }
     }
 
     // Create user
-    function create_user($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
+    function make($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
 		$this -> date = date("Y-m-d H:i:s");
         $this -> username = $username;
         $this -> firstname = $firstname;
@@ -57,7 +57,7 @@ class users {
 
 		require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'myMail.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $mail = new myMail();
         $db_set = new DB_set();
 
@@ -96,9 +96,9 @@ class users {
 		}
     }
 
-    function getuserinfo($prov_username) {
+    function get($prov_username) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $class_vars = get_class_vars("users");
 
@@ -125,7 +125,7 @@ class users {
     function get_nbpres() {
         // Update user nb of presentations
         require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "SELECT title FROM $presentation_table WHERE orator='$this->fullname' and type!='wishlist'";
         $req = $db_set -> send_query($sql);
@@ -137,9 +137,9 @@ class users {
     }
 
     // Update user info
-    function updateuserinfo($post) {
+    function update($post) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
 
         $class_vars = get_class_vars("users");
@@ -150,13 +150,13 @@ class users {
                 $db_set->updatecontent($users_table,"$name","'$value'",array("username"),array("'$this->username'"));
             }
         }
-        self::getuserinfo($this->username);
+        self::get($this->username);
         return true;
     }
 
     function user_exist($prov_username) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $userslist = $db_set -> getinfo($users_table,'username');
@@ -170,7 +170,7 @@ class users {
 
     function mail_exist($prov_mail) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $maillist = $db_set -> getinfo($users_table,'email');
@@ -191,10 +191,10 @@ class users {
     function check_account_activation($hash,$email,$result) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'myMail.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
-        $this->getuserinfo($username);
+        $this->get($username);
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
@@ -216,7 +216,7 @@ class users {
 
     function activation($option) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         if ($option == 1){
             return self::check_account_activation($this->hash,$this->email,true);
         } else {
@@ -229,7 +229,7 @@ class users {
     function check_pwd($password) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'PasswordHash.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $truepwd = $db_set -> getinfo($users_table,"password",array("username"),array("'$this->username'"));
@@ -253,7 +253,7 @@ class users {
 
     function delete_user() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         // Delete corresponding entry in the publication table
@@ -262,7 +262,7 @@ class users {
 
     function change_user_status($newstatus) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $db_set -> updatecontent($users_table,'status',"'$newstatus'",array("username"),array("'$this->username'"));
     }

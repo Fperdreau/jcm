@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -23,13 +23,13 @@ date_default_timezone_set('Europe/Paris');
 require_once($_SESSION['path_to_includes'].'db_connect.php');
 require_once($_SESSION['path_to_includes'].'users.php');
 require_once($_SESSION['path_to_includes'].'myMail.php');
-require_once($_SESSION['path_to_includes'].'posts.php');
-require_once($_SESSION['path_to_includes']."presclass.php");
+require_once($_SESSION['path_to_includes'].'Posts.php');
+require_once($_SESSION['path_to_includes']."Press.php");
 require_once($_SESSION['path_to_includes']."site_config.php");
 include_once($_SESSION['path_to_includes'].'functions.php');
 
 // Get site config
-$config_file = $_SESSION['path_to_app']."admin/conf/config.php";
+$config_file = $_SESSION['path_to_app']."config/config.php";
 if (is_file($config_file)) {
     require_once($config_file);
 }

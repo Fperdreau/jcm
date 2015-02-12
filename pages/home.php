@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 @session_start();
 require_once($_SESSION['path_to_includes'].'includes.php');
 
-$presclass = new presclass();
-$last_news = new posts();
+$Press = new Press();
+$last_news = new Posts();
 if ($last_news->getlastnews()) {
 	$news = "<p>$last_news->content</p>
             <div style='widht: 100%; background-color: #aaaaaa; padding: 2px; margin: 0; text-align: right; font-size: 13px;'>
@@ -31,9 +31,9 @@ if ($last_news->getlastnews()) {
 	$news = "No recent news";
 }
 
-$nextpres = $presclass -> display_nextpresentation();
-$futurepres = $presclass->get_futuresession(4);
-$wishlist = $presclass -> getwishlist();
+$nextpres = $Press -> shownextsession();
+$futurepres = $Press->get_futuresession(4);
+$wishlist = $Press -> getwishlist();
 
 
 if ( !(isset($_SESSION['logok']) && $_SESSION['logok'])) {

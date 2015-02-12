@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -17,54 +17,40 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-session_start();
+@session_start();
 date_default_timezone_set('Europe/Paris');
 
 // Includes required files (classes)
 include_once($_SESSION['path_to_includes'].'includes.php');
 
+// Create a database object
 $db_set = new DB_set();
 
-// Get booked dates for calendar
+// Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
 	$booked = $db_set -> getinfo($presentation_table,"date"); // Get booked out dates from db
 	$formatdate = array();
+    $nb_pres = array();
 	foreach($booked as $date) {
+        // Count how many presentations there are for this day
+        $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
+        $req = $db_set->send_query($sql);
+        $pres = mysqli_fetch_array($req);
+
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
 	    $month = $fdate[1];
 	    $year = $fdate[0];
+
 	    $formatdate[] = "$day-$month-$year";
+        $nb_pres[] = count($pres)-1;
 	}
 
-	$js_formatdate = json_encode($formatdate);
-
+    // Get application settings
 	$config = new site_config('get');
-	$jcday = $config->jc_day;
 
-	$result = array("jc_day"=>$jcday,"booked_dates"=>$formatdate);
+	$result = array("max_nb_session"=>$config->max_nb_session,"jc_day"=>$config->jc_day,"today"=>date('d-m-Y'),"booked"=>$formatdate,"nb"=>$nb_pres);
 	echo json_encode($result);
-}
-
-//  delete publication
-if (!empty($_POST['del_pub'])) {
-    $presclass = new presclass();
-    $id_press = htmlspecialchars($_POST['del_pub']);
-    $presclass->delete_pres($id_press);
-    $result = "deleted";
-    echo json_encode($result);
-}
-
-//  delete publication
-if (!empty($_POST['del_file'])) {
-    $id_press = htmlspecialchars($_POST['del_file']);
-    $pub = new presclass($id_press);
-    if ($presclass->delete_file($pub->link)) {
-        $result = "deleted";
-    } else {
-        $result = "not deleted";
-    }
-    echo json_encode($result);
 }
 
 // Check login
@@ -74,7 +60,7 @@ if (!empty($_POST['login'])) {
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
     $result = "nothing";
-    if ($user -> getuserinfo($username) == true) {
+    if ($user -> get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $_SESSION['logok'] = true;
@@ -118,7 +104,7 @@ if (!empty($_POST['register'])) {
             }
         }
     }
-    if ($user -> create_user($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
+    if ($user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
         $result = "created";
     } else {
         $result = "exist";
@@ -131,7 +117,7 @@ if (!empty($_POST['delete_user'])) {
     $user = new users();
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
-    if ($user -> getuserinfo($username) == true) {
+    if ($user -> get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $user ->delete_user($username);
@@ -158,7 +144,7 @@ if (!empty($_POST['change_pw'])) {
 
     if ($user->mail_exist($email)) {
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
-        $user->getuserinfo($username);
+        $user->get($username);
         $reset_url = $mail->site_url."index.php?page=renew_pwd&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
@@ -192,7 +178,7 @@ if (!empty($_POST['conf_changepw'])) {
     if ($password != $conf_password) {
         $result = "mismatch";
     } else {
-        $user->getuserinfo($username);
+        $user->get($username);
         $crypt_pwd = $user->crypt_pwd($password);
         $db_set->updatecontent($users_table,"password","'$crypt_pwd'",array("username"),array("'$username'"));
         $result = "changed";
@@ -204,7 +190,7 @@ if (!empty($_POST['conf_changepw'])) {
 // Process user modifications
 if (!empty($_POST['user_modify'])) {
     $user = new users($_POST['username']);
-    if ($user -> updateuserinfo($_POST)) {
+    if ($user -> update($_POST)) {
         $result = "<p id='success'>The modification has been made!</p>";
     } else {
         $result = "<p id='warning'>Something went wrong!</p>";
@@ -215,14 +201,34 @@ if (!empty($_POST['user_modify'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process submissions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+//  delete publication
+if (!empty($_POST['del_pub'])) {
+    $Press = new Press();
+    $id_press = htmlspecialchars($_POST['del_pub']);
+    $Press->delete_pres($id_press);
+    $result = "deleted";
+    echo json_encode($result);
+}
+
+//  delete files
+if (!empty($_POST['del_file'])) {
+    $id_press = htmlspecialchars($_POST['del_file']);
+    $pub = new Press($id_press);
+    if ($Press->delete_file($pub->link)) {
+        $result = "deleted";
+    } else {
+        $result = "not deleted";
+    }
+    echo json_encode($result);
+}
 
 // Submit a new presentation
 if (!empty($_POST['submit'])) {
     // check entries
-    $pub = new presclass();
+    $pub = new Press();
     $user = new users($_SESSION['username']);
     $date = $_POST['date'];
-    if ($pub->date_exist($date)) {
+    if ($pub->isbooked($date)) {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
@@ -242,11 +248,11 @@ if (!empty($_POST['submit'])) {
 
 // Update/modify a presentation
 if (!empty($_POST['update'])) {
-    $pub = new presclass($_POST['id_pres']);
+    $pub = new Press($_POST['id_pres']);
     // check entries
     $user = new users($_SESSION['username']);
     $date = $_POST['date'];
-    if ($pub->date_exist($date)) {
+    if ($pub->isbooked($date)) {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
@@ -270,9 +276,10 @@ if (!empty($_POST['update'])) {
 
 // Suggest a presentation to the wishlist
 if (isset($_POST['suggest'])) {
+    $pub = new Press();
     $_POST['date'] = "";
     $_POST['type'] = "wishlist";
-    $created = $presclass -> make($_POST);
+    $created = $pub -> make($_POST);
     if ($created == "added") {
         $result = "<p id='success'>Your presentation has been submitted.</p>";
     } elseif ($created == "exist") {
@@ -288,7 +295,7 @@ if (!empty($_POST['show_pub'])) {
         $_SESSION['username'] = false;
     }
     $user = new users($_SESSION['username']);
-    $pub = new presclass($id_press);
+    $pub = new Press($id_press);
     $form = displaypub($user,$pub);
     echo json_encode($form);
 }
@@ -297,7 +304,7 @@ if (!empty($_POST['show_pub'])) {
 if (!empty($_POST['mod_pub'])) {
     $id_press = $_POST['mod_pub'];
     $user = new users($_SESSION['username']);
-    $pub = new presclass($id_press);
+    $pub = new Press($id_press);
     $form = displayform($user,$pub,'update');
     echo json_encode($form);
 }
@@ -307,12 +314,12 @@ Archives
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Select years to display
 if (!empty($_POST['select_year'])) {
-	$presclass = new presclass();
+	$Press = new Press();
     $selected_year = $_POST['select_year'];
 	if ($selected_year == "" || $selected_year == "all") {
 		$selected_year = null;
 	}
-    $publist = $presclass -> getpublicationlist($selected_year);
+    $publist = $Press -> getpublicationlist($selected_year);
     echo json_encode($publist);
 }
 
@@ -342,7 +349,7 @@ Upload file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['upload'])) {
 	print_r($_FILES['file']);
-	$pub = new presclass();
+	$pub = new Press();
 	$filename = $pub->upload_file($_FILES['file']);
 	echo json_encode($filename);
 }
@@ -404,7 +411,7 @@ if (!empty($_POST['modify_status'])) {
 
 if (!empty($_POST['config_modify'])) {
     $config = new site_config('get');
-    $config->update_config($_POST);
+    $config->update($_POST);
     $result = "<p id='success'>Modifications have been made!</p>";
     echo json_encode($result);
 }

@@ -1,5 +1,5 @@
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -140,6 +140,14 @@ input.field {
 label.label {
     display: inline-block;
     width: 150px;
+    text-align: right;
+    padding: 10px 0 10px 0;
+}
+
+label.pub_label {
+    display: inline-block;
+    min-width: 70px;
+    width: auto;
     text-align: right;
     padding: 10px 0 10px 0;
 }

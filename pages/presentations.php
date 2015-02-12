@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -22,9 +22,9 @@ require_once($_SESSION['path_to_includes'].'includes.php');
 check_login();
 
 // Declare classes
-$presclass = new presclass();
+$Press = new Press();
 $user = new users();
-$user->getuserinfo($_SESSION['username']);
+$user->get($_SESSION['username']);
 
 // Get options
 $op = htmlspecialchars($_GET['op']);
@@ -32,17 +32,17 @@ $op = htmlspecialchars($_GET['op']);
 // Select a presentation from the wishlist
 if (!empty($_POST['id'])) {
     $id_pres = htmlspecialchars($_POST['id']);
-    $presclass -> get($id_pres);
+    $Press -> get($id_pres);
 }
 
 if (!empty($_GET['id'])) {
     $id_pres = htmlspecialchars($_GET['id']);
-    $presclass -> get($id_pres);
+    $Press -> get($id_pres);
 }
 
 // Submit a new presentation
 if ($op == 'new') {
-    $submit_form = displayform($user,$presclass,'submit');
+    $submit_form = displayform($user,$Press,'submit');
     $result = "
     <div id='content'>
         <div id='pagename'>Submit a presentation</div>
@@ -51,7 +51,7 @@ if ($op == 'new') {
         Fill up the form below, select a date (only available dates are selectable) and it's all done!
         Your submission will be automatically added to our database.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='pub_section_content' id='submission'>
+        <div class='section_content' id='submission'>
         $submit_form
         </div>
     </div>
@@ -59,14 +59,14 @@ if ($op == 'new') {
 
 // Suggest a presentation
 } elseif ($op == 'suggest') {
-    $submit_form = displayform($user,$presclass,"suggest");
+    $submit_form = displayform($user,$Press,"suggest");
     $result = "
     <div id='content'>
         <div id='pagename'>Suggest a wish</div>
         <p class='page_description'>Here you can suggest a paper that somebody else could present at a Journal Club session.
          Fill up the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='pub_section_content' id='submission'>
+        <div class='section_content' id='submission'>
         $submit_form
         </div>
     </div>
@@ -76,10 +76,10 @@ if ($op == 'new') {
 } elseif ($op == 'wishpick') {
     if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
         $selectopt = "";
-        $submit_form = displayform($user,$presclass,'update');
+        $submit_form = displayform($user,$Press,'update');
         $content .= "<p id='warning'>Please verify each field before validation</p>";
     } else {
-        $selectopt = $presclass -> generate_selectwishlist();
+        $selectopt = $Press -> generate_selectwishlist();
         $submit_form = "";
     }
 
@@ -90,7 +90,7 @@ if ($op == 'new') {
             The form below will be automatically filled up with the data provided by the user who suggested the selected paper.
             Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
             If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='pub_section_content' id='submission'>
+        <div class='section_content' id='submission'>
             $selectopt
             $submit_form
         </div>
@@ -99,12 +99,12 @@ if ($op == 'new') {
 
 // Modify a presentation
 } elseif ($op == 'mod_pub') {
-    $submit_form = displayform($user,$presclass,'update');
+    $submit_form = displayform($user,$Press,'update');
     $result = "
     <div id='content'>
         <div id='pagename'>Modify a presentation</div>
         <p class='page_description'>Here you can modify your submission. Please, check on the information before submitting your presentation</p>
-        <div class='pub_section_content' id='submission'>
+        <div class='section_content' id='submission'>
             $submit_form
         </div>
     </div>

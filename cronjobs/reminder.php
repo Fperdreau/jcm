@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 @session_start();
-chdir(dirname(__FILE__));
-$_SESSION['path_to_app'] = '../';
+$_SESSION['app_name'] = basename(dirname(__DIR__));
+$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 date_default_timezone_set('Europe/Paris');
 
@@ -31,16 +31,16 @@ function mailing() {
     // Declare classes
     $mail = new myMail();
     $config = new site_config('get');
-    $pub = new presclass();
-    $pub->get_nextpresentation();
-	
+    $pub = new Press();
+    $pub->getsession();
+
 	// Number of users
     $nusers = count($mail->get_mailinglist("reminder"));
-	
+
 	// Compare date of the next presentation to today
     $cur_date = strtolower(date("Y-m-d"));
     $reminder_day = date("Y-m-d",strtotime($pub->date." - $config->reminder days"));
-		
+
     if ($cur_date == $reminder_day) {
         $content = $mail->reminder_Mail();
         $body = $mail -> formatmail($content['body']);

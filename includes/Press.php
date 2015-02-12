@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class presclass {
+class Press {
 
     public $type = "";
     public $date = "0000-00-00";
@@ -40,12 +40,12 @@ class presclass {
 
     public function get($id_pres) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $sql = "SELECT * FROM $presentation_table WHERE id_pres='$id_pres'";
         $req = $db_set->send_query($sql);
-        $class_vars = get_class_vars("presclass");
+        $class_vars = get_class_vars("Press");
         $row = mysqli_fetch_assoc($req);
 
         if (!empty($row)) {
@@ -82,9 +82,9 @@ class presclass {
     function make($post){
         require_once($_SESSION['path_to_includes'].'db_connect.php');
         require_once($_SESSION['path_to_includes'].'users.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
-        $class_vars = get_class_vars("presclass");
+        $class_vars = get_class_vars("Press");
         $db_set = new DB_set();
         $config = new site_config('get');
         $bdd = $db_set->bdd_connect();
@@ -128,7 +128,7 @@ class presclass {
     // Create an ID for the new presentation
     function create_presID() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $pres_id = date('Ymd').rand(1,10000);
 
@@ -143,7 +143,7 @@ class presclass {
     // Update a presentation (new info)
     function update($post,$id_pres=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
 
         if (null!=$id_pres) {
@@ -152,7 +152,7 @@ class presclass {
             $this->id_pres = $_POST['id_pres'];
         }
 
-        $class_vars = get_class_vars("presclass");
+        $class_vars = get_class_vars("Press");
         foreach ($post as $name => $value) {
             $value = htmlspecialchars($value);
             if (array_key_exists($name,$class_vars)) {
@@ -197,7 +197,7 @@ class presclass {
     // Delete a presentation
     function delete_pres($pres_id) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         self::get($pres_id);
 
@@ -214,18 +214,19 @@ class presclass {
         // Delete file
         $pdfpath = $_SESSION['path_to_app'].'uploads/';
 
-        if (is_file($pdfpath.$filename)) {
-            return unlink($pdfpath.$filename);
-        } else {
-            return false;
+        $filelist = explode(',',$this->link);
+        foreach ($filelist as $filename) {
+            if (is_file($pdfpath.$filename)) {
+                return unlink($pdfpath.$filename);
+            } else {
+                return false;
+            }
         }
     }
 
     // Check if presentation exists in the database
     function pres_exist($prov_pressname) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
-
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $presslist = $db_set -> getinfo($presentation_table,'title');
         if (in_array($prov_pressname,$presslist)) {
@@ -236,10 +237,11 @@ class presclass {
     }
 
     // Check if the date of presentation is already booked
-    function date_exist($date) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+    function isbooked($date) {
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
+        $config = new site_config('get');
+
         if ($this->id_pres == "") {
             $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
         } else {
@@ -247,7 +249,7 @@ class presclass {
         }
         $req = $db_set->send_query($sql);
         $num_results = mysqli_num_rows($req);
-        if ($num_results>0) {
+        if ($num_results>=$config->max_nb_session) {
             return true;
         } else {
             return false;
@@ -255,64 +257,97 @@ class presclass {
     }
 
     // Get the upcoming presentation
-    function get_nextpresentation() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+    function getsession($nextdate=false) {
+        require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
-        $db_set->bdd_connect();
-        $sql = "SELECT id_pres FROM $presentation_table WHERE type!='wishlist' and presented=0 and date>=CURDATE() ORDER BY date ASC";
-        $req = $db_set -> send_query($sql);
-        if ($data = mysqli_fetch_array($req)) {
-            self :: get($data['id_pres']);
-            if ($this->presented == 1) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            return false;
+        if ($nextdate == false) {
+            $dates = self::getdates();
+            $nextdate = $dates[0];
         }
+
+        $sql = "SELECT id_pres FROM $presentation_table WHERE date='$nextdate'";
+        $req = $db_set -> send_query($sql);
+        $ids = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $ids[] = $row['id_pres'];
+        }
+        return $ids;
+    }
+
+    // Get next unique dates (remove duplicates)
+    private function getdates() {
+        require($_SESSION['path_to_app'].'config/config.php');
+        $db_set = new DB_set();
+        $sql = "SELECT date FROM $presentation_table WHERE type!='wishlist' and date>=CURDATE() ORDER BY date ASC";
+        $req = $db_set->send_query($sql);
+        $dates = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $date = $row['date'];
+            if (!in_array($date, $dates)) {
+                $dates[] = $date;
+            }
+        }
+        if (empty($dates)) {$dates=false;}
+        return $dates;
     }
 
     // Display the upcoming presentation(home page/mail)
-    function display_nextpresentation() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
-        if (self :: get_nextpresentation()) {
-            $link = "./uploads/".$this->link;
-            $nextcontent = "
-            <span style='font-weight: bold'>Date:</span> $this->date
-            <span style='font-weight: bold'>Presented by:</span> $this->orator</br>
-            <span style='font-weight: bold'>Authors:</span> $this->authors
-            <span style='font-weight: bold;'>Title:</span> $this->title<br>
-            <div style='text-align: justify; border: 1px solid #555555; margin-top: 10px; background-color: #eeeeee; padding: 10px;'>
-                <span style='font-weight: bold'>Abstract:</span>
-                <span style='font-style: italic';>$this->summary</span>
-            </div></br>
-            ";
-            if ($_SESSION['logok'] == true && $this->link != "") {
-                $nextcontent .= "<div class='link'><a href='$link' target='_blank'>Get File</a></div>";
+    function shownextsession() {
+        require($_SESSION['path_to_app'].'config/config.php');
+        $dates = self::getdates();
+        if ($dates !== false) {
+            $date = $dates[0];
+            $ids = self::getsession();
+            $nb_pres = count($ids);
+            $content = "<div style='background-color: rgba(207,101,101,.7); padding: 5px; margin-bottom: 10px;'>
+                    <span style='font-weight: bold; margin: 0 0 5px 0;'>Date:</span> $date<br>
+                    Our next session will host $nb_pres presentations.
+                </div>";
+            foreach ($ids as $presid) {
+                $pres = new Press($presid);
+                $link = "./uploads/".$pres->link;
+                if ($_SESSION['logok'] == true && $pres->link != "") {
+                    $filecontent = "<div class='link'><a href='$link' target='_blank'>Get File</a></div>";
+                } else {
+                    $filecontent = "";
+                }
+                $type = ucfirst($pres->type);
+                $content .= "
+                <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border-top: 1px solid #adadad; border-left: 1px solid #adadad;'>
+                    <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(175,175,175,.8); color: #FFF; padding: 5px;'>
+                        $type
+                    </div>
+                    <div style='width: 95%; margin: auto; padding: 5px 10px 0px 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid #aaaaaa;'>
+                        <span style='font-weight: bold;'>Title:</span> $pres->title<br>
+                        <div style='display: inline-block; margin-left: 0;'><b>Authors:</b> $pres->authors</div>
+                        <div style='display: inline-block; float:right;'><b>Presented by:</b> $pres->orator</div>
+                    </div>
+                    <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
+                        <span style='font-style: italic; font-size: 13px;'>$pres->summary</span>
+                    </div>
+                    <div>
+                        $filecontent
+                    </div>
+                </div>
+                ";
             }
         } else {
-            $nextcontent = "Nothing planned for the moment";
+            $content="Nothing planned for this session yet";
         }
-        return $nextcontent;
+        return $content;
     }
 
     // Get list of future presentations (home page/mail)
     public function get_futuresession($nsession = 4,$mail=null) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes']."site_config.php");
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
+        $db_set = new DB_set();
+        $config = new site_config('get');
 
         // Get next journal club days
-        $config = new site_config();
-        $config->get_config();
-        $jcday = $config->jc_day; // Journal club day
         $today = strtotime("now");
         $year = date('Y'); // Current year
         $month = date('F'); // Current month;
-        $first = strtotime("first $jcday of $month $year"); // First journal club of the year
+        $first = strtotime("first $config->jc_day of $month $year"); // First journal club of the year
         $lastday = mktime(0, 0, 0, 12, 31, $year); // Last day of the year
 
         $day = $first;
@@ -324,66 +359,64 @@ class presclass {
                 $jc_days[] = $curdate;
                 $cpt++;
             }
-            if($cpt>=$nsession) { break; };
-
+            if($cpt>=$nsession) { break; }
         }
+
+        // Get future planned dates
+        $dates = self::getdates();
 
         // Get futures journal club sessions
-        $db_set = new DB_set();
-
-        $pres_list = "";
+        $content = "";
         foreach ($jc_days as $day) {
-            $sql = "SELECT id_pres FROM $presentation_table WHERE type!='wishlist' and date >= CURRENT_DATE()";
-            $req = $db_set -> send_query($sql);
-            $found = false;
-            while ($data = mysqli_fetch_array($req)) {
-                $pub = new presclass($data['id_pres']);
-                if ($pub->date == $day) {
-                    $found = true;
-                    break;
-                }
-            }
+            if (in_array($day,$dates)) {
+                $ids = self::getsession($day); // Get presentations of this day
+                $pubcontent = "";
+                foreach ($ids as $presid) {
+                    $pub = new Press($presid);
 
-            if ($found) {
-                if (null != $mail) {
-                    $show_but = "";
-                } else {
-                    $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'><b>MORE</b></a>";
-                }
+                    // Make "Show" button
+                    if (null != $mail) {
+                        $show_but = "";
+                    } else {
+                        $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'><b>MORE</b></a>";
+                    }
 
-                $pres_list .= "
-                <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 25px; padding: 5px;'>
-                    <div style='display: table-cell; width: 8%; font-weight: bold; border-right: 1px solid #222222;'>$day</div>
-                    <div style='display: table-cell; width: 80%; padding-left: 10px; text-align: left;'>
-                        $pub->title ($pub->authors) presented by <span style='color: #CF5151;'>$pub->orator</span>
-                    </div>
-                    <div style='display: table-cell; width: 5%;'>
-                        $show_but
-                    </div>
-                </div>
-                ";
+                    $pubcontent .= "
+                    <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 25px; line-height: 25px; padding: 5px; margin-left: 20%;'>
+                        <div style='display: table-cell; width: 40%; padding-left: 10px; text-align: left;'>
+                            $pub->title ($pub->authors) presented by <span style='color: #CF5151;'>$pub->orator</span>
+                        </div>
+                        <div style='display: table-cell; width: 5%;'>
+                            $show_but
+                        </div>
+                    </div>";
+                }
             } else {
-                $pres_list .= "
-                <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 25px; padding: 5px;'>
-                    <div style='display: table-cell; width: 8%; font-weight: bold; border-right: 1px solid #222222;'>$day</div>
-                    <div style='display: table-cell; width: 80%; padding-left: 10px; text-align: left;'>Free!</div>
-                    <div style='display: table-cell; width: 5%; '></div>
-                </div>
-                ";
+                $pubcontent = "
+                <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 25px; line-height: 25px; padding: 5px; margin-left: 20%;'>
+                    <div style='display: table-cell; width: 40%; padding-left: 10px; text-align: left;'>
+                        FREE!
+                    </div>
+                </div>";
             }
 
-        }
-        if ($pres_list == "") {
-            $pres_list = "Something went wrong";
+            $content .= "
+            <div style='display: block; margin: 0 auto 10px auto; border-top: 1px solid rgba(175,175,175,.8);'>
+                <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(175,175,175,.8); color: #FFF; padding: 5px;'>
+                        $day
+                </div>
+                <div>
+                    $pubcontent
+                </div>
+            </div>";
         }
 
-        return $pres_list;
+        return $content;
     }
 
     // Collect years of presentations present in the database
     function get_years() {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $dates = $db_set -> getinfo($presentation_table,'date',array('type'),array("'wishlist'"),array('!='));
@@ -412,13 +445,11 @@ class presclass {
         return "<img src='images/modify.png' alt='modify_button' data-id='$this->id_pres' class='modifyref'>";
     }
 
-    // Get list of publications (sorted)
-    function getpublicationlist($filter = NULL,$user_fullname = NULL) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+    function getyearspub($filter = NULL,$user_fullname = NULL) {
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
-        $sql = "SELECT id_pres FROM $presentation_table WHERE ";
+        $sql = "SELECT YEAR(date),id_pres FROM $presentation_table WHERE ";
         $cond = array();
         if (null != $user_fullname) {
             $cond[] = "orator='$user_fullname'";
@@ -432,51 +463,62 @@ class presclass {
         $sql .= $cond." ORDER BY date DESC";
         $req = $db_set -> send_query($sql);
 
-        $prev_year = '';
+        $yearpub = array();
         $content = "";
         while ($data = mysqli_fetch_array($req)) {
-            self::get($data['id_pres']);
-            $formated_date = explode('-',$this->date);
-            $year = $formated_date[0];
+            $year = $data['YEAR(date)'];
+            $yearpub[$year][] = $data['id_pres'];
+        }
+        return $yearpub;
+    }
 
-            if ($year != $prev_year) {
-                $prev_year = $year;
+    // Get list of publications (sorted)
+    function getpublicationlist($filter = NULL,$user_fullname = NULL) {
+        require($_SESSION['path_to_app'].'config/config.php');
+        $yearpub = self::getyearspub($filter = NULL,$user_fullname = NULL);
+        if (empty($yearpub)) {
+            return "Nothing submitted yet!";
+        }
 
-                $content.= "
-                    <div class='section_header'>$year</div>
-                    <div class='list-container' id='pub_labels'>
-                        <div style='text-align: center; font-weight: bold; width: 10%;'>Date</div>
-                        <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
-                        <div style='text-align: center; font-weight: bold; width: 20%;'>Authors</div>
-                        <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-                    </div>";
-            }
-
-            $content .= "
-                <div class='pub_container' id='$this->id_pres'>
-                    <div class='list-container'>
-                        <div style='text-align: center; width: 10%;'>$this->date</div>
-                        <div style='text-align: left; width: 50%;'>$this->title</div>
-                        <div style='text-align: center; width: 20%;'>$this->authors</div>
-                        <div style='text-align: center; width: 10%; vertical-align: middle;'>
-                            <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>MORE</a></div>
+        $content = "";
+        foreach ($yearpub as $year=>$publist) {
+            $yearcontent = "";
+            foreach ($publist as $pubid) {
+                self::get($pubid);
+                $yearcontent .= "
+                    <div class='pub_container' id='$this->id_pres'>
+                        <div class='list-container'>
+                            <div style='text-align: center; width: 10%;'>$this->date</div>
+                            <div style='text-align: left; width: 50%;'>$this->title</div>
+                            <div style='text-align: center; width: 20%;'>$this->authors</div>
+                            <div style='text-align: center; width: 10%; vertical-align: middle;'>
+                                <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>MORE</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                ";
+            }
+
+            $content.= "
+            <div class='section_header'>$year</div>
+            <div class='section_content'>
+                <div class='list-container' id='pub_labels'>
+                    <div style='text-align: center; font-weight: bold; width: 10%;'>Date</div>
+                    <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
+                    <div style='text-align: center; font-weight: bold; width: 20%;'>Authors</div>
+                    <div style='text-align: center; font-weight: bold; width: 10%;'></div>
                 </div>
-            ";
+                $yearcontent
+            </div>";
         }
         return $content;
     }
 
     // Get wish list
     function getwishlist($number = null,$mail = false) {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
-        require_once($_SESSION['path_to_app'].'/includes/site_config.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
-
-        $config = new site_config();
-        $config->get_config();
-
+        require($_SESSION['path_to_app'].'config/config.php');
+        $config = new site_config('get');
         $db_set = new DB_set();
         $sql = "SELECT id_pres FROM $presentation_table WHERE type='wishlist' ORDER BY date DESC";
         $req = $db_set -> send_query($sql);
@@ -485,21 +527,21 @@ class presclass {
         if ($req->num_rows > 0) {
             while ($data = mysqli_fetch_array($req)) {
                 $nb = $cpt + 1;
-                $pub = new presclass($data['id_pres']);
+                $pub = new Press($data['id_pres']);
+                $url = $config->site_url."index.php?page=presentations&op=wishpick&id=$pub->id_pres";
                 if (!$mail) {
-                    $pick_url = "<a href='index.php?page=presentations&op=wishpick&id=$pub->id_pres'>Choose it!</a>";
-                    $wish_list .= "
-                    <div class='row' style='border-bottom: 1px solid #bbbbbb; width: 100%;'>
-                        <div class='cell' style='vertical-align: middle; text-align: center; width: 3%; border-right: 1px solid #999999;'><b>$nb</b></div>
-                        <div class='cell' style='padding-left: 10px; text-align: justify; width: 90%;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
-                        <div class='cell' style='padding-left: 5px; vertical-align: middle; text-align: center; width: 100%;'>$pick_url</a></div>
-                    </div>";
+                    $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$pub->id_pres'><b>Choose it!</b></a>";
                 } else {
-                    $wish_list .= "
-                    <div class='row' style='border-bottom: 1px solid #bbbbbb; width: 100%;'>
-                        <b>$nb |</b> $pub->title ($pub->authors) suggested by <span style='color: #CF5151;'>$pub->orator</span>
-                    </div>";
+                    $pick_url = "<a href='$url'>Choose it!</a>";
                 }
+
+                $wish_list .= "
+                <div class='list-container' style='border-top: 1px solid #bbbbbb; width: 95%; min-height: 20px; height: auto; line-height: 20px; padding: 0;'>
+
+                    <div style='padding: 0; text-align: center; border-right: 1px solid #999999; width: 5%;'><b>$nb</b></div>
+                    <div style='padding: 0; text-align: justify; width: 80%;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
+                    <div style='text-align: center; width: 10%;'>$pick_url</div>
+                </div>";
 
                 $cpt++;
                 if(null!=$number && $cpt>=$number) { break; };
@@ -514,7 +556,7 @@ class presclass {
     // Generate wish list (option menu)
     function generate_selectwishlist() {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();

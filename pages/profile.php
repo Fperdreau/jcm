@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, F. Perdreau, Radboud University Nijmegen
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -23,8 +23,8 @@ check_login();
 
 // Declare classes
 $user = new users($_SESSION['username']);
-$presclass = new presclass();
-$publication_list = $presclass->getpublicationlist(null,$user->fullname);
+$Press = new Press();
+$publication_list = $Press->getpublicationlist(null,$user->fullname);
 
 $notif_yes_status = 'unchecked';
 $notif_no_status = 'unchecked';
@@ -45,17 +45,18 @@ if ($user->reminder == 0) {
 $result = "
 <div id='content'>
     <span id='pagename'>Hello $user->fullname!</span>
-    <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='modal_trigger_delete'>Delete my account</a></div>
+    <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='modal_trigger_delete'>Delete my account</a>
+    </div>
 
-    <span class='section_header'>Personal information</span>
+    <div class='section_header'>Personal information</div>
     <div class='section_content'>
         <form method='post' action='' class='form' id='profile_persoinfo_form'>
             <input type='hidden' name='username' value='$user->username'/>
-            <label for='firstname'>First Name</label><input type='text' name='firstname' value='$user->firstname'/>
-            <label for='lastname'>Last Name</label><input type='text' name='lastname' value='$user->lastname'/></br>
-            <label for='status'>Status: </label>$user->status<br>
-            <label for='password'>Password</label> <a href='' class='change_pwd' id='$user->email'>Change my password</a></br>
-            <label for='position'>Position</label>
+            <label for='firstname' class='label'>First Name</label><input type='text' name='firstname' value='$user->firstname'/>
+            <label for='lastname' class='label'>Last Name</label><input type='text' name='lastname' value='$user->lastname'/></br>
+            <label for='status' class='label'>Status: </label>$user->status<br>
+            <label for='password' class='label'>Password</label> <a href='' class='change_pwd' id='$user->email'>Change my password</a></br>
+            <label for='position' class='label'>Position</label>
             <select name='position'>
                 <option value='$user->position' selected='selected'>$user->position</option>
                 <option value='researcher'>Researcher</option>
@@ -63,22 +64,22 @@ $result = "
                 <option value='phdstudent'>PhD student</option>
                 <option value='master'>Master</option>
             </select></br>
-            <label>Number of submitted presentation: </label>$user->nbpres<br>
+            <label class='label'>Number of submitted presentation: </label>$user->nbpres<br>
             <input type='hidden' name='user_modify' value='true' />
             <p style='text-align: right'><input type='submit' name='user_modify' value='Modify' class='profile_persoinfo_form' id='submit'/></p>
             <div class='feedback_perso'></div>
         </form>
     </div>
 
-    <span class='section_header'>Contact information</span>
+    <div class='section_header'>Contact information</div>
     <div class='section_content'>
         <form method='post' action='' class='form' id='profile_emailinfo_form'>
-            <label for='firstname'>Email</label><input size='40' type='text' name='email' value='$user->email'/></br>
-            <label for='notification'>I wish to receive email notifications</label>
+            <label for='email' class='label'>Email</label><input size='40' type='text' name='email' value='$user->email'/></br>
+            <label for='notification' class='label'>I wish to receive email notifications</label>
             <input type='radio' name='notification' value='1' $notif_yes_status>Yes</input>
             <input type='radio' name='notification' value='0' $notif_no_status>No</input>
             </br>
-            <label for='reminder'>I wish to receive reminders</label>
+            <label for='reminder' class='label'>I wish to receive reminders</label>
             <input type='radio' name='reminder' value='1' $rem_yes_status>Yes</input>
             <input type='radio' name='reminder' value='0' $rem_no_status>No</input>
             <input type='hidden' name='user_modify' value='true' />
@@ -89,10 +90,8 @@ $result = "
     </div>
     </br>
 
-    <span class='section_header'>My submissions</span>
-    <div class='section_content' style='font-size: 12px;'>
+    <div class='section_header'>My submissions</div>
     $publication_list
-    </div>
 </div>
 ";
 
