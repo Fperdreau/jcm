@@ -1,3 +1,4 @@
 .idea/
+*.pdf
 admin/conf/config.php
 instruction.docx
