@@ -1,6 +1,5 @@
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -22,11 +21,10 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Spin animation when a page is loading
 var $loading = $('#loading').hide();
-var step = 1;
 
 // Process submitted form
 var processform = function(formid,feedbackid) {
-    if (typeof feedbackid == "undefined") {
+    if (typeof feedbackid == undefined) {
         feedbackid = ".feedback";
     }
     var data = $("#" + formid).serialize();
@@ -43,6 +41,50 @@ var processform = function(formid,feedbackid) {
         }
     });
 };
+
+var checkform = function(formid) {
+    var valid = true;
+    $('#'+formid+' input,select').each(function () {
+        if ($.trim($(this).val()).length == 0){
+            $(this).focus();
+            showfeedback('<p id="warning">This field is required</p>');
+            valid = false;
+            return false;
+        }
+    });
+    return valid;
+}
+
+
+function close_modal(modal_id) {
+    $("#lean_overlay").fadeOut(200);
+    $(modal_id).css({"display":"none"});
+}
+
+var validsubmitform = function(formid,text) {
+    var formwidth = $(formid).outerWidth();
+    var formheight = $(formid).outerHeight();
+    $(formid)
+        .hide()
+        .html(text)
+        .fadeIn(200);
+
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {getform: true},
+        success: function(data){
+            var result = jQuery.parseJSON(data);
+            setTimeout(function() {
+                $(formid)
+                    .hide()
+                    .html(result)
+                    .fadeIn(200);
+            }, 3000);
+        }
+    });
+}
 
 // Check email validity
 function checkemail(email) {
@@ -83,7 +125,7 @@ var send_verifmail = function(email) {
 };
 
 // initialize jQuery-UI Calendar
-var inititdatepicker = function(jc_day,selected,booked,max_nb_session) {
+var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb) {
     $('#datepicker').datepicker({
         defaultDate: selected,
         firstDay: 1,
@@ -93,15 +135,20 @@ var inititdatepicker = function(jc_day,selected,booked,max_nb_session) {
         beforeShowDay: function(date) {
             var day = date.getDay();
             var days = new Array("sunday","monday","tuesday","wednesday","thursday","friday","saturday");
-            if( ($.inArray($.datepicker.formatDate('dd-mm-yy',date), booked.dates) > -1) && (days[day] == jc_day)) {
-                if (booked.nb[day] >= max_nb_session) {
-                    var remain = max_nb_session - booked.nb[day];
-                    return [false,"bookedday","Booked out"];
+            var cur_date = $.datepicker.formatDate('dd-mm-yy',date);
+            var today = new Date();
+            if (days[day] == jc_day && date >= today) {
+                var find = $.inArray(cur_date,booked);
+                if (find > -1) { // If the date is booked
+                    console.log(nb[find]);
+                    if ((max_nb_session-nb[find])>0) {
+                        return [true,"jcday_rem",max_nb_session-nb[find]+" presentation(s) available"];
+                    } else {
+                        return [false,"bookedday","Booked out"];
+                    }
                 } else {
-                    return [true,"bookedday",remain+" session(s) available"]
+                    return [true,"jcday",max_nb_session+" presentation(s) available"];
                 }
-            } else if( !($.inArray($.datepicker.formatDate('dd-mm-yy',date), booked.dates) > -1) && (days[day] == jc_day)) {
-                return [true,"jcday","available"];
             } else {
                 return [false,"","Not a journal club day"];
             }
@@ -145,7 +192,7 @@ var loadpageonclick = function(pagetoload,param) {
         jQuery.ajax({
             url: 'pages/'+pagetoload+'.php',
             type: 'GET',
-            async: true,
+            async: false,
             data: param,
             success: function(data){
                 var json = jQuery.parseJSON(data);
@@ -207,9 +254,9 @@ var getParams = function() {
 
 $( document ).ready(function() {
 
-    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Main body
-     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
 
         .ready(function() {
@@ -234,11 +281,9 @@ $( document ).ready(function() {
             }
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Header menu/Sub-menu
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
-        // Display/Hide sub-menu
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Main menu sections
         .on('click',".menu-section",function(){
             $(".menu-section").removeClass("activepage");
@@ -314,11 +359,8 @@ $( document ).ready(function() {
                 data: {get_calendar_param: true},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-
-                    var jc_day = result.jc_day;
-                    var booked_dates = result.booked_dates;
                     var selected_date = $('input#selected_date').val();
-                    inititdatepicker(jc_day,selected_date,booked_dates);
+                    inititdatepicker(result.jc_day,result.max_nb_session,selected_date,result.booked,result.nb);
                 }
             });
         })
@@ -326,7 +368,6 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          User Profile
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
 		 // Process personal info form
         .on('click',".profile_persoinfo_form",function(e) {
             e.preventDefault();
@@ -509,7 +550,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     mailing_send: true,
                     spec_head: spec_head,
@@ -537,7 +578,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     modify_status: true,
                     username: username,
@@ -570,7 +611,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     post_send: true,
                     fullname: fullname,
@@ -633,35 +674,77 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Presentation submission
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        // Show download list
+        .on('click','.dl_btn',function() {
+            $(".dlmenu").toggle();
+        })
+
+         // Show uploaded file
+         .on('click','.upl_name',function() {
+            var uplname = $(this).attr('id');
+            var url = "uploads/"+uplname;
+            window.open(url,'_blank');
+         })
+
+          // Delete uploaded file
+         .on('click','.del_upl',function() {
+            var uplfilename = $(this).attr('id');
+            var uplname = $(this).attr('data-upl');
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                async: false,
+                data: {
+                    del_upl: true,
+                    uplname: uplfilename},
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    console.log(result);
+
+                    if (result == true) {
+                        $('.'+uplname).remove();
+                        $('.upl_link #'+uplname).remove();
+                    }
+                }
+            });
+         })
+
+         // Select submission type
+         .on('change','select#type',function(e) {
+            var type = $(this).val();
+            $('#guest').hide();
+            if (type == "guest") {
+                $('#guest').fadeIn();
+            }
+         })
+
         // Submit a presentation
-        .on('click','.submit',function(e) {
+        .on('click','.submit_pres',function(e) {
             e.preventDefault();
-            var date = $("input#datepicker").val();
-            var title = $("input#title").val();
-            var type = $("select#type").val();
-            var authors = $("input#authors").val();
-            var orator = $("input#orator").val();
-            var link = $("input#link").val();
-            console.log('uploaded file:'+link);
-            console.log('orator: '+orator);
+            var operation = $(this).attr('name');
 
-            if (type == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("select#type").focus();
-                return false;
-            }
-
-            if (orator == "" && type == "guest") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#orator").focus();
-                return false;
-            }
-
-            if (date == "" && type !== "wishlist") {
+            if (operation !== "suggest") {
+                var date = $("input#datepicker").val();
+                if ((date == "0000-00-00" || date == "") && type !== "wishlist") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#datepicker").focus();
                 return false;
+                }
             }
+
+            if ($('input.upl_link')[0]) {
+                var links = new Array();
+                $('input.upl_link').each(function(){
+                    var link = $(this).val();
+                    links.push(link);
+                });
+                links = links.join(',');
+                $('#submit_form').append("<input type='hidden' name='link' value='"+links+"'>");
+            }
+
+            var title = $("input#title").val();
+            var type = $("select#type").val();
+            var authors = $("input#authors").val();
 
             if (title == "") {
                 showfeedback('<p id="warning">This field is required</p>');
@@ -674,19 +757,6 @@ $( document ).ready(function() {
                 $("input#authors").focus();
                 return false;
             }
-
-            processform("submit_form");
-            return false;
-        })
-
-        // Update a presentation
-        .on('click','.update',function(e) {
-            e.preventDefault();
-            var date = $("input#datepicker").val();
-            var title = $("input#title").val();
-            var type = $("select#type").val();
-            var authors = $("input#authors").val();
-            var orator = $("input#orator").val();
 
             if (type == "") {
                 showfeedback('<p id="warning">This field is required</p>');
@@ -694,67 +764,17 @@ $( document ).ready(function() {
                 return false;
             }
 
-            if (orator == "" && type == "guest") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#orator").focus();
-                return false;
-            }
-
-            if (date == "" && type !== "wishlist") {
-                showfeedback('<p id="warning">You must choose a date</p>');
-                $("input#datepicker").focus();
-                return false;
-            }
-
-            if (title == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#title").focus();
-                return false;
-            }
-
-            if (authors == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#authors").focus();
-                return false;
+            if (type == "guest") {
+                var orator = $("input#orator").val();
+                if (orator == "") {
+                    showfeedback('<p id="warning">This field is required</p>');
+                    $("input#orator").focus();
+                    return false;
+                }
             }
 
             processform("submit_form");
-            return false;
-        })
-
-        // Suggest a wish
-        .on('click','.suggest',function(e) {
-            e.preventDefault();
-            var title = $("input#title").val();
-            var type = $("select#type").val();
-            var authors = $("input#authors").val();
-            var orator = $("input#orator").val();
-
-            if (type == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("select#type").focus();
-                return false;
-            }
-
-            if (orator == "" && type == "guest") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#orator").focus();
-                return false;
-            }
-
-            if (title == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#title").focus();
-                return false;
-            }
-
-            if (authors == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#authors").focus();
-                return false;
-            }
-
-            processform("submit_form");
+            validsubmitform("#submission","<p id='success'>Thank you for your submission</p>");
             return false;
         })
 
@@ -796,7 +816,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     contact_send: true,
                     admin_mail: admin_mail,
@@ -857,13 +877,34 @@ $( document ).ready(function() {
                     show_pub: id_pres},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     $(".publication_form")
                         .show()
                         .html(result);
                     $(".pub_delete").hide();
                     $(".pub_modify").hide();
                     $(".header_title").text('Presentation');
+                }
+            });
+        })
+
+        // Choose a wish
+        .on('click','#modal_trigger_pubmod',function(e){
+            e.preventDefault();
+            var id_pres = $(this).attr('data-id');
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                async: false,
+                data: {
+                    mod_pub: id_pres},
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    $(".publication_form")
+                        .show()
+                        .html(result);
+                    $(".pub_delete").hide();
+                    $(".pub_modify").hide();
+                    $(".header_title").text('Choose a wish');
                 }
             });
         })
@@ -899,25 +940,6 @@ $( document ).ready(function() {
             $(".user_changepw").hide();
             $(".pub_delete").hide();
             $(".header_title").text('Delete confirmation');
-        })
-
-        // Replace file
-        .on('click','.file_replace',function(e) {
-            e.preventDefault();
-            var id_pres = $(this).attr("data-id");
-            console.log(id_pres);
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: false,
-                data: {del_file: id_pres},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    console.log(result);
-                    $(".upload_form").html("<form method='post' action='js/mini-upload-form/upload.php' enctype='multipart/form-data' id='upload'>" +
-                        "<div class='upl_note'></div><div id='drop'><a>Add a file</a><input type='file' name='upl' id='upl' multiple/> Or drag it here</div><ul></ul></form>");
-                }
-            });
         });
 
 	// Process events happening on the publication modal dialog box
@@ -934,7 +956,6 @@ $( document ).ready(function() {
                 data: {mod_pub: id_pres},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     $(".pub_delete").hide();
 					$(".publication_form").hide();
                     $('.pub_modify')
@@ -980,6 +1001,7 @@ $( document ).ready(function() {
                     console.log(result);
                     showfeedback('<p id="success">Publication deleted</p>');
                     $('#'+id_pres).remove();
+                    close_modal('.pub_popupContainer');
                 }
             });
         });
@@ -1014,22 +1036,13 @@ $( document ).ready(function() {
             var username = $("input#del_username").val();
             var password = $("input#del_password").val();
 
-            if (username == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#del_username").focus();
-                return false;
-            }
-
-            if (password == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#del_password").focus();
-                return false;
-            }
+            var valid = checkform('login_form');
+            if (valid === false) { return false; }
 
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {username: username,
                     password: password,
                     delete_user: true},
@@ -1050,26 +1063,18 @@ $( document ).ready(function() {
         })
 
         // Login form
-        .on('click',".login",function() {
+        .on('click',".login",function(e) {
+            e.preventDefault();
             var username = $("input#log_username").val();
             var password = $("input#log_password").val();
 
-            if (username == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#log_username").focus();
-                return false;
-            }
-
-            if (password == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#log_password").focus();
-                return false;
-            }
+            var valid = checkform('login_form');
+            if (valid === false) { return false; }
 
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {username: username,
                     password: password,
                     login: true
@@ -1094,7 +1099,8 @@ $( document ).ready(function() {
         })
 
         // Sign Up Form
-        .on('click',"#register",function() {
+        .on('click',".register",function(e) {
+            e.preventDefault();
             var firstname = $("input#firstname").val();
             var lastname = $("input#lastname").val();
             var username = $("input#username").val();
@@ -1103,43 +1109,12 @@ $( document ).ready(function() {
             var email = $("input#email").val();
             var position = $("select#position").val();
 
-            if (firstname == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#firstname").focus();
-                return false;
-            }
-            if (lastname == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#lastname").focus();
-                return false;
-            }
-            if (username == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#username").focus();
-                return false;
-            }
-
-            if (password == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#password").focus();
-                return false;
-            }
-
-            if (conf_password == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#conf_password").focus();
-                return false;
-            }
+            var valid = checkform('register_form');
+            if (valid === false) { return false; }
 
             if (password != conf_password) {
                 showfeedback('<p id="warning">Passwords must match</p>');
                 $("input#conf_password").focus();
-                return false;
-            }
-
-            if (email == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#email").focus();
                 return false;
             }
 
@@ -1149,16 +1124,10 @@ $( document ).ready(function() {
                 return false;
             }
 
-            if (position == "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#position").focus();
-                return false;
-            }
-
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: true,
+                async: false,
                 data: {
                     firstname: firstname,
                     lastname: lastname,
@@ -1172,11 +1141,10 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == "created") {
-                        $('.user_register').html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>');
-                    } else if (result === "mismatch") {
-                        showfeedback('<p id="warning">Passwords must match</p>');
-                    } else if (result === "wrong_email") {
-                        showfeedback('<p id="warning">Invalid email address</p>');
+                        validsubmitform("#submission","<p id='success'>Thank you for your submission</p>");
+                        $('.user_register')
+                            .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
+                            .show();
                     } else if (result === "exist") {
                         showfeedback('<p id="warning">This username/email address already exist in our database</p>');
                     }
@@ -1191,3 +1159,4 @@ $( document ).ready(function() {
 }).ajaxStop(function() {
     $loading.hide();
 });
+

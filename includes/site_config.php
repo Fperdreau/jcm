@@ -1,7 +1,6 @@
 <?php
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -21,7 +20,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 class site_config {
     // Site info
     public $app_name = "Journal Club Manager";
-    public $version = "v1.2.1";
+    public $version = "v1.2.2";
     public $author = "Florian Perdreau";
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
@@ -33,6 +32,7 @@ class site_config {
     public $jc_time_from = "17:00";
     public $jc_time_to = "18:00";
     public $notification = "sunday";
+    public $max_nb_session = 2;
     public $reminder = 1;
     // Lab info
     public $lab_name = "Your Lab name";
@@ -40,9 +40,7 @@ class site_config {
     public $lab_postcode = "Your Lab postal code";
     public $lab_city = "Your Lab city";
     public $lab_country = "Your Lab country";
-    public $lab_mapurl = "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2625.1625847749524!2d2.3307604!3d4
-                8.85511!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e671d7b93cd93d%3A0xb8d9c2989da20197!2sRue+des+Saints-P
-                %C3%A8res%2C+Paris!5e0!3m2!1sfr!2sfr!4v1411491314141";
+    public $lab_mapurl = "";
     // Mail host information
     public $mail_from = "jc@journalclub.com";
     public $mail_from_name = "Journal Club";
@@ -52,6 +50,9 @@ class site_config {
     public $mail_password = "";
     public $SMTP_secure = "ssl";
     public $pre_header = "[Journal Club]";
+    // Uploads
+    public $upl_types = "pdf,doc,docx,ppt,pptx,opt,odp";
+    public $upl_maxsize = 10000000;
 
     // Constructor
     public function __construct($get = null) {
@@ -61,48 +62,48 @@ class site_config {
     }
 
     public function get() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."admin/conf/config.php");
+        require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
         $sql = "select variable,value from $config_table";
         $req = $db_set->send_query($sql);
         $class_vars = get_class_vars("site_config");
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = $row["value"];
-            if (array_key_exists($varname,$class_vars)) {
-                $this->$varname = $value;
-            }
+            $value = htmlspecialchars($row['value']);
+            $this->$varname = $value;
         }
         return true;
     }
 
-    // Update config
-    public function update($post) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."admin/conf/config.php");
+    // Update application settings
+    public function update($post=array()) {
+        require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
+
         $class_vars = get_class_vars("site_config");
 		$class_keys = array_keys($class_vars);
-        foreach ($post as $name => $value) {
-            if (in_array($name,$class_keys)) {
-                $escape_value = htmlspecialchars($value);
-				$exist = $db_set->getinfo($config_table,"variable",array("variable"),array("'$name'"));
-	            if (!empty($exist)) {
-	                $db_set->updatecontent($config_table,"value","'$escape_value'",array("variable"),array("'$name'"));
-	            } else {
-	            	$db_set->addcontent($config_table,"variable,value","'$name','$escape_value'");
-	            }
-			}
+        $postkeys = array_keys($post);
+        foreach ($class_vars as $name => $value) {
+            if (in_array($name,$postkeys)) {
+                $escape_value = $db_set->escape_query($post[$name]);
+            } else {
+                $escape_value = $db_set->escape_query($this->$name);
+            }
+            $this->$name = $escape_value;
+            $exist = $db_set->getinfo($config_table,"variable",array("variable"),array("'$name'"));
+            if (!empty($exist)) {
+                $db_set->updatecontent($config_table,"value","'$escape_value'",array("variable"),array("'$name'"));
+            } else {
+            	$db_set->addcontent($config_table,"variable,value","'$name','$escape_value'");
+            }
         }
-        self::get();
         return true;
     }
 
     // Get organizers list
     function getadmin($admin=null) {
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."admin/conf/config.php");
+        require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
         $sql = "SELECT username,password,firstname,lastname,position,email,status FROM $users_table WHERE status='organizer'";
         if (null != $admin) {
@@ -122,7 +123,7 @@ class site_config {
     function generateuserslist($filter = null) {
         require_once($_SESSION['path_to_includes'].'users.php');
         require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app']."/admin/conf/config.php");
+        require($_SESSION['path_to_app'].'config/config.php');
 
 		if (null == $filter) {
 			$filter = 'lastname';
@@ -150,10 +151,11 @@ class site_config {
             $nbpres = $user->get_nbpres();
             // Compute age
             if ($user->active == 1) {
-                $from = strtotime($user->date);
-                $to   = date('Y-m-d');
+                $from = $user->date;
+                $to   = date('Y-m-d h:i:s');
                 $diff = $to-$from;
 	            $cur_age = date('d',$diff);
+
 	            $cur_trage = "$cur_age days ago";
 	            if ($cur_age >31) {
 	                $cur_age = date('m',$diff);

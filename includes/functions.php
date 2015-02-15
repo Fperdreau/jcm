@@ -1,7 +1,6 @@
 <?php
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -40,79 +39,109 @@ function check_login($status=null) {
     }
 }
 
-// Generate submission form and automatically fill it up with data provided by presclass object.
-function displayform($user,$presclass,$submit="submit") {
+// Generate submission form and automatically fill it up with data provided by Press object.
+function displayform($user,$Press,$submit="submit") {
     $config = new site_config('get');
-    $date = $presclass->date;
+    $date = $Press->date;
 
-    if ($presclass->link != "") {
-        $upload_form = "
-        	<label>Uploaded file: </label><a href='uploads/$presclass->link' target='_blank'>$presclass->link</a>
-        	<div class='pub_btn'><a href='' data-id='$presclass->id_pres' class='file_replace'>Replace file</a></div>
-        	";
+    $filelist = "";
+    if (!empty($Press->link)) {
+        $links = explode(',',$Press->link);
+        foreach ($links as $link) {
+            $name = explode('.',$link);
+            $name = $name[0];
+            $filelist .=
+            "<div id='upl_info' class='$name'>
+                <div class='upl_name' id='$link'>$link</div>
+                <div class='del_upl' id='$link' data-upl='$name'>
+                    <img src='images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
+                </div>
+            </div>";
+        }
     } else {
-        $upload_form = "
-        <form method='post' action='js/mini-upload-form/upload.php' enctype='multipart/form-data' id='upload'>
-	        <div class='upl_note'></div>
-	        <div id='drop'>
-	            <a>Add a file</a><input type='file' name='upl' id='upl' multiple/> Or drag it here
-	        </div>
-	        <ul></ul>
-		</form>";
+        $filelist .= "";
     }
+
+    $upl_form = "
+    <form method='post' action='js/mini-upload-form/upload.php' enctype='multipart/form-data' id='upload'>
+        <div class='upl_note'></div>
+        <div id='drop'>
+            <a>Add a file</a><input type='file' name='upl' id='upl' multiple/> Or drag it here
+        </div>
+        <ul></ul>
+	</form>";
 
     $idpress = "";
     if ($submit == "update") {
-        $idpress = "<input type='hidden' name='id_pres' value='$presclass->id_pres'/>";
+        $idpress = "<input type='hidden' name='id_pres' value='$Press->id_pres'/>";
     }
 
     if ($submit != "suggest") {
-        $dateinput = "<label for='date'>Date </label><input type='text' id='datepicker' name='date' value='$date' size='10'/></br>";
+        $dateinput = "<label for='date' class='pub_label'>Date </label><input type='text' id='datepicker' name='date' value='$date' size='10'/></br>";
     } else {
-        $dateinput = "";
+        $dateinput = "<br>";
     }
 
     return "
     <div class='feedback'></div>
     <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
-        <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
-        <input type='hidden' name='$submit' id='$submit' value='$submit'/>
-
+        <input type='hidden' name='$submit' value='true'/>
         $idpress
-        <label for='type'>Type</label>
+        <label for='type' class='pub_label'>Type</label>
             <select name='type' id='type'>
-                <option value='$presclass->type' selected='selected'>$presclass->type</option>
+                <option value='$Press->type' selected='selected'>$Press->type</option>
                 <option value='paper'>Paper</option>
                 <option value='research'>Research</option>
                 <option value='methodology'>Methodology</option>
                 <option value='guest'>Guest</option>
+                <option value='business'>Business</option>
             </select>
         $dateinput
-        <label for='orator'>Speaker (only for guest speakers) </label><input type='text' id='orator' name='orator' size='30%'/></br>
-        <label for='title'>Title </label><input type='text' id='title' name='title' value='$presclass->title' size='90%'/><br>
-        <label for='summary'>Abstract </label><br><textarea name='summary' id='summary'>$presclass->summary</textarea><br>
-        <label for='authors'>Authors </label><input type='text' id='authors' name='authors' value='$presclass->authors' size='80%'/></br>
-        <div style='float: right ; bottom: 5px;'><input type='submit' name='$submit' value='Apply' id='submit' class='$submit'/></div>
+        <div id='guest' style='display: none;'>
+        <label for='orator' class='pub_label'>Speaker's name</label><input type='text' id='orator' name='orator' size='30%'/>
+        </div>
+        <label for='title' class='pub_label'>Title </label><input type='text' id='title' name='title' value='$Press->title' size='90%'/><br>
+        <label for='summary' class='pub_label'>Abstract </label><br><textarea name='summary' id='summary'>$Press->summary</textarea><br>
+        <label for='authors' class='pub_label'>Authors </label><input type='text' id='authors' name='authors' value='$Press->authors' size='80%'/></br>
+        <div style='float: right ; bottom: 5px;'><input type='submit' name='$submit' value='Apply' id='submit' class='submit_pres'/></div>
     </form>
-	<div class='upload_form'>
-	$upload_form
-	</div>
+
+    <div class='upl_container'>
+	   <div class='upl_form'>
+            <form method='post' enctype='multipart/form-data'>
+            <input type='file' name='upl' id='upl_input' multiple style='display: none;' />
+            <div class='upl_btn'>
+                Add Files
+                <div id='upl_filetypes'>(pdf, ppt, pptx, doc, docx)</div>
+                <div id='upl_errors'></div>
+            </div>
+            </form>
+	   </div>
+        <div id='upl_filelist'>$filelist</div>
+    </div>
 	";
 }
 
-// Generate submission form and automatically fill it up with data provided by presclass object.
-function displaypub($user,$presclass) {
+// Generate submission form and automatically fill it up with data provided by Press object.
+function displaypub($user,$Press) {
 
-    if ($presclass->link != "") {
-        $download_button = "<div class='pub_btn'><a href='uploads/$presclass->link' target='_blank'>Download</a></div>";
+    if (!(empty($Press->link))) {
+        $download_button = "<div class='dl_btn' id='$Press->id_pres'>Download</div>";
+        $filelist = explode(',',$Press->link);
+        $dlmenu = "<div class='dlmenu'>";
+        foreach ($filelist as $file) {
+            $dlmenu .= "<div class='dl_info'><div class='upl_name' id='$file'>$file</div></div>";
+        }
+        $dlmenu .= "</div>";
     } else {
-        $download_button = "<div style='width: 100px;'></div>";
+        $download_button = "<div style='width: 100px'></div>";
+        $dlmenu = "";
     }
 
     // Add a delete link (only for admin and organizers or the authors)
-    if ($user->status != 'member' || $presclass->orator == $user->fullname) {
-        $delete_button = "<div class='pub_btn'><a href='#' data-id='$presclass->id_pres' class='delete_ref'>Delete</a></div>";
-        $modify_button = "<div class='pub_btn'><a href='#' data-id='$presclass->id_pres' class='modify_ref'>Modify</a></div>";
+    if ($user->status != 'member' || $Press->orator == $user->fullname) {
+        $delete_button = "<div class='pub_btn'><a href='#' data-id='$Press->id_pres' class='delete_ref'>Delete</a></div>";
+        $modify_button = "<div class='pub_btn'><a href='#' data-id='$Press->id_pres' class='modify_ref'>Modify</a></div>";
     } else {
         $delete_button = "<div style='width: 100px'></div>";
         $modify_button = "<div style='width: 100px'></div>";
@@ -120,17 +149,20 @@ function displaypub($user,$presclass) {
 
     $result = "
         <div class='pub_caps'>
-            <div id='pub_title'>$presclass->title</div>
-            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$presclass->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$presclass->orator</div>
-            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$presclass->authors</div>
+            <div id='pub_title'>$Press->title</div>
+            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$Press->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$Press->orator</div>
+            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$Press->authors</div>
         </div>
 
         <div class='pub_abstract'>
-            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$presclass->summary
+            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$Press->summary
         </div>
 
         <div class='pub_action_btn'>
-            <div class='pub_one_half'>$download_button</div>
+            <div class='pub_one_half'>
+                $download_button
+                $dlmenu
+            </div>
             <div class='pub_one_half last'>
                 $delete_button
                 $modify_button

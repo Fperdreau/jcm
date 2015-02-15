@@ -1,7 +1,6 @@
 <?php
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -19,13 +18,13 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 @session_start();
-$_SESSION['app_name'] = basename(dirname(__DIR__);
-$_SESSION['path_to_app'] = dirname($_SESSION['app_name'])."/";
+$_SESSION['app_name'] = basename(dirname(__DIR__));
+$_SESSION['path_to_app'] = dirname(__FILE__)."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 date_default_timezone_set('Europe/Paris');
 
 require_once($_SESSION['path_to_includes'].'includes.php');
-require_once($_SESSION['path_to_app']."/admin/conf/config.php");
+require_once($_SESSION['path_to_app'].'config/config.php');
 $user = new users();
 $db_set = new DB_set();
 
@@ -61,3 +60,5 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     }
     echo json_encode($result);
 }
+
+

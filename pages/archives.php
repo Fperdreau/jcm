@@ -1,7 +1,6 @@
 <?php
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -22,8 +21,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 require_once($_SESSION['path_to_includes'].'includes.php');
 check_login();
 
-$presclass = new presclass();
-$years = $presclass -> get_years();
+$Press = new Press();
+$years = $Press -> get_years();
 
 // Select input (Years)
 $options = "
@@ -33,7 +32,7 @@ foreach ($years as $year) {
     $options .= "<option value='$year'>$year</option>";
 }
 
-$publist = $presclass->getpublicationlist();
+$publist = $Press->getpublicationlist();
 $result = "
     <div id='content'>
         <span id='pagename'>Archives</span>
@@ -45,5 +44,5 @@ $result = "
         	$publist
         </div>
 	</div>";
-	
+
 echo json_encode($result);

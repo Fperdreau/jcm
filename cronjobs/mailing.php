@@ -1,7 +1,6 @@
 <?php
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -19,8 +18,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 @session_start();
-chdir(dirname(__FILE__));
-$_SESSION['path_to_app'] = '../';
+$_SESSION['app_name'] = basename(dirname(__DIR__));
+$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 date_default_timezone_set('Europe/Paris');
 
@@ -32,10 +31,10 @@ function mailing() {
     // Declare classes
     $mail = new myMail();
     $config = new site_config('get');
-	
+
 	// Count number of users
     $nusers = count($mail->get_mailinglist("notification"));
-	
+
 	// today's day
     $cur_date = strtolower(date("l"));
 
@@ -48,9 +47,9 @@ function mailing() {
         } else {
             $string = "[".date('Y-m-d H:i:s')."]: ERROR message not sent.\r\n";
         }
-    
+
 	    echo($string);
-	
+
 	    // Write log
 	    $cronlog = 'mailing_log.txt';
 	    if (!is_file($cronlog)) {
@@ -67,8 +66,9 @@ function mailing() {
 		echo "<p>notification day: $config->notification</p>";
 		echo "<p>Today: $cur_date</p>";
 	}
-	
+
 }
 
 // Run cron job
 mailing();
+

@@ -1,6 +1,5 @@
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -186,6 +185,7 @@ a.btn_red {color: #FFF;}
     display: block;
     padding: 10px;
     margin-top: 10px;
+    text-align: justify;
     background-color: #eeeeee;
 }
 
@@ -226,7 +226,7 @@ a.btn_red {color: #FFF;}
     text-decoration: none;
 }
 
-.pub_btn a:hover {
+.pub_btn:hover>a {
     color:#EEE;
     text-align: center;
     text-decoration: none;

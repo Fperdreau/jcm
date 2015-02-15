@@ -1,7 +1,6 @@
 <?php
 /*
 Copyright © 2014, Florian Perdreau
-
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -27,6 +26,7 @@ $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 $_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
 $_SESSION['path_to_pages'] = $_SESSION['path_to_app']."pages/";
 date_default_timezone_set('Europe/Paris');
+if (empty($_SESSION['logok'])) { $_SESSION['logok'] = false;}
 
 // Includes required files (classes)
 require_once($_SESSION['path_to_includes'].'includes.php');
@@ -53,6 +53,7 @@ $config = new site_config('get');
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
+        <script type="text/javascript" src="js/Myupload.js"></script>
 
         <title><?php echo $config->sitetitle; ?></title>
     </head>
@@ -91,14 +92,6 @@ $config = new site_config('get');
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>
-        <!-- mini upload form plugin -->
-        <link type="text/css" href="js/mini-upload-form/assets/css/style.css" rel="stylesheet" />
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.knob.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.ui.widget.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.iframe-transport.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.fileupload.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/script.js"></script>
 
     </body>
 </html>
-

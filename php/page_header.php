@@ -1,7 +1,6 @@
 <?php
 /*
-Copyright © 2014, Florian Perdreau
-
+Copyright © 2014, F. Perdreau, Radboud University Nijmegen
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -31,7 +30,7 @@ if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
 echo "
 <div class='header_container'>
     <div id='title'>
-        <span id='sitetitle'>$sitetitle</span>
+        <span id='sitetitle'>$config->sitetitle</span>
         <div style='float: right; margin-right: 10px; margin-top: 20px; height: 20px;' id='welcome'>$showlogin</div>
     </div>
 </div>

@@ -43,4 +43,3 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 
 **Instructions and a more detailed description of the Journal Club Manager can be found in "installation.pdf"**
-
