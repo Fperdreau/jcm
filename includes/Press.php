@@ -264,7 +264,6 @@ class Press {
         $db_set -> deletecontent($presentation_table,array('id_pres'),array("'$pres_id'"));
     }
 
-<<<<<<< HEAD
     // Delete all files corresponding to the actual presentation
     function delete_files() {
         $filelist = explode(',',$this->link);

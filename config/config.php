@@ -1,5 +1,5 @@
 <?php
-    $version = "v1.2.2";
+    $version = "v1.3";
 	$host = "localhost";
 	$username = "root";
 	$passw = "";

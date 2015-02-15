@@ -275,8 +275,6 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='button' id='submit' value='Update'  class='start' data-op='update'></p>";
         }
     } elseif ($step == 2) {
-        $url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
-
 		$title = "Step 1: Database configuration";
 		$operation = "
 			<form action='' method='post' name='install' id='do_conf'>
@@ -293,7 +291,7 @@ if (!empty($_POST['getpagecontent'])) {
 			<div class='feedback'></div>
 		";
     } elseif ($step == 3) {
-        $url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
+        $config->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
 
         $title = "Step 2: Application configuration";
         $operation = "
@@ -302,11 +300,11 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='op' value='$op'/>
                 <input class='field' type='hidden' name='install_db' value='true' />
 
-                <div style='display: block; padding: 5px; margin-left: 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px;'> About your Journal Club Manager</div>
+                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: auto;'> About your Journal Club Manager</div>
                 <label for='sitetitle' class='label'>Site title</label><input class='field' name='sitetitle' type='text' value='$config->sitetitle'></br>
-                <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$url' size='30'></br>
+                <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$config->site_url' size='30'></br>
 
-                <div style='display: block; padding: 5px; margin-left: 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px;'> About the mailing service</div>
+                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: auto;'> About the mailing service</div>
                 <label for='mail_from' class='label'>Sender Email address</label><input class='field' name='mail_from' type='text' value='$config->mail_from'></br>
                 <label for='mail_from_name' class='label'>Sender name</label><input class='field' name='mail_from_name' type='text' value='$config->mail_from_name'></br>
                 <label for='mail_host' class='label'>Email host</label><input class='field' name='mail_host' type='text' value='$config->mail_host'></br>
