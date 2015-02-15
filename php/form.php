@@ -46,6 +46,7 @@ if (!empty($_POST['get_calendar_param'])) {
 	    $year = $fdate[0];
 
 	    $formatdate[] = "$day-$month-$year";
+
         if (!empty($pres)) {
             $nb_pres[] = count($pres);
         } else {
@@ -231,6 +232,7 @@ if (!empty($_POST['del_pub'])) {
 }
 
 //  delete files
+
 if (!empty($_POST['del_upl'])) {
     $uplname = htmlspecialchars($_POST['uplname']);
     $pub = new Press();
@@ -281,7 +283,6 @@ if (!empty($_POST['update'])) {
             $_POST['type'] = "paper";
         }
         $created = $pub -> update($_POST);
-
         if ($created == true) {
             $result = "<p id='success'>Your presentation has been updated.</p>";
         } else {
@@ -334,6 +335,7 @@ if (!empty($_POST['getform'])) {
     $form = displayform($user,$pub,'submit');
     echo json_encode($form);
 }
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Archives
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/

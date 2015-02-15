@@ -1,3 +1,5 @@
 .idea/
 admin/conf/config.php
+uploads/*.pdf
+*.docx
 instruction.docx

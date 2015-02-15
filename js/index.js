@@ -1159,4 +1159,3 @@ $( document ).ready(function() {
 }).ajaxStop(function() {
     $loading.hide();
 });
-

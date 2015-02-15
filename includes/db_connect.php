@@ -325,5 +325,4 @@ class DB_set {
         return $bdd;
 	}
 }
-
 ?>

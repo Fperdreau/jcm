@@ -54,7 +54,6 @@ $config = new site_config('get');
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
         <script type="text/javascript" src="js/Myupload.js"></script>
-
         <title><?php echo $config->sitetitle; ?></title>
     </head>
 
@@ -92,6 +91,5 @@ $config = new site_config('get');
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>
-
     </body>
 </html>

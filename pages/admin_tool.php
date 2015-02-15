@@ -219,7 +219,6 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<span id='pagename'>Admin tools</span>
         <div class='section_header'>Tools</div>
         <div class='section_content'>
-
             <div id='db_backup'>
             <label for='backup'>Backup database</label>
             <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>

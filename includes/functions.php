@@ -43,7 +43,6 @@ function check_login($status=null) {
 function displayform($user,$Press,$submit="submit") {
     $config = new site_config('get');
     $date = $Press->date;
-
     $filelist = "";
     if (!empty($Press->link)) {
         $links = explode(',',$Press->link);
@@ -124,7 +123,6 @@ function displayform($user,$Press,$submit="submit") {
 
 // Generate submission form and automatically fill it up with data provided by Press object.
 function displaypub($user,$Press) {
-
     if (!(empty($Press->link))) {
         $download_button = "<div class='dl_btn' id='$Press->id_pres'>Download</div>";
         $filelist = explode(',',$Press->link);

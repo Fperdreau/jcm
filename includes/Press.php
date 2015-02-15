@@ -45,7 +45,6 @@ class Press {
         $class_vars = get_class_vars("Press");
         $db_set = new DB_set();
         $config = new site_config('get');
-        $bdd = $db_set->bdd_connect();
 
         $post['up_date'] = date('Y-m-d h:i:s'); // Date of creation
         $post['jc_time'] = "$config->jc_time_from,$config->jc_time_to";
@@ -265,6 +264,7 @@ class Press {
         $db_set -> deletecontent($presentation_table,array('id_pres'),array("'$pres_id'"));
     }
 
+<<<<<<< HEAD
     // Delete all files corresponding to the actual presentation
     function delete_files() {
         $filelist = explode(',',$this->link);

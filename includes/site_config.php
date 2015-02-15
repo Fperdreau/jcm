@@ -20,7 +20,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 class site_config {
     // Site info
     public $app_name = "Journal Club Manager";
-    public $version = "v1.2.2";
+    public $version = "v1.3";
     public $author = "Florian Perdreau";
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
