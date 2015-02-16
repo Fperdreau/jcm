@@ -26,7 +26,9 @@ $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 $_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
 $_SESSION['path_to_pages'] = $_SESSION['path_to_app']."pages/";
 date_default_timezone_set('Europe/Paris');
-
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
 // Includes required files (classes)
 require_once($_SESSION['path_to_includes'].'includes.php');
 $config = new site_config();
