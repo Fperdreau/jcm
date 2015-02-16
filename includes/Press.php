@@ -585,7 +585,7 @@ class Press {
 
     // Get wish list
     function getwishlist($number = null,$mail = false) {
-        $show = $mail == true || (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
+        $show = $mail == false || (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
         require($_SESSION['path_to_app'].'config/config.php');
         $config = new site_config('get');
         $db_set = new DB_set();
