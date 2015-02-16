@@ -49,7 +49,6 @@ function mailing() {
     if ($send === true) {
         $content = $mail->reminder_Mail();
         $body = $mail -> formatmail($content['body']);
-        print_r($body);
         $subject = $content['subject'];
         if ($mail->send_to_mailinglist($subject,$body,"reminder")) {
             $string = "[".date('Y-m-d H:i:s')."]: message sent successfully to $nusers users.\r\n";
@@ -62,14 +61,11 @@ function mailing() {
 	    $cronlog = 'reminder_log.txt';
 	    if (!is_file($cronlog)) {
 	        $fp = fopen($cronlog,"w");
-	        chmod($cronlog,0777);
 	    } else {
 	        $fp = fopen($cronlog,"a+");
-	        chmod($cronlog,0777);
 	    }
 	    fwrite($fp,$string);
 	    fclose($fp);
-	    chmod($cronlog,0644);
     } else {
         echo "nothing to send";
     }

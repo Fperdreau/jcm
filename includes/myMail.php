@@ -300,10 +300,11 @@ class myMail {
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
-        $config = new site_config();
-        $config->get();
+        $config = new site_config('get');
         $nextpub = new Press();
         $next_session = $nextpub->shownextsession();
+        $dates = $nextpub->getdates();
+        $date = $dates[0];
 
         $content['body'] = "
             <div style='width: 95%; margin: auto;'>
@@ -326,7 +327,7 @@ class myMail {
             </div>
         ";
 
-        $content['subject'] = "Next session: ".$nextpub->date." -reminder";
+        $content['subject'] = "Next session: $date -reminder";
 
         return $content;
     }
