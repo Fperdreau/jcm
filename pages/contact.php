@@ -43,7 +43,7 @@ $result = "
     <div id='content'>
         <span id='pagename'>Contact information</span>
 
-        <div style='display: inline; float: left; width: 40%;'>
+        <div style='display: inline; float: left; width: 40%; margin-bottom: 20px;'>
             <div class='section_header'>Organizer(s)</div>
             <div class='section_content'>
                 $admin_contact
@@ -73,18 +73,18 @@ $result = "
             <div class='section_header' style='width: auto;'>Send Email to organizers</div>
             <div class='section_content'>
             <div class='feedback'></div>
-            <form method='post' action='' class='form' id='contact_form'>
-                <label for='admin_mail'>Organizer</label>
-                    <select name='admin_mail' id='admin_mail'>
-                        <option value='none' selected='selected'>Select an organizer</option>
-                        $mail_option
-                    </select></br>
-                <label for='name'>Your name</label><input type='text' name='name' id='contact_name' value='Your name'><br>
-                <label for='mail'>E-mail</label><input type='text' name='mail' id='contact_mail' value='Your email'><br>
-                <label for='message'>Message</label><br>
-                <textarea id='message' name='message' rows='10' cols='50'>Your message</textarea><br>
-                <p style='text-align: right;'><input type='submit' name='send' value='Send' id='submit' class='contact_send'></p>
-            </form>
+                <form method='post' action='' class='form' id='contact_form'>
+                    <label for='admin_mail'>Organizer</label>
+                        <select name='admin_mail' id='admin_mail'>
+                            <option value='none' selected='selected'>Select an organizer</option>
+                            $mail_option
+                        </select></br>
+                    <label for='name'>Your name</label><input type='text' name='name' id='contact_name' value='Your name'><br>
+                    <label for='mail'>E-mail</label><input type='text' name='mail' id='contact_mail' value='Your email'><br>
+                    <label for='message'>Message</label><br>
+                    <textarea id='message' name='message' rows='10' cols='50'>Your message</textarea><br>
+                    <p style='text-align: right;'><input type='submit' name='send' value='Send' id='submit' class='contact_send'></p>
+                </form>
             </div>
         </div>
     </div>
