@@ -367,8 +367,8 @@ function file_backup() {
 
     $dirToSave = $_SESSION['path_to_app'];
     $dirsNotToSaveArray = array($_SESSION['path_to_app']."backup");
-    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/Mysql';
-    $zipSaveDir = $_SESSION['path_to_app'].'backup/Complete';
+    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';
+    $zipSaveDir = $_SESSION['path_to_app'].'backup/complete';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($zipSaveDir)) {
