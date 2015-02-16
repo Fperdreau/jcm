@@ -43,9 +43,6 @@ function mailing() {
     $reminder_day = new DateTime(date("Y-m-d",strtotime($nextsession->date." - $config->reminder days")));
     $send = $today->format('Y-m-d') == $reminder_day->format('Y-m-d');
 
-    //echo "<pre>Today: ".var_dump($today->format('Y-m-d'));
-    //echo "<pre>Reminder: ".var_dump($reminder_day->format('Y-m-d'));
-
     if ($send === true) {
         $content = $mail->reminder_Mail();
         $body = $mail -> formatmail($content['body']);

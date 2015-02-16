@@ -6,3 +6,4 @@
 [2015-02-16 07:47:41]: ERROR message not sent.
 [2015-02-16 07:48:22]: message sent successfully to 2 users.
 [2015-02-16 11:30:01]: message sent successfully to 1 users.
+[2015-02-16 16:06:46]: message sent successfully to 1 users.

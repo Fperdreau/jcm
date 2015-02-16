@@ -351,7 +351,7 @@ class Press {
     // Display the upcoming presentation(home page/mail)
     function shownextsession($mail=false) {
         require($_SESSION['path_to_app'].'config/config.php');
-        $show = ($mail == true || (!empty($_SESSION['logok'] && $_SESSION['logok'] == true));
+        $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
 
         $config = new site_config('get');
         $dates = self::getdates();
@@ -370,7 +370,7 @@ class Press {
 
                // Get file list
                 $filecontent = "";
-                if ($show && $pres->link != "") {
+                if ($show && !empty($pres->link)) {
                     $filelist = explode(',',$pres->link);
                     foreach ($filelist as $file) {
                         $ext = explode('.',$file);
@@ -585,7 +585,7 @@ class Press {
 
     // Get wish list
     function getwishlist($number = null,$mail = false) {
-        $show = ($mail == false || (!empty($_SESSION['logok'] && $_SESSION['logok'] == true));
+        $show = $mail == true || (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
         require($_SESSION['path_to_app'].'config/config.php');
         $config = new site_config('get');
         $db_set = new DB_set();

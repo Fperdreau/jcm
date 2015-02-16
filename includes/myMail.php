@@ -307,21 +307,21 @@ class myMail {
         $date = $dates[0];
 
         $content['body'] = "
-            <div style='width: 95%; margin: auto;'>
+            <div style='width: 95%; margin: auto; font-size: 16px;'>
                 <p>Hello,<br>
                 This is a reminder for the next Journal Club session.</p>
             </div>
 
-            <div style='width: 95%; margin: auto;'>
-                <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
+            <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
                     Next session
                 </div>
-                <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
+                <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
                     $next_session
                 </div>
             </div>
 
-            <div style='width: 95%; margin: auto;'>
+            <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
                 <p>Cheers,<br>
                 The Journal Club Team</p>
             </div>
