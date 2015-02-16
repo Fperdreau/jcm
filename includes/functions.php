@@ -282,7 +282,7 @@ function backup_db(){
     $config->get();
 
     // Create Backup Folder
-    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/Mysql';
+    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($mysqlSaveDir)) {
