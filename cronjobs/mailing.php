@@ -41,6 +41,7 @@ function mailing() {
     if ($cur_date == $config->notification) {
         $content = $mail->advertise_mail();
         $body = $mail -> formatmail($content['body']);
+        print_r($body);exit;
         $subject = $content['subject'];
         if ($mail->send_to_mailinglist($subject,$body,"notification")) {
             $string = "[".date('Y-m-d H:i:s')."]: message sent successfully to $nusers users.\r\n";

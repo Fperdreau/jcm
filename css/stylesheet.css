@@ -524,13 +524,18 @@ a:hover {
     margin: 0;
     width: 50px;
     height: 25px;
+    text-align: center;
     line-height: 25px;
 }
 
-.show_btn a {
+.show_btn>a {
     color: #FFFFFF;
-    text-align: center;
     text-decoration: none;
+}
+
+.show_btn:hover {
+    background-color: #CF5252;
+    color: #FFFFFF;
 }
 
 /* Submission list */

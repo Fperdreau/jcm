@@ -40,7 +40,7 @@ class site_config {
     public $lab_postcode = "Your Lab postal code";
     public $lab_city = "Your Lab city";
     public $lab_country = "Your Lab country";
-    public $lab_mapurl = "";
+    public $lab_mapurl = "Google Map";
     // Mail host information
     public $mail_from = "jc@journalclub.com";
     public $mail_from_name = "Journal Club";
