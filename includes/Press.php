@@ -357,8 +357,10 @@ class Press {
             $date = $dates[0];
             $ids = self::getsession();
             $nb_pres = count($ids);
-            $content = "<div style='background-color: rgba(255,255,255,.9); padding: 5px; margin-bottom: 10px;'>
-                    <span style='font-weight: bold; margin: 0 0 5px 0;'>Date:</span> $date<br>
+            $content = "<div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px; border: 1px solid #bebebe;'>
+                    <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>$date</div>
+                    <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>$config->jc_time_from <b>To: </b>$config->jc_time_to</div>
+                    <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b> $config->room</div><br>
                     Our next session will host $nb_pres presentations.
                 </div>";
             foreach ($ids as $presid) {
@@ -372,13 +374,13 @@ class Press {
                         $ext = explode('.',$file);
                         $ext = strtoupper($ext[1]);
                         $urllink = $config->site_url."uploads/".$file;
-                        $filecontent .= "<div style='display: inline-block; height: 20px; line-height: 20px; text-align: center; padding: 5px; white-space: pre-wrap; width: 50px; margin: 5px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'><a href='$urllink' target='_blank'>$ext</a></div>";
+                        $filecontent .= "<div style='display: inline-block; height: 15px; line-height: 15px; text-align: center; padding: 5px; white-space: pre-wrap; min-width: 40px; width: auto; margin: 5px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'><a href='$urllink' target='_blank'>$ext</a></div>";
                     }
                 }
                 $type = ucfirst($pres->type);
                 $content .= "
-                <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border-top: 1px solid #adadad; border-left: 1px solid #adadad;'>
-                    <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(175,175,175,.8); color: #FFF; padding: 5px;'>
+                <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                    <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                         $type
                     </div>
                     <div style='width: 95%; margin: auto; padding: 5px 10px 0px 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid #aaaaaa;'>
@@ -389,7 +391,7 @@ class Press {
                     <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
                         <span style='font-style: italic; font-size: 13px;'>$pres->summary</span>
                     </div>
-                    <div style='display: block; test-align: justify; width: 95%; height: auto; margin: auto; background-color: #444444;'>
+                    <div style='display: block; test-align: justify; width: 95%; min-height: 20px; height: auto; margin: auto; background-color: #444444;'>
                         $filecontent
                     </div>
                 </div>
@@ -467,7 +469,7 @@ class Press {
 
             $content .= "
             <div style='display: block; margin: 0 auto 10px auto; border-top: 1px solid rgba(175,175,175,.8);'>
-                <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(175,175,175,.8); color: #FFF; padding: 5px;'>
+                <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                         $day
                 </div>
                 $pubcontent

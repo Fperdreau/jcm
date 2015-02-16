@@ -285,7 +285,7 @@ if (!empty($_POST['getpagecontent'])) {
 				<label for='username' class='label'>Username</label><input class='field' name='username' type='text' value='root'></br>
 				<label for='passw' class='label'>Password</label><input class='field' name='passw' type='password' value='root'></br>
 				<label for='dbname' class='label'>DB Name</label><input class='field' name='dbname' type='text' value='test'></br>
-				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='pjc'></br>
+				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='jcm'></br>
 				<p style='text-align: right'><input type='submit' name='do_conf' value='Next' id='submit' class='do_conf' data-op='$op'></p>
 			</form>
 			<div class='feedback'></div>
@@ -300,11 +300,11 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='op' value='$op'/>
                 <input class='field' type='hidden' name='install_db' value='true' />
 
-                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: auto;'> About your Journal Club Manager</div>
+                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About your Journal Club Manager</div>
                 <label for='sitetitle' class='label'>Site title</label><input class='field' name='sitetitle' type='text' value='$config->sitetitle'></br>
                 <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$config->site_url' size='30'></br>
 
-                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: auto;'> About the mailing service</div>
+                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About the mailing service</div>
                 <label for='mail_from' class='label'>Sender Email address</label><input class='field' name='mail_from' type='text' value='$config->mail_from'></br>
                 <label for='mail_from_name' class='label'>Sender name</label><input class='field' name='mail_from_name' type='text' value='$config->mail_from_name'></br>
                 <label for='mail_host' class='label'>Email host</label><input class='field' name='mail_host' type='text' value='$config->mail_host'></br>
@@ -414,18 +414,6 @@ if (!empty($_POST['getpagecontent'])) {
                 });
             }
 
-            // Basic timer (timing=time in sec)
-            var timer = function(timing) {
-                count = 0;
-                var timerfun = setInterval(function() {
-                    console.log(count);
-                    count += 1;
-                    if (count == timing) {
-                        clearInterval(timerfun);
-                    }
-                },1000);
-            }
-
             $(document).ready(function () {
                 $('.mainbody')
                     .ready(function() {
@@ -476,9 +464,14 @@ if (!empty($_POST['getpagecontent'])) {
                                 } else {
                                     var html = "<p id='warning'>"+result+"</p>";
                                 }
-                                $('#operation').html(html);
-                                timer(2);
-                                getpagecontent(3,op);
+                                $('#operation')
+                                    .hide()
+                                    .html(html)
+                                    .fadeIn(200);
+                                var timer = setInterval(function() {
+                                    getpagecontent(3,op);
+                                    clearInterval(timer);
+                                },2000);
                             }
                         });
                     })
@@ -487,27 +480,25 @@ if (!empty($_POST['getpagecontent'])) {
                     .on('click','.install_db',function(e) {
                         e.preventDefault();
                         var op = $(this).attr('data-op');
-                        console.log(op);
                         var data = $("#install_db").serializeArray();
-                        console.log(data);
 
                         // Configure database
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
                             async: false,
-                            data: {
-                                install_db: true,
-                                op:op},
+                            data: data,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
                                 $('#operation').append(result);
-                                timer(2);
-                                if (op !== "update") {
-                                    getpagecontent(4,op);
-                                } else {
-                                    getpagecontent(5,op);
-                                }
+                                var timer = setInterval(function() {
+                                    if (op !== "update") {
+                                        getpagecontent(4,op);
+                                    } else {
+                                        getpagecontent(5,op);
+                                    }
+                                    clearInterval(timer);
+                                },2000);
                             }
                         });
                     })

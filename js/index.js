@@ -1141,10 +1141,13 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == "created") {
-                        validsubmitform("#submission","<p id='success'>Thank you for your submission</p>");
                         $('.user_register')
-                            .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
-                            .show();
+                                .hide()
+                                .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
+                                .fadeIn(200);
+                        setTimeout(function() {
+                            close_modal(".popupContainer");
+                        }, 5000);
                     } else if (result === "exist") {
                         showfeedback('<p id="warning">This username/email address already exist in our database</p>');
                     }

@@ -4,9 +4,9 @@
 	$username = "root";
 	$passw = "";
 	$dbname = "test";
-	$db_prefix = "pjc_";
-	$users_table = "pjc_users";
-	$presentation_table = "pjc_presentations";
-    $config_table = "pjc_config";
-    $post_table = "pjc_post";
+	$db_prefix = "jcm_";
+	$users_table = "jcm_users";
+	$presentation_table = "jcm_presentations";
+    $config_table = "jcm_config";
+    $post_table = "jcm_post";
 	?>

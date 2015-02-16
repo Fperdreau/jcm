@@ -75,8 +75,6 @@ class users {
             $db_set->addcontent($users_table,$variables,$values);
 
         	if ($this->status !=  "admin") {
-				// Add to mailing list
-                $db_set->addcontent($mailinglist_table,"username,email","'$this->username','$this->email'");
 
 				// Send verification email to admins/organizer
                 if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {

@@ -32,18 +32,24 @@ function mailing() {
     $mail = new myMail();
     $config = new site_config('get');
     $pub = new Press();
-    $pub->getsession();
+    $ids = $pub->getsession();
+    $nextsession = new Press($ids[0]);
 
 	// Number of users
     $nusers = count($mail->get_mailinglist("reminder"));
 
 	// Compare date of the next presentation to today
-    $cur_date = strtolower(date("Y-m-d"));
-    $reminder_day = date("Y-m-d",strtotime($pub->date." - $config->reminder days"));
+    $today   = new DateTime(date('Y-m-d'));
+    $reminder_day = new DateTime(date("Y-m-d",strtotime($nextsession->date." - $config->reminder days")));
+    $send = $today->format('Y-m-d') == $reminder_day->format('Y-m-d');
 
-    if ($cur_date == $reminder_day) {
+    //echo "<pre>Today: ".var_dump($today->format('Y-m-d'));
+    //echo "<pre>Reminder: ".var_dump($reminder_day->format('Y-m-d'));
+
+    if ($send === true) {
         $content = $mail->reminder_Mail();
         $body = $mail -> formatmail($content['body']);
+        print_r($body);
         $subject = $content['subject'];
         if ($mail->send_to_mailinglist($subject,$body,"reminder")) {
             $string = "[".date('Y-m-d H:i:s')."]: message sent successfully to $nusers users.\r\n";

@@ -1,5 +1,7 @@
 .idea/
-admin/conf/config.php
+config/config.php
 uploads/*.pdf
 *.docx
+cronjobs/*.txt
+*.sql
 instruction.docx
