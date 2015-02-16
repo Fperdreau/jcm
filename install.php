@@ -615,7 +615,6 @@ if (!empty($_POST['getpagecontent'])) {
                 $loading.hide();
             });
         </script>
-
         <title>Journal Club Manager - Installation</title>
     </head>
 

@@ -49,7 +49,6 @@ $result = "
                 <div class='section_content' style='width: 90%;'>
                     $admin_contact
                 </div>
-
                 <div class='section_header'>Access</div>
                 <div class='section_content' style='width: 90%;'>
                     $config->lab_name</br>
