@@ -69,6 +69,7 @@ $result = "
             </div>
         </div>
 
+
         <div style='display: inline; float: right; clear: right; width: 50%;'>
             <div class='section_header' style='width: auto;'>Send Email to organizers</div>
             <div class='section_content'>
