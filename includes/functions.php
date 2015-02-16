@@ -278,8 +278,7 @@ function backup_db(){
 
     // Declare classes
     $db_set = new DB_set();
-    $config = new site_config();
-    $config->get();
+    $config = new site_config('get');
 
     // Create Backup Folder
     $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';

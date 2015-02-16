@@ -113,7 +113,9 @@ if (!empty($_POST['do_conf'])) {
 
 // Do Back ups
 if (!empty($_POST['backup'])) {
-
+    $backupfile = backup_db();
+    echo json_encode($backupfile);
+    exit;
 }
 
 // Configure database
@@ -414,6 +416,29 @@ if (!empty($_POST['getpagecontent'])) {
                 });
             }
 
+            var dobackup = function() {
+                $('#operation')
+                    .hide()
+                    .html("<p id='status'>Backup previous database</p>")
+                    .fadeIn(200);
+                // Make configuration file
+                jQuery.ajax({
+                    url: 'install.php',
+                    type: 'POST',
+                    async: false,
+                    data: {backup: true},
+                    success: function(data){
+                        var result = jQuery.parseJSON(data);
+                        var html = "<p id='success'>Backup created: "+result+"</p>";
+                        $('#operation')
+                            .hide()
+                            .append(html)
+                            .fadeIn(200);
+                    }
+                });
+                return false;
+            }
+
             $(document).ready(function () {
                 $('.mainbody')
                     .ready(function() {
@@ -451,6 +476,11 @@ if (!empty($_POST['getpagecontent'])) {
                         var op = $(this).attr('data-op');
                         var data = $("#do_conf").serializeArray();
 
+                        // Backup the database before updating it
+                        if (op == "update") {
+                            dobackup();
+                        }
+
                         // Make configuration file
                         jQuery.ajax({
                             url: 'install.php',
@@ -466,7 +496,7 @@ if (!empty($_POST['getpagecontent'])) {
                                 }
                                 $('#operation')
                                     .hide()
-                                    .html(html)
+                                    .append(html)
                                     .fadeIn(200);
                                 var timer = setInterval(function() {
                                     getpagecontent(3,op);

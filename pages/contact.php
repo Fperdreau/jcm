@@ -65,7 +65,7 @@ $result = "
 
             <div class='section_header'>Map</div>
             <div class='section_content'>
-                <iframe src='$config->lab_mapurl' width='400' height='300 frameborder='0' style='border:0'></iframe>
+                <iframe src='$config->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'></iframe>
             </div>
         </div>
 
