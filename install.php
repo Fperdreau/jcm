@@ -396,7 +396,6 @@ if (!empty($_POST['getpagecontent'])) {
             }
 
             var getpagecontent = function(step,op) {
-                console.log(step);
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',

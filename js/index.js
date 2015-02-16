@@ -28,7 +28,6 @@ var processform = function(formid,feedbackid) {
         feedbackid = ".feedback";
     }
     var data = $("#" + formid).serialize();
-    console.log(data);
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -36,7 +35,6 @@ var processform = function(formid,feedbackid) {
         data: data,
         success: function(data){
             var result = jQuery.parseJSON(data);
-            console.log("returned result:"+result);
             showfeedback(result,feedbackid);
         }
     });
@@ -114,7 +112,6 @@ var send_verifmail = function(email) {
             email: email},
         success: function(data){
             var result = jQuery.parseJSON(data);
-            console.log(result);
             if (result === "sent") {
                 showfeedback('<p id="success">A verification email has been sent to your address</p>');
             } else if (result === "wrong_email") {
@@ -140,7 +137,6 @@ var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb) {
             if (days[day] == jc_day && date >= today) {
                 var find = $.inArray(cur_date,booked);
                 if (find > -1) { // If the date is booked
-                    console.log(nb[find]);
                     if ((max_nb_session-nb[find])>0) {
                         return [true,"jcday_rem",max_nb_session-nb[find]+" presentation(s) available"];
                     } else {
@@ -232,7 +228,6 @@ var parseurl = function() {
     var vars = query.split("&");
     vars = vars.slice(1,vars.length);
     vars = vars.join("&");
-    console.log(vars);
     return vars;
 };
 
@@ -341,7 +336,6 @@ $( document ).ready(function() {
                 async: false,
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     window.location = "index.php";
                 }
             });
@@ -434,8 +428,6 @@ $( document ).ready(function() {
                     conf_password: conf_password},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "changed") {
                         showfeedback('<p id="success">Your password has been modified.</p>');
                     } else if (result === "mismatch") {
@@ -477,10 +469,7 @@ $( document ).ready(function() {
                 async: false,
                 data: {webproc: webproc},
                 success: function(data){
-                    console.log(data);
-
                     var json = jQuery.parseJSON(data);
-                    console.log(json);
                     $('#full_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
                 }
             });
@@ -495,10 +484,7 @@ $( document ).ready(function() {
                 async: false,
                 data: {webproc: webproc},
                 success: function(data){
-                    console.log(data);
-
                     var json = jQuery.parseJSON(data);
-                    console.log(json);
                     $('#db_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
                 }
             });
@@ -515,7 +501,6 @@ $( document ).ready(function() {
                     tablename: "mailinglist"},
                 success: function(data){
                     var json = jQuery.parseJSON(data);
-                    console.log(json);
                     $('#exportdb').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download XLS file</a></div>');
                 }
             });
@@ -557,8 +542,6 @@ $( document ).ready(function() {
                     spec_msg: spec_msg},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "sent") {
                         showfeedback('<p id="success">Your message has been sent!</p>');
                     } else if (result === "not_sent") {
@@ -574,7 +557,6 @@ $( document ).ready(function() {
             e.preventDefault();
             var username = $(this).attr("data-user");
             var option = $(this).val();
-            console.log(username);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -601,7 +583,6 @@ $( document ).ready(function() {
             e.preventDefault();
             var new_post = tinyMCE.activeEditor.getContent();
             var fullname = $("input#fullname").val();
-            console.log(new_post);
             if (new_post == "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("textarea#post").focus();
@@ -618,8 +599,6 @@ $( document ).ready(function() {
                     new_post: new_post},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "posted") {
                         showfeedback("<p id='success'>Your message has been posted on the homepage!</p>");
                     }
@@ -699,8 +678,6 @@ $( document ).ready(function() {
                     uplname: uplfilename},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result == true) {
                         $('.'+uplname).remove();
                         $('.upl_link #'+uplname).remove();
@@ -825,8 +802,6 @@ $( document ).ready(function() {
                     mail: contact_mail},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
-
                     if (result === "sent") {
                         showfeedback('<p id="success">Your message has been sent!</p>');
                     } else if (result === "not_sent") {
@@ -868,7 +843,6 @@ $( document ).ready(function() {
         .on('click','#modal_trigger_pubcontainer',function(e){
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
-            console.log(id_pres);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -948,7 +922,6 @@ $( document ).ready(function() {
         .on('click','.modify_ref',function(e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            console.log(id_pres);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -969,7 +942,6 @@ $( document ).ready(function() {
         .on('click',".delete_ref",function(e){
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            console.log(id_pres);
             $(".pub_delete")
                 .show()
                 .append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
@@ -990,7 +962,6 @@ $( document ).ready(function() {
         .on('click',"#confirm_pubdel",function(e) {
             e.preventDefault();
             var id_pres = $("input#del_pub").val();
-            console.log("pub to del: "+id_pres);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -998,7 +969,6 @@ $( document ).ready(function() {
                 data: {del_pub: id_pres},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     showfeedback('<p id="success">Publication deleted</p>');
                     $('#'+id_pres).remove();
                     close_modal('.pub_popupContainer');
@@ -1048,7 +1018,6 @@ $( document ).ready(function() {
                     delete_user: true},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     if (result == 'deleted') {
                         window.location.href = "index.php?page=logout";
                         location.reload();
@@ -1081,7 +1050,6 @@ $( document ).ready(function() {
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    console.log(result);
                     if (result == 'logok') {
                         location.reload();
                     } else if (result == "wrong_username") {
