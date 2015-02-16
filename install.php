@@ -29,6 +29,7 @@ date_default_timezone_set('Europe/Paris');
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 error_reporting(-1);
+
 // Includes required files (classes)
 require_once($_SESSION['path_to_includes'].'includes.php');
 $config = new site_config();
@@ -56,6 +57,7 @@ if (!empty($_POST['do_conf'])) {
     $filename = $_SESSION['path_to_app']."config/config.php";
 	$result = "";
 	if (is_file($filename)) {
+        chmod($filename,0777);
 		unlink($filename);
 	}
 
