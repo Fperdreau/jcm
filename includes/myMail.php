@@ -235,7 +235,7 @@ class myMail {
 
         // Get next session
         $nextpub = new Press();
-        $next_session = $nextpub->shownextsession();
+        $next_session = $nextpub->shownextsession(true);
 
         $content['body'] = "
 

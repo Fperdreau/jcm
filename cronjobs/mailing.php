@@ -21,7 +21,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 $_SESSION['app_name'] = basename(dirname(__DIR__));
 $_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
-$_SESSION['logok'] = false;
 date_default_timezone_set('Europe/Paris');
 
 // Includes

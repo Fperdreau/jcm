@@ -111,7 +111,8 @@ function displayform($user,$Press,$submit="submit") {
             <input type='file' name='upl' id='upl_input' multiple style='display: none;' />
             <div class='upl_btn'>
                 Add Files
-                <div id='upl_filetypes'>(pdf, ppt, pptx, doc, docx)</div>
+                <br>(click or drop)
+                <div id='upl_filetypes'>($config->upl_types)</div>
                 <div id='upl_errors'></div>
             </div>
             </form>

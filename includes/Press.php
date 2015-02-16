@@ -584,8 +584,8 @@ class Press {
     }
 
     // Get wish list
-    function getwishlist($number = null,$mail = false) {
-        $show = $mail == false || (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
+    function getwishlist($number=null,$mail=false) {
+        $show = $mail == false && (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
         require($_SESSION['path_to_app'].'config/config.php');
         $config = new site_config('get');
         $db_set = new DB_set();
@@ -607,7 +607,7 @@ class Press {
                 $wish_list .= "
                 <div class='list-container' style='border-bottom: 1px solid #bbbbbb; min-height: 20px; height: auto; line-height: 20px; padding: 0; text-align: justify;'>
                     <div style='display: inline-block; padding: 0; text-align: center; border-right: 1px solid #999999; width: 50px;'><b>$nb</b></div>
-                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
+                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; white-space: pre-wrap;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
                     <div style='display: inline-block; text-align: right; width: auto;'>$pick_url</div>
                 </div>";
 
