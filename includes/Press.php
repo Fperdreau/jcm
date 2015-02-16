@@ -332,7 +332,7 @@ class Press {
     }
 
     // Get next unique dates (remove duplicates)
-    private function getdates() {
+    public function getdates() {
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "SELECT date FROM $presentation_table WHERE type!='wishlist' and date>=CURDATE() ORDER BY date ASC";
@@ -349,8 +349,10 @@ class Press {
     }
 
     // Display the upcoming presentation(home page/mail)
-    function shownextsession() {
+    function shownextsession($mail=false) {
         require($_SESSION['path_to_app'].'config/config.php');
+        $show = ($mail == true || (!empty($_SESSION['logok'] && $_SESSION['logok'] == true));
+
         $config = new site_config('get');
         $dates = self::getdates();
         if ($dates !== false) {
@@ -368,7 +370,7 @@ class Press {
 
                // Get file list
                 $filecontent = "";
-                if ($_SESSION['logok'] == true && $pres->link != "") {
+                if ($show && $pres->link != "") {
                     $filelist = explode(',',$pres->link);
                     foreach ($filelist as $file) {
                         $ext = explode('.',$file);
@@ -583,6 +585,7 @@ class Press {
 
     // Get wish list
     function getwishlist($number = null,$mail = false) {
+        $show = ($mail == false || (!empty($_SESSION['logok'] && $_SESSION['logok'] == true));
         require($_SESSION['path_to_app'].'config/config.php');
         $config = new site_config('get');
         $db_set = new DB_set();
@@ -595,7 +598,7 @@ class Press {
                 $nb = $cpt + 1;
                 $pub = new Press($data['id_pres']);
                 $url = $config->site_url."index.php?page=presentations&op=wishpick&id=$pub->id_pres";
-                if (!$mail && $_SESSION['logok'] == true) {
+                if ($show == true) {
                     $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$pub->id_pres'><b>Make it true!</b></a>";
                 } else {
                     $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
