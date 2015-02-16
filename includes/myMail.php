@@ -209,6 +209,7 @@ class myMail {
 
     }
 
+    // Make notification email (weekly digest inludind last news, information about the upcoming session, about future sessions, and the wish list)
     function advertise_mail() {
         require($_SESSION['path_to_app'].'config/config.php');
 
@@ -234,55 +235,55 @@ class myMail {
 
         // Get next session
         $nextpub = new Press();
-        $next_session = $nextpub->shownextsession();
+        $next_session = $nextpub->shownextsession(true);
 
         $content['body'] = "
 
-                <div style='width: 95%; margin: auto;'>
+                <div style='width: 95%; margin: auto; font-size: 16px;'>
                     <p>Hello,</p>
                     <p>This is your Journal Club weekly digest.</p>
                 </div>
 
-                <div style='width: 95%; margin: auto;'>
-                    <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
                         Last News
                     </div>
 
-                    <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
                         $last_news->content
                     </div>
                 </div>
 
-                <div style='width: 95%; margin: auto;'>
-                    <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
                         Upcoming session
                     </div>
-                    <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
                         $next_session
                     </div>
                 </div>
 
-                <div style='width: 95%; margin: auto;'>
-                    <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
                         Future sessions
                     </div>
 
-                    <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
                         $pres_list
                     </div>
                 </div>
 
-                <div style='width: 95%; margin: auto;'>
-                    <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
                         Wish list
                     </div>
 
-                    <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
                         $wish_list
                     </div>
                 </div>
 
-                <div style='width: 95%; margin: auto;'>
+                <div style='width: 95%; margin: auto; font-size: 16px;'>
                     <p>Cheers,<br>
                     The Journal Club Team</p>
                 </div>
@@ -293,38 +294,40 @@ class myMail {
         return $content;
     }
 
+    // Make reminder notification email (including only information about the upcoming session)
     function reminder_Mail() {
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
-        $config = new site_config();
-        $config->get();
+        $config = new site_config('get');
         $nextpub = new Press();
         $next_session = $nextpub->shownextsession();
+        $dates = $nextpub->getdates();
+        $date = $dates[0];
 
         $content['body'] = "
-            <div style='width: 95%; margin: auto;'>
+            <div style='width: 95%; margin: auto; font-size: 16px;'>
                 <p>Hello,<br>
                 This is a reminder for the next Journal Club session.</p>
             </div>
 
-            <div style='width: 95%; margin: auto;'>
-                <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
+            <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
                     Next session
                 </div>
-                <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
+                <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
                     $next_session
                 </div>
             </div>
 
-            <div style='width: 95%; margin: auto;'>
+            <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
                 <p>Cheers,<br>
                 The Journal Club Team</p>
             </div>
         ";
 
-        $content['subject'] = "Next session: ".$nextpub->date." -reminder";
+        $content['subject'] = "Next session: $date -reminder";
 
         return $content;
     }

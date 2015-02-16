@@ -332,7 +332,7 @@ class Press {
     }
 
     // Get next unique dates (remove duplicates)
-    private function getdates() {
+    public function getdates() {
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "SELECT date FROM $presentation_table WHERE type!='wishlist' and date>=CURDATE() ORDER BY date ASC";
@@ -349,8 +349,10 @@ class Press {
     }
 
     // Display the upcoming presentation(home page/mail)
-    function shownextsession() {
+    function shownextsession($mail=false) {
         require($_SESSION['path_to_app'].'config/config.php');
+        $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
+
         $config = new site_config('get');
         $dates = self::getdates();
         if ($dates !== false) {
@@ -368,7 +370,7 @@ class Press {
 
                // Get file list
                 $filecontent = "";
-                if ($_SESSION['logok'] == true && $pres->link != "") {
+                if ($show && !empty($pres->link)) {
                     $filelist = explode(',',$pres->link);
                     foreach ($filelist as $file) {
                         $ext = explode('.',$file);
@@ -445,7 +447,7 @@ class Press {
                     if (null != $mail) {
                         $show_but = "";
                     } else {
-                        $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'><b>MORE</b></a>";
+                        $show_but = "<div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'>MORE</a></div>";
                     }
 
                     $pubcontent .= "
@@ -582,7 +584,8 @@ class Press {
     }
 
     // Get wish list
-    function getwishlist($number = null,$mail = false) {
+    function getwishlist($number=null,$mail=false) {
+        $show = $mail == false && (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
         require($_SESSION['path_to_app'].'config/config.php');
         $config = new site_config('get');
         $db_set = new DB_set();
@@ -595,18 +598,17 @@ class Press {
                 $nb = $cpt + 1;
                 $pub = new Press($data['id_pres']);
                 $url = $config->site_url."index.php?page=presentations&op=wishpick&id=$pub->id_pres";
-                if (!$mail) {
-                    $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$pub->id_pres'><b>Choose it!</b></a>";
+                if ($show == true) {
+                    $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$pub->id_pres'><b>Make it true!</b></a>";
                 } else {
-                    $pick_url = "<a href='$url'>Choose it!</a>";
+                    $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
                 }
 
                 $wish_list .= "
-                <div class='list-container' style='border-top: 1px solid #bbbbbb; width: 95%; min-height: 20px; height: auto; line-height: 20px; padding: 0;'>
-
-                    <div style='padding: 0; text-align: center; border-right: 1px solid #999999; width: 5%;'><b>$nb</b></div>
-                    <div style='padding: 0; text-align: justify; width: 80%;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
-                    <div style='text-align: center; width: 10%;'>$pick_url</div>
+                <div class='list-container' style='border-bottom: 1px solid #bbbbbb; min-height: 20px; height: auto; line-height: 20px; padding: 0; text-align: justify;'>
+                    <div style='display: inline-block; padding: 0; text-align: center; border-right: 1px solid #999999; width: 50px;'><b>$nb</b></div>
+                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; white-space: pre-wrap;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
+                    <div style='display: inline-block; text-align: right; width: auto;'>$pick_url</div>
                 </div>";
 
                 $cpt++;

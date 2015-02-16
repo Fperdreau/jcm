@@ -40,7 +40,7 @@ class site_config {
     public $lab_postcode = "Your Lab postal code";
     public $lab_city = "Your Lab city";
     public $lab_country = "Your Lab country";
-    public $lab_mapurl = "";
+    public $lab_mapurl = "Google Map";
     // Mail host information
     public $mail_from = "jc@journalclub.com";
     public $mail_from_name = "Journal Club";
@@ -102,7 +102,6 @@ class site_config {
 
     // Get organizers list
     function getadmin($admin=null) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
         $sql = "SELECT username,password,firstname,lastname,position,email,status FROM $users_table WHERE status='organizer'";
@@ -112,10 +111,8 @@ class site_config {
 
         $req = $db_set -> send_query($sql);
         $user_info = array();
-        $cpt = 0;
         while ($row = mysqli_fetch_assoc($req)) {
             $user_info[]= $row;
-            $cpt++;
         }
         return $user_info;
     }

@@ -112,7 +112,7 @@ class DB_set {
     public function addcolumn($table_name,$col_name,$type,$after=null) {
         // Check if column exists
         $sql = "SELECT $col_name FROM $table_name";
-        $colexist = self::send_query($sql);
+        $colexist = self::send_query($sql,true);
         if (!$colexist) {
             $sql = "ALTER TABLE $table_name ADD COLUMN $col_name $type";
             if (null!=$after) {
@@ -237,6 +237,7 @@ class DB_set {
         $columndata = implode(',',$columns);
 
         if ($overwrite) {
+            // If overwrite, then we simply create a new table and drop the previous one
             self::createtable($tablename,$columndata,$overwrite);
         } else {
             // Get columns names
@@ -247,14 +248,36 @@ class DB_set {
                 $keys[] = $row['Field'];
             }
 
-            // Add new unexistant columns
+            // Add new unexistant columns or update previous version
             $prevcolumn = "id";
             foreach ($tabledata as $column=>$data) {
-                if ($column !== "primary") {
+                if ($column !== "primary" && $column != "id") {
                     $datatype = $data[0];
                     $defaut = $data[1];
                     if (!in_array($column,$keys)) {
+                        // If the column does not exist already, then we simply add it to the table
                         self::addcolumn($tablename,$column,$datatype,$prevcolumn);
+                    } else {
+                        // If the column already exist, then we store its information and create a new one with the appropriate attributes and then fill it with the stored information
+                        // 1: store old information
+                        $sql = "SELECT id,$column FROM $tablename";
+                        $req = self::send_query($sql);
+                        $olddata = array();
+                        while ($row = mysqli_fetch_assoc($req)) {
+                            $olddata[$row['id']] = $row[$column];
+                        }
+
+                        // 2: drop the old column
+                        $sql = "ALTER TABLE $tablename DROP COLUMN $column";
+                        self::send_query($sql);
+
+                        // 3: add the new column
+                        self::addcolumn($tablename,$column,$datatype,$prevcolumn);
+
+                        // 4: Fill the new column with old information
+                        foreach ($olddata as $id=>$oldvalue) {
+                            self::updatecontent($tablename,$column,"'$oldvalue'",array("id"),array("'$id'"));
+                        }
                     }
                     $prevcolumn = $column;
                 }

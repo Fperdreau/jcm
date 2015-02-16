@@ -23,6 +23,14 @@ if (isset($_SESSION['status']) and ($_SESSION['status'] == "admin" or $_SESSION[
 } else {
     $menuhidden = "";
 }
+
+if (!empty($_SESSION['status']) && $_SESSION['status'] == "admin") {
+    $configmenu = "
+    <div class='addmenu-section' data-url='admin_tool' data-param='op=config'><span id='addmenu'>Configuration</span></div>
+    <div class='addmenu-section' data-url='admin_tool' data-param='op=tools'><span id='addmenu'>Tools</span></div>";
+} else {
+    $configmenu = "";
+}
 $users_url = "index.php?page=admin_tool&op=users";
 $mail_url = "index.php?page=admin_tool&op=mail";
 $config_url = "index.php?page=admin_tool&op=config";
@@ -45,11 +53,10 @@ echo "
 </div>
 
 <div class='addmenu-admin'>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=config'><span id='addmenu'>Configuration</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=users'><span id='addmenu'>Manage users</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=mail'><span id='addmenu'>Send mail</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=post'><span id='addmenu'>Posts</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=tools'><span id='addmenu'>Tools</span></div>
+    $configmenu
 </div>
 
 ";

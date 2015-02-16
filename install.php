@@ -31,6 +31,8 @@ date_default_timezone_set('Europe/Paris');
 require_once($_SESSION['path_to_includes'].'includes.php');
 $config = new site_config();
 
+if(empty($_SESSION['step'])) {$step = 1;}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -54,6 +56,7 @@ if (!empty($_POST['do_conf'])) {
     $filename = $_SESSION['path_to_app']."config/config.php";
 	$result = "";
 	if (is_file($filename)) {
+        chmod($filename,0777);
 		unlink($filename);
 	}
 
@@ -112,7 +115,9 @@ if (!empty($_POST['do_conf'])) {
 
 // Do Back ups
 if (!empty($_POST['backup'])) {
-
+    $backupfile = backup_db();
+    echo json_encode($backupfile);
+    exit;
 }
 
 // Configure database
@@ -191,7 +196,7 @@ if (!empty($_POST['install_db'])) {
     $tabledata = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "variable"=>array("CHAR(20)",false),
-        "value"=>array("CHAR(100)",false),
+        "value"=>array("TEXT",false),
         "primary"=>"id");
     if ($db_set->makeorupdate($config_table,$tabledata,$op) == true) {
     	$result .= "<p id='success'> '$config_table' created</p>";
@@ -239,22 +244,23 @@ if (!empty($_POST['install_db'])) {
 // Get page content
 if (!empty($_POST['getpagecontent'])) {
     $step = htmlspecialchars($_POST['getpagecontent']);
+    $_SESSION['step'] = $step;
     $op = htmlspecialchars($_POST['op']);
     if ($op == "update") {
         $config = new site_config('get');
     }
 
-    if ($step == 1) {
-        $versionfile = $_SESSION['path_to_app']."config/config.php";
-        if (is_file($versionfile)) {
-            require($versionfile);
-            if (empty($version)) {
-                $version = false;
-            }
-        } else {
+    $versionfile = $_SESSION['path_to_app']."config/config.php";
+    if (is_file($versionfile)) {
+        require($versionfile);
+        if (empty($version)) {
             $version = false;
         }
+    } else {
+        $version = false;
+    }
 
+    if ($step == 1) {
         $title = "Welcome to the Journal Club Manager";
         if ($version == false) {
             $operation = "
@@ -275,17 +281,28 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='button' id='submit' value='Update'  class='start' data-op='update'></p>";
         }
     } elseif ($step == 2) {
+        if ($version !== false) {
+            require($versionfile);
+            $db_prefix = str_replace('_','',$db_prefix);
+        } else {
+            $host = "localhost";
+            $username = "root";
+            $passw = "";
+            $dbname = "test";
+            $db_prefix = "jcm";
+        }
+
 		$title = "Step 1: Database configuration";
 		$operation = "
 			<form action='' method='post' name='install' id='do_conf'>
                 <input type='hidden' name='version' value='$config->version'>
                 <input type='hidden' name='op' value='$op'/>
 				<input class='field' type='hidden' name='do_conf' value='true' />
-				<label for='host' class='label'>Host Name</label><input class='field' name='host' type='text' value='localhost'></br>
-				<label for='username' class='label'>Username</label><input class='field' name='username' type='text' value='root'></br>
-				<label for='passw' class='label'>Password</label><input class='field' name='passw' type='password' value='root'></br>
-				<label for='dbname' class='label'>DB Name</label><input class='field' name='dbname' type='text' value='test'></br>
-				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='jcm'></br>
+				<label for='host' class='label'>Host Name</label><input class='field' name='host' type='text' value='$host'></br>
+				<label for='username' class='label'>Username</label><input class='field' name='username' type='text' value='$username'></br>
+				<label for='passw' class='label'>Password</label><input class='field' name='passw' type='password' value='$passw'></br>
+				<label for='dbname' class='label'>DB Name</label><input class='field' name='dbname' type='text' value='$dbname'></br>
+				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='$db_prefix'></br>
 				<p style='text-align: right'><input type='submit' name='do_conf' value='Next' id='submit' class='do_conf' data-op='$op'></p>
 			</form>
 			<div class='feedback'></div>
@@ -396,7 +413,6 @@ if (!empty($_POST['getpagecontent'])) {
             }
 
             var getpagecontent = function(step,op) {
-                console.log(step);
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
@@ -412,6 +428,29 @@ if (!empty($_POST['getpagecontent'])) {
                             .fadeIn('slow');
                     }
                 });
+            }
+
+            var dobackup = function() {
+                $('#operation')
+                    .hide()
+                    .html("<p id='status'>Backup previous database</p>")
+                    .fadeIn(200);
+                // Make configuration file
+                jQuery.ajax({
+                    url: 'install.php',
+                    type: 'POST',
+                    async: false,
+                    data: {backup: true},
+                    success: function(data){
+                        var result = jQuery.parseJSON(data);
+                        var html = "<p id='success'>Backup created: "+result+"</p>";
+                        $('#operation')
+                            .hide()
+                            .append(html)
+                            .fadeIn(200);
+                    }
+                });
+                return false;
             }
 
             $(document).ready(function () {
@@ -451,6 +490,11 @@ if (!empty($_POST['getpagecontent'])) {
                         var op = $(this).attr('data-op');
                         var data = $("#do_conf").serializeArray();
 
+                        // Backup the database before updating it
+                        if (op == "update") {
+                            dobackup();
+                        }
+
                         // Make configuration file
                         jQuery.ajax({
                             url: 'install.php',
@@ -466,7 +510,7 @@ if (!empty($_POST['getpagecontent'])) {
                                 }
                                 $('#operation')
                                     .hide()
-                                    .html(html)
+                                    .append(html)
                                     .fadeIn(200);
                                 var timer = setInterval(function() {
                                     getpagecontent(3,op);
@@ -572,7 +616,7 @@ if (!empty($_POST['getpagecontent'])) {
             });
         </script>
 
-        <title>RankMyDrawing - Installation</title>
+        <title>Journal Club Manager - Installation</title>
     </head>
 
     <body class="mainbody">

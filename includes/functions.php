@@ -111,7 +111,8 @@ function displayform($user,$Press,$submit="submit") {
             <input type='file' name='upl' id='upl_input' multiple style='display: none;' />
             <div class='upl_btn'>
                 Add Files
-                <div id='upl_filetypes'>(pdf, ppt, pptx, doc, docx)</div>
+                <br>(click or drop)
+                <div id='upl_filetypes'>($config->upl_types)</div>
                 <div id='upl_errors'></div>
             </div>
             </form>
@@ -278,11 +279,10 @@ function backup_db(){
 
     // Declare classes
     $db_set = new DB_set();
-    $config = new site_config();
-    $config->get();
+    $config = new site_config('get');
 
     // Create Backup Folder
-    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/Mysql';
+    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($mysqlSaveDir)) {
@@ -367,8 +367,8 @@ function file_backup() {
 
     $dirToSave = $_SESSION['path_to_app'];
     $dirsNotToSaveArray = array($_SESSION['path_to_app']."backup");
-    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/Mysql';
-    $zipSaveDir = $_SESSION['path_to_app'].'backup/Complete';
+    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';
+    $zipSaveDir = $_SESSION['path_to_app'].'backup/complete';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($zipSaveDir)) {

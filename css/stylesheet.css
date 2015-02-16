@@ -325,6 +325,7 @@ a:hover {
     background: #E4E4E2;
     width: 100px;
     text-align: center;
+    cursor: pointer;
 }
 
 .dl_btn:hover {
@@ -524,13 +525,18 @@ a:hover {
     margin: 0;
     width: 50px;
     height: 25px;
+    text-align: center;
     line-height: 25px;
 }
 
-.show_btn a {
+.show_btn>a {
     color: #FFFFFF;
-    text-align: center;
     text-decoration: none;
+}
+
+.show_btn:hover {
+    background-color: #CF5252;
+    color: #FFFFFF;
 }
 
 /* Submission list */
@@ -606,12 +612,12 @@ a:hover {
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
-#missfield {
+#status {
 	width: 100%;
-    color: #990000;
+    color: #000099;
     font-size: 13px; /* Set message font size  */
     padding: 5px; /* Some padding to make some more space for our text  */
-    background-color: rgba(127,0,0,.2); /* Add a background color to our status message   */
+    background-color: rgba(0,0,127,.2); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
