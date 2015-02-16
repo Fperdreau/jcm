@@ -23,8 +23,8 @@ date_default_timezone_set('Europe/Paris');
 require_once($_SESSION['path_to_includes'].'db_connect.php');
 require_once($_SESSION['path_to_includes'].'users.php');
 require_once($_SESSION['path_to_includes'].'myMail.php');
-require_once($_SESSION['path_to_includes'].'posts.php');
-require_once($_SESSION['path_to_includes']."presclass.php");
+require_once($_SESSION['path_to_includes'].'Posts.php');
+require_once($_SESSION['path_to_includes']."Press.php");
 require_once($_SESSION['path_to_includes']."site_config.php");
 include_once($_SESSION['path_to_includes'].'functions.php');
 

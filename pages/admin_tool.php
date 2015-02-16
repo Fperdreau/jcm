@@ -61,13 +61,15 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<span id='pagename'>Mailing list</span>
         <p class='page_description'>Here you can send an email to users who subscribed to the newsletter.</p>
         <div class='feedback'></div>
-        <form method='post' action='' class='form'>
-            <label for='spec_head'>Subject:</label><input type='text' size='40' id='spec_head' name='spec_head' value='' /></br>
-            <label for='spec_msg'>Message:</label></br><br>
-            <textarea name='spec_msg' id='spec_msg' cols='70' rows='15' class='tinymce'></textarea></br>
-            <input type='submit' name='send' value='Send' id='submit' class='mailing_send'/>
+        <div class='section_header'>Send an email</div>
+        <div class='section_content'>
+            <form method='post' action='' class='form'>
+                <label for='spec_head' class='label'>Subject:</label><input type='text' size='40' id='spec_head' name='spec_head' value='' /></br>
+                <label for='spec_msg' class='label'>Message:</label></br><br>
+                <textarea name='spec_msg' id='spec_msg' cols='70' rows='15' class='tinymce'></textarea></br>
+                 <p style='text-align: right'><input type='submit' name='send' value='Send' id='submit' class='mailing_send'/></p>
             </form>
-        </form>
+        </div>
     </div>
     ";
 
@@ -97,7 +99,9 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='hidden' name='config_modify' value='true'/>
                 <label for='sitetitle' class='label'>Site title</label><input type='text' size='30' name='sitetitle' value='$config->sitetitle' /><br>
                 <label for='site_url' class='label'>Site url</label><input type='text' size='30' name='site_url' value='$config->site_url' /></br>
-                <label for='clean_day' class='label'>Oldest DB backups to keep (in days)</label><input type='text' size='30' name='clean_day' value='$config->clean_day' />
+                <label for='clean_day' class='label'>Oldest DB backups to keep (in days)</label><input type='text' size='30' name='clean_day' value='$config->clean_day' /></br>
+                <label for='upl_types' class='label'>Allowed file types (upload)</label><input type='text' size='30' name='upl_types' value='$config->upl_types' /></br>
+                <label for='upl_maxsize' class='label'>Maximum file size (in Kb)</label><input type='text' size='30' name='upl_maxsize' value='$config->upl_maxsize' />
                 <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_site'/></p>
             </form>
         </div>
@@ -142,6 +146,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                         <option value='$config->jc_time_to' selected='selected'>$config->jc_time_to</option>
                         $timeopt;
                     </select><br>
+                <label for='max_nb_session' class='label'>Nb of presentation per session</label><input type='text' size='3' name='max_nb_session' value='$config->max_nb_session'/><br>
                 <label for='notification' class='label'>Notification day</label>
                     <select name='notification'>
                         <option value='$config->notification' selected='selected'>$config->notification</option>
@@ -187,7 +192,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
 // Add a post
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'post') {
-    $post = new posts();
+    $post = new Posts();
     $post->getlastnews();
 
     $result = "
@@ -214,11 +219,6 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<span id='pagename'>Admin tools</span>
         <div class='section_header'>Tools</div>
         <div class='section_content'>
-        	<div id='exportdb'>
-            <label for='export'>Export the mailing list to XLS format</label>
-            <input type='submit' name='exportdb' value='Proceed' id='submit' class='exportdb'/>
-            </div><br>
-
             <div id='db_backup'>
             <label for='backup'>Backup database</label>
             <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>

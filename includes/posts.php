@@ -16,8 +16,9 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
+require_once($_SESSION['path_to_app'].'/includes/includes.php');
 
-class posts {
+class Posts {
     public $content = "";
     public $date = "";
     public $username = "";
@@ -29,7 +30,6 @@ class posts {
     }
 
     public function add_post($new_post,$user_fullname) {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $bdd = $db_set->bdd_connect();
@@ -40,7 +40,6 @@ class posts {
     }
 
     public function getlastnews() {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();

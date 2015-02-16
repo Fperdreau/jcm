@@ -19,7 +19,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 session_start();
 $_SESSION['app_name'] = basename(dirname(__DIR__));
-$_SESSION['path_to_app'] = dirname(__FILE__)."/";
+$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
 $_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 $_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
@@ -38,8 +38,8 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $valid = $user -> check_account_activation($hash,$email,$result);
     $result = "
     <div id='content'>
-        <div class='section_header' style='width: auto; margin: auto'>Activation</div>
-        <div class='section_content' style='width: auto; margin: auto'>
+        <div class='section_header'>Activation</div>
+        <div class='section_content'>
 			<span id='warning'>$valid</span>
     	</div>
     </div>";

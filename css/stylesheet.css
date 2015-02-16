@@ -165,6 +165,7 @@ a:hover {
 }
 
 .addmenu-section {
+    cursor: pointer;
     width: 160px; /* Declare your value. Can be in relative units. */
     height: 100%;
     text-align: center;
@@ -249,30 +250,35 @@ a:hover {
 }
 
 .section_header {
+    position: relative;
     background-color: #CF5151;
     width: auto;
     color: #eeeeee;
+    width: 200px;
+    height: 20px;
+    line-height: 20px;
     padding: 5px;
-    margin-left: -5px;
-    clear: both;
-    float: left;
+    margin: 20px auto -10px auto;
     text-align: center;
     font-weight: bold;
     font-size: 16px;
-    border-bottom: 2px solid #CF5151;
-    margin-top: 20px;
+    z-index: 11;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
 }
 
 .section_content {
-    line-height: 130%;
+    display: block;
     font-size: 16px;
-    margin: auto 50px auto auto;
-    clear: left;
-    width: 100%;
+    margin: auto;
+    width: 95%;
     text-align: justify;
-    padding: 10px;
-    border-left: 1px solid #CF5151;
+    padding: 20px 10px;
     background-color: rgba(127,127,127,.1);
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
 }
 
 .pub_section_content {
@@ -312,6 +318,178 @@ a:hover {
     color: #CF5151;
 }
 
+/* Download list (dropdown menu) */
+.dl_btn {
+    padding: 10px 10px;
+    height: 20px;
+    background: #E4E4E2;
+    width: 100px;
+    text-align: center;
+}
+
+.dl_btn:hover {
+    color:#EEE;
+    background: #CF5151;
+}
+
+.dlmenu {
+    display: none;
+    width: 160px;
+    position: relative;
+    z-index: 1100;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.dl_info {
+    display: block;
+    width: auto;
+    font-size: 12px;
+    height: 30px;
+    line-height: 30px;
+    margin: 0;
+    cursor: pointer;
+    background-color: #bbbbbb;
+    border-bottom: 1px solid #222222;
+}
+
+.dl_info:hover {
+    background-color: #666666;
+}
+
+.dl_info:active {
+    background-color: #222222;
+    padding: 6px 10px 4px;
+}
+
+/* Upload form */
+.upl_container {
+    display: block;
+    width: 500px;
+    height: auto;
+    padding: 10px;
+    margin: 20px auto 10px auto;
+    background-color: #222222;
+    border: 1px solid #000000;
+    text-align: center;
+    -webkit-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+    -moz-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+    box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+}
+
+.dragging {
+    background-color: #444444;
+}
+
+.upl_form {
+    width: 400px;
+    text-align: center;
+    margin: auto;
+    clear: both;
+}
+
+.upl_btn {
+    display: block;
+    margin: 0 auto 0 auto;
+    width: 200px;
+    height: auto;
+    line-height: 30px;
+    background-color: #444444;
+    color: #CF5151;
+    border: 1px solid #999;
+    padding: 0px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 18px;
+    text-align: center;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+}
+
+.upl_btn:hover {
+    background-color: #666666;
+}
+
+.upl_btn:active {
+    background-color: #222222;
+    padding: 6px 10px 4px;
+}
+
+#upl_errors {
+    display: none;
+    width: auto;
+    color: #990000;
+    font-size: 13px; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(255,255,255,.9); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+#upl_filetypes {
+    display: block;
+    margin: 0 auto;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+#upl_filelist {
+    width: 95%;
+    height: auto;
+    padding: 10px;
+    margin: 0;
+}
+
+#upl_info {
+    display: inline-block;
+    width: 190px;
+    font-size: 12px;
+    height: 30px;
+    line-height: 30px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #bbbbbb;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+}
+
+#upl_info>div {
+    display: table-cell;
+    height: 30px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.upl_name {
+    line-height: 30px;
+    white-space: pre-wrap;
+    width: 160px;
+    font-weight: bold;
+}
+
+.upl_name:hover {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
+}
+
+.del_upl {
+    background-color: #666666;
+    line-height: 30px;
+    border-left: 1px solid #999999;
+    width: 30px;
+    padding-left: 5px;
+}
+
+.del_upl:hover {
+    background-color: rgba(207,81,81,.8);
+}
+
+.del_upl:active {
+    background-color: #444444;
+}
 
 /* Archives */
 .current {
@@ -320,11 +498,11 @@ a:hover {
 
 .pub_container {
     background: rgba(200,200,200,.5);
-    width: 100%;
+    width: 95%;
     padding: 5px;
+    margin: auto auto 5px auto;
     cursor: pointer;
     height: 30px;
-    vertical-align: middle;
     line-height: 30px;
 }
 
@@ -334,6 +512,8 @@ a:hover {
 }
 
 #pub_labels {
+    width: 100%;
+    margin: auto;
     font-size: 14px;
     border-bottom: 1px solid #222222;
 }

@@ -18,9 +18,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 @session_start();
-$_SESSION['root_path'] = $_SERVER['DOCUMENT_ROOT'];
-$_SESSION['app_name'] = "/Pjc/";
-$_SESSION['path_to_app'] = $_SESSION['root_path'].$_SESSION['app_name'];
+$_SESSION['app_name'] = basename(dirname(__DIR__));
+$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 date_default_timezone_set('Europe/Paris');
 
@@ -85,13 +84,13 @@ if (!empty($_POST['proceed'])) {
     while ($data = mysqli_fetch_array($req)) {
         $id = $data['id'];
         if ($data['id_pres'] == 0) {
-            $pub = new presclass();
+            $pub = new Press();
             $id_pres = $pub->create_presID();
             $db_set->updatecontent($presentation_table,"id_pres","'$id_pres'",array("id"),array("'$id'"));
             $data['id_pres'] = $id_pres;
         }
 
-        $pub = new presclass($data['id_pres']);
+        $pub = new Press($data['id_pres']);
         $result .= "<p>Update of $pub->id_pres</p>";
 
         if ($data['up_date'] == NULL) {

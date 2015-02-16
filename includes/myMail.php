@@ -20,24 +20,28 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 // Import html2text class
 require_once($_SESSION['path_to_app']."libs/html2text-0.2.2/html2text.php");
 
+require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.phpmailer.php');
+require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.smtp.php');
+
+require_once($_SESSION['path_to_app'].'/includes/includes.php');
+
 class myMail {
-    public $mail_from = "";
-    public $mail_from_name = "";
-    public $mail_host = "";
-    public $mail_port = "25";
-    public $SMTPDebug = 0;
-    public $mail_username = "";
-    public $mail_password = "";
-    public $SMTP_secure = "none";
-    public $pre_header = "[Journal Club]";
-    public $site_url = "";
+    public $mail_from = ""; // Sender's email
+    public $mail_from_name = ""; // Sender's name
+    public $mail_host = ""; // Email host (eg. gmail)
+    public $mail_port = "25"; // Email port
+    public $SMTPDebug = 0; // To show error messages
+    public $mail_username = ""; // Email username
+    public $mail_password = ""; // Email password
+    public $SMTP_secure = "none"; // Email protocol (ssl)
+    public $pre_header = "[Journal Club]"; // Email header
+    public $site_url = ""; // Url path to the application
 
     function __construct() {
         self::get();
     }
 
     public function get() {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "select variable,value from $config_table";
@@ -54,7 +58,6 @@ class myMail {
     }
 
     public function update($post) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $bdd = $db_set->bdd_connect();
@@ -78,8 +81,6 @@ class myMail {
     }
 
     function send_verification_mail($hash,$user_mail,$username) {
-        require_once($_SESSION['path_to_includes'].'site_config.php');
-        require_once($_SESSION['path_to_includes'].'users.php');
         $config = new site_config();
         $admins = $config->getadmin('admin');
         $to = array();
@@ -92,17 +93,12 @@ class myMail {
         $deny_url = $this->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
 
         $content = "
-
         Hello,<br><br>
-
         <p><b>$username</b> wants to create an account.</p>
-
-        <p><a href='$authorize_url'>Authorize</a><br>
-        or<br>
-        <a href='$deny_url'>Deny</a></p>
-        <br>
-        The Journal Club Team
-
+        <p><a href='$authorize_url'>Authorize</a></p>
+        or
+        <p><a href='$deny_url'>Deny</a></p>
+        <p>The Journal Club Team</p>
         ";
 
         $body = $this -> formatmail($content);
@@ -111,36 +107,27 @@ class myMail {
     }
 
     function send_confirmation_mail($to,$username) {
-        require_once($_SESSION['path_to_includes'].'site_config.php');
-        require_once($_SESSION['path_to_includes'].'users.php');
         $user = new users();
         $user->get($username);
 
         $subject = 'Signup | Confirmation'; // Give the email a subject
-        $login_url = $this->site_url."index.php?page=login";
+        $login_url = $this->site_url."index.php";
 
         $content = "
-
         Hello $user->fullname,<br><br>
-        Thanks for signing up!<br>
+        Thank you for signing up!<br>
         <p>Your account has been created, you can now <a href='$login_url'>log in</a> with the following credentials.</p>
-
         <p>------------------------<br>
-        <strong>Username</strong>: $username<br>
-        <strong>Password</strong>: Only you know it!<br>
+        <b>Username</b>: $username<br>
+        <b>Password</b>: Only you know it!<br>
         ------------------------</p>
-
-        The Journal Club Team
-
+        <p>The Journal Club Team</p>
         ";
-
         $body = $this -> formatmail($content);
-
         return $this->send_mail($to,$subject,$body);
     }
 
     function get_mailinglist($type=null) {
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "select username,email from $users_table where active=1";
@@ -167,9 +154,6 @@ class myMail {
     }
 
     function send_mail($to,$subject,$body,$attachment = NULL) {
-        require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.phpmailer.php');
-        require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.smtp.php');
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $mail = new PHPMailer();
@@ -207,7 +191,7 @@ class myMail {
 
         $mail->Subject = $this->pre_header." ".$subject;
         $mail->Body    = $body;
-        $mail->AltBody= convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
+        $mail->AltBody= @convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
 
         if($attachment != null){
             if (!$mail->AddAttachment($attachment)) {
@@ -226,12 +210,6 @@ class myMail {
     }
 
     function advertise_mail() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'myMail.php');
-        require_once($_SESSION['path_to_includes'].'posts.php');
-        require_once($_SESSION['path_to_includes']."presclass.php");
-        require_once($_SESSION['path_to_includes']."site_config.php");
-
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
@@ -239,7 +217,7 @@ class myMail {
         $config = new site_config('get');
 
         // Get recent news
-        $last_news = new posts();
+        $last_news = new Posts();
         $last_news->getlastnews();
         $today = date('Y-m-d');
         if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
@@ -247,39 +225,16 @@ class myMail {
         }
 
         // Get future presentations
-        $future_session = new presclass();
+        $future_session = new Press();
         $pres_list = $future_session->get_futuresession(4,'mail');
 
         // Get wishlist
-        $wish = new presclass();
+        $wish = new Press();
         $wish_list = $wish->getwishlist(4,true);
 
         // Get next session
-        $nextpub = new presclass();
-        if ($nextpub->get_nextpresentation()) {
-
-            $next_session = "
-                <p>The next session of our journal club will be held on the <strong>$nextpub->date</strong> from $config->jc_time_from to $config->jc_time_to in room $config->room.</p>
-                <div style='margin: auto; width: 95%; padding: 5px; background-color: rgba(127,127,127,.5);'>
-                    <strong>Title:</strong> $nextpub->title <strong>Authors:</strong> $nextpub->authors<br>
-                    <strong>Presented by:</strong> $nextpub->orator<br>
-                </div>
-
-                <div style='margin: auto;border-color: rgba(127,127,127,.4);width: 95%;padding: 5px;background-color: rgba(127,127,127,.2);'>
-                    <strong>Abstract:</strong> $nextpub->summary<br>
-                </div>";
-
-            if ($nextpub->link != "") {
-                $jc_link = $config->site_url."uploads/".$nextpub->link; // Link to file
-                $next_session .= "
-                <div style='margin: auto; width: 95%; padding: 5px; background-color: rgba(127,127,127,.5);'>
-                <a href='$jc_link' style='color: #CF5151; text-decoration: none;' target='_blank'>Link</a>
-                </div>";
-            }
-
-        } else {
-            $next_session = "<p>Nothing planned for the moment.</p>";
-        }
+        $nextpub = new Press();
+        $next_session = $nextpub->shownextsession();
 
         $content['body'] = "
 
@@ -309,7 +264,7 @@ class myMail {
 
                 <div style='width: 95%; margin: auto;'>
                     <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
-                    Future sessions
+                        Future sessions
                     </div>
 
                     <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
@@ -319,11 +274,11 @@ class myMail {
 
                 <div style='width: 95%; margin: auto;'>
                     <div style='background-color: #CF5151; width: 100%; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px; border-bottom: 2px solid #CF5151; margin-top: 2px;'>
-                    Wish list
+                        Wish list
                     </div>
 
                     <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
-                     $wish_list
+                        $wish_list
                     </div>
                 </div>
 
@@ -331,7 +286,6 @@ class myMail {
                     <p>Cheers,<br>
                     The Journal Club Team</p>
                 </div>
-
         ";
 
         $content['subject'] = "Last News - ".date('d M Y');
@@ -340,22 +294,14 @@ class myMail {
     }
 
     function reminder_Mail() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'myMail.php');
-        require_once($_SESSION['path_to_includes'].'posts.php');
-        require_once($_SESSION['path_to_includes']."presclass.php");
-        require_once($_SESSION['path_to_includes']."site_config.php");
-
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $db_set->bdd_connect();
         $config = new site_config();
         $config->get();
-        $nextpub = new presclass();
-        $nextpub->get_nextpresentation();
-
-        $jc_link = $config->site_url."uploads/".$nextpub->link; // Link to file
+        $nextpub = new Press();
+        $next_session = $nextpub->shownextsession();
 
         $content['body'] = "
             <div style='width: 95%; margin: auto;'>
@@ -368,19 +314,7 @@ class myMail {
                     Next session
                 </div>
                 <div style='font-size: 14px; width: 100%; padding: 5px; background-color: rgba(127,127,127,.1);'>
-                    <p>The next session of our journal club will be held on the <strong>$nextpub->date</strong> from $config->jc_time_from to $config->jc_time_to in room $config->room.</p>
-                    <div style='margin: auto; width: 95%; padding: 5px; background-color: rgba(127,127,127,.5);'>
-                        <strong>Title:</strong> $nextpub->title | <strong>Authors:</strong> $nextpub->authors<br>
-                        <strong>Presented by:</strong> $nextpub->orator<br>
-                    </div>
-
-                    <div style='margin: auto;border-color: rgba(127,127,127,.4);width: 95%;padding: 5px;background-color: rgba(127,127,127,.2);'>
-                        <strong>Abstract:</strong> $nextpub->summary<br>
-                    </div>
-
-                    <div style='margin: auto; width: 95%; padding: 5px; background-color: rgba(127,127,127,.5);'>
-                    <a href='$jc_link' style='color: #CF5151; text-decoration: none;' target='_blank'>Link</a>
-                    </div>
+                    $next_session
                 </div>
             </div>
 
@@ -396,22 +330,23 @@ class myMail {
     }
 
     function formatmail($content) {
-        $profile_url = $this->site_url.'index.php?page=profile';
+        $config = new site_config('get');
+        $profile_url = $config->site_url.'index.php?page=profile';
         $body = "
-            <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; color: #000000; font-weight: 300; font-size: 15px; width: 80%; margin: auto;'>
+            <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; color: #000000; font-weight: 300; font-size: 15px; width: 95%; margin: auto;'>
                 <div style='line-height: 1.2; width: 100%; color: #000000;'>
-                    <div style='font-size: 30px; color: #cccccc; height: 40px; text-align: center; background-color: #555555;'>Journal Club</div>
+                    <div style='font-size: 30px; color: #cccccc; line-height: 40px; height: 40px; text-align: center; background-color: #555555;'>$config->sitetitle
+                    </div>
 
-                    <!-- Upcoming event -->
-                    <div style='padding: 10px; margin: auto; text-align: justify; background-color: #dddddd;'>$content</div>
+                    <div style='padding: 10px; margin: auto; text-align: justify; background-color: #dddddd;'>
+                        $content
+                    </div>
 
-                    <!-- Footer section -->
-                    <div style='color: #EEEEEE; width: 100%; height: 30px; text-align: center; background-color: #555555;'>
+                    <div style='color: #EEEEEE; width: 100%; min-height: 30px; line-height: 30px; text-align: center; background-color: #555555;'>
                         This email has been sent automatically. You can choose to no longer receive notification emails from your
                         <a href='$profile_url' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
                     </div>
                 </div>
-
             </div>";
 
         return $body;
