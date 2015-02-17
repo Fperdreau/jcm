@@ -67,7 +67,8 @@ class users {
     	$variables = implode(",", $class_keys);
 		$values = array();
         foreach ($class_vars as $key => $value) {
-        	$values[] = "'".$this->$key."'";
+            $escaped = $db_set->escape_query($this->$key);
+        	$values[] = "'$escaped'";
         }
 		$values = implode(",", $values);
         if (self :: user_exist($this->username) == false && self :: mail_exist($this->email) == false) {
@@ -108,7 +109,7 @@ class users {
         if (!empty($exist)) {
             foreach ($data as $varname=>$value) {
                 if (array_key_exists($varname,$class_vars)) {
-                    $this->$varname = $value;
+                    $this->$varname = htmlspecialchars_decode($value);
                 }
             }
             $this->fullname = $this->firstname." ".$this->lastname;

@@ -192,22 +192,49 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
 // Add a post
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'post') {
-    $post = new Posts();
-    $post->getlastnews();
+    $db_set = new DB_set();
+    $user = new users($_SESSION['username']);
+
+    $last = new Posts();
+    $last->getlastnews();
+
+    // Make post selection list
+    $postlist = $db_set -> getinfo($post_table,"postid");
+    if (!empty($postlist)) {
+        $options = "
+        <select class='select_post' data-user='$user->fullname'>
+            <option value='' selected>Select a post to modify</option>
+        ";
+        foreach ($postlist as $postid) {
+            $post = new Posts($postid);
+            if ($post->homepage==1) {
+                $style = "style='background-color: rgba(207,81,81,.3);'";
+            } else {
+                $style = "";
+            }
+            $options .= "<option value='$post->postid' $style><b>$post->date |</b> $post->title</option>";
+        }
+        $options .= "</select>";
+    } else {
+        $options = "";
+    }
 
     $result = "
     <div id='content'>
 		<span id='pagename'>News</span>
          <p class='page_description'>Here you can add a post on the homepage.</p>
-         <div class='feedback'></div>
+        <div style='display: block; width: 100%;'>
+            <div style='display: inline-block'>$options</div>
+            <div style='display: inline-block'>or</div>
+            <div style='display: inline-block'>
+                <input type='button' id='submit' class='post_new' value='Add a new post'/>
+            </div>
+        </div>
         <div class='section_header'>New post</div>
         <div class='section_content'>
-            <form method='post' action='' class='form'>
-            <input type='hidden' id='fullname' value='$user->fullname'/>
-            <label for='new_post'>Message</label></br><br>
-            <textarea name='new_post' cols='70' rows='15' id='post' class='tinymce'></textarea></br>
-            <p style='text-align: right'><input type='submit' name='submit_post' value='Post' id='submit' class='post_send'/></p>
-            </form>
+            <div class='feedback'></div>
+            <div class='postcontent'>
+            </div>
         </div>
     </div>
         ";

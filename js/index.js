@@ -222,6 +222,34 @@ var loadpageonclick = function(pagetoload,param) {
 
 };
 
+var showpostform = function(postid) {
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {
+            post_show: true,
+            postid: postid},
+        success: function(data){
+            var result = jQuery.parseJSON(data);
+            var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
+            setTimeout(function() {
+                $('.postcontent')
+                    .empty()
+                    .html(result.form)
+                    .fadeIn(200);
+                $('.post_txtarea')
+                    .html(txtarea)
+                    .show();
+                tinyMCE.remove();
+                window.tinymce.dom.Event.domLoaded = true;
+                tinymcesetup();
+            }, 1000);
+
+        }
+    });
+}
+
 // Parse URL
 var parseurl = function() {
     var query = window.location.search.substring(1);
@@ -578,14 +606,65 @@ $( document ).ready(function() {
             return false;
         })
 
-		// Add a news to the homepage
-        .on('click','.post_send',function(e) {
+        // Select news to modify
+        .on('change','.select_post',function(e) {
             e.preventDefault();
-            var new_post = tinyMCE.activeEditor.getContent();
-            var fullname = $("input#fullname").val();
-            if (new_post == "") {
+            var postid = $(this).val();
+            showpostform(postid);
+        })
+
+        // Add a new post
+        .on('click','.post_new',function(e) {
+            e.preventDefault();
+            showpostform(false);
+        })
+
+        // Delete a post
+        .on('click','.post_del',function(e) {
+            e.preventDefault();
+            var postid = $(this).attr('data-id');
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                async: false,
+                data: {
+                    post_del: true,
+                    postid: postid},
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    if (result == true) {
+                        $('.postcontent')
+                            .hide()
+                            .html('<p id="success">Post successfully deleted</p>')
+                            .fadeIn(200);
+                        showpostform(false);
+                    } else {
+                        showfeedback('<p id="warning">We could not delete this post from the database</p>');
+                    }
+
+                }
+            });
+        })
+
+		// Add a news to the homepage
+        .on('click','.post_add,.post_mod',function(e) {
+            e.preventDefault();
+            var op = $(this).attr('name');
+            var postid = $(this).attr('data-id');
+            var title = $('input#post_title').val();
+            var content = tinyMCE.get('post_content').getContent();
+            var username = $("input#post_username").val();
+            var homepage = $("select#post_homepage").val();
+
+            if (title == "") {
                 showfeedback('<p id="warning">This field is required</p>');
-                $("textarea#post").focus();
+                $('input#title').focus();
+                return false;
+            }
+
+            if (content == "") {
+                showfeedback('<p id="warning">This field is required</p>');
+                tinymce.execCommand('mceFocus',false,'consent');
                 return false;
             }
 
@@ -594,13 +673,22 @@ $( document ).ready(function() {
                 type: 'POST',
                 async: false,
                 data: {
-                    post_send: true,
-                    fullname: fullname,
-                    new_post: new_post},
+                    post_add: op,
+                    postid: postid,
+                    username: username,
+                    title: title,
+                    homepage: homepage,
+                    content: content},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    if (result === "posted") {
-                        showfeedback("<p id='success'>Your message has been posted on the homepage!</p>");
+                    if (result === true) {
+                        $('.postcontent')
+                            .hide()
+                            .html('<p id="success">Thank you for your post!</p>')
+                            .fadeIn(200);
+                        showpostform(false);
+                    } else {
+                        showfeedback("<p id='warning'>Sorry, something has gone wrong!</p>");
                     }
                 }
             });
@@ -1125,8 +1213,8 @@ $( document ).ready(function() {
             return false;
         });
 
-}).ajaxStart(function(){
-    $loading.show();
-}).ajaxStop(function() {
-    $loading.hide();
+}).on({
+    ajaxStart: function() { $("#loading").show(); },
+    ajaxStop: function() { $("#loading").hide(); }
 });
+

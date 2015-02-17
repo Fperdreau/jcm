@@ -69,7 +69,7 @@ class site_config {
         $class_vars = get_class_vars("site_config");
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = htmlspecialchars($row['value']);
+            $value = htmlspecialchars_decode($row['value']);
             $this->$varname = $value;
         }
         return true;

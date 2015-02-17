@@ -85,6 +85,7 @@ function displayform($user,$Press,$submit="submit") {
     <div class='feedback'></div>
     <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
         <input type='hidden' name='$submit' value='true'/>
+        <input type='hidden' name='username' value='$user->username'/>
         $idpress
         <label for='type' class='pub_label'>Type</label>
             <select name='type' id='type'>
@@ -282,7 +283,8 @@ function backup_db(){
     $config = new site_config('get');
 
     // Create Backup Folder
-    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';
+    $mysqlrelativedir = 'backup/mysql';
+    $mysqlSaveDir = $_SESSION['path_to_app'].$mysqlrelativedir;
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($mysqlSaveDir)) {
@@ -327,21 +329,24 @@ function backup_db(){
 
     // Check for previous backup and delete old ones
     $oldbackup = browse($mysqlSaveDir);
-    $cpt = 0;
-    foreach ($oldbackup as $old) {
+    if (!empty($oldbackup)) {
+        $cpt = 0;
+        foreach ($oldbackup as $old) {
         $prop = explode('_',$old);
-        $back_date = $prop[1];
-        $today = date('Y-m-d');
-        $lim_date = date("Y-m-d",strtotime($today." - $config->clean_day days"));
-        // Delete file if too old
-        if ($back_date <= $lim_date) {
-            if (is_file($old)) {
-                $cpt++;
-                unlink($old);
+            $back_date = $prop[1];
+            $today = date('Y-m-d');
+            $lim_date = date("Y-m-d",strtotime($today." - $config->clean_day days"));
+            // Delete file if too old
+            if ($back_date <= $lim_date) {
+                if (is_file($old)) {
+                    $cpt++;
+                    unlink($old);
+                }
             }
         }
     }
-    return "backup/Mysql/$fileNamePrefix.sql";
+
+    return "$mysqlrelativedir/$fileNamePrefix.sql";
 }
 
 // Mail backup file to admins
@@ -359,6 +364,9 @@ function mail_backup($backupfile) {
     $body = $mail -> formatmail($content);
     $subject = "Automatic Database backup";
     if ($mail->send_mail($admin->email,$subject,$body,$backupfile)) {
+        return true;
+    } else {
+        return false;
     }
 }
 

@@ -181,15 +181,30 @@ if (!empty($_POST['install_db'])) {
     // Create Post table
     $tabledata = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "date"=>array("DATETIME",false),
-        "post"=>array("TEXT(5000)",false),
+        "postid"=>array("CHAR(30)","NOT NULL"),
+        "date"=>array("DATETIME",date('Y-m-d h:i:s')),
+        "title"=>array("VARCHAR(255)","NOT NULL"),
+        "content"=>array("TEXT(5000)",false),
         "username"=>array("CHAR(30)",false),
+        "homepage"=>array("INT(1)",0),
         "primary"=>"id");
     if ($db_set->makeorupdate($post_table,$tabledata,$op)) {
 	    $result .= "<p id='success'> '$post_table' created</p>";
     } else {
         echo json_encode("<p id='warning'>'$post_table' not created</p>");
         exit;
+    }
+
+    // Give ids to posts that do not have one yet (compatibility with older verions)
+    $sql = "SELECT postid,date FROM $post_table";
+    $req = $db_set->send_query($sql);
+    while ($row = mysqli_fetch_assoc($req)) {
+        if (empty($row['postid'])) {
+            $post = new Posts();
+            $post->date = $row['date'];
+            $post->postid = $post->makeID();
+            $post->update();
+        }
     }
 
     // Create config table
@@ -224,6 +239,7 @@ if (!empty($_POST['install_db'])) {
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "up_date"=>array("DATETIME",false),
         "id_pres"=>array("BIGINT(15)",false),
+        "username"=>array("CHAR(30)","NOT NULL"),
         "type"=>array("CHAR(30)",false),
         "date"=>array("DATE",false),
         "jc_time"=>array("CHAR(15)",false),

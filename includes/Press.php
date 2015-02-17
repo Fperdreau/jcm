@@ -24,6 +24,7 @@ class Press {
     public $date = "0000-00-00";
     public $jc_time = "17:00,18:00";
     public $up_date = "0000-00-00 00:00:00";
+    public $username = "";
     public $title = "";
     public $authors = "";
     public $summary = "Abstract (2000 characters maximum)";
@@ -94,7 +95,7 @@ class Press {
         $row = mysqli_fetch_assoc($req);
         if (!empty($row)) {
             foreach ($row as $varname=>$value) {
-                $this->$varname = htmlspecialchars($value);
+                $this->$varname = htmlspecialchars_decode($value);
             }
 
             // Check if files are still where they are supposed to be
@@ -604,10 +605,12 @@ class Press {
                     $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
                 }
 
+                $uploader = new users($pub->username);
+
                 $wish_list .= "
-                <div class='list-container' style='border-bottom: 1px solid #bbbbbb; min-height: 20px; height: auto; line-height: 20px; padding: 0; text-align: justify;'>
+                <div class='list-container' style='border-bottom: 1px solid #bbbbbb; height: 20px; line-height: 20px; padding: 0; text-align: justify;'>
                     <div style='display: inline-block; padding: 0; text-align: center; border-right: 1px solid #999999; width: 50px;'><b>$nb</b></div>
-                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; white-space: pre-wrap;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
+                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; max-width: 80%; height: 100%; overflow: hidden; text-overflow: ellipsis;'>$pub->title ($pub->authors) suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
                     <div style='display: inline-block; text-align: right; width: auto;'>$pick_url</div>
                 </div>";
 

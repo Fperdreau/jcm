@@ -22,15 +22,7 @@ require_once($_SESSION['path_to_includes'].'includes.php');
 
 $Press = new Press();
 $last_news = new Posts();
-if ($last_news->getlastnews()) {
-	$news = "<p>$last_news->content</p>
-            <div style='widht: 100%; background-color: #aaaaaa; padding: 2px; margin: 0; text-align: right; font-size: 13px;'>
-            	$last_news->day at $last_news->time, Posted by <span id='author_name'>$last_news->username</span>
-            </div>";
-} else {
-	$news = "No recent news";
-}
-
+$news = $last_news->show();
 $nextpres = $Press -> shownextsession();
 $futurepres = $Press->get_futuresession(4);
 $wishlist = $Press -> getwishlist();

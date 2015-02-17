@@ -443,12 +443,33 @@ if (!empty($_POST['config_modify'])) {
     echo json_encode($result);
 }
 
-if (!empty($_POST['post_send'])) {
-    $post = new posts();
-    $new_post = htmlspecialchars($_POST['new_post']);
-    $user_fullname = htmlspecialchars($_POST['fullname']);
-    $post -> add_post($new_post,$user_fullname);
-    $result = "posted";
+if (!empty($_POST['post_add'])) {
+    if ($_POST['post_add'] === 'post_add') {
+        $post = new Posts();
+        $result = $post->make($_POST);
+    } else {
+        $id = htmlspecialchars($_POST['postid']);
+        $post = new Posts($id);
+        $result = $post->update($_POST);
+    }
+    echo json_encode($result);
+}
+
+if (!empty($_POST['post_show'])) {
+    $postid = $_POST['postid'];
+    if ($postid == "false") {$postid = false;}
+
+    $username = htmlspecialchars($_SESSION['username']);
+    $user = new users($username);
+    $post = new Posts();
+    $result = $post->showpost($user->fullname,$postid);
+    echo json_encode($result);
+}
+
+if (!empty($_POST['post_del'])) {
+    $postid = htmlspecialchars($_POST['postid']);
+    $post = new Posts();
+    $result = $post->delete($postid);
     echo json_encode($result);
 }
 

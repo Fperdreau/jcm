@@ -75,8 +75,7 @@ $config = new site_config('get');
         <!-- Core section -->
         <div id="core">
         	<div id="loading"></div>
-        	<div id="pagecontent">
-        	</div>
+        	<div id="pagecontent"></div>
         </div>
 
         <!-- Footer section -->
