@@ -35,7 +35,10 @@ if (!empty($_POST['get_calendar_param'])) {
         // Count how many presentations there are for this day
         $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
         $req = $db_set->send_query($sql);
-        $pres = mysqli_fetch_array($req);
+        $pres = array();
+        while ($row = mysqli_fetch_array($req)) {
+            $pres[] = $row[0];
+        }
 
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
@@ -43,7 +46,12 @@ if (!empty($_POST['get_calendar_param'])) {
 	    $year = $fdate[0];
 
 	    $formatdate[] = "$day-$month-$year";
-        $nb_pres[] = count($pres)-1;
+
+        if (!empty($pres)) {
+            $nb_pres[] = count($pres);
+        } else {
+            $nb_pres[] = 0;
+        }
 	}
 
     // Get application settings
@@ -201,6 +209,19 @@ if (!empty($_POST['user_modify'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process submissions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Get file list (download list)
+if (!empty($_POST['getfiles'])) {
+    $pubid = $_POST['pubid'];
+    $pub = new Press($pubid);
+    $filelist = explode(',',$pub->link);
+    $result = "<div class='dlmenu'>";
+    foreach ($filelist as $file) {
+        $result .= "<div class='dl_info'><div class='upl_name' id='$file'>$file</div></div>";
+    }
+    $result .= "</div>";
+    echo json_encode($result);
+}
+
 //  delete publication
 if (!empty($_POST['del_pub'])) {
     $Press = new Press();
@@ -211,14 +232,11 @@ if (!empty($_POST['del_pub'])) {
 }
 
 //  delete files
-if (!empty($_POST['del_file'])) {
-    $id_press = htmlspecialchars($_POST['del_file']);
-    $pub = new Press($id_press);
-    if ($Press->delete_file($pub->link)) {
-        $result = "deleted";
-    } else {
-        $result = "not deleted";
-    }
+
+if (!empty($_POST['del_upl'])) {
+    $uplname = htmlspecialchars($_POST['uplname']);
+    $pub = new Press();
+    $result = $pub->delete_file($uplname);
     echo json_encode($result);
 }
 
@@ -236,10 +254,12 @@ if (!empty($_POST['submit'])) {
         }
 
         $created = $pub -> make($_POST);
-        if ($created == "added") {
+        if ($created == true) {
             $result = "<p id='success'>Your presentation has been submitted.</p>";
-        } else {
+        } elseif ($created == "exists") {
             $result = "<p id='warning'>This presentation already exist in our database.</p>";
+        } else {
+            $result = "<p id='warning'>Oops, sorry went wrong.</p>";
         }
     }
 
@@ -263,14 +283,12 @@ if (!empty($_POST['update'])) {
             $_POST['type'] = "paper";
         }
         $created = $pub -> update($_POST);
-
-        if ($created == "updated") {
+        if ($created == true) {
             $result = "<p id='success'>Your presentation has been updated.</p>";
         } else {
-            $result = "<p id='warning'>This presentation already exist in our database.</p>";
+            $result = "<p id='warning'>Oops, something went wrong</p>";
         }
     }
-
     echo json_encode($result);
 }
 
@@ -280,10 +298,12 @@ if (isset($_POST['suggest'])) {
     $_POST['date'] = "";
     $_POST['type'] = "wishlist";
     $created = $pub -> make($_POST);
-    if ($created == "added") {
+    if ($created == true) {
         $result = "<p id='success'>Your presentation has been submitted.</p>";
     } elseif ($created == "exist") {
         $result = "<p id='warning'>This presentation already exist in our database.</p>";
+    } else {
+        $result = "<p id='warning'>Oops, something went wrong</p>";
     }
     echo json_encode($result);
 }
@@ -306,6 +326,13 @@ if (!empty($_POST['mod_pub'])) {
     $user = new users($_SESSION['username']);
     $pub = new Press($id_press);
     $form = displayform($user,$pub,'update');
+    echo json_encode($form);
+}
+
+if (!empty($_POST['getform'])) {
+    $pub = new Press();
+    $user = new users($_SESSION['username']);
+    $form = displayform($user,$pub,'submit');
     echo json_encode($form);
 }
 

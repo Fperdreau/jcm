@@ -20,7 +20,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 class site_config {
     // Site info
     public $app_name = "Journal Club Manager";
-    public $version = "v1.2.1";
+    public $version = "v1.3";
     public $author = "Florian Perdreau";
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
@@ -40,7 +40,7 @@ class site_config {
     public $lab_postcode = "Your Lab postal code";
     public $lab_city = "Your Lab city";
     public $lab_country = "Your Lab country";
-    public $lab_mapurl = "";
+    public $lab_mapurl = "Google Map";
     // Mail host information
     public $mail_from = "jc@journalclub.com";
     public $mail_from_name = "Journal Club";
@@ -50,6 +50,9 @@ class site_config {
     public $mail_password = "";
     public $SMTP_secure = "ssl";
     public $pre_header = "[Journal Club]";
+    // Uploads
+    public $upl_types = "pdf,doc,docx,ppt,pptx,opt,odp";
+    public $upl_maxsize = 10000000;
 
     // Constructor
     public function __construct($get = null) {
@@ -72,31 +75,33 @@ class site_config {
         return true;
     }
 
-    // Update config
-    public function update($post) {
+    // Update application settings
+    public function update($post=array()) {
         require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
 
         $class_vars = get_class_vars("site_config");
 		$class_keys = array_keys($class_vars);
-        foreach ($post as $name => $value) {
-            if (in_array($name,$class_keys)) {
-                $escape_value = $db_set->escape_query($value);
-				$exist = $db_set->getinfo($config_table,"variable",array("variable"),array("'$name'"));
-	            if (!empty($exist)) {
-	                $db_set->updatecontent($config_table,"value","'$escape_value'",array("variable"),array("'$name'"));
-	            } else {
-	            	$db_set->addcontent($config_table,"variable,value","'$name','$escape_value'");
-	            }
-			}
+        $postkeys = array_keys($post);
+        foreach ($class_vars as $name => $value) {
+            if (in_array($name,$postkeys)) {
+                $escape_value = $db_set->escape_query($post[$name]);
+            } else {
+                $escape_value = $db_set->escape_query($this->$name);
+            }
+            $this->$name = $escape_value;
+            $exist = $db_set->getinfo($config_table,"variable",array("variable"),array("'$name'"));
+            if (!empty($exist)) {
+                $db_set->updatecontent($config_table,"value","'$escape_value'",array("variable"),array("'$name'"));
+            } else {
+            	$db_set->addcontent($config_table,"variable,value","'$name','$escape_value'");
+            }
         }
-        self::get();
         return true;
     }
 
     // Get organizers list
     function getadmin($admin=null) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app']."config/config.php");
         $db_set = new DB_set();
         $sql = "SELECT username,password,firstname,lastname,position,email,status FROM $users_table WHERE status='organizer'";
@@ -106,10 +111,8 @@ class site_config {
 
         $req = $db_set -> send_query($sql);
         $user_info = array();
-        $cpt = 0;
         while ($row = mysqli_fetch_assoc($req)) {
             $user_info[]= $row;
-            $cpt++;
         }
         return $user_info;
     }

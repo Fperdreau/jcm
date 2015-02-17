@@ -29,7 +29,7 @@ echo "
         <div class='feedback'></div>
 
         <div class='user_login'>
-            <form>
+            <form id='login_form'>
                 <label for='log_username'>Username</label><input type='text' id='log_username' name='username'/>
                 <label for='log_password'>Password</label><input type='password' id='log_password' name='password'/>
                 <div class='action_btns'>
@@ -42,23 +42,25 @@ echo "
         </div>
 
         <div class='user_register'>
-            <label for='firstname'>First Name</label><input id='firstname' type='text' name='firstname'/>
-            <label for='lastname'>Last Name</label><input id='lastname' type='text' name='lastname'/>
-            <label for='username'>Username</label><input id='username' type='text' name='username'/>
-            <label for='password'>Password</label><input id='password' type='password' name='password'/>
-            <label for='conf_password'>Confirm password</label><input id='conf_password' type='password' name='conf_password'/>
-            <label for='email'>Email</label><input id='email' size='30' type='text' name='email'/>
-            <label for='position'>Position</label>
-                <select name='position' id='position'>
-                    <option value='researcher'>Researcher</option>
-                    <option value='post-doc'>Post-doc</option>
-                    <option value='phdstudent'>PhD student</option>
-                    <option value='master'>Master student</option>
-                </select>
-            <div class='action_btns'>
-                <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
-                <div class='one_half last'><a href='' class='btn btn_red' id='register'>Sign up</a></div>
-            </div>
+            <form id='register_form'>
+                <label for='firstname'>First Name</label><input id='firstname' type='text' name='firstname'/>
+                <label for='lastname'>Last Name</label><input id='lastname' type='text' name='lastname'/>
+                <label for='username'>Username</label><input id='username' type='text' name='username'/>
+                <label for='password'>Password</label><input id='password' type='password' name='password'/>
+                <label for='conf_password'>Confirm password</label><input id='conf_password' type='password' name='conf_password'/>
+                <label for='email'>Email</label><input id='email' size='30' type='text' name='email'/>
+                <label for='position'>Position</label>
+                    <select name='position' id='position'>
+                        <option value='researcher'>Researcher</option>
+                        <option value='post-doc'>Post-doc</option>
+                        <option value='phdstudent'>PhD student</option>
+                        <option value='master'>Master student</option>
+                    </select>
+                <div class='action_btns'>
+                    <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
+                    <div class='one_half last'><input type='submit' class='register' id='submit' value='Sign up'></div>
+                </div>
+            </form>
         </div>
 
         <div class='user_delete'>

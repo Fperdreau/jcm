@@ -32,16 +32,18 @@ function mailing() {
     $mail = new myMail();
     $config = new site_config('get');
     $pub = new Press();
-    $pub->getsession();
+    $ids = $pub->getsession();
+    $nextsession = new Press($ids[0]);
 
 	// Number of users
     $nusers = count($mail->get_mailinglist("reminder"));
 
 	// Compare date of the next presentation to today
-    $cur_date = strtolower(date("Y-m-d"));
-    $reminder_day = date("Y-m-d",strtotime($pub->date." - $config->reminder days"));
+    $today   = new DateTime(date('Y-m-d'));
+    $reminder_day = new DateTime(date("Y-m-d",strtotime($nextsession->date." - $config->reminder days")));
+    $send = $today->format('Y-m-d') == $reminder_day->format('Y-m-d');
 
-    if ($cur_date == $reminder_day) {
+    if ($send === true) {
         $content = $mail->reminder_Mail();
         $body = $mail -> formatmail($content['body']);
         $subject = $content['subject'];
@@ -56,14 +58,11 @@ function mailing() {
 	    $cronlog = 'reminder_log.txt';
 	    if (!is_file($cronlog)) {
 	        $fp = fopen($cronlog,"w");
-	        chmod($cronlog,0777);
 	    } else {
 	        $fp = fopen($cronlog,"a+");
-	        chmod($cronlog,0777);
 	    }
 	    fwrite($fp,$string);
 	    fclose($fp);
-	    chmod($cronlog,0644);
     } else {
         echo "nothing to send";
     }

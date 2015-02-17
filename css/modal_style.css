@@ -185,6 +185,7 @@ a.btn_red {color: #FFF;}
     display: block;
     padding: 10px;
     margin-top: 10px;
+    text-align: justify;
     background-color: #eeeeee;
 }
 
@@ -225,7 +226,7 @@ a.btn_red {color: #FFF;}
     text-decoration: none;
 }
 
-.pub_btn a:hover {
+.pub_btn:hover>a {
     color:#EEE;
     text-align: center;
     text-decoration: none;

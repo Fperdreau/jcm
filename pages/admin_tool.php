@@ -99,7 +99,9 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='hidden' name='config_modify' value='true'/>
                 <label for='sitetitle' class='label'>Site title</label><input type='text' size='30' name='sitetitle' value='$config->sitetitle' /><br>
                 <label for='site_url' class='label'>Site url</label><input type='text' size='30' name='site_url' value='$config->site_url' /></br>
-                <label for='clean_day' class='label'>Oldest DB backups to keep (in days)</label><input type='text' size='30' name='clean_day' value='$config->clean_day' />
+                <label for='clean_day' class='label'>Oldest DB backups to keep (in days)</label><input type='text' size='30' name='clean_day' value='$config->clean_day' /></br>
+                <label for='upl_types' class='label'>Allowed file types (upload)</label><input type='text' size='30' name='upl_types' value='$config->upl_types' /></br>
+                <label for='upl_maxsize' class='label'>Maximum file size (in Kb)</label><input type='text' size='30' name='upl_maxsize' value='$config->upl_maxsize' />
                 <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_site'/></p>
             </form>
         </div>
@@ -217,11 +219,6 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<span id='pagename'>Admin tools</span>
         <div class='section_header'>Tools</div>
         <div class='section_content'>
-        	<div id='exportdb'>
-            <label for='export'>Export the mailing list to XLS format</label>
-            <input type='submit' name='exportdb' value='Proceed' id='submit' class='exportdb'/>
-            </div><br>
-
             <div id='db_backup'>
             <label for='backup'>Backup database</label>
             <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>

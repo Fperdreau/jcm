@@ -77,7 +77,6 @@ if ($op == 'new') {
     if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
         $selectopt = "";
         $submit_form = displayform($user,$Press,'update');
-        $content .= "<p id='warning'>Please verify each field before validation</p>";
     } else {
         $selectopt = $Press -> generate_selectwishlist();
         $submit_form = "";

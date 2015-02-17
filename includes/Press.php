@@ -30,51 +30,11 @@ class Press {
     public $link = "";
     public $orator = "";
     public $presented = 0;
-    public $notification = 0;
     public $id_pres = "";
 
     function __construct($id_pres=null){
         if (null != $id_pres) {
             self::get($id_pres);
-        }
-    }
-
-    public function get($id_pres) {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $db_set = new DB_set();
-        $sql = "SELECT * FROM $presentation_table WHERE id_pres='$id_pres'";
-        $req = $db_set->send_query($sql);
-        $class_vars = get_class_vars("Press");
-        $row = mysqli_fetch_assoc($req);
-
-        if (!empty($row)) {
-            foreach ($row as $varname=>$value) {
-                if (array_key_exists($varname,$class_vars)) {
-                    $this->$varname = $value;
-                }
-            }
-
-            // Check file integrity
-            $pdfpath = $_SESSION['path_to_app'].'uploads/';
-            if (!is_file($pdfpath.$this->link)) {
-                $post['link'] = "";
-                self :: update($post);
-
-            }
-
-            $today = date('Y-m-d');
-            $pub_day =  date("Y-m-d",strtotime($this->date));
-            if ($pub_day != date("Y-m-d",strtotime("0000-00-00")) && $pub_day < $today) {
-                $post['presented'] = 1;
-                $post['title'] = $this->title;
-                $post['date'] = $pub_day;
-                self :: update($post);
-            }
-            return true;
-
-        } else {
-            return false;
         }
     }
 
@@ -85,11 +45,10 @@ class Press {
         $class_vars = get_class_vars("Press");
         $db_set = new DB_set();
         $config = new site_config('get');
-        $bdd = $db_set->bdd_connect();
 
-        $post['up_date'] = date('Y-m-d'); // Date of creation
+        $post['up_date'] = date('Y-m-d h:i:s'); // Date of creation
         $post['jc_time'] = "$config->jc_time_from,$config->jc_time_to";
-
+        $postkeys = array_keys($post);
         if (self::pres_exist($post['title']) == false) {
 
             // Create an unique ID
@@ -98,47 +57,63 @@ class Press {
             $variables = array();
             $values = array();
             foreach ($class_vars as $name=>$value) {
-                if (array_key_exists($name,$post)) {
-                    $value = mysqli_real_escape_string($bdd,$post["$name"]);
+                if (in_array($name,$postkeys)) {
+                    $escaped = $db_set->escape_query($post[$name]);
                 } else {
-                    $value = mysqli_real_escape_string($bdd,$this->$name);
+                    $escaped = $db_set->escape_query($this->$name);
                 }
+                $this->$name = $escaped;
                 $variables[] = "$name";
-                $values[] = "'$value'";
+                $values[] = "'$escaped'";
             }
 
             $variables = implode(',',$variables);
             $values = implode(',',$values);
 
             // Add publication to the database
-            $db_set->addcontent($presentation_table,$variables,$values);
-
-            // Update presentation object
-            self::get($post['title']);
-
-            return "added";
+            if ($db_set->addcontent($presentation_table,$variables,$values)) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             self::get($this->id_pres);
             return "exist";
         }
     }
 
-    // Create an ID for the new presentation
-    function create_presID() {
+    public function get($id_pres) {
         require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-        $pres_id = date('Ymd').rand(1,10000);
 
-        // Check if random ID does not already exist in our database
-        $prev_id = $db_set->getinfo($presentation_table,'id_pres');
-        while (in_array($pres_id,$prev_id)) {
-            $pres_id = date('Ymd').rand(1,10000);
+        $class_vars = get_class_vars("Press");
+        $classkeys = array_keys($class_vars);
+
+        $db_set = new DB_set();
+        $sql = "SELECT * FROM $presentation_table WHERE id_pres='$id_pres'";
+        $req = $db_set->send_query($sql);
+        $row = mysqli_fetch_assoc($req);
+        if (!empty($row)) {
+            foreach ($row as $varname=>$value) {
+                $this->$varname = htmlspecialchars($value);
+            }
+
+            // Check if files are still where they are supposed to be
+            self::fileintegrity();
+
+            // If publication's date is past, assumes it has already been presented
+            $pub_day = $this->date;
+            if ($this->date != "0000-00-00" && $pub_day < date('Y-m-d')) {
+                $this->presented = 1;
+                self::update();
+            }
+            return true;
+        } else {
+            return false;
         }
-        return $pres_id;
     }
 
     // Update a presentation (new info)
-    function update($post,$id_pres=null) {
+    function update($post=array(),$id_pres=null) {
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
 
@@ -148,46 +123,131 @@ class Press {
             $this->id_pres = $_POST['id_pres'];
         }
 
+        if (array_key_exists("link", $post)) {
+            $post['link'] = implode(',',array($this->link,$post['link']));
+        }
+
         $class_vars = get_class_vars("Press");
-        foreach ($post as $name => $value) {
-            $value = htmlspecialchars($value);
-            if (array_key_exists($name,$class_vars)) {
-                $db_set->updatecontent($presentation_table,$name,"'$value'",array("id_pres"),array("'$this->id_pres'"));
-                $this->$name = $value;
+        $postkeys = array_keys($post);
+        foreach ($class_vars as $name => $value) {
+            if (in_array($name,$postkeys)) {
+                $escaped = $db_set->escape_query($post[$name]);
+            } else {
+                $escaped = $db_set->escape_query($this->$name);
+            }
+            $this->$name = $escaped;
+
+            if (!$db_set->updatecontent($presentation_table,$name,"'$escaped'",array("id_pres"),array("'$this->id_pres'"))) {
+                return false;
             }
         }
-        return "updated";
+        return true;
+    }
+
+    // Create an ID for the new presentation
+    function create_presID() {
+        require($_SESSION['path_to_app'].'config/config.php');
+        $db_set = new DB_set();
+        $id_pres = date('Ymd').rand(1,10000);
+
+        // Check if random ID does not already exist in our database
+        $prev_id = $db_set->getinfo($presentation_table,'id_pres');
+        while (in_array($id_pres,$prev_id)) {
+            $id_pres = date('Ymd').rand(1,10000);
+        }
+        return $id_pres;
+    }
+
+    // Check if associated files are still present on the server
+    private function fileintegrity() {
+        $pdfpath = $_SESSION['path_to_app'].'uploads/';
+        $links = explode(',',$this->link);
+        $newlinks = array();
+        foreach($links as $link) {
+            if (is_file($pdfpath.$link)) {
+                $newlinks[] = $link;
+            }
+        }
+        $this->link = implode(',',$newlinks);
+        self::update();
+        return true;
+    }
+
+    // Validate upload
+    private function checkupload($file) {
+        $config = new site_config('get');
+        // Check $_FILES['upfile']['error'] value.
+        if ($file['error'][0] != 0) {
+            switch ($file['error'][0]) {
+                case UPLOAD_ERR_OK:
+                    break;
+                case UPLOAD_ERR_NO_FILE:
+                    return "No file to upload";
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    return 'File Exceeds size limit';
+                default:
+                    return "Unknown error";
+            }
+        }
+
+        // You should also check filesize here.
+        if ($file['size'][0] > $config->upl_maxsize) {
+            return "File Exceeds size limit";
+        }
+
+        // Check extension
+        $allowedtypes = explode(',',$config->upl_types);
+        $filename = basename($file['name'][0]);
+        $ext = substr($filename, strrpos($filename, '.') + 1);
+
+        if (false === in_array($ext,$allowedtypes)) {
+            return "Invalid file type";
+        } else {
+            return true;
+        }
     }
 
     // Upload a file
-    function upload_file($file) {
-        if (isset($file['tmp_name']) && !empty($file['name'])) {
-            $tmp = htmlspecialchars($file['tmp_name']);
-            $splitname = explode(".", strtolower($file['name']));
-            $extension = end($splitname);
+    public function upload_file($file) {
+        $result['status'] = false;
+        if (isset($file['tmp_name'][0]) && !empty($file['name'][0])) {
+            $result['error'] = self::checkupload($file);
+            if ($result['error'] === true) {
+                $tmp = htmlspecialchars($file['tmp_name'][0]);
+                $splitname = explode(".", strtolower($file['name'][0]));
+                $extension = end($splitname);
 
-            $directory = $_SESSION['path_to_app'].'uploads/';
-            chmod($directory,0777);
-            $rnd = date('Ymd')."_".rand(0,100);
-            $newname = "pres_".$rnd.".".$extension;
-            while (is_file($directory.$newname)) {
+                $directory = $_SESSION['path_to_app'].'uploads/';
+                // Create uploads folder if it does not exist yet
+                if (!is_dir($directory)) {
+                    mkdir($directory);
+                }
+                chmod($directory,0777);
+
                 $rnd = date('Ymd')."_".rand(0,100);
                 $newname = "pres_".$rnd.".".$extension;
-            }
+                while (is_file($directory.$newname)) {
+                    $rnd = date('Ymd')."_".rand(0,100);
+                    $newname = "pres_".$rnd.".".$extension;
+                }
 
-            $dest = $directory.$newname;
-            $results = move_uploaded_file($tmp,$dest);
-            chmod($directory,0755);
+                // Move file to the upload folder
+                $dest = $directory.$newname;
+                $results['error'] = move_uploaded_file($tmp,$dest);
+                chmod($directory,0755);
 
-            if ($results == false) {
-                return "failed";
-            } else {
-                return $newname;
+                if ($results['error'] == false) {
+                    $result['error'] = "Uploading process failed";
+                } else {
+                    $results['error'] = true;
+                    $result['status'] = $newname;
+                }
             }
         } else {
-            $newname = "no_file";
-            return $newname;
+            $result['error'] = "No File to upload";
         }
+        return $result;
     }
 
     // Delete a presentation
@@ -197,38 +257,40 @@ class Press {
         self::get($pres_id);
 
         // Delete corresponding file
-        self::delete_file($this->link);
+        self::delete_files();
 
         // Delete corresponding entry in the publication table
         $db_set = new DB_set();
         $db_set -> deletecontent($presentation_table,array('id_pres'),array("'$pres_id'"));
     }
 
-    // Delete a file corresponding to the actual presentation
-    function delete_file($filename) {
-        // Delete file
-        $pdfpath = $_SESSION['path_to_app'].'uploads/';
-
+    // Delete all files corresponding to the actual presentation
+    function delete_files() {
         $filelist = explode(',',$this->link);
         foreach ($filelist as $filename) {
-            if (is_file($pdfpath.$filename)) {
-                return unlink($pdfpath.$filename);
-            } else {
+            if (self::delete_file($filename) === false) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    // Delete a file corresponding to the actual presentation
+    function delete_file($filename) {
+        $pdfpath = $_SESSION['path_to_app'].'uploads/';
+        if (is_file($pdfpath.$filename)) {
+            return unlink($pdfpath.$filename);
+        } else {
+            return "no_file";
         }
     }
 
     // Check if presentation exists in the database
-    function pres_exist($prov_pressname) {
+    function pres_exist($title) {
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
-        $presslist = $db_set -> getinfo($presentation_table,'title');
-        if (in_array($prov_pressname,$presslist)) {
-            return true;
-        } else {
-            return false;
-        }
+        $titlelist = $db_set -> getinfo($presentation_table,'title');
+        return in_array($title,$titlelist);
     }
 
     // Check if the date of presentation is already booked
@@ -270,7 +332,7 @@ class Press {
     }
 
     // Get next unique dates (remove duplicates)
-    private function getdates() {
+    public function getdates() {
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "SELECT date FROM $presentation_table WHERE type!='wishlist' and date>=CURDATE() ORDER BY date ASC";
@@ -287,29 +349,40 @@ class Press {
     }
 
     // Display the upcoming presentation(home page/mail)
-    function shownextsession() {
+    function shownextsession($mail=false) {
         require($_SESSION['path_to_app'].'config/config.php');
+        $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
+
+        $config = new site_config('get');
         $dates = self::getdates();
         if ($dates !== false) {
             $date = $dates[0];
             $ids = self::getsession();
             $nb_pres = count($ids);
-            $content = "<div style='background-color: rgba(207,101,101,.7); padding: 5px; margin-bottom: 10px;'>
-                    <span style='font-weight: bold; margin: 0 0 5px 0;'>Date:</span> $date<br>
+            $content = "<div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px; border: 1px solid #bebebe;'>
+                    <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>$date</div>
+                    <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>$config->jc_time_from <b>To: </b>$config->jc_time_to</div>
+                    <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b> $config->room</div><br>
                     Our next session will host $nb_pres presentations.
                 </div>";
             foreach ($ids as $presid) {
                 $pres = new Press($presid);
-                $link = "./uploads/".$pres->link;
-                if ($_SESSION['logok'] == true && $pres->link != "") {
-                    $filecontent = "<div class='link'><a href='$link' target='_blank'>Get File</a></div>";
-                } else {
-                    $filecontent = "";
+
+               // Get file list
+                $filecontent = "";
+                if ($show && !empty($pres->link)) {
+                    $filelist = explode(',',$pres->link);
+                    foreach ($filelist as $file) {
+                        $ext = explode('.',$file);
+                        $ext = strtoupper($ext[1]);
+                        $urllink = $config->site_url."uploads/".$file;
+                        $filecontent .= "<div style='display: inline-block; height: 15px; line-height: 15px; text-align: center; padding: 5px; white-space: pre-wrap; min-width: 40px; width: auto; margin: 5px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'><a href='$urllink' target='_blank'>$ext</a></div>";
+                    }
                 }
                 $type = ucfirst($pres->type);
                 $content .= "
-                <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border-top: 1px solid #adadad; border-left: 1px solid #adadad;'>
-                    <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(175,175,175,.8); color: #FFF; padding: 5px;'>
+                <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                    <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                         $type
                     </div>
                     <div style='width: 95%; margin: auto; padding: 5px 10px 0px 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid #aaaaaa;'>
@@ -320,7 +393,7 @@ class Press {
                     <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
                         <span style='font-style: italic; font-size: 13px;'>$pres->summary</span>
                     </div>
-                    <div>
+                    <div style='display: block; test-align: justify; width: 95%; min-height: 20px; height: auto; margin: auto; background-color: #444444;'>
                         $filecontent
                     </div>
                 </div>
@@ -359,6 +432,7 @@ class Press {
 
         // Get future planned dates
         $dates = self::getdates();
+        if ($dates == false) {$dates = array();}
 
         // Get futures journal club sessions
         $content = "";
@@ -373,11 +447,11 @@ class Press {
                     if (null != $mail) {
                         $show_but = "";
                     } else {
-                        $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'><b>MORE</b></a>";
+                        $show_but = "<div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'>MORE</a></div>";
                     }
 
                     $pubcontent .= "
-                    <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 25px; line-height: 25px; padding: 5px; margin-left: 20%;'>
+                    <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; min-height: 25px; line-height: 25px; padding: 5px; margin-left: 20%; width: 100%;'>
                         <div style='display: table-cell; width: 40%; padding-left: 10px; text-align: left;'>
                             $pub->title ($pub->authors) presented by <span style='color: #CF5151;'>$pub->orator</span>
                         </div>
@@ -397,12 +471,10 @@ class Press {
 
             $content .= "
             <div style='display: block; margin: 0 auto 10px auto; border-top: 1px solid rgba(175,175,175,.8);'>
-                <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(175,175,175,.8); color: #FFF; padding: 5px;'>
+                <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                         $day
                 </div>
-                <div>
-                    $pubcontent
-                </div>
+                $pubcontent
             </div>";
         }
 
@@ -484,7 +556,8 @@ class Press {
                     <div class='pub_container' id='$this->id_pres'>
                         <div class='list-container'>
                             <div style='text-align: center; width: 10%;'>$this->date</div>
-                            <div style='text-align: left; width: 50%;'>$this->title</div>
+                            <div style='text-align: left; width: 50%; white-space: nowrap;
+    overflow: hidden;'>$this->title</div>
                             <div style='text-align: center; width: 20%;'>$this->authors</div>
                             <div style='text-align: center; width: 10%; vertical-align: middle;'>
                                 <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>MORE</a>
@@ -511,7 +584,8 @@ class Press {
     }
 
     // Get wish list
-    function getwishlist($number = null,$mail = false) {
+    function getwishlist($number=null,$mail=false) {
+        $show = $mail == false && (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
         require($_SESSION['path_to_app'].'config/config.php');
         $config = new site_config('get');
         $db_set = new DB_set();
@@ -524,18 +598,17 @@ class Press {
                 $nb = $cpt + 1;
                 $pub = new Press($data['id_pres']);
                 $url = $config->site_url."index.php?page=presentations&op=wishpick&id=$pub->id_pres";
-                if (!$mail) {
-                    $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$pub->id_pres'><b>Choose it!</b></a>";
+                if ($show == true) {
+                    $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$pub->id_pres'><b>Make it true!</b></a>";
                 } else {
-                    $pick_url = "<a href='$url'>Choose it!</a>";
+                    $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
                 }
 
                 $wish_list .= "
-                <div class='list-container' style='border-top: 1px solid #bbbbbb; width: 95%; min-height: 20px; height: auto; line-height: 20px; padding: 0;'>
-
-                    <div style='padding: 0; text-align: center; border-right: 1px solid #999999; width: 5%;'><b>$nb</b></div>
-                    <div style='padding: 0; text-align: justify; width: 80%;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
-                    <div style='text-align: center; width: 10%;'>$pick_url</div>
+                <div class='list-container' style='border-bottom: 1px solid #bbbbbb; min-height: 20px; height: auto; line-height: 20px; padding: 0; text-align: justify;'>
+                    <div style='display: inline-block; padding: 0; text-align: center; border-right: 1px solid #999999; width: 50px;'><b>$nb</b></div>
+                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; white-space: pre-wrap;'>$pub->title ($pub->authors) suggested by $pub->orator</div>
+                    <div style='display: inline-block; text-align: right; width: auto;'>$pick_url</div>
                 </div>";
 
                 $cpt++;

@@ -53,7 +53,7 @@ $config = new site_config('get');
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
-
+        <script type="text/javascript" src="js/Myupload.js"></script>
         <title><?php echo $config->sitetitle; ?></title>
     </head>
 
@@ -91,13 +91,5 @@ $config = new site_config('get');
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>
-        <!-- mini upload form plugin -->
-        <link type="text/css" href="js/mini-upload-form/assets/css/style.css" rel="stylesheet" />
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.knob.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.ui.widget.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.iframe-transport.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/jquery.fileupload.js"></script>
-        <script  type="text/javascript" src="js/mini-upload-form/assets/js/script.js"></script>
-
     </body>
 </html>
