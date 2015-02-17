@@ -155,7 +155,6 @@ if (!empty($_POST['install_db'])) {
     $tabledata = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "date"=>array("DATETIME",date('Y-m-d h:i:s')),
-        "userid"=>array("CHAR(30)",false),
         "firstname"=>array("CHAR(30)",false),
         "lastname"=>array("CHAR(30)",false),
         "fullname"=>array("CHAR(30)",false),
@@ -212,6 +211,7 @@ if (!empty($_POST['install_db'])) {
     } else {
         $config = new site_config();
     }
+
     if ($config->update($_POST) === true) {
         $result .= "<p id='success'> '$config_table' updated</p>";
     } else {

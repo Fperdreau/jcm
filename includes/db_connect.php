@@ -146,7 +146,7 @@ class DB_set {
             }
         }
         $sql .= " (".implode(", ", $fis).") VALUES (".implode(", ", $vas).")";
-        self::send_query($sql);
+        return self::send_query($sql);
     }
 
     public function updatepostcontent($table_name, $data, $refcol,$id) {
@@ -254,8 +254,6 @@ class DB_set {
                         // If the column does not exist already, then we simply add it to the table
                         self::addcolumn($tablename,$column,$datatype,$prevcolumn);
                     } else {
-                        // If the column already exist, then we store its information and create a new one with the appropriate attributes and then fill it with the stored information
-
                         // Check if the column's data type is consistent with the new version
                         $sql = "ALTER TABLE $tablename MODIFY $column $datatype";
                         self::send_query($sql);
