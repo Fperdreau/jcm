@@ -10,14 +10,14 @@
 *.rar
 *.tar
 *.zip
- 
+
 # Logs and databases #
 ######################
 *.log
 *.sql
 *.sqlite
 *.txt
- 
+
 # OS generated files #
 ######################
 .DS_Store

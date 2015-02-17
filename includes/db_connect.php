@@ -35,7 +35,6 @@ class DB_set {
         $this->password = $passw;
         $this->dbprefix = $db_prefix;
         $this->apptables = self::getapptables();
-
     }
 
     // Connects to DB and throws exceptions
@@ -82,8 +81,8 @@ class DB_set {
     }
 
     public function escape_query($query) {
-        $bdd = self::bdd_connect();
-        return mysqli_real_escape_string($bdd,$query);
+        self::bdd_connect();
+        return mysqli_real_escape_string($this->bdd,$query);
         self::bdd_close();
     }
 
