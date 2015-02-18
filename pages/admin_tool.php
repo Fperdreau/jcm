@@ -200,11 +200,12 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
     // Make post selection list
     $postlist = $db_set -> getinfo($post_table,"postid");
-    if (!empty($postlist)) {
-        $options = "
+    $options = "
         <select class='select_post' data-user='$user->fullname'>
             <option value='' selected>Select a post to modify</option>
         ";
+    if (!empty($postlist)) {
+
         foreach ($postlist as $postid) {
             $post = new Posts($postid);
             if ($post->homepage==1) {
@@ -214,10 +215,10 @@ if (!empty($_GET['op']) && $_GET['op'] == 'users') {
             }
             $options .= "<option value='$post->postid' $style><b>$post->date |</b> $post->title</option>";
         }
-        $options .= "</select>";
     } else {
-        $options = "";
+        $options .= "<option value='false'>Nohting yet</option>";
     }
+    $options .= "</select>";
 
     $result = "
     <div id='content'>
