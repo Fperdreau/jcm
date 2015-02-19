@@ -52,7 +52,7 @@ $result = "
     <div class='section_content'>
         <form method='post' action='' class='form' id='profile_persoinfo_form'>
             <input type='hidden' name='username' value='$user->username'/>
-            <label for='firstname' class='label'>First Name</label><input type='text' name='firstname' value='$user->firstname'/>
+            <label for='firstname' class='label'>First Name</label><input type='text' name='firstname' value='$user->firstname'/><br>
             <label for='lastname' class='label'>Last Name</label><input type='text' name='lastname' value='$user->lastname'/></br>
             <label for='status' class='label'>Status: </label>$user->status<br>
             <label for='password' class='label'>Password</label> <a href='' class='change_pwd' id='$user->email'>Change my password</a></br>
@@ -64,7 +64,7 @@ $result = "
                 <option value='phdstudent'>PhD student</option>
                 <option value='master'>Master</option>
             </select></br>
-            <label class='label'>Number of submitted presentation: </label>$user->nbpres<br>
+            <label class='label'>Presentations: </label>$user->nbpres<br>
             <input type='hidden' name='user_modify' value='true' />
             <p style='text-align: right'><input type='submit' name='user_modify' value='Modify' class='profile_persoinfo_form' id='submit'/></p>
             <div class='feedback_perso'></div>

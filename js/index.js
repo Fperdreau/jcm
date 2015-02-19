@@ -19,20 +19,71 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  General functions
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Spin animation when a page is loading
-var $loading = $('#loading').hide();
+var modalpubform = $('.modal_section#submission_form');
+
+// Show publication form
+var showpubform = function(formel,idpress,type) {
+    if (idpress === undefined) {idpress = false;}
+    if (type === undefined) {type = "submit";}
+
+    // First we remove any existing submission form
+    $('.submission').remove();
+
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {
+            getpubform: idpress,
+            type: type
+        },
+        success: function(data){
+            var result = jQuery.parseJSON(data);
+            console.log("showpubform");
+            formel
+                .hide()
+                .html(result)
+                .show();
+        },
+    });
+};
+
+// Display presentation information in a modal window
+var displaypub = function(idpress,formel) {
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {
+            show_pub: idpress,
+        },
+        success: function(data){
+            var result = jQuery.parseJSON(data);
+            formel
+                .hide()
+                .html(result)
+                .fadeIn(200);
+        },
+    });
+};
 
 // Process submitted form
 var processform = function(formid,feedbackid) {
-    if (typeof feedbackid == undefined) {
+    if (typeof feedbackid === undefined) {
         feedbackid = ".feedback";
     }
-    var data = $("#" + formid).serialize();
+    var data = $("#"+formid).serialize();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: true,
         data: data,
+        beforeSend: function() {
+            $("#loading").show();
+        },
+        complete: function() {
+            $("#loading").hide();
+        },
         success: function(data){
             var result = jQuery.parseJSON(data);
             showfeedback(result,feedbackid);
@@ -40,10 +91,21 @@ var processform = function(formid,feedbackid) {
     });
 };
 
+// Show feedback message and replace the submitted form by an empty form
+var validsubmitform = function(form,text) {
+    console.log(form);
+    $(form)
+        .hide()
+        .html(text)
+        .fadeIn(200);
+    console.log('validsubmitform');
+};
+
+// Check for empty input fields
 var checkform = function(formid) {
     var valid = true;
     $('#'+formid+' input,select').each(function () {
-        if ($.trim($(this).val()).length == 0){
+        if ($.trim($(this).val()).length === 0){
             $(this).focus();
             showfeedback('<p id="warning">This field is required</p>');
             valid = false;
@@ -51,54 +113,43 @@ var checkform = function(formid) {
         }
     });
     return valid;
-}
+};
 
-
-function close_modal(modal_id) {
+// Close modal window
+var close_modal = function(modal_id) {
     $("#lean_overlay").fadeOut(200);
     $(modal_id).css({"display":"none"});
-}
-
-var validsubmitform = function(formid,text) {
-    var formwidth = $(formid).outerWidth();
-    var formheight = $(formid).outerHeight();
-    $(formid)
-        .hide()
-        .html(text)
-        .fadeIn(200);
-
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {getform: true},
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            setTimeout(function() {
-                $(formid)
-                    .hide()
-                    .html(result)
-                    .fadeIn(200);
-            }, 3000);
-        }
-    });
-}
+    $('#submission_form').empty();
+};
 
 // Check email validity
-function checkemail(email) {
+var checkemail = function(email) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
     return pattern.test(email);
 };
 
 //Show feedback
 var showfeedback = function(message,selector) {
-    if (typeof selector == "undefined") {
+    if (typeof selector === "undefined") {
         selector = ".feedback";
     }
     $(""+selector)
-        .show()
         .html(message)
-        .fadeOut(5000);
+        .show()
+        .fadeOut(3000);
+    return false;
+};
+
+// Show the targeted modal section and hide the others
+var showmodal = function(sectionid) {
+    $('.modal_section').each(function() {
+        var thisid = $(this).attr('id');
+        if (thisid === sectionid) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
 };
 
 // send verification email after signing up
@@ -184,12 +235,18 @@ var loadpageonclick = function(pagetoload,param) {
     param = typeof param !== 'undefined' ? param : false;
     var stateObj = { page: pagetoload };
 
-    if (param == false) {
+    if (param === false) {
         jQuery.ajax({
             url: 'pages/'+pagetoload+'.php',
             type: 'GET',
             async: true,
             data: param,
+            beforeSend: function() {
+                $('#loading').show();
+            },
+            complete: function () {
+                $('#loading').hide();
+            },
             success: function(data){
                 var json = jQuery.parseJSON(data);
                 history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload);
@@ -207,6 +264,12 @@ var loadpageonclick = function(pagetoload,param) {
             type: 'GET',
             async: true,
             data: param,
+            beforeSend: function() {
+                $('#loading').show();
+            },
+            complete: function () {
+                $('#loading').hide();
+            },
             success: function(data){
                 var json = jQuery.parseJSON(data);
                 history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload+"&"+param);
@@ -215,11 +278,9 @@ var loadpageonclick = function(pagetoload,param) {
                     .html('<div>'+json+'</div>')
                     .fadeIn('slow');
                 tinymcesetup();
-
             }
         });
     }
-
 };
 
 var showpostform = function(postid) {
@@ -248,7 +309,7 @@ var showpostform = function(postid) {
 
         }
     });
-}
+};
 
 // Parse URL
 var parseurl = function() {
@@ -281,23 +342,22 @@ $( document ).ready(function() {
      Main body
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
-
         .ready(function() {
 
 			// Automatically parse url and load the corresponding page
             var params = getParams();
             var page = params.page;
 
-            if (page == undefined) {
+            if (page === undefined) {
                 loadpageonclick('home',false);
             } else {
-                if (page != false && page == 'install') {
-                    if (params.step != undefined) {
+                if (page !== false && page == 'install') {
+                    if (params.step !== undefined) {
                         loadpageonclick('install','step='+params.step);
                     } else {
                         loadpageonclick('install','step=1');
                     }
-                } else if (page != false && page != 'install') {
+                } else if (page !== false && page != 'install') {
                     var urlparam = parseurl();
                     loadpageonclick(page,''+urlparam);
                 }
@@ -413,7 +473,7 @@ $( document ).ready(function() {
         .on('click',"#modal_change_pwd",function(){
             var email = $("input#ch_email").val();
 
-            if (email == "") {
+            if (email === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#ch_email").focus();
                 return false;
@@ -433,13 +493,13 @@ $( document ).ready(function() {
             var password = $("input#ch_password").val();
             var conf_password = $("input#ch_conf_password").val();
 
-            if (password == "") {
+            if (password === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#ch_password").focus();
                 return false;
             }
 
-            if (conf_password == "") {
+            if (conf_password === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#ch_conf_password").focus();
                 return false;
@@ -548,13 +608,13 @@ $( document ).ready(function() {
             var spec_head = $("input#spec_head").val();
             var spec_msg = tinyMCE.activeEditor.getContent();
 
-            if (spec_head == "") {
+            if (spec_head === "") {
                 showfeedback('<p id="warning">You must precise a subject</p>');
                 $("input#spec_head").focus();
                 return false;
             }
 
-            if (spec_msg == "") {
+            if (spec_msg === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("textarea#spec_msg").focus();
                 return false;
@@ -632,7 +692,7 @@ $( document ).ready(function() {
                     postid: postid},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    if (result == true) {
+                    if (result === true) {
                         $('.postcontent')
                             .hide()
                             .html('<p id="success">Post successfully deleted</p>')
@@ -656,13 +716,13 @@ $( document ).ready(function() {
             var username = $("input#post_username").val();
             var homepage = $("select#post_homepage").val();
 
-            if (title == "") {
+            if (title === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $('input#title').focus();
                 return false;
             }
 
-            if (content == "") {
+            if (content === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 tinymce.execCommand('mceFocus',false,'consent');
                 return false;
@@ -730,6 +790,12 @@ $( document ).ready(function() {
                 data: {
                     select_year: year
                     },
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
 					$('#archives_list').html(result);
@@ -787,13 +853,17 @@ $( document ).ready(function() {
         .on('click','.submit_pres',function(e) {
             e.preventDefault();
             var operation = $(this).attr('name');
+            var form = $(this).closest('#submission_form');
+            var type = $("select#type").val();
+            var title = $("input#title").val();
+            var authors = $("input#authors").val();
 
             if (operation !== "suggest") {
                 var date = $("input#datepicker").val();
-                if ((date == "0000-00-00" || date == "") && type !== "wishlist") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#datepicker").focus();
-                return false;
+                if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
+                    showfeedback('<p id="warning">This field is required</p>');
+                    $("input#datepicker").focus();
+                    return false;
                 }
             }
 
@@ -807,31 +877,27 @@ $( document ).ready(function() {
                 $('#submit_form').append("<input type='hidden' name='link' value='"+links+"'>");
             }
 
-            var title = $("input#title").val();
-            var type = $("select#type").val();
-            var authors = $("input#authors").val();
-
-            if (title == "") {
+            if (title === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#title").focus();
                 return false;
             }
 
-            if (authors == "") {
+            if (authors === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("input#authors").focus();
                 return false;
             }
 
-            if (type == "") {
+            if (type === "") {
                 showfeedback('<p id="warning">This field is required</p>');
                 $("select#type").focus();
                 return false;
             }
 
-            if (type == "guest") {
+            if (type === "guest") {
                 var orator = $("input#orator").val();
-                if (orator == "") {
+                if (orator === "") {
                     showfeedback('<p id="warning">This field is required</p>');
                     $("input#orator").focus();
                     return false;
@@ -839,7 +905,10 @@ $( document ).ready(function() {
             }
 
             processform("submit_form");
-            validsubmitform("#submission","<p id='success'>Thank you for your submission</p>");
+            validsubmitform(form,"<p id='success'>Thank you for your submission</p>");
+            setTimeout(function() {
+                showpubform(form,false);
+            },2000);
             return false;
         })
 
@@ -900,20 +969,6 @@ $( document ).ready(function() {
             return false;
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          Login dialog
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        // Upload a file
-		.on('mouseover','#upload',function() {
-            $(this).fileupload({
-                dataType: 'json',
-                done: function (e, data) {
-                    $.each(data.result.files, function (index, file) {
-                        $('<p/>').text(file.name).appendTo(document.body);
-                    });
-                }
-            })
-        })
 
 		// Trigger modal dialog box for log in/sign up
         .on('mouseover',"a[rel*=leanModal]",function(e) {
@@ -921,87 +976,52 @@ $( document ).ready(function() {
             $(this).leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" });
         })
 
-		// Trigger modal dialog box for publications (show/modify/delete forms)
-        .on('mouseover',"a[rel*=pub_leanModal]",function(e) {
-            e.preventDefault();
-            $(this).leanModal({top : 50, width : 500, overlay : 0.6, closeButton: ".modal_close" });
-        })
-
-		// Show publication information on click
-        .on('click','#modal_trigger_pubcontainer',function(e){
-            e.preventDefault();
-            var id_pres = $(this).attr('data-id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    show_pub: id_pres},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    $(".publication_form")
-                        .show()
-                        .html(result);
-                    $(".pub_delete").hide();
-                    $(".pub_modify").hide();
-                    $(".header_title").text('Presentation');
-                }
-            });
-        })
-
-        // Choose a wish
-        .on('click','#modal_trigger_pubmod',function(e){
-            e.preventDefault();
-            var id_pres = $(this).attr('data-id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_pub: id_pres},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    $(".publication_form")
-                        .show()
-                        .html(result);
-                    $(".pub_delete").hide();
-                    $(".pub_modify").hide();
-                    $(".header_title").text('Choose a wish');
-                }
-            });
-        })
-
         // Dialog log in
         .on('click',"#modal_trigger_login",function(e){
             e.preventDefault();
-            $(".user_login").show();
-            $(".user_register").hide();
-            $(".user_changepw").hide();
-            $(".user_delete").hide();
-            $(".pub_delete").hide();
+            showmodal('user_login');
             $(".header_title").text('Log in');
         })
 
         // Dialog sign up
         .on('click',"#modal_trigger_register",function(e){
             e.preventDefault();
-            $(".user_register").show();
-            $(".user_login").hide();
-            $(".user_delete").hide();
-            $(".user_changepw").hide();
-            $(".pub_delete").hide();
+            showmodal('user_register');
             $(".header_title").text('Sign up');
         })
 
         // Delete user account dialog box
         .on('click',"#modal_trigger_delete",function(e){
             e.preventDefault();
-            $(".user_register").hide();
-            $(".user_login").hide();
-            $(".user_delete").show();
-            $(".user_changepw").hide();
-            $(".pub_delete").hide();
+            showmodal('user_delete');
             $(".header_title").text('Delete confirmation');
+        })
+
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          Publication modal
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        // Trigger modal dialog box for publications (show/modify/delete forms)
+        .on('mouseover',"a[rel*=pub_leanModal]",function(e) {
+            e.preventDefault();
+            $(this).leanModal({top : 50, width : 500, overlay : 0.6, closeButton: ".modal_close" });
+        })
+
+        // Show publication information on click
+        .on('click','#modal_trigger_pubcontainer',function(e){
+            e.preventDefault();
+            var id_pres = $(this).attr('data-id');
+            showmodal('submission_form');
+            displaypub(id_pres,modalpubform);
+            $(".header_title").text('Presentation');
+        })
+
+        // Choose a wish
+        .on('click','#modal_trigger_pubmod',function(e){
+            e.preventDefault();
+            var id_pres = $(this).attr('data-id');
+            showmodal('submission_form');
+            showpubform(modalpubform,id_pres,'update');
+            $(".header_title").text('Make it true');
         });
 
 	// Process events happening on the publication modal dialog box
@@ -1010,40 +1030,24 @@ $( document ).ready(function() {
         .on('click','.modify_ref',function(e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {mod_pub: id_pres},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    $(".pub_delete").hide();
-					$(".publication_form").hide();
-                    $('.pub_modify')
-                    	.html(result)
-                    	.show();
-                }
-            });
+            showmodal('submission_form');
+            showpubform(modalpubform,id_pres,'update');
+            $(".header_title").text('Modify');
         })
 
 		// Show publication deletion confirmation
         .on('click',".delete_ref",function(e){
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            $(".pub_delete")
-                .show()
-                .append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
-            $(".publication_form").hide();
+            showmodal('pub_delete');
+            $("#pub_delete").append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
             $(".header_title").text('Delete confirmation');
         })
 
         // Going back to publication
         .on('click',".pub_back_btn",function(){
-            $(".publication_form").show();
-            $(".pub_delete").hide();
-            $(".pub_modify").hide();
+            showmodal('submission_form');
             $(".header_title").text('Presentation');
-            return false;
         })
 
         // Confirm delete publication
@@ -1055,11 +1059,17 @@ $( document ).ready(function() {
                 type: 'POST',
                 async: true,
                 data: {del_pub: id_pres},
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     showfeedback('<p id="success">Publication deleted</p>');
-                    $('#'+id_pres).remove();
                     close_modal('.pub_popupContainer');
+                    $('#'+id_pres).remove();
                 }
             });
         });
@@ -1069,21 +1079,13 @@ $( document ).ready(function() {
         // Dialog change password
         .on('click',".modal_trigger_changepw",function(e){
             e.preventDefault();
-            $(".user_changepw").show();
-            $(".user_login").hide();
-            $(".user_delete").hide();
-            $(".user_register").hide();
-            $(".pub_delete").hide();
+            showmodal('user_changepw');
             $(".header_title").text('Change password');
         })
 
         // Going back to Login Forms
         .on('click',".back_btn",function(){
-            $(".user_login").show();
-            $(".user_delete").hide();
-            $(".user_register").hide();
-            $(".user_changepw").hide();
-            $(".pub_delete").hide();
+            showmodal('user_login');
             $(".header_title").text('Login');
             return false;
         })
@@ -1212,9 +1214,5 @@ $( document ).ready(function() {
             });
             return false;
         });
-
-}).on({
-    ajaxStart: function() { $("#loading").show(); },
-    ajaxStop: function() { $("#loading").hide(); }
 });
 

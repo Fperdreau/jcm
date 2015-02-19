@@ -141,7 +141,8 @@ label.label {
     display: inline-block;
     width: 150px;
     text-align: right;
-    padding: 10px 0 10px 0;
+    padding: 10px 0 10px 10px;
+    margin: 0px 0 5px 5px;
 }
 
 label.pub_label {

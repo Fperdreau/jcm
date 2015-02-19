@@ -26,6 +26,9 @@ include_once($_SESSION['path_to_includes'].'includes.php');
 // Create a database object
 $db_set = new DB_set();
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Datepicker (calendar)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
 	$booked = $db_set -> getinfo($presentation_table,"date"); // Get booked out dates from db
@@ -61,6 +64,9 @@ if (!empty($_POST['get_calendar_param'])) {
 	echo json_encode($result);
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Login/Sign up
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Check login
 if (!empty($_POST['login'])) {
     $user = new users();
@@ -232,7 +238,6 @@ if (!empty($_POST['del_pub'])) {
 }
 
 //  delete files
-
 if (!empty($_POST['del_upl'])) {
     $uplname = htmlspecialchars($_POST['uplname']);
     $pub = new Press();
@@ -262,7 +267,6 @@ if (!empty($_POST['submit'])) {
             $result = "<p id='warning'>Oops, sorry went wrong.</p>";
         }
     }
-
     echo json_encode($result);
 }
 
@@ -279,9 +283,6 @@ if (!empty($_POST['update'])) {
             $_POST['orator'] = $user->fullname;
         }
 
-        if ($_POST['type'] == "wishlist") {
-            $_POST['type'] = "paper";
-        }
         $created = $pub -> update($_POST);
         if ($created == true) {
             $result = "<p id='success'>Your presentation has been updated.</p>";
@@ -309,8 +310,28 @@ if (isset($_POST['suggest'])) {
 }
 
 // Display presentation (modal dialog)
+if (!empty($_POST['getpubform'])) {
+    $id_press = $_POST['getpubform'];
+    $type = $_POST['type'];
+    if ($id_press == "false") {
+        $pub = false;
+    } else {
+        $pub = new Press($id_press);
+    }
+    if (!isset($_SESSION['username'])) {
+        $_SESSION['username'] = false;
+    }
+    $user = new users($_SESSION['username']);
+    $result = displayform($user,$pub,$type);
+    echo json_encode($result);
+}
+
+// Display presentation (modal dialog)
 if (!empty($_POST['show_pub'])) {
     $id_press = $_POST['show_pub'];
+    if ($id_press === "false") {
+        $id_press = false;
+    }
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
     }

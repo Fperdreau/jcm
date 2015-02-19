@@ -452,8 +452,8 @@ class Press {
                     }
 
                     $pubcontent .= "
-                    <div style='display: block; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 30px; line-height: 30px; padding: 5px; width: 95%;'>
-                        <div style='display: inline-block; width: 80%; padding-left: 10px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; vertical-align: middle;'>
+                    <div style='display: block; text-align: justify; background-color: rgba(255,255,255,.5); padding: 5px; width: 95%; margin: auto;'>
+                        <div style='display: inline-block; width: 90%; padding-left: 10px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; vertical-align: middle;'>
                             $pub->title ($pub->authors) presented by <span style='color: #CF5151;'>$pub->orator</span>
                         </div>
                         <div style='display: inline-block; vertical-align: middle;'>
@@ -463,8 +463,8 @@ class Press {
                 }
             } else {
                 $pubcontent = "
-                <div style='display: block; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 30px; line-height: 30px; padding: 5px; margin-bottom: 5px; width: 95%;'>
-                    <div style='display: inline-block; width: 80%; padding-left: 10px; text-align: left; vertical-align: middle;'>
+                <div style='display: block; text-align: justify; background-color: rgba(255,255,255,.5); padding: 5px; width: 95%; margin: auto;'>
+                    <div style='display: inline-block; width: 90%; padding-left: 10px; text-align: left; vertical-align: middle;'>
                         FREE!
                     </div>
                 </div>";
@@ -608,7 +608,7 @@ class Press {
 
                 $wish_list .= "
                 <div class='list-container' style='border-bottom: 1px solid #bbbbbb; height: 20px; line-height: 20px; padding: 0; text-align: justify;'>
-                    <div style='display: inline-block; padding: 0; text-align: center; border-right: 1px solid #999999; width: 50px;'><b>$nb</b></div>
+                    <div style='display: inline-block; padding: 0; text-align: center; background-color: #555555; color: #EEEEEE; width: 50px;'><b>$nb</b></div>
                     <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; max-width: 80%; height: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->title ($pub->authors) suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
                     <div style='display: inline-block; text-align: right; width: auto;'>$pick_url</div>
                 </div>";

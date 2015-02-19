@@ -27,6 +27,8 @@ require_once($_SESSION['path_to_includes'].'Posts.php');
 require_once($_SESSION['path_to_includes']."Press.php");
 require_once($_SESSION['path_to_includes']."site_config.php");
 include_once($_SESSION['path_to_includes'].'functions.php');
+include_once($_SESSION['path_to_includes'].'PasswordHash.php');
+
 
 // Get site config
 $config_file = $_SESSION['path_to_app']."config/config.php";

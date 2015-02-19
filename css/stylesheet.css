@@ -297,12 +297,17 @@ a:hover {
     width: 150px;
     padding: 5px;
     text-align: center;
-    background-color: rgba(255,0,0,.2);
-    border-radius: 5px;
+    background-color: rgba(207,81,81,.8);
+    border: 1px solid rgba(207,81,81,1);
+    margin-top: 10px;
+}
+
+.operation_button>a {
+    color: #EEEEEE;
 }
 
 .operation_button:hover{
-    background-color: rgba(255,0,0,.5);
+    background-color: rgba(207,81,81,1);
 }
 
 .link {
@@ -351,8 +356,8 @@ a:hover {
     line-height: 30px;
     margin: 0;
     cursor: pointer;
-    background-color: #bbbbbb;
-    border-bottom: 1px solid #222222;
+    background-color: rgba(200,200,200,.5);
+    border-bottom: 1px solid #CF5151;
 }
 
 .dl_info:hover {
@@ -420,7 +425,7 @@ a:hover {
 
 .upl_errors {
     display: none;
-    width: auto;
+    width: 100%;
     color: #990000;
     font-size: 13px; /* Set message font size  */
     padding: 5px; /* Some padding to make some more space for our text  */

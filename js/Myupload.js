@@ -31,7 +31,7 @@ $(document).ready(function() {
               processupl(data);
             }
         }
-  }
+  };
 
   // Uploading process
   var processupl = function (data) {
@@ -44,29 +44,11 @@ $(document).ready(function() {
       contentType:false,
       processData:false,
 
-      beforeSend: function(response){
-          // before send do some func if u want
-          $("#response").html(response);
-      },
-
-      progress: function(e, data){
-          // Calculate the completion percentage of the upload
-          var progress = parseInt(data.loaded / data.total * 100, 10);
-
-          // Update the hidden input field and trigger a change
-          // so that the jQuery knob plugin knows to update the dial
-          data.context.find('input').val(progress).change();
-
-          if(progress == 100){
-              data.context.removeClass('working');
-          }
-      },
-
       success: function(response){
           result = jQuery.parseJSON(response);
           $('.upl_container').find('.upl_errors').hide();
           var status = result.status;
-          var error = result['error'];
+          var error = result.error;
           if (error === true) {
             var name = result.name;
             $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
@@ -76,17 +58,25 @@ $(document).ready(function() {
           }
       },
 
-      complete: function(response){
-          // do some func after complete if u want
-      },
-
       error: function(response){
-          // here is what u want
-          alert ("Error: " + response.statusText);
+          $('.upl_container').find('.upl_errors').html(response.statusText).show();
       },
 
     });
-  }
+  };
+
+  var progressbar = function(el,value) {
+      var size = el.width();
+      var linearprogress = value;
+      var text = "Progression: "+Math.round(value*100)+"%";
+
+      el
+          .show()
+          .text(text)
+          .css({
+              background: "linear-gradient(to right, rgba(200,200,200,.7) "+linearprogress+"%, rgba(200,200,200,0) "+linearprogress+"%)"
+          });
+  };
 
   var dragcounter = 0;
   $('.mainbody')

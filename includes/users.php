@@ -276,7 +276,11 @@ class users {
             $pubid = $row['id_pres'];
             $pub = new Press($pubid);
             if ($pub->date == "0000-00-00") {
-                $date = "";
+                if ($pub->type == "wishlist") {
+                    $date = "WISH";
+                } else {
+                    $date = "";
+                }
             } else {
                 $date = $pub->date;
             }

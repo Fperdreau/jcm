@@ -449,7 +449,7 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: false,
+                    async: true,
                     data: {
                         getpagecontent: step,
                         op: op},
@@ -472,7 +472,7 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: false,
+                    async: true,
                     data: {backup: true},
                     success: function(data){
                         var result = jQuery.parseJSON(data);
@@ -532,7 +532,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: data,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
@@ -563,7 +563,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: data,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
@@ -631,7 +631,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: {
                                 inst_admin: true,
                                 username: username,
@@ -645,10 +645,9 @@ if (!empty($_POST['getpagecontent'])) {
                             }
                         });
                     });
-            }).ajaxStart(function(){
-                $loading.show();
-            }).ajaxStop(function() {
-                $loading.hide();
+            }).on({
+                ajaxStart: function() { $("#loading").show(); },
+                ajaxStop: function() { $("#loading").hide(); }
             });
         </script>
         <title>Journal Club Manager - Installation</title>

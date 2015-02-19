@@ -42,6 +42,10 @@ function check_login($status=null) {
 // Generate submission form and automatically fill it up with data provided by Press object.
 function displayform($user,$Press,$submit="submit") {
     $config = new site_config('get');
+    if ($Press == false) {
+        $Press = new Press();
+    }
+
     $date = $Press->date;
     $filelist = "";
     if (!empty($Press->link)) {
@@ -61,15 +65,6 @@ function displayform($user,$Press,$submit="submit") {
         $filelist .= "";
     }
 
-    $upl_form = "
-    <form method='post' action='js/mini-upload-form/upload.php' enctype='multipart/form-data' id='upload'>
-        <div class='upl_note'></div>
-        <div id='drop'>
-            <a>Add a file</a><input type='file' name='upl' id='upl' multiple/> Or drag it here
-        </div>
-        <ul></ul>
-	</form>";
-
     $idpress = "";
     if ($submit == "update") {
         $idpress = "<input type='hidden' name='id_pres' value='$Press->id_pres'/>";
@@ -81,44 +76,48 @@ function displayform($user,$Press,$submit="submit") {
         $dateinput = "<br>";
     }
 
-    return "
-    <div class='feedback'></div>
-    <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
-        <input type='hidden' name='$submit' value='true'/>
-        <input type='hidden' name='username' value='$user->username'/>
-        $idpress
-        <label for='type' class='pub_label'>Type</label>
-            <select name='type' id='type'>
-                <option value='$Press->type' selected='selected'>$Press->type</option>
-                <option value='paper'>Paper</option>
-                <option value='research'>Research</option>
-                <option value='methodology'>Methodology</option>
-                <option value='guest'>Guest</option>
-                <option value='business'>Business</option>
-            </select>
-        $dateinput
-        <div id='guest' style='display: none;'>
-        <label for='orator' class='pub_label'>Speaker's name</label><input type='text' id='orator' name='orator' size='30%'/>
-        </div>
-        <label for='title' class='pub_label'>Title </label><input type='text' id='title' name='title' value='$Press->title' size='90%'/><br>
-        <label for='summary' class='pub_label'>Abstract </label><br><textarea name='summary' id='summary'>$Press->summary</textarea><br>
-        <label for='authors' class='pub_label'>Authors </label><input type='text' id='authors' name='authors' value='$Press->authors' size='80%'/></br>
-        <div style='float: right ; bottom: 5px;'><input type='submit' name='$submit' value='Apply' id='submit' class='submit_pres'/></div>
-    </form>
+    $submitxt = ucfirst($submit);
 
-    <div class='upl_container'>
-	   <div class='upl_form'>
-            <form method='post' enctype='multipart/form-data'>
-            <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
-            <div class='upl_btn'>
-                Add Files
-                <br>(click or drop)
-                <div class='upl_filetypes'>($config->upl_types)</div>
-                <div class='upl_errors'></div>
+    return "
+    <div class='submission'>
+        <div class='feedback'></div>
+        <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
+            <input type='hidden' name='$submit' value='true'/>
+            <input type='hidden' name='username' value='$user->username'/>
+            $idpress
+            <label for='type' class='pub_label'>Type</label>
+                <select name='type' id='type'>
+                    <option value='$Press->type' selected='selected'>$Press->type</option>
+                    <option value='paper'>Paper</option>
+                    <option value='research'>Research</option>
+                    <option value='methodology'>Methodology</option>
+                    <option value='guest'>Guest</option>
+                    <option value='business'>Business</option>
+                </select>
+            $dateinput
+            <div id='guest' style='display: none;'>
+            <label for='orator' class='pub_label'>Speaker's name</label><input type='text' id='orator' name='orator' size='30%'/>
             </div>
-            </form>
-	   </div>
-        <div class='upl_filelist'>$filelist</div>
+            <label for='title' class='pub_label'>Title </label><input type='text' id='title' name='title' value='$Press->title' size='90%'/><br>
+            <label for='summary' class='pub_label'>Abstract </label><br><textarea name='summary' id='summary'>$Press->summary</textarea><br>
+            <label for='authors' class='pub_label'>Authors </label><input type='text' id='authors' name='authors' value='$Press->authors' size='80%'/></br>
+            <div style='float: right ; bottom: 5px;'><input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'/></div>
+        </form>
+
+        <div class='upl_container'>
+    	   <div class='upl_form'>
+                <form method='post' enctype='multipart/form-data'>
+                <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
+                <div class='upl_btn'>
+                    Add Files
+                    <br>(click or drop)
+                    <div class='upl_filetypes'>($config->upl_types)</div>
+                    <div class='upl_errors'></div>
+                </div>
+                </form>
+    	   </div>
+            <div class='upl_filelist'>$filelist</div>
+        </div>
     </div>
 	";
 }
@@ -146,9 +145,12 @@ function displaypub($user,$Press) {
         $delete_button = "<div style='width: 100px'></div>";
         $modify_button = "<div style='width: 100px'></div>";
     }
-
+    $type = ucfirst($Press->type);
     $result = "
         <div class='pub_caps'>
+            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
+                $type
+            </div>
             <div id='pub_title'>$Press->title</div>
             <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$Press->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$Press->orator</div>
             <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$Press->authors</div>

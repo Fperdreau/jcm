@@ -28,7 +28,7 @@ echo "
     <section class='popupBody'>
         <div class='feedback'></div>
 
-        <div class='user_login'>
+        <div class='modal_section' id='user_login'>
             <form id='login_form'>
                 <label for='log_username'>Username</label><input type='text' id='log_username' name='username'/>
                 <label for='log_password'>Password</label><input type='password' id='log_password' name='password'/>
@@ -41,7 +41,7 @@ echo "
             <div class='forgot_password'><a href='' class='modal_trigger_changepw'>I forgot my password</a></div>
         </div>
 
-        <div class='user_register'>
+        <div class='modal_section' id='user_register'>
             <form id='register_form'>
                 <label for='firstname'>First Name</label><input id='firstname' type='text' name='firstname'/>
                 <label for='lastname'>Last Name</label><input id='lastname' type='text' name='lastname'/>
@@ -63,7 +63,7 @@ echo "
             </form>
         </div>
 
-        <div class='user_delete'>
+        <div class='modal_section' id='user_delete'>
             <label for='del_username'>Username</label><input type='text' id='del_username' name='del_username' value=''/></br>
             <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
             <div class='action_btns'>
@@ -71,7 +71,7 @@ echo "
             </div>
         </div>
 
-        <div class='user_changepw'>
+        <div class='modal_section' id='user_changepw'>
             <label for='ch_email'>Email</label><input type='text' id='ch_email' name='ch_email' value=''/></br>
             <div class='action_btns'>
                 <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
@@ -89,11 +89,10 @@ echo "
 
     <section class='popupBody'>
 
-        <div class='publication_form'>
-            <div></div>
+        <div class='modal_section' id='submission_form'>
         </div>
 
-        <div class='pub_delete'>
+        <div class='modal_section' id='pub_delete'>
             <div>Do you want to delete this presentation?</div>
             <div class='action_btns'>
                 <div class='one_half'><a href='' class='pub_btn pub_back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
@@ -102,12 +101,7 @@ echo "
             <div class='feedback'></div>
         </div>
 
-		<div class='pub_modify'></div>
-
     </section>
-</div>
-
-
-    ";
+</div>";
 
 
