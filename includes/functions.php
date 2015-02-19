@@ -50,7 +50,7 @@ function displayform($user,$Press,$submit="submit") {
             $name = explode('.',$link);
             $name = $name[0];
             $filelist .=
-            "<div id='upl_info' class='$name'>
+            "<div class='upl_info' id='$name'>
                 <div class='upl_name' id='$link'>$link</div>
                 <div class='del_upl' id='$link' data-upl='$name'>
                     <img src='images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
@@ -109,16 +109,16 @@ function displayform($user,$Press,$submit="submit") {
     <div class='upl_container'>
 	   <div class='upl_form'>
             <form method='post' enctype='multipart/form-data'>
-            <input type='file' name='upl' id='upl_input' multiple style='display: none;' />
+            <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
             <div class='upl_btn'>
                 Add Files
                 <br>(click or drop)
-                <div id='upl_filetypes'>($config->upl_types)</div>
-                <div id='upl_errors'></div>
+                <div class='upl_filetypes'>($config->upl_types)</div>
+                <div class='upl_errors'></div>
             </div>
             </form>
 	   </div>
-        <div id='upl_filelist'>$filelist</div>
+        <div class='upl_filelist'>$filelist</div>
     </div>
 	";
 }
@@ -327,26 +327,46 @@ function backup_db(){
     fwrite($handle,$return);
     fclose($handle);
 
-    // Check for previous backup and delete old ones
+    cleanbackups($mysqlSaveDir);
+
+    return "$mysqlrelativedir/$fileNamePrefix.sql";
+}
+
+// Check for previous backup and delete old ones
+function cleanbackups($mysqlSaveDir) {
+    $config = new site_config('get');
     $oldbackup = browse($mysqlSaveDir);
     if (!empty($oldbackup)) {
+        $files = array();
+        // First get files date
+        foreach ($oldbackup as $file) {
+            $filewoext = explode('.',$file);
+            $filewoext = $filewoext[0];
+            $prop = explode('_',$filewoext);
+            if (count($prop)>1) {
+                $back_date = $prop[1];
+                $back_time = $prop[2];
+                $formatedtime = str_replace('-',':',$back_time);
+                $date = $back_date." ".$formatedtime;
+                $files[$date] = $file;
+            }
+        }
+
+        // Sort backup files by date
+        krsort($files);
+
+        // Delete oldest files
         $cpt = 0;
-        foreach ($oldbackup as $old) {
-        $prop = explode('_',$old);
-            $back_date = $prop[1];
-            $today = date('Y-m-d');
-            $lim_date = date("Y-m-d",strtotime($today." - $config->clean_day days"));
+        foreach ($files as $date=>$old) {
             // Delete file if too old
-            if ($back_date <= $lim_date) {
+            if ($cpt >= $config->clean_day) {
                 if (is_file($old)) {
-                    $cpt++;
                     unlink($old);
                 }
             }
+            $cpt++;
         }
     }
-
-    return "$mysqlrelativedir/$fileNamePrefix.sql";
 }
 
 // Mail backup file to admins

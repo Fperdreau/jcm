@@ -418,7 +418,7 @@ a:hover {
     padding: 6px 10px 4px;
 }
 
-#upl_errors {
+.upl_errors {
     display: none;
     width: auto;
     color: #990000;
@@ -428,21 +428,21 @@ a:hover {
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
-#upl_filetypes {
+.upl_filetypes {
     display: block;
     margin: 0 auto;
     font-size: 12px;
     font-weight: normal;
 }
 
-#upl_filelist {
+.upl_filelist {
     width: 95%;
     height: auto;
     padding: 10px;
     margin: 0;
 }
 
-#upl_info {
+.upl_info {
     display: inline-block;
     width: 190px;
     font-size: 12px;
@@ -456,7 +456,7 @@ a:hover {
     box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
 }
 
-#upl_info>div {
+.upl_info>div {
     display: table-cell;
     height: 30px;
     text-align: center;
@@ -524,9 +524,9 @@ a:hover {
     padding: 2px;
     margin: 0;
     width: 50px;
-    height: 25px;
+    height: 22px;
     text-align: center;
-    line-height: 25px;
+    line-height: 22px;
 }
 
 .show_btn>a {

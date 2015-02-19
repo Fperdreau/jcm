@@ -259,6 +259,17 @@ if (!empty($_POST['install_db'])) {
         exit;
     }
 
+    // Set username of the uploader
+    $sql = "SELECT id_pres,username,orator FROM $presentation_table";
+    $req = $db_set->send_query($sql);
+    while ($row = mysqli_fetch_assoc($req)) {
+        if (empty($row['username'])) {
+            $pub = new Press($row['id_pres']);
+            $pub->username = $row['orator'];
+            $pub->update();
+        }
+    }
+
     echo json_encode($result);
     exit;
 }

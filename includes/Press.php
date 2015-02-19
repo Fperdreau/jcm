@@ -452,19 +452,19 @@ class Press {
                     }
 
                     $pubcontent .= "
-                    <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; min-height: 25px; line-height: 25px; padding: 5px; margin-left: 20%; width: 100%;'>
-                        <div style='display: table-cell; width: 40%; padding-left: 10px; text-align: left;'>
+                    <div style='display: block; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 30px; line-height: 30px; padding: 5px; width: 95%;'>
+                        <div style='display: inline-block; width: 80%; padding-left: 10px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; vertical-align: middle;'>
                             $pub->title ($pub->authors) presented by <span style='color: #CF5151;'>$pub->orator</span>
                         </div>
-                        <div style='display: table-cell; width: 5%;'>
+                        <div style='display: inline-block; vertical-align: middle;'>
                             $show_but
                         </div>
                     </div>";
                 }
             } else {
                 $pubcontent = "
-                <div style='display: table-row; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 25px; line-height: 25px; padding: 5px; margin-left: 20%;'>
-                    <div style='display: table-cell; width: 40%; padding-left: 10px; text-align: left;'>
+                <div style='display: block; text-align: justify; border-bottom: 1px solid #bbbbbb; height: 30px; line-height: 30px; padding: 5px; margin-bottom: 5px; width: 95%;'>
+                    <div style='display: inline-block; width: 80%; padding-left: 10px; text-align: left; vertical-align: middle;'>
                         FREE!
                     </div>
                 </div>";
@@ -513,14 +513,14 @@ class Press {
         return "<img src='images/modify.png' alt='modify_button' data-id='$this->id_pres' class='modifyref'>";
     }
 
-    function getyearspub($filter = NULL,$user_fullname = NULL) {
+    function getyearspub($filter = NULL,$user = NULL) {
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
         $sql = "SELECT YEAR(date),id_pres FROM $presentation_table WHERE ";
         $cond = array();
-        if (null != $user_fullname) {
-            $cond[] = "orator='$user_fullname'";
+        if (null != $user) {
+            $cond[] = "username='$user'";
         } else {
             if (null != $filter) {
                 $cond[] = "YEAR(date)=$filter";
@@ -541,9 +541,9 @@ class Press {
     }
 
     // Get list of publications (sorted)
-    function getpublicationlist($filter = NULL,$user_fullname = NULL) {
+    function getpublicationlist($filter = NULL,$user = NULL) {
         require($_SESSION['path_to_app'].'config/config.php');
-        $yearpub = self::getyearspub($filter = NULL,$user_fullname = NULL);
+        $yearpub = self::getyearspub($filter,$user);
         if (empty($yearpub)) {
             return "Nothing submitted yet!";
         }
@@ -557,9 +557,8 @@ class Press {
                     <div class='pub_container' id='$this->id_pres'>
                         <div class='list-container'>
                             <div style='text-align: center; width: 10%;'>$this->date</div>
-                            <div style='text-align: left; width: 50%; white-space: nowrap;
-    overflow: hidden;'>$this->title</div>
-                            <div style='text-align: center; width: 20%;'>$this->authors</div>
+                            <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title</div>
+                            <div style='text-align: center; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->authors</div>
                             <div style='text-align: center; width: 10%; vertical-align: middle;'>
                                 <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>MORE</a>
                                 </div>
@@ -610,7 +609,7 @@ class Press {
                 $wish_list .= "
                 <div class='list-container' style='border-bottom: 1px solid #bbbbbb; height: 20px; line-height: 20px; padding: 0; text-align: justify;'>
                     <div style='display: inline-block; padding: 0; text-align: center; border-right: 1px solid #999999; width: 50px;'><b>$nb</b></div>
-                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; max-width: 80%; height: 100%; overflow: hidden; text-overflow: ellipsis;'>$pub->title ($pub->authors) suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
+                    <div style='display: inline-block; padding: 0; text-align: justify; width: 80%; max-width: 80%; height: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->title ($pub->authors) suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
                     <div style='display: inline-block; text-align: right; width: auto;'>$pick_url</div>
                 </div>";
 

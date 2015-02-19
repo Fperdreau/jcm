@@ -64,15 +64,15 @@ $(document).ready(function() {
 
       success: function(response){
           result = jQuery.parseJSON(response);
-          $('.upl_container').find('#upl_errors').hide();
+          $('.upl_container').find('.upl_errors').hide();
           var status = result.status;
           var error = result['error'];
           if (error === true) {
             var name = result.name;
             $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-            $('#upl_filelist').append("<div id='upl_info' class='"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
+            $('.upl_filelist').append("<div class='upl_info' id='"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
           } else {
-            $('.upl_container').find('#upl_errors').html(error).show();
+            $('.upl_container').find('.upl_errors').html(error).show();
           }
       },
 
@@ -116,15 +116,16 @@ $(document).ready(function() {
       e.stopPropagation();
       e.preventDefault();
       getdrop(e);
+      $('.upl_container').removeClass('dragging');
     })
 
     .on('click','.upl_btn', function() {
-      $('#upl_input').click();
+      $('.upl_input').click();
     })
 
-    .on('change','#upl_input',function(e) {
+    .on('change','.upl_input',function(e) {
         e.preventDefault();
-        var fileInput = $('#upl_input')[0];
+        var fileInput = $('.upl_input')[0];
         for(var i = 0; i < fileInput.files.length; ++i){
             var data = new FormData();
             data.append('file[]',fileInput.files[i]);

@@ -24,7 +24,7 @@ check_login();
 // Declare classes
 $user = new users($_SESSION['username']);
 $Press = new Press();
-$publication_list = $Press->getpublicationlist(null,$user->fullname);
+$publication_list = $user->getpublicationlist(null);
 
 $notif_yes_status = 'unchecked';
 $notif_no_status = 'unchecked';
@@ -91,7 +91,9 @@ $result = "
     </br>
 
     <div class='section_header'>My submissions</div>
+    <div class='section_content'>
     $publication_list
+    </div>
 </div>
 ";
 

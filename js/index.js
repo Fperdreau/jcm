@@ -31,7 +31,7 @@ var processform = function(formid,feedbackid) {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
-        async: false,
+        async: true,
         data: data,
         success: function(data){
             var result = jQuery.parseJSON(data);
@@ -70,7 +70,7 @@ var validsubmitform = function(formid,text) {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
-        async: false,
+        async: true,
         data: {getform: true},
         success: function(data){
             var result = jQuery.parseJSON(data);
@@ -106,7 +106,7 @@ var send_verifmail = function(email) {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
-        async: false,
+        async: true,
         data: {
             change_pw: true,
             email: email},
@@ -188,7 +188,7 @@ var loadpageonclick = function(pagetoload,param) {
         jQuery.ajax({
             url: 'pages/'+pagetoload+'.php',
             type: 'GET',
-            async: false,
+            async: true,
             data: param,
             success: function(data){
                 var json = jQuery.parseJSON(data);
@@ -205,7 +205,7 @@ var loadpageonclick = function(pagetoload,param) {
         jQuery.ajax({
             url: 'pages/'+pagetoload+'.php',
             type: 'GET',
-            async: false,
+            async: true,
             data: param,
             success: function(data){
                 var json = jQuery.parseJSON(data);
@@ -226,7 +226,7 @@ var showpostform = function(postid) {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
-        async: false,
+        async: true,
         data: {
             post_show: true,
             postid: postid},
@@ -361,7 +361,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'pages/logout.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     window.location = "index.php";
@@ -377,7 +377,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {get_calendar_param: true},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -448,7 +448,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     conf_changepw: true,
                     username: username,
@@ -475,7 +475,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     user_select: filter
                     },
@@ -494,7 +494,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'cronjobs/full_backup.php',
                 type: 'GET',
-                async: false,
+                async: true,
                 data: {webproc: webproc},
                 success: function(data){
                     var json = jQuery.parseJSON(data);
@@ -509,7 +509,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'cronjobs/db_backup.php',
                 type: 'GET',
-                async: false,
+                async: true,
                 data: {webproc: webproc},
                 success: function(data){
                     var json = jQuery.parseJSON(data);
@@ -523,7 +523,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     export: true,
                     tablename: "mailinglist"},
@@ -563,7 +563,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     mailing_send: true,
                     spec_head: spec_head,
@@ -588,7 +588,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     modify_status: true,
                     username: username,
@@ -626,7 +626,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     post_del: true,
                     postid: postid},
@@ -671,7 +671,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     post_add: op,
                     postid: postid,
@@ -726,7 +726,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     select_year: year
                     },
@@ -760,14 +760,14 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     del_upl: true,
                     uplname: uplfilename},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == true) {
-                        $('.'+uplname).remove();
+                        $('.upl_info#'+uplname).remove();
                         $('.upl_link #'+uplname).remove();
                     }
                 }
@@ -881,7 +881,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     contact_send: true,
                     admin_mail: admin_mail,
@@ -934,7 +934,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     show_pub: id_pres},
                 success: function(data){
@@ -956,7 +956,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     mod_pub: id_pres},
                 success: function(data){
@@ -1013,7 +1013,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {mod_pub: id_pres},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -1053,7 +1053,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {del_pub: id_pres},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -1100,7 +1100,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {username: username,
                     password: password,
                     delete_user: true},
@@ -1131,7 +1131,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {username: username,
                     password: password,
                     login: true
@@ -1183,7 +1183,7 @@ $( document ).ready(function() {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
-                async: false,
+                async: true,
                 data: {
                     firstname: firstname,
                     lastname: lastname,
