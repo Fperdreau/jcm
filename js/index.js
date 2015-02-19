@@ -1199,10 +1199,10 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == "created") {
-                        $('.user_register')
-                                .hide()
-                                .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
-                                .fadeIn(200);
+                        $('#user_register')
+                            .hide()
+                            .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
+                            .fadeIn(200);
                         setTimeout(function() {
                             close_modal(".popupContainer");
                         }, 5000);
