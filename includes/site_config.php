@@ -148,17 +148,16 @@ class site_config {
             $nbpres = $user->get_nbpres();
             // Compute age
             if ($user->active == 1) {
-                $from = $user->date;
-                $to   = date('Y-m-d h:i:s');
-                $diff = $to-$from;
-	            $cur_age = date('d',$diff);
+                $to   = new DateTime(date('Y-m-d'));
+                $from = new DateTime(date("Y-m-d",strtotime($user->date)));
+                $diff = $to->diff($from);
 
-	            $cur_trage = "$cur_age days ago";
-	            if ($cur_age >31) {
-	                $cur_age = date('m',$diff);
+	            $cur_trage = "$diff->days days ago";
+	            if ($diff->days >31) {
+	                $cur_age = $diff->month;
 	                $cur_trage = "$cur_age months ago";
-	                if ($cur_age >12) {
-	                    $cur_age = date('y',$diff);
+	                if ($diff->month >12) {
+	                    $cur_age = $diff->years;
 	                    $cur_trage = "$cur_age years ago";
 	                }
 	            }
