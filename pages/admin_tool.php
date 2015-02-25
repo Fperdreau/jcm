@@ -193,6 +193,9 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
         <div class='section_header'>Send an email</div>
         <div class='section_content'>
             <form method='post' action=''>
+                <div class='submit_btns'>
+                    <input type='submit' name='send' value='Send' id='submit' class='mailing_send'>
+                </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label>Subject:</label>
                     <input type='text' size='40' id='spec_head' name='spec_head' placeholder='Subject' value='' />
@@ -201,7 +204,6 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <label>Message</label>
                     <textarea name='spec_msg' id='spec_msg' cols='70' rows='15' class='tinymce'></textarea>
                 </div>
-                 <p style='text-align: right'><input type='submit' name='send' value='Send' id='submit' class='mailing_send'/></p>
             </form>
         </div>
     </div>

@@ -666,6 +666,12 @@ $( document ).ready(function() {
                     mailing_send: true,
                     spec_head: spec_head,
                     spec_msg: spec_msg},
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result === "sent") {
