@@ -263,7 +263,7 @@ if (!empty($_POST['submit'])) {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
-            $_POST['orator'] = $user->fullname;
+            $_POST['orator'] = $user->username;
         }
 
         $pub = new Presentation();
@@ -308,7 +308,7 @@ if (!empty($_POST['update'])) {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
-            $_POST['orator'] = $user->fullname;
+            $_POST['orator'] = $user->username;
         }
 
         $created = $pub->update($_POST);
