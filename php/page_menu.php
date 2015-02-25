@@ -40,19 +40,20 @@ $tools_url = "index.php?page=admin_tool&op=tools";
 echo "
 <div class='menu-container'>
     <div class='menu-section' data-url='home'>HOME</div>
-    <div class='menu-section' id='menu_pres'>PRESENTATION</div>
+    <div class='menu-section' id='menu_pres'>SUBMIT</div>
     <div class='menu-section' data-url='archives'>ARCHIVES</div>
     <div class='menu-section' data-url='contact'>CONTACT</div>
     $menuhidden
 </div>
 
 <div class='addmenu-pres'>
-    <div class='addmenu-section' data-url='presentations' data-param='op=new'><span id='addmenu'>New presentation</span></div>
-    <div class='addmenu-section' data-url='presentations' data-param='op=wishpick'><span id='addmenu'>Select from wish list</span></div>
-    <div class='addmenu-section' data-url='presentations' data-param='op=suggest'><span id='addmenu'>Suggest a paper</span></div>
+    <div class='addmenu-section' data-url='submission' data-param='op=new'><span id='addmenu'>New presentation</span></div>
+    <div class='addmenu-section' data-url='submission' data-param='op=wishpick'><span id='addmenu'>Pick a wish</span></div>
+    <div class='addmenu-section' data-url='submission' data-param='op=suggest'><span id='addmenu'>Make a wish</span></div>
 </div>
 
 <div class='addmenu-admin'>
+    <div class='addmenu-section' data-url='admin_tool' data-param='op=sessions'><span id='addmenu'>Manage Sessions</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=users'><span id='addmenu'>Manage users</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=mail'><span id='addmenu'>Send mail</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=post'><span id='addmenu'>Posts</span></div>

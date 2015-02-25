@@ -18,9 +18,9 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 session_start();
-require_once($_SESSION['path_to_includes']."Press.php");
+require_once($_SESSION['path_to_includes']."Presentation.php");
 
-$pub = new Press();
+$pub = new Presentation();
 $result = $pub->upload_file($_FILES['file']);
 $result['name'] = false;
 if ($result['error'] == true) {

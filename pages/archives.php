@@ -21,8 +21,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 require_once($_SESSION['path_to_includes'].'includes.php');
 check_login();
 
-$Press = new Press();
-$years = $Press -> get_years();
+$years = Presentations::get_years();
 
 // Select input (Years)
 $options = "
@@ -32,7 +31,7 @@ foreach ($years as $year) {
     $options .= "<option value='$year'>$year</option>";
 }
 
-$publist = $Press->getpublicationlist();
+$publist = Presentations::getpublicationlist();
 $result = "
     <div id='content'>
         <span id='pagename'>Archives</span>

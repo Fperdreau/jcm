@@ -43,50 +43,61 @@ $result = "
     <div id='content'>
         <span id='pagename'>Contact information</span>
 
-        <div style='margin: auto; vertical-align: top; text-align: center; width: 100%; padding: 0;'>
-            <div style='display: inline-block; width: 45%;'>
-                <div class='section_header'>Organizer(s)</div>
-                <div class='section_content' style='width: 90%;'>
-                    $admin_contact
-                </div>
-                <div class='section_header'>Access</div>
-                <div class='section_content' style='width: 90%;'>
-                    $config->lab_name</br>
-                    $config->lab_street</br>
-                    $config->lab_postcode, $config->lab_city</br>
-                    $config->lab_country
-                </div>
-
-                <div class='section_header'>Journal Club information</div>
-                <div class='section_content' style='width: 90%;'>
-                    Day: $jc_day<br>
-                    Time: from $config->jc_time_from to $config->jc_time_to<br>
-                    Room: $config->room<br>
-                </div>
-
-                <div class='section_header'>Map</div>
-                <div class='section_content' style='width: 90%;'>
-                    <iframe src='$config->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'></iframe>
-                </div>
+        <div style='vertical-align: top; display: inline-block; width: 45%;'>
+            <div class='section_header'>Organizer(s)</div>
+            <div class='section_content' style='width: 90%;'>
+                $admin_contact
+            </div>
+            <div class='section_header'>Access</div>
+            <div class='section_content' style='width: 90%;'>
+                $config->lab_name</br>
+                $config->lab_street</br>
+                $config->lab_postcode, $config->lab_city</br>
+                $config->lab_country
             </div>
 
-            <div style='display: inline-block; width: 50%; margin-left: 30px; text-align: center;'>
-                <div class='section_header'>Send Email to organizers</div>
-                <div class='section_content'>
-                    <div class='feedback'></div>
-                    <form method='post' action='' class='form' id='contact_form'>
-                        <label for='admin_mail' class='pub_label'>Organizer</label>
-                            <select name='admin_mail' id='admin_mail'>
-                                <option value='none' selected='selected'>Select an organizer</option>
-                                $mail_option
-                            </select></br>
-                        <label for='name' class='pub_label'>Your name</label><input class='field' type='text' name='name' id='contact_name' value='Your name'><br>
-                        <label for='mail' class='pub_label'>E-mail</label><input class='field' type='text' name='mail' id='contact_mail' value='Your email'><br>
-                        <label for='message' class='pub_label'>Message</label><br>
-                        <textarea id='message' name='message' rows='10' cols='50' style='margin: 10px auto;'>Your message</textarea><br>
-                        <p style='text-align: right;'><input type='submit' name='send' value='Send' id='submit' class='contact_send'></p>
-                    </form>
-                </div>
+            <div class='section_header'>Journal Club information</div>
+            <div class='section_content' style='width: 90%;'>
+                <b>Day:</b> $jc_day<br>
+                <b>From</b> $config->jc_time_from <b>to</b> $config->jc_time_to<br>
+                <b>Room:</b> $config->room
+            </div>
+
+            <div class='section_header'>Map</div>
+            <div class='section_content' style='width: 90%;'>
+                <iframe src='$config->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
+                </iframe>
+            </div>
+        </div>
+
+        <div style='vertical-align: top; display: inline-block; width: 50%; text-align: right; margin-left: 30px;'>
+            <div class='section_header'>Send Email to organizers</div>
+            <div class='section_content'>
+                <div class='feedback'></div>
+                <form method='post' action='' class='form' id='contact_form'>
+                    <div class='submit_btns'>
+                        <input type='submit' name='send' value='Send' id='submit' class='contact_send'>
+                    </div>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='admin_mail'>Organizer</label>
+                        <select name='admin_mail' id='admin_mail'>
+                            <option value='none' selected='selected'>Select an organizer</option>
+                            $mail_option
+                        </select>
+                    </div><br>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='name'>Your name</label>
+                        <input type='text' name='name' id='contact_name' placeholder='Your name'>
+                    </div>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='mail'>E-mail</label>
+                        <input type='text' name='mail' id='contact_mail' placeholder='Your email'>
+                    </div>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='message'>Message</label>
+                        <textarea id='message' name='message' placeholder='Your message'></textarea>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

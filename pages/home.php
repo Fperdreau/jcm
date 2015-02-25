@@ -20,12 +20,11 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 @session_start();
 require_once($_SESSION['path_to_includes'].'includes.php');
 
-$Press = new Press();
 $last_news = new Posts();
 $news = $last_news->show();
-$nextpres = $Press -> shownextsession();
-$futurepres = $Press->get_futuresession(4);
-$wishlist = $Press -> getwishlist();
+$nextpres = Sessions::shownextsession();
+$futurepres = Sessions::showfuturesession(4);
+$wishlist = Presentations::getwishlist();
 
 
 if ( !(isset($_SESSION['logok']) && $_SESSION['logok'])) {

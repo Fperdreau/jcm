@@ -231,7 +231,7 @@ class DB_set {
         }
         $columndata = implode(',',$columns);
 
-        if ($overwrite) {
+        if ($overwrite || self::tableExists($tablename) == false) {
             // If overwrite, then we simply create a new table and drop the previous one
             self::createtable($tablename,$columndata,$overwrite);
         } else {

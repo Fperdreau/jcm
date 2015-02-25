@@ -31,7 +31,7 @@ $(document).ready(function() {
               processupl(data);
             }
         }
-  }
+  };
 
   // Uploading process
   var processupl = function (data) {
@@ -44,49 +44,39 @@ $(document).ready(function() {
       contentType:false,
       processData:false,
 
-      beforeSend: function(response){
-          // before send do some func if u want
-          $("#response").html(response);
-      },
-
-      progress: function(e, data){
-          // Calculate the completion percentage of the upload
-          var progress = parseInt(data.loaded / data.total * 100, 10);
-
-          // Update the hidden input field and trigger a change
-          // so that the jQuery knob plugin knows to update the dial
-          data.context.find('input').val(progress).change();
-
-          if(progress == 100){
-              data.context.removeClass('working');
-          }
-      },
-
       success: function(response){
           result = jQuery.parseJSON(response);
-          $('.upl_container').find('#upl_errors').hide();
+          $('.upl_container').find('.upl_errors').hide();
           var status = result.status;
-          var error = result['error'];
+          var error = result.error;
           if (error === true) {
             var name = result.name;
             $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-            $('#upl_filelist').append("<div id='upl_info' class='"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
+            $('.upl_filelist').append("<div class='upl_info' id='"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
           } else {
-            $('.upl_container').find('#upl_errors').html(error).show();
+            $('.upl_container').find('.upl_errors').html(error).show();
           }
       },
 
-      complete: function(response){
-          // do some func after complete if u want
-      },
-
       error: function(response){
-          // here is what u want
-          alert ("Error: " + response.statusText);
+          $('.upl_container').find('.upl_errors').html(response.statusText).show();
       },
 
     });
-  }
+  };
+
+  var progressbar = function(el,value) {
+      var size = el.width();
+      var linearprogress = value;
+      var text = "Progression: "+Math.round(value*100)+"%";
+
+      el
+          .show()
+          .text(text)
+          .css({
+              background: "linear-gradient(to right, rgba(200,200,200,.7) "+linearprogress+"%, rgba(200,200,200,0) "+linearprogress+"%)"
+          });
+  };
 
   var dragcounter = 0;
   $('.mainbody')
@@ -116,15 +106,16 @@ $(document).ready(function() {
       e.stopPropagation();
       e.preventDefault();
       getdrop(e);
+      $('.upl_container').removeClass('dragging');
     })
 
     .on('click','.upl_btn', function() {
-      $('#upl_input').click();
+      $('.upl_input').click();
     })
 
-    .on('change','#upl_input',function(e) {
+    .on('change','.upl_input',function(e) {
         e.preventDefault();
-        var fileInput = $('#upl_input')[0];
+        var fileInput = $('.upl_input')[0];
         for(var i = 0; i < fileInput.files.length; ++i){
             var data = new FormData();
             data.append('file[]',fileInput.files[i]);

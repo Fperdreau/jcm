@@ -214,7 +214,6 @@ class myMail {
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
-        $db_set->bdd_connect();
         $config = new site_config('get');
 
         // Get recent news
@@ -226,16 +225,13 @@ class myMail {
         }
 
         // Get future presentations
-        $future_session = new Press();
-        $pres_list = $future_session->get_futuresession(4,'mail');
+        $pres_list = Sessions::showfuturesession(4,'mail');
 
         // Get wishlist
-        $wish = new Press();
-        $wish_list = $wish->getwishlist(4,true);
+        $wish_list = Presentations::getwishlist(4,true);
 
         // Get next session
-        $nextpub = new Press();
-        $next_session = $nextpub->shownextsession(true);
+        $next_session = Sessions::shownextsession(true);
 
         $content['body'] = "
 
@@ -278,7 +274,7 @@ class myMail {
                         Wish list
                     </div>
 
-                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5); height: auto;'>
                         $wish_list
                     </div>
                 </div>
@@ -299,12 +295,11 @@ class myMail {
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
-        $db_set->bdd_connect();
         $config = new site_config('get');
-        $nextpub = new Press();
-        $next_session = $nextpub->shownextsession();
-        $dates = $nextpub->getdates();
-        $date = $dates[0];
+        $next_session = Sessions::getsessions(true);
+        $sessioncontent = Sessions::shownextsession();
+
+        $date = $next_session[0];
 
         $content['body'] = "
             <div style='width: 95%; margin: auto; font-size: 16px;'>
@@ -317,7 +312,7 @@ class myMail {
                     Next session
                 </div>
                 <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
-                    $next_session
+                    $sessioncontent
                 </div>
             </div>
 
@@ -332,6 +327,7 @@ class myMail {
         return $content;
     }
 
+    // Format email (html)
     function formatmail($content) {
         $config = new site_config('get');
         $profile_url = $config->site_url.'index.php?page=profile';

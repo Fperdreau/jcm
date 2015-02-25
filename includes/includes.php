@@ -24,9 +24,12 @@ require_once($_SESSION['path_to_includes'].'db_connect.php');
 require_once($_SESSION['path_to_includes'].'users.php');
 require_once($_SESSION['path_to_includes'].'myMail.php');
 require_once($_SESSION['path_to_includes'].'Posts.php');
-require_once($_SESSION['path_to_includes']."Press.php");
+require_once($_SESSION['path_to_includes']."Presentation.php");
+require_once($_SESSION['path_to_includes']."Session.php");
 require_once($_SESSION['path_to_includes']."site_config.php");
 include_once($_SESSION['path_to_includes'].'functions.php');
+include_once($_SESSION['path_to_includes'].'PasswordHash.php');
+
 
 // Get site config
 $config_file = $_SESSION['path_to_app']."config/config.php";

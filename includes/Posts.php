@@ -185,23 +185,27 @@ class Posts {
         } else {
             $homepage = "Yes";
         }
-        $result['form'] = "<form id='post_form'>
-                <input type='hidden' id='post_username' value='$username'/>
-                <label for='title' class='label'>Title</label>
-                    <input type='text' id='post_title' value='$post->title' style='width: 70%;'/><br>
-                <label for='homepage' class='label'>Show it on the homepage</label>
-                <select id='post_homepage'>
-                    <option value='$post->homepage'>$homepage</option>
-                    <option value='1'>Yes</option>
-                    <option value='0'>No</option>
-                </select><br>
-                <label for='content' class='label'>Message</label>
-                <div class='post_txtarea' style='display: block; width: 80%; margin: 10px auto; text-align: right;'>
+        $result['form'] = "
+            <form id='post_form'>
+                <div class='submit_btns'>
+                    <input type='submit' name='$op' value='$submit' id='submit' class='$op' data-id='$post->postid'/>
                 </div>
-                <div class='action_btns'>
-                    <div class='one_half'>$del_btn</div>
-                    <div  class='one_half last'>
-                        <p style='text-align: right'><input type='submit' name='$op' value='$submit' id='submit' class='$op' data-id='$post->postid'/></p>
+                <input type='hidden' id='post_username' value='$username'/>
+                <div class='formcontrol' style='width: 70%;'>
+                    <label>Title</label>
+                    <input type='text' id='post_title' placeholder='Your title (max 255 characters)' value='$post->title' style='width: 70%;'>
+                </div>
+                <div class='formcontrol' style='width: 10%;'>
+                    <label>Homepage</label>
+                    <select id='post_homepage'>
+                        <option value='$post->homepage'>$homepage</option>
+                        <option value='1'>Yes</option>
+                        <option value='0'>No</option>
+                    </select>
+                </div>
+                <div class='formcontrol' style='width: 100%;'>
+                    <label>Message</label>
+                    <div class='post_txtarea' style='display: block; text-align: right;'>
                     </div>
                 </div>
             </form>";

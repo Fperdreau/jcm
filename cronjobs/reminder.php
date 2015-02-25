@@ -31,9 +31,8 @@ function mailing() {
     // Declare classes
     $mail = new myMail();
     $config = new site_config('get');
-    $pub = new Press();
-    $ids = $pub->getsession();
-    $nextsession = new Press($ids[0]);
+    $ids = Sessions::getsessions(true);
+    $nextsession = new Session($ids[0]);
 
 	// Number of users
     $nusers = count($mail->get_mailinglist("reminder"));
@@ -64,6 +63,7 @@ function mailing() {
 	    fwrite($fp,$string);
 	    fclose($fp);
     } else {
+        echo "Reminder day: ".$reminder_day->format('Y-m-d');
         echo "nothing to send";
     }
 }

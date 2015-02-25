@@ -31,8 +31,6 @@ set_time_limit(0);
 require_once($_SESSION['path_to_includes'].'includes.php');
 $config = new site_config();
 
-if(empty($_SESSION['step'])) {$step = 1;}
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -92,6 +90,7 @@ if (!empty($_POST['do_conf'])) {
 	$presentation_table = "'. $_POST["dbprefix"].'_presentations";
     $config_table = "'. $_POST["dbprefix"].'_config";
     $post_table = "'. $_POST["dbprefix"].'_post";
+    $session_table = "'. $_POST["dbprefix"].'_session";
 	?>';
 
 	// Create new config file
@@ -122,6 +121,8 @@ if (!empty($_POST['backup'])) {
 
 // Configure database
 if (!empty($_POST['install_db'])) {
+    require($_SESSION['path_to_app'].'config/config.php');
+
     $op = htmlspecialchars($_POST['op']);
     $op = $op == "new";
     $result = "";
@@ -130,12 +131,8 @@ if (!empty($_POST['install_db'])) {
     $db_set = new DB_set();
 
     // Tables to create
-    $users_table = $db_set->dbprefix."users";
-    $presentation_table = $db_set->dbprefix."presentations";
-    $config_table = $db_set->dbprefix."config";
-    $post_table = $db_set->dbprefix."post";
     $tablestocreate = array($users_table,$presentation_table,$config_table,
-        $post_table);
+        $post_table,$session_table);
 
     // First we remove any deprecated tables
     $oldtables = $db_set->apptables;
@@ -161,7 +158,7 @@ if (!empty($_POST['install_db'])) {
         "username"=>array("CHAR(30)",false),
         "password"=>array("CHAR(50)",false),
         "position"=>array("CHAR(10)",false),
-        "email"=>array("CHAR(30)",false),
+        "email"=>array("CHAR(100)",false),
         "notification"=>array("INT(1)",1),
         "reminder"=>array("INT(1)",1),
         "nbpres"=>array("INT(3)",0),
@@ -259,6 +256,43 @@ if (!empty($_POST['install_db'])) {
         exit;
     }
 
+    // Set username of the uploader
+    $sql = "SELECT id_pres,username,orator FROM $presentation_table";
+    $req = $db_set->send_query($sql);
+    while ($row = mysqli_fetch_assoc($req)) {
+        if (empty($row['username'])) {
+            $pub = new Presentation($row['id_pres']);
+            $pub->username = $row['orator'];
+            $pub->update();
+        }
+    }
+
+    // Create Session table
+    $tabledata = array(
+        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
+        "date"=>array("DATE",false),
+        "status"=>array("CHAR(10)","FREE"),
+        "time"=>array("VARCHAR(200)",false),
+        "type"=>array("CHAR(30)","NOT NULL"),
+        "presid"=>array("VARCHAR(200)","NOT NULL"),
+        "speakers"=>array("VARCHAR(200)","NOT NULL"),
+        "chairs"=>array("VARCHAR(200)","NOT NULL"),
+        "nbpres"=>array("INT(2)",0),
+        "primary"=>"id");
+    if ($db_set->makeorupdate($session_table,$tabledata,$op)) {
+        $result .= "<p id='success'> '$session_table' created</p>";
+    } else {
+        echo json_encode("<p id='warning'>'$session_table' not created</p>");
+        exit;
+    }
+
+    // Check consistency between presentations and sessions table
+    if (Sessions::checkcorrespondence()) {
+        $result .= "<p id='success'> '$session_table' updated</p>";
+    } else {
+        echo json_encode("<p id='warning'>'$session_table' not updated</p>");
+        exit;
+    }
     echo json_encode($result);
     exit;
 }
@@ -438,7 +472,7 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: false,
+                    async: true,
                     data: {
                         getpagecontent: step,
                         op: op},
@@ -461,7 +495,7 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: false,
+                    async: true,
                     data: {backup: true},
                     success: function(data){
                         var result = jQuery.parseJSON(data);
@@ -521,7 +555,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: data,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
@@ -552,7 +586,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: data,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
@@ -620,7 +654,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: {
                                 inst_admin: true,
                                 username: username,
@@ -634,10 +668,9 @@ if (!empty($_POST['getpagecontent'])) {
                             }
                         });
                     });
-            }).ajaxStart(function(){
-                $loading.show();
-            }).ajaxStop(function() {
-                $loading.hide();
+            }).on({
+                ajaxStart: function() { $("#loading").show(); },
+                ajaxStop: function() { $("#loading").hide(); }
             });
         </script>
         <title>Journal Club Manager - Installation</title>

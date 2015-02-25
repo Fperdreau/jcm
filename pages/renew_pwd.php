@@ -19,7 +19,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 @session_start();
 $_SESSION['app_name'] = basename(dirname(__DIR__));
-$_SESSION['path_to_app'] = dirname(__FILE__)."/";
+$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
 $_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
 date_default_timezone_set('Europe/Paris');
 

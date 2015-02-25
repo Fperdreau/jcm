@@ -26,41 +26,49 @@ include_once($_SESSION['path_to_includes'].'includes.php');
 // Create a database object
 $db_set = new DB_set();
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Datepicker (calendar)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
-	$booked = $db_set -> getinfo($presentation_table,"date"); // Get booked out dates from db
+	$booked = Sessions::getsessions();// Get booked sessions
+    if ($booked === false) {
+        $booked = array();
+    }
 	$formatdate = array();
     $nb_pres = array();
+    $type = array();
 	foreach($booked as $date) {
         // Count how many presentations there are for this day
-        $sql = "SELECT date FROM $presentation_table WHERE date='$date'";
-        $req = $db_set->send_query($sql);
-        $pres = array();
-        while ($row = mysqli_fetch_array($req)) {
-            $pres[] = $row[0];
-        }
+        $session = new Session($date);
+        $nb_pres[] = $session->nbpres;
+        $type[] = $session->type;
 
+        // Format date
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
 	    $month = $fdate[1];
 	    $year = $fdate[0];
-
 	    $formatdate[] = "$day-$month-$year";
-
-        if (!empty($pres)) {
-            $nb_pres[] = count($pres);
-        } else {
-            $nb_pres[] = 0;
-        }
 	}
 
     // Get application settings
 	$config = new site_config('get');
 
-	$result = array("max_nb_session"=>$config->max_nb_session,"jc_day"=>$config->jc_day,"today"=>date('d-m-Y'),"booked"=>$formatdate,"nb"=>$nb_pres);
+	$result = array(
+        "max_nb_session"=>$config->max_nb_session,
+        "jc_day"=>$config->jc_day,
+        "today"=>date('d-m-Y'),
+        "booked"=>$formatdate,
+        "nb"=>$nb_pres,
+        "sessiontype"=>$type);
 	echo json_encode($result);
+    exit;
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Login/Sign up
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Check login
 if (!empty($_POST['login'])) {
     $user = new users();
@@ -88,6 +96,7 @@ if (!empty($_POST['login'])) {
         $result = "wrong_username";
     }
     echo json_encode($result);
+    exit;
 }
 
 // Registration
@@ -112,12 +121,9 @@ if (!empty($_POST['register'])) {
             }
         }
     }
-    if ($user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email)) {
-        $result = "created";
-    } else {
-        $result = "exist";
-    }
+    $result = $user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email);
     echo json_encode($result);
+    exit;
 }
 
 // Delete user
@@ -142,6 +148,7 @@ if (!empty($_POST['delete_user'])) {
         $result = "wrong_username";
     }
     echo json_encode($result);
+    exit;
 }
 
 // Send password change request if email exists in database
@@ -175,6 +182,7 @@ if (!empty($_POST['change_pw'])) {
         $result = "wrong_email";
     }
     echo json_encode($result);
+    exit;
 }
 
 // Change user password after confirmation
@@ -192,7 +200,7 @@ if (!empty($_POST['conf_changepw'])) {
         $result = "changed";
     }
     echo json_encode($result);
-
+    exit;
 }
 
 // Process user modifications
@@ -204,6 +212,7 @@ if (!empty($_POST['user_modify'])) {
         $result = "<p id='warning'>Something went wrong!</p>";
     }
     echo json_encode($result);
+    exit;
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -212,7 +221,7 @@ Process submissions
 // Get file list (download list)
 if (!empty($_POST['getfiles'])) {
     $pubid = $_POST['pubid'];
-    $pub = new Press($pubid);
+    $pub = new Presentation($pubid);
     $filelist = explode(',',$pub->link);
     $result = "<div class='dlmenu'>";
     foreach ($filelist as $file) {
@@ -220,73 +229,111 @@ if (!empty($_POST['getfiles'])) {
     }
     $result .= "</div>";
     echo json_encode($result);
+    exit;
 }
 
 //  delete publication
 if (!empty($_POST['del_pub'])) {
-    $Press = new Press();
-    $id_press = htmlspecialchars($_POST['del_pub']);
-    $Press->delete_pres($id_press);
-    $result = "deleted";
+    $Presentation = new Presentation();
+    $id_Presentation = htmlspecialchars($_POST['del_pub']);
+    if ($Presentation->delete_pres($id_Presentation)) {
+        $result = 'deleted';
+    } else {
+        $result = 'failed';
+    }
     echo json_encode($result);
+    exit;
 }
 
 //  delete files
-
 if (!empty($_POST['del_upl'])) {
     $uplname = htmlspecialchars($_POST['uplname']);
-    $pub = new Press();
+    $pub = new Presentation();
     $result = $pub->delete_file($uplname);
     echo json_encode($result);
+    exit;
 }
 
 // Submit a new presentation
 if (!empty($_POST['submit'])) {
     // check entries
-    $pub = new Press();
     $user = new users($_SESSION['username']);
     $date = $_POST['date'];
-    if ($pub->isbooked($date)) {
+    if (Sessions::isbooked($date) == "Booked out") {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
             $_POST['orator'] = $user->fullname;
         }
 
+        $pub = new Presentation();
         $created = $pub -> make($_POST);
-        if ($created == true) {
-            $result = "<p id='success'>Your presentation has been submitted.</p>";
+        if ($created !== false && $created !== 'exists') {
+            // Pseudo randomly choose a chairman for this presentation
+            $chairs = Sessions::getchair($date,$_POST['orator']);
+            // Add to sessions table
+            $postsession = array(
+                "date"=>$date,
+                "presid"=>$created,
+                "chairs"=>$chairs,
+                "speakers"=>$_POST['orator']
+                );
+            $session = new Session();
+            if ($session->make($postsession)) {
+                $result['status'] = true;
+                $result['msg'] = "<p id='success'>Your presentation has been submitted.</p>";
+             } else {
+                Presentation::delete_pres($created);
+                $result['status'] = false;
+                $result['msg'] = "<p id='warning'>We could not create/update the session</p>";
+             }
         } elseif ($created == "exists") {
-            $result = "<p id='warning'>This presentation already exist in our database.</p>";
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning'>This presentation already exist in our database.</p>";
         } else {
-            $result = "<p id='warning'>Oops, sorry went wrong.</p>";
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning'>Oops, something has gone wrong.</p>";
         }
     }
-
     echo json_encode($result);
 }
 
 // Update/modify a presentation
 if (!empty($_POST['update'])) {
-    $pub = new Press($_POST['id_pres']);
+    $pub = new Presentation($_POST['id_pres']);
     // check entries
     $user = new users($_SESSION['username']);
     $date = $_POST['date'];
-    if ($pub->isbooked($date)) {
+    if (Sessions::isbooked($date) === "Booked out") {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
             $_POST['orator'] = $user->fullname;
         }
 
-        if ($_POST['type'] == "wishlist") {
-            $_POST['type'] = "paper";
-        }
-        $created = $pub -> update($_POST);
-        if ($created == true) {
-            $result = "<p id='success'>Your presentation has been updated.</p>";
+        $created = $pub->update($_POST);
+        if ($created !== false) {
+            // Pseudo randomly choose a chairman for this presentation
+            $chairs = Sessions::getchair($date,$_POST['orator']);
+            // Add to sessions table
+            $postsession = array(
+                "date"=>$date,
+                "presid"=>$created,
+                "chairs"=>$chairs,
+                "speakers"=>$_POST['orator']
+                );
+            $session = new Session();
+            if ($session->make($postsession)) {
+                $result['status'] = true;
+                $result['msg'] = "<p id='success'>Your presentation has been submitted.</p>";
+             } else {
+                Presentation::delete_pres($created);
+                $result['status'] = false;
+                $result['msg'] = "<p id='warning'>We could not create/update the session</p>";
+             }
         } else {
-            $result = "<p id='warning'>Oops, something went wrong</p>";
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning'>Oops, something has gone wrong.</p>";
         }
     }
     echo json_encode($result);
@@ -294,43 +341,68 @@ if (!empty($_POST['update'])) {
 
 // Suggest a presentation to the wishlist
 if (isset($_POST['suggest'])) {
-    $pub = new Press();
     $_POST['date'] = "";
     $_POST['type'] = "wishlist";
-    $created = $pub -> make($_POST);
-    if ($created == true) {
-        $result = "<p id='success'>Your presentation has been submitted.</p>";
+    $pres = new Presentation();
+    $created = $pres->make($_POST);
+    if ($created !== false && $created !== "exist") {
+        $result['status'] = true;
+        $result['msg'] = "<p id='success'>Your presentation has been submitted.</p>";
     } elseif ($created == "exist") {
-        $result = "<p id='warning'>This presentation already exist in our database.</p>";
+        $result['status'] = false;
+        $result['msg'] = "<p id='warning'>This presentation already exist in our database.</p>";
     } else {
-        $result = "<p id='warning'>Oops, something went wrong</p>";
+        $result['status'] = false;
+        $result['msg'] = "<p id='warning'>Oops, something went wrong</p>";
     }
     echo json_encode($result);
+    exit;
 }
 
 // Display presentation (modal dialog)
-if (!empty($_POST['show_pub'])) {
-    $id_press = $_POST['show_pub'];
+if (!empty($_POST['getpubform'])) {
+    $id_Presentation = $_POST['getpubform'];
+    $type = $_POST['type'];
+    if ($id_Presentation == "false") {
+        $pub = false;
+    } else {
+        $pub = new Presentation($id_Presentation);
+    }
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
     }
     $user = new users($_SESSION['username']);
-    $pub = new Press($id_press);
+    $result = displayform($user,$pub,$type);
+    echo json_encode($result);
+    exit;
+}
+
+// Display presentation (modal dialog)
+if (!empty($_POST['show_pub'])) {
+    $id_Presentation = $_POST['show_pub'];
+    if ($id_Presentation === "false") {
+        $id_Presentation = false;
+    }
+    if (!isset($_SESSION['username'])) {
+        $_SESSION['username'] = false;
+    }
+    $user = new users($_SESSION['username']);
+    $pub = new Presentation($id_Presentation);
     $form = displaypub($user,$pub);
     echo json_encode($form);
 }
 
 // Display modification form
 if (!empty($_POST['mod_pub'])) {
-    $id_press = $_POST['mod_pub'];
+    $id_Presentation = $_POST['mod_pub'];
     $user = new users($_SESSION['username']);
-    $pub = new Press($id_press);
+    $pub = new Presentation($id_Presentation);
     $form = displayform($user,$pub,'update');
     echo json_encode($form);
 }
 
 if (!empty($_POST['getform'])) {
-    $pub = new Press();
+    $pub = new Presentation();
     $user = new users($_SESSION['username']);
     $form = displayform($user,$pub,'submit');
     echo json_encode($form);
@@ -341,12 +413,12 @@ Archives
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Select years to display
 if (!empty($_POST['select_year'])) {
-	$Press = new Press();
+	$Presentation = new Presentation();
     $selected_year = $_POST['select_year'];
 	if ($selected_year == "" || $selected_year == "all") {
 		$selected_year = null;
 	}
-    $publist = $Press -> getpublicationlist($selected_year);
+    $publist = $Presentation -> getpublicationlist($selected_year);
     echo json_encode($publist);
 }
 
@@ -376,7 +448,7 @@ Upload file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['upload'])) {
 	print_r($_FILES['file']);
-	$pub = new Press();
+	$pub = new Presentation();
 	$filename = $pub->upload_file($_FILES['file']);
 	echo json_encode($filename);
 }
@@ -384,6 +456,7 @@ if (!empty($_POST['upload'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Admin tools
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Sort user list
 if (!empty($_POST['user_select'])) {
 	$config = new site_config();
     $filter = htmlspecialchars($_POST['user_select']);
@@ -391,8 +464,9 @@ if (!empty($_POST['user_select'])) {
 		$filter = null;
 	}
 
-    $userlist = $config -> generateuserslist($filter);
+    $userlist = site_config::generateuserslist($filter);
     echo json_encode($userlist);
+    exit;
 }
 
 // Export db if asked
@@ -417,6 +491,7 @@ if (!empty($_POST['mailing_send'])) {
     echo json_encode($result);
 }
 
+// Change user status
 if (!empty($_POST['modify_status'])) {
     $username = htmlspecialchars($_POST['username']);
     $newstatus = htmlspecialchars($_POST['option']);
@@ -424,18 +499,21 @@ if (!empty($_POST['modify_status'])) {
 
     if ($newstatus == 'delete') {
         $selected_user -> delete_user();
-        $result = "Account successfully deleted";
+        $result['status'] = "Account successfully deleted";
     } elseif ($newstatus == "activate") {
-        $result = $selected_user -> activation(1);
+        $result['status'] = $selected_user -> activation(1);
     } elseif ($newstatus == "desactivate") {
-        $result = $selected_user -> activation(0);
+        $result['status'] = $selected_user -> activation(0);
     } else {
         $selected_user -> change_user_status($newstatus);
-        $result = "User status is now $newstatus!";
+        $result['status'] = "User status is now $newstatus!";
     }
+    $result['content'] = site_config::generateuserslist();
     echo json_encode($result);
+    exit;
 }
 
+// Udpate application settings
 if (!empty($_POST['config_modify'])) {
     $config = new site_config('get');
     $config->update($_POST);
@@ -443,6 +521,7 @@ if (!empty($_POST['config_modify'])) {
     echo json_encode($result);
 }
 
+// Add a new post
 if (!empty($_POST['post_add'])) {
     if ($_POST['post_add'] === 'post_add') {
         $post = new Posts();
@@ -455,6 +534,7 @@ if (!empty($_POST['post_add'])) {
     echo json_encode($result);
 }
 
+// Show selected post
 if (!empty($_POST['post_show'])) {
     $postid = $_POST['postid'];
     if ($postid == "false") {$postid = false;}
@@ -466,6 +546,7 @@ if (!empty($_POST['post_show'])) {
     echo json_encode($result);
 }
 
+// Delete a post
 if (!empty($_POST['post_del'])) {
     $postid = htmlspecialchars($_POST['postid']);
     $post = new Posts();
@@ -473,12 +554,95 @@ if (!empty($_POST['post_del'])) {
     echo json_encode($result);
 }
 
-if (!empty($_POST['delete_temp'])) {
-	$path_to_file = $_SESSION['path_to_app'].htmlspecialchars($_POST['link']);
-	if (unlink($path_to_file)) {
-		$result = "deleted";
-	} else {
-		$result = "not_deleted";
-	}
-	echo json_encode($result);
+// Add a session/presentation type
+if (!empty($_POST['add_type'])) {
+    $config = new site_config('get');
+    $class = $_POST['add_type'];
+    $typename = $_POST['typename'];
+    $varname = $class."_type";
+    $config->$varname .= ",$typename";
+    if ($config->update()) {
+        //Get session types
+        $result = "";
+        $types = explode(',',$config->$varname);
+        $divid = $class.'_'.$typename;
+        foreach ($types as $type) {
+            $result .= "
+                <div class='type_div' id='$divid'>
+                    <div class='type_name'>$type</div>
+                    <div class='type_del' data-type='$type' data-class='$class'>
+                    <img src='images/delete.png' style='width: 15px; height: auto;'>
+                    </div>
+                </div>
+            ";
+        }
+    } else {
+        $result = false;
+    }
+    echo json_encode($result);
 }
+
+// Delete a session/presentation type
+if (!empty($_POST['del_type'])) {
+    $config = new site_config('get');
+    $class = $_POST['del_type'];
+    $typename = $_POST['typename'];
+    $varname = $class."_type";
+    $config->$varname = explode(',',$config->$varname);
+    $config->$varname = array_diff($config->$varname,array($typename));
+    $config->$varname = implode(',',$config->$varname);
+    if ($config->update()) {
+        //Get session types
+        $result = "";
+        $types = explode(',',$config->$varname);
+        $divid = $class.'_'.$typename;
+        foreach ($types as $type) {
+            $result .= "
+                <div class='type_div' id='$divid'>
+                    <div class='type_name'>$type</div>
+                    <div class='type_del' data-type='$type' data-class='$class'>
+                    <img src='images/delete.png' style='width: 15px; height: auto;'>
+                    </div>
+                </div>
+            ";
+        }
+    } else {
+        $result = false;
+    }
+    echo json_encode($result);
+}
+
+// Show sessions
+if (!empty($_POST['show_session'])) {
+    $nbsession = $_POST['show_session'];
+    $result = Sessions::managesessions($nbsession);
+    echo json_encode($result);
+    exit;
+}
+
+// Modify a session type
+if (!empty($_POST['mod_session_type'])) {
+    $sessionid = $_POST['session'];
+    $type = $_POST['type'];
+    $session = new Session();
+    $sessionpost = array(
+        'date'=>$sessionid,
+        'type'=>$type);
+    $result = $session->make($sessionpost);
+    echo json_encode($result);
+    exit;
+}
+
+// Modify a session time
+if (!empty($_POST['mod_session_time'])) {
+    $sessionid = $_POST['session'];
+    $time = $_POST['time'];
+    $session = new Session();
+    $sessionpost = array(
+        'date'=>$sessionid,
+        'time'=>$time);
+    $result = $session->make($sessionpost);
+    echo json_encode($result);
+    exit;
+}
+

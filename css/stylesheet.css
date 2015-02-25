@@ -81,10 +81,10 @@ a:hover {
 #welcome {
     width: auto;
     text-align: center;
-    background-color: #333333;
-    border: 1px double #cccccc;
-    padding: 2px;
-    border-radius: 5px;
+    background-color: #222222;
+    border: 1px double #999999;
+    padding: 5px;
+
 }
 
 /* Menu */
@@ -251,7 +251,7 @@ a:hover {
 
 .section_header {
     position: relative;
-    background-color: #CF5151;
+    background-color: rgba(187,81,81,1);
     width: auto;
     color: #eeeeee;
     width: 200px;
@@ -260,7 +260,7 @@ a:hover {
     padding: 5px;
     margin: 20px auto -10px auto;
     text-align: center;
-    font-weight: bold;
+    font-weight: 300;
     font-size: 16px;
     z-index: 11;
     -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
@@ -274,11 +274,25 @@ a:hover {
     margin: auto;
     width: 95%;
     text-align: justify;
-    padding: 20px 10px;
-    background-color: rgba(127,127,127,.1);
+    padding: 20px;
+    background-color: rgba(200,200,200,.1);
     -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
     -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
     box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+}
+
+.section_sub {
+    display: block;
+    font-size: 16px;
+    margin: 20px 0 5px auto;
+    padding: 0;
+    width: 100%;
+    border-top: 1px solid #999999;
+    color: #999999;
+    height: 20px;
+    line-height: 20px;
+    text-align: left;
+    font-weight: bold;
 }
 
 .pub_section_content {
@@ -297,12 +311,17 @@ a:hover {
     width: 150px;
     padding: 5px;
     text-align: center;
-    background-color: rgba(255,0,0,.2);
-    border-radius: 5px;
+    background-color: rgba(207,81,81,.8);
+    border: 1px solid rgba(207,81,81,1);
+    margin-top: 10px;
+}
+
+.operation_button>a {
+    color: #EEEEEE;
 }
 
 .operation_button:hover{
-    background-color: rgba(255,0,0,.5);
+    background-color: rgba(207,81,81,1);
 }
 
 .link {
@@ -351,8 +370,8 @@ a:hover {
     line-height: 30px;
     margin: 0;
     cursor: pointer;
-    background-color: #bbbbbb;
-    border-bottom: 1px solid #222222;
+    background-color: rgba(200,200,200,.5);
+    border-bottom: 1px solid #CF5151;
 }
 
 .dl_info:hover {
@@ -418,9 +437,9 @@ a:hover {
     padding: 6px 10px 4px;
 }
 
-#upl_errors {
+.upl_errors {
     display: none;
-    width: auto;
+    width: 100%;
     color: #990000;
     font-size: 13px; /* Set message font size  */
     padding: 5px; /* Some padding to make some more space for our text  */
@@ -428,21 +447,21 @@ a:hover {
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
-#upl_filetypes {
+.upl_filetypes {
     display: block;
     margin: 0 auto;
     font-size: 12px;
     font-weight: normal;
 }
 
-#upl_filelist {
+.upl_filelist {
     width: 95%;
     height: auto;
     padding: 10px;
     margin: 0;
 }
 
-#upl_info {
+.upl_info {
     display: inline-block;
     width: 190px;
     font-size: 12px;
@@ -456,7 +475,7 @@ a:hover {
     box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
 }
 
-#upl_info>div {
+.upl_info>div {
     display: table-cell;
     height: 30px;
     text-align: center;
@@ -499,9 +518,9 @@ a:hover {
 
 .pub_container {
     background: rgba(200,200,200,.5);
-    width: 95%;
-    padding: 5px;
-    margin: auto auto 5px auto;
+    width: 100%;
+    padding: 0;
+    margin: 0 0 5px 0;
     cursor: pointer;
     height: 30px;
     line-height: 30px;
@@ -524,9 +543,9 @@ a:hover {
     padding: 2px;
     margin: 0;
     width: 50px;
-    height: 25px;
+    height: 22px;
     text-align: center;
-    line-height: 25px;
+    line-height: 22px;
 }
 
 .show_btn>a {
@@ -537,6 +556,14 @@ a:hover {
 .show_btn:hover {
     background-color: #CF5252;
     color: #FFFFFF;
+}
+
+.show_pres>a {
+    text-decoration: none;
+}
+
+.show_pres:hover {
+    cursor: pointer;
 }
 
 /* Submission list */
@@ -569,6 +596,129 @@ a:hover {
 
 .list-section {
     text-align: left;
+}
+
+/* Admin - session/presentation management */
+.type_list {
+    width: 95%;
+    height: auto;
+    padding: 5px;
+    margin: auto;
+    background-color: rgba(200,200,200,.5);
+    border: 1px dashed #555555;
+}
+
+.type_div {
+    display: inline-block;
+    width: 190px;
+    font-size: 12px;
+    height: 30px;
+    line-height: 30px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #bbbbbb;
+}
+
+.type_div>div {
+    display: table-cell;
+    height: 30px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.type_name {
+    line-height: 30px;
+    white-space: pre-wrap;
+    width: 160px;
+    font-weight: bold;
+}
+
+.type_name:hover {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
+}
+
+.type_del {
+    background-color: #666666;
+    height: 30px;
+    line-height: 30px;
+    border-left: 1px solid #999999;
+    width: 30px;
+    padding-left: 5px;
+}
+
+.type_del:hover {
+    background-color: rgba(207,81,81,.8);
+}
+
+.type_del:active {
+    background-color: #444444;
+}
+
+.session_div {
+    display: block;
+    width: 95%;
+    height: auto;
+    margin: 10px auto 10px auto;
+    padding: 0 10px 10px 10px;
+    border-top: 1px solid #555;
+    background-color: rgba(255,255,255,.5);
+}
+
+.session_header {
+    top: 0;
+    left: 0;
+    margin: 0 0 5px 0;
+    display: block;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 300;
+    height: 30px;
+    line-height: 30px;
+    border: 0;
+    padding: 0;
+}
+
+.session_header>div {
+    display: inline-block;
+    vertical-align: top;
+    width: 100px;
+    height: 20px;
+    line-height: 20px;
+    padding: 5px;
+}
+
+.session_date {
+    background-color: #555555;
+    text-align: center;
+    color: #FFF;
+}
+
+.session_status {
+    text-align: center;
+    background-color: rgba(207,81,81,.8);
+    color: #FFF;
+}
+
+.session_core {
+    width: 100%;
+    vertical-align: top;
+    text-align: left;
+    display: block;
+    margin: 5px 0;
+}
+
+.session_core>div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.session_presentations {
+    margin: 0 auto 0 0;
+    vertical-align: top;
+    width: 55%;
+    text-align: right;
 }
 
 /* Text/Messages */

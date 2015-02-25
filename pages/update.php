@@ -84,13 +84,13 @@ if (!empty($_POST['proceed'])) {
     while ($data = mysqli_fetch_array($req)) {
         $id = $data['id'];
         if ($data['id_pres'] == 0) {
-            $pub = new Press();
+            $pub = new Presentation();
             $id_pres = $pub->create_presID();
             $db_set->updatecontent($presentation_table,"id_pres","'$id_pres'",array("id"),array("'$id'"));
             $data['id_pres'] = $id_pres;
         }
 
-        $pub = new Press($data['id_pres']);
+        $pub = new Presentation($data['id_pres']);
         $result .= "<p>Update of $pub->id_pres</p>";
 
         if ($data['up_date'] == NULL) {

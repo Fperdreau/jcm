@@ -30,25 +30,14 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
     display: none;
 }
 
-/* *********************************************************************/
-/* Publication modal window*/
-/* *********************************************************************/
-.popupContainer{
-	position:absolute;
-	width:400px;
-	height: auto;
-	left:400px;
-	top:30px;
-	background: #FFF;
-}
 
 .action_btns {
-	display: inline-block;
-	width: 100%;
-	margin: 20px 0 10px;
-	clear: both;
-	text-decoration: none;
-	color:#ED6347;
+    display: inline-block;
+    width: 100%;
+    margin: 20px 0 10px;
+    clear: both;
+    text-decoration: none;
+    color:#ED6347;
 }
 
 #modal_trigger {
@@ -71,28 +60,50 @@ a.btn {color:#666; text-align: center; text-decoration: none;}
 a.btn_red {color: #FFF;}
 
 .one_half {width:50%; display: block; float:left;}
-.one_half.last {width:45%; margin-left:5%;}
+.one_half.last {width:45%; margin-left:5%; text-align: right;}
 
 /* Popup Styles*/
-.popupHeader {font-size:16px; text-transform: uppercase;}
-.popupHeader {background:#F4F4F2; position:relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
-.popupHeader .modal_close {position: absolute; right: 0; top:0; padding:10px 15px; background:#E4E4E2; cursor: pointer; color:#aaa; font-size:16px;}
+.popupHeader {font-size:16px; font-weight: 300; text-transform: uppercase; color: #EEE;}
+.popupHeader {background: rgba(207,81,81,.8); position: relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
+.popupHeader .modal_close {position: absolute; right: 0; top:0; padding:10px 15px; background: url('../images/delete.png') no-repeat; background-position: center center; background-size: 50% auto; cursor: pointer; color:#aaa; font-size:16px;}
 
 .popupBody {
     max-height: 500px;
     padding:20px;
     overflow-x: hidden;
     overflow-y: scroll;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+}
+
+
+/* *********************************************************************/
+/* Publication modal window*/
+/* *********************************************************************/
+.popupContainer{
+	position:absolute;
+	width:400px;
+	height: auto;
+	left:400px;
+	top:30px;
+	background: #FFF;
 }
 
 /* User Login Form */
-.user_login {display: none;}
-.user_login label {display: block; margin-bottom:5px;}
-.user_login input[type="text"], .user_login input[type="email"], .user_login input[type="password"] {display: block; width:90%; padding: 10px; border:1px solid #DDD; color:#666;}
-.user_login input[type="checkbox"] {float:left; margin-right:5px;}
-.user_login input[type="checkbox"]+label {float:left;}
+.popupContainer .modal_section {
+    display: none;
+}
+/*
+.popupContainer .modal_section label {
+    display: block; margin-bottom:5px;}
+.popupContainer .modal_section input[type="text"], .modal_section input[type="email"], .modal_section input[type="password"] {display: block; width:90%; padding: 10px; border:1px solid #DDD; color:#666;}
+.popupContainer .modal_section input[type="checkbox"] {float:left; margin-right:5px;}
+.popupContainer .modal_section input[type="checkbox"]+label {float:left;}
 
-.user_login .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
+.popupContainer .modal_section .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
+*/
+
 .forgot_password {
 	display:block;
 	margin: 20px 0 10px;
@@ -101,34 +112,9 @@ a.btn_red {color: #FFF;}
 	text-decoration: none;
 	color:#ED6347;}
 
-/* User Register Form */
-.user_register {display: none;}
-.user_register label {display: block; margin-bottom:5px;}
-.user_register input[type="text"], .user_register input[type="email"], .user_register input[type="password"] {display: block; width:90%; padding: 10px; border:1px solid #DDD; color:#666;}
-.user_register input[type="checkbox"] {float:left; margin-right:5px;}
-.user_register input[type="checkbox"]+label {float:left;}
-
-.user_register .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
-
-/* Delete User Form */
-.user_delete {display: none;}
-.user_delete label {display: block; margin-bottom:5px;}
-.user_delete input[type="text"], .user_delete input[type="email"], .user_delete input[type="password"] {display: block; width:90%; padding: 10px; border:1px solid #DDD; color:#666;}
-.user_delete input[type="checkbox"] {float:left; margin-right:5px;}
-.user_delete input[type="checkbox"]+label {float:left;}
-.user_delete .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
-
-/* change password Form */
-.user_changepw {display: none;}
-.user_changepw label {display: block; margin-bottom:5px;}
-.user_changepw input[type="text"], .user_changepw input[type="email"], .user_changepw input[type="password"] {display: block; width:90%; padding: 10px; border:1px solid #DDD; color:#666;}
-.user_changepw input[type="checkbox"] {float:left; margin-right:5px;}
-.user_changepw input[type="checkbox"]+label {float:left;}
-.user_changepw .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
-
-/* ******************************************************************************* */
+/* *********************************************************************/
 /* Publication modal window*/
-/* ******************************************************************************* */
+/* *********************************************************************/
 
 .pub_popupContainer{
     position:absolute;
@@ -139,22 +125,22 @@ a.btn_red {color: #FFF;}
     background: #FFF;
 }
 
-/* publication form */
-.publication_form {display: none;}
-.publication_form label {display: inline-block; margin-bottom:5px;}
-.publication_form input[type="text"], .publication_form input[type="email"], .publication_form input[type="password"] {display: inline-blockblock; width:auto; padding: 10px; border:1px solid #DDD; color:#666;}
-.publication_form input[type="checkbox"] {float:left; margin-right:5px;}
-.publication_form input[type="checkbox"]+label {float:left;}
-.publication_form .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
-
-.pub_modify {display: none;}
-.pub_modify label {display: inline-block; margin-bottom:5px;}
-.pub_modify input[type="text"], .pub_modify input[type="email"], .pub_modify input[type="password"] {display: inline-blockblock; width:auto; padding: 10px; border:1px solid #DDD; color:#666;}
-.pub_modify input[type="checkbox"] {float:left; margin-right:5px;}
-.pub_modify input[type="checkbox"]+label {float:left;}
-.pub_modify .checkbox {margin-bottom: 10px; clear: both; overflow: hidden;}
+/*.pub_popupContainer .modal_section {display: none;}
+.pub_popupContainer .modal_section label {display: inline-block; margin-bottom:5px;}
+.pub_popupContainer .modal_section input[type="text"], .modal_section input[type="email"], .modal_section input[type="password"], .modal_section textarea {display: inline-block; width:95%; padding: 10px; border:1px solid #DDD; color:#666;}
+.pub_popupContainer .modal_section input[type="checkbox"] {float:left; margin-right:5px;}
+.pub_popupContainer .modal_section input[type="checkbox"]+label {float:left;}
+.pub_popupContainer .modal_section .checkbox {margin-bottom: 10px; clear: both; overflow: hidden
+}
+*/
 
 /* Publication modal dialog */
+input.dateinput {
+    cursor: pointer;
+    display: inline-block;
+    width: auto;
+}
+
 .pub_caps {
     display: block;
     background-color: #dddddd;
@@ -195,8 +181,6 @@ a.btn_red {color: #FFF;}
     margin-left: auto;
     margin-right: 0;
     text-align: justify;
-    -ms-text-justify: distribute-all-lines;
-    text-justify: distribute-all-lines;
 }
 
 .pub_action_btn>div {

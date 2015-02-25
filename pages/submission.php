@@ -22,9 +22,8 @@ require_once($_SESSION['path_to_includes'].'includes.php');
 check_login();
 
 // Declare classes
-$Press = new Press();
-$user = new users();
-$user->get($_SESSION['username']);
+$Presentation = new Presentation();
+$user = new users($_SESSION['username']);
 
 // Get options
 $op = htmlspecialchars($_GET['op']);
@@ -32,17 +31,17 @@ $op = htmlspecialchars($_GET['op']);
 // Select a presentation from the wishlist
 if (!empty($_POST['id'])) {
     $id_pres = htmlspecialchars($_POST['id']);
-    $Press -> get($id_pres);
+    $Presentation -> get($id_pres);
 }
 
 if (!empty($_GET['id'])) {
     $id_pres = htmlspecialchars($_GET['id']);
-    $Press -> get($id_pres);
+    $Presentation -> get($id_pres);
 }
 
 // Submit a new presentation
 if ($op == 'new') {
-    $submit_form = displayform($user,$Press,'submit');
+    $submit_form = displayform($user,$Presentation,'submit');
     $result = "
     <div id='content'>
         <div id='pagename'>Submit a presentation</div>
@@ -51,7 +50,7 @@ if ($op == 'new') {
         Fill up the form below, select a date (only available dates are selectable) and it's all done!
         Your submission will be automatically added to our database.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='section_content' id='submission'>
+        <div class='section_content' id='submission_form'>
         $submit_form
         </div>
     </div>
@@ -59,14 +58,14 @@ if ($op == 'new') {
 
 // Suggest a presentation
 } elseif ($op == 'suggest') {
-    $submit_form = displayform($user,$Press,"suggest");
+    $submit_form = displayform($user,$Presentation,"suggest");
     $result = "
     <div id='content'>
         <div id='pagename'>Suggest a wish</div>
         <p class='page_description'>Here you can suggest a paper that somebody else could present at a Journal Club session.
          Fill up the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='section_content' id='submission'>
+        <div class='section_content' id='submission_form'>
         $submit_form
         </div>
     </div>
@@ -74,11 +73,10 @@ if ($op == 'new') {
 
 // Select from the wish list
 } elseif ($op == 'wishpick') {
+    $selectopt = Presentations::generate_selectwishlist();
     if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
-        $selectopt = "";
-        $submit_form = displayform($user,$Press,'update');
+        $submit_form = displayform($user,$Presentation,'update');
     } else {
-        $selectopt = $Press -> generate_selectwishlist();
         $submit_form = "";
     }
 
@@ -89,21 +87,23 @@ if ($op == 'new') {
             The form below will be automatically filled up with the data provided by the user who suggested the selected paper.
             Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
             If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='section_content' id='submission'>
+        <div class='section_content'>
             $selectopt
+            <div id='submission_form' class='wishform'>
             $submit_form
+            </div>
         </div>
     </div>
     ";
 
 // Modify a presentation
 } elseif ($op == 'mod_pub') {
-    $submit_form = displayform($user,$Press,'update');
+    $submit_form = displayform($user,$Presentation,'update');
     $result = "
     <div id='content'>
         <div id='pagename'>Modify a presentation</div>
         <p class='page_description'>Here you can modify your submission. Please, check on the information before submitting your presentation</p>
-        <div class='section_content' id='submission'>
+        <div class='section_content' id='submission_form'>
             $submit_form
         </div>
     </div>

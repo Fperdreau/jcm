@@ -16,6 +16,7 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
+require($_SESSION['path_to_includes'].'includes.php');
 
 class users {
     public $date = "";
@@ -55,8 +56,6 @@ class users {
         	$this->active = 1;
 		}
 
-		require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'myMail.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $mail = new myMail();
         $db_set = new DB_set();
@@ -81,22 +80,22 @@ class users {
                 if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
                 	return true;
                 } else {
-                	return false;
+                    self::delete_user($this->username);
+                	return 'mail_pb';
                 }
 	        } else {
 	            if ($mail-> send_confirmation_mail($this->email,$this->username,$this->password)) {
 	            	return true;
 	            } else {
-	            	return false;
+	            	return 'mail_pb';
 	            }
 	        }
 		} else {
-			return false;
+			return 'exist';
 		}
     }
 
     function get($prov_username) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $class_vars = get_class_vars("users");
@@ -113,7 +112,7 @@ class users {
                 }
             }
             $this->fullname = $this->firstname." ".$this->lastname;
-            $this -> nbpres = self::get_nbpres();
+            $this->nbpres = self::get_nbpres();
             return true;
         } else {
             return false;
@@ -123,7 +122,6 @@ class users {
     // Get the user number of presentations
     function get_nbpres() {
         // Update user nb of presentations
-        require_once($_SESSION['path_to_app'].'/includes/db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $sql = "SELECT title FROM $presentation_table WHERE orator='$this->fullname' and type!='wishlist'";
@@ -137,7 +135,6 @@ class users {
 
     // Update user info
     function update($post) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
 
@@ -154,7 +151,6 @@ class users {
     }
 
     function user_exist($prov_username) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
@@ -168,7 +164,6 @@ class users {
     }
 
     function mail_exist($prov_mail) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
@@ -188,8 +183,6 @@ class users {
     }
 
     function check_account_activation($hash,$email,$result) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'myMail.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
@@ -208,13 +201,12 @@ class users {
                 return "This account has already been activated.";
             }
         } else {
-            $db_set->deletecontent($users_table,array("email"),array("'$email''"));
+            self::delete_user($this->username);
             return "Permission denied by the admin. Account successfully deleted.";
         }
     }
 
     function activation($option) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         if ($option == 1){
             return self::check_account_activation($this->hash,$this->email,true);
@@ -226,8 +218,6 @@ class users {
     }
 
     function check_pwd($password) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require_once($_SESSION['path_to_includes'].'PasswordHash.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
@@ -244,14 +234,12 @@ class users {
     }
 
     function crypt_pwd($password) {
-        require_once($_SESSION['path_to_includes'].'PasswordHash.php');
         $hash = create_hash($password);
 
         return $hash;
     }
 
     function delete_user() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
 
         $db_set = new DB_set();
@@ -260,11 +248,57 @@ class users {
     }
 
     function change_user_status($newstatus) {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
         require($_SESSION['path_to_app'].'config/config.php');
         $db_set = new DB_set();
         $db_set -> updatecontent($users_table,'status',"'$newstatus'",array("username"),array("'$this->username'"));
     }
 
+    // Get list of publications (sorted)
+    function getpublicationlist($filter = NULL) {
+        require($_SESSION['path_to_app'].'config/config.php');
+        $db_set = new DB_set();
 
+        $sql = "SELECT id_pres FROM $presentation_table WHERE username='$this->username'";
+        if (null != $filter) {
+            $sql .= " AND YEAR(date)=$filter";
+        }
+        $sql .= " ORDER BY date";
+        $req = $db_set->send_query($sql);
+        $content = "
+            <div class='list-container' id='pub_labels'>
+                <div style='text-align: center; font-weight: bold; width: 10%;'>Date</div>
+                <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
+                <div style='text-align: center; font-weight: bold; width: 20%;'>Authors</div>
+                <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+            </div>
+        ";
+
+        while ($row = mysqli_fetch_assoc($req)) {
+            $pubid = $row['id_pres'];
+            $pub = new Presentation($pubid);
+            if ($pub->date == "0000-00-00") {
+                if ($pub->type == "wishlist") {
+                    $date = "WISH";
+                } else {
+                    $date = "";
+                }
+            } else {
+                $date = $pub->date;
+            }
+            $content .= "
+                <div class='pub_container' id='$pub->id_pres'>
+                    <div class='list-container'>
+                        <div style='text-align: center; width: 10%;'>$date</div>
+                        <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->title</div>
+                        <div style='text-align: center; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->authors</div>
+                        <div style='text-align: center; width: 10%; vertical-align: middle;'>
+                            <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'>MORE</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ";
+        }
+        return $content;
+    }
 }
