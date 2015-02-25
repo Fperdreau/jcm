@@ -39,3 +39,7 @@ uploads/*.pdf
 # Documents #
 #############
 *.docx
+
+# Dev #
+#############
+dev/*.php
