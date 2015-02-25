@@ -132,5 +132,3 @@ echo "
 
     </section>
 </div>";
-
-

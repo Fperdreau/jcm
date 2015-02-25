@@ -378,6 +378,23 @@ if (!empty($_POST['getpubform'])) {
 }
 
 // Display presentation (modal dialog)
+if (!empty($_POST['getpubform'])) {
+    $id_press = $_POST['getpubform'];
+    $type = $_POST['type'];
+    if ($id_press == "false") {
+        $pub = false;
+    } else {
+        $pub = new Press($id_press);
+    }
+    if (!isset($_SESSION['username'])) {
+        $_SESSION['username'] = false;
+    }
+    $user = new users($_SESSION['username']);
+    $result = displayform($user,$pub,$type);
+    echo json_encode($result);
+}
+
+// Display presentation (modal dialog)
 if (!empty($_POST['show_pub'])) {
     $id_Presentation = $_POST['show_pub'];
     if ($id_Presentation === "false") {

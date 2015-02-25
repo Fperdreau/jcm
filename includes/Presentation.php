@@ -479,6 +479,7 @@ class Presentation extends Presentations {
         } else {
             $chairman = $chair;
         }
+
         $speaker = new users($this->orator);
         return "
         <div id='$this->id_pres' style='display: block; width: 100%; margin: 5px auto 0 0; font-size: 11px; font-weight: 300; overflow: hidden;'>

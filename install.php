@@ -293,6 +293,7 @@ if (!empty($_POST['install_db'])) {
         echo json_encode("<p id='warning'>'$session_table' not updated</p>");
         exit;
     }
+
     echo json_encode($result);
     exit;
 }
