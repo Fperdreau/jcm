@@ -558,7 +558,7 @@ class Session extends Sessions {
         if (array_key_exists('presid', $post)) {
             $oldpres = explodecontent(',',$this->presid);
             if (in_array($post['presid'],$oldpres)) {
-                if (!self::chairexist()) {} $post['chairs'] = Sessions::getchair($post['date'],$post['speakers']);
+                if (!self::chairexist()) $post['chairs'] = Sessions::getchair($post['date'],$post['speakers']);
                 return self::update_pres($post);
             }
         }
@@ -590,6 +590,10 @@ class Session extends Sessions {
         return true;
     }
 
+    /**
+     * Check if a chair has already been assigned
+     * @return bool
+     */
     public function chairexist() {
         $chairs = explodecontent(',',$this->chairs);
         $presids = explodecontent(',',$this->presid);

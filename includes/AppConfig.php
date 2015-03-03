@@ -34,10 +34,10 @@ class AppConfig {
      * Application info
      *
      */
-    static $app_name = "Journal Club Manager";
-    static $version = "v1.3";
-    static $author = "Florian Perdreau";
-    static $repository = "https://github.com/Fperdreau/jcm";
+    public $app_name = "Journal Club Manager";
+    public $version = "v1.3";
+    public $author = "Florian Perdreau";
+    public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
     public $site_url = "(e.g. http://www.mydomain.com/Pjc/)";
     public $clean_day = 10;

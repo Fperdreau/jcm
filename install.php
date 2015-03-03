@@ -19,19 +19,49 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'includes/boot.php';
 
+
+/**
+ * Get previous config information. Return $config array if a config file already exist, or false otherwise.
+ * @return bool|array
+ */
+function get_config() {
+    $version_file = PATH_TO_CONFIG."config.php";
+    if (is_file($version_file)) {
+        require $version_file;
+        if (!isset($version) && !isset($config)) {
+            $config = false;
+        } else {
+            if (isset($version)) {
+                // This is a config file from previous JCM version
+                $config['version'] = $version;
+                $config['host'] = $host;
+                $config['username'] = $username;
+                $config['passw'] = $passw;
+                $config['dbname'] = $dbname;
+                $config['dbprefix'] = $db_prefix;
+            }
+        }
+    } else {
+        $config = false;
+    }
+    return $config;
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 if (!empty($_POST['inst_admin'])) {
-    $pass_crypte = htmlspecialchars($_POST['password']);
+    $encrypted_pw = htmlspecialchars($_POST['password']);
     $username = htmlspecialchars($_POST['username']);
     $email = htmlspecialchars($_POST['email']);
 
     $user = new User($db);
-    $adduser = $user -> make($username,$pass_crypte,$username,"","",$email,"admin");
-    $result = "<p id='success'>Admin account created</p>";
-
+    if ($user -> make($username,$encrypted_pw,$username,"","",$email,"admin")) {
+        $result = "<p id='success'>Admin account created</p>";
+    } else {
+        $result = "<p id='warning'>We could not create the admin account</p>";
+    }
     echo json_encode($result);
 	exit;
 }
@@ -58,7 +88,7 @@ if (!empty($_POST['do_conf'])) {
 	}
 
     // Make uploads folder
-    $dirname = PATH_TO_APP."uploads/";
+    $dirname = PATH_TO_APP."/uploads/";
     if (is_dir($dirname) === false) {
         if (!mkdir($dirname,0755)) {
             json_encode("Could not create uploads directory");
@@ -96,8 +126,8 @@ if (!empty($_POST['do_conf'])) {
 
 // Do Back ups
 if (!empty($_POST['backup'])) {
-    $backupfile = backup_db();
-    echo json_encode($backupfile);
+    $backup_file = backup_db();
+    echo json_encode($backup_file);
     exit;
 }
 
@@ -109,16 +139,16 @@ if (!empty($_POST['install_db'])) {
     $result = "";
     
     // Tables to create
-    $tablestocreate = $db->tablesname;
+    $tables_to_create = $db->tablesname;
 
     // First we remove any deprecated tables
-    $oldtables = $db->apptables;
-    foreach ($oldtables as $oldtable) {
-        if (!in_array($oldtable,$tablestocreate)) {
-            if ($db->deletetable($oldtable) == true) {
-                $result .= "<p id='success'>$oldtable has been deleted because we do not longer need it</p>";
+    $old_tables = $db->apptables;
+    foreach ($old_tables as $old_table) {
+        if (!in_array($old_table,$tables_to_create)) {
+            if ($db->deletetable($old_table) == true) {
+                $result .= "<p id='success'>$old_table has been deleted because we do not longer need it</p>";
             } else {
-                $result .= "<p id='warning'>We could not remove $oldtable although we do not longer need it</p>";
+                $result .= "<p id='warning'>We could not remove $old_table although we do not longer need it</p>";
                 echo json_encode($result);
                 exit;
             }
@@ -126,7 +156,7 @@ if (!empty($_POST['install_db'])) {
     }
 
     // Create users table
-    $tabledata = array(
+    $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "date"=>array("DATETIME",date('Y-m-d h:i:s')),
         "firstname"=>array("CHAR(30)",false),
@@ -145,7 +175,7 @@ if (!empty($_POST['install_db'])) {
         "primary"=>"id"
         );
 
-    if ($db->makeorupdate($db->tablesname['User'],$tabledata,$op)) {
+    if ($db->makeorupdate($db->tablesname['User'],$table_data,$op)) {
 	    $result .= "<p id='success'>'".$db->tablesname['User']."' created</p>";
     } else {
         echo json_encode("<p id='warning'>'".$db->tablesname['User']."' not created</p>");
@@ -153,7 +183,7 @@ if (!empty($_POST['install_db'])) {
     }
 
     // Create Post table
-    $tabledata = array(
+    $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "postid"=>array("CHAR(30)","NOT NULL"),
         "date"=>array("DATETIME",date('Y-m-d h:i:s')),
@@ -162,7 +192,7 @@ if (!empty($_POST['install_db'])) {
         "username"=>array("CHAR(30)",false),
         "homepage"=>array("INT(1)",0),
         "primary"=>"id");
-    if ($db->makeorupdate($db->tablesname['Posts'],$tabledata,$op)) {
+    if ($db->makeorupdate($db->tablesname['Posts'],$table_data,$op)) {
 	    $result .= "<p id='success'> '".$db->tablesname['Posts']."' created</p>";
     } else {
         echo json_encode("<p id='warning'>'$db->tablesname['Posts']' not created</p>");
@@ -182,21 +212,21 @@ if (!empty($_POST['install_db'])) {
     }
 
     // Create config table
-    $tabledata = array(
+    $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "variable"=>array("CHAR(20)",false),
         "value"=>array("TEXT",false),
         "primary"=>"id");
-    if ($db->makeorupdate($db->tablesname['AppConfig'],$tabledata,$op) == true) {
+    if ($db->makeorupdate($db->tablesname['AppConfig'],$table_data,$op) == true) {
     	$result .= "<p id='success'> '".$db->tablesname['AppConfig']."' created</p>";
     } else {
         echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not created</p>");
         exit;
     }
 
-    // Get defaut application settings
+    // Get default application settings
     if ($op === false) {
-        $config = new AppConfig($db);
+        $config = new AppConfig($db,false);
     } else {
         $config = new AppConfig($db);
     }
@@ -209,7 +239,7 @@ if (!empty($_POST['install_db'])) {
     }
 
     // Create presentations table
-    $tabledata = array(
+    $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "up_date"=>array("DATETIME",false),
         "id_pres"=>array("BIGINT(15)",false),
@@ -226,7 +256,7 @@ if (!empty($_POST['install_db'])) {
         "primary"=>"id"
         );
 
-    if ($db->makeorupdate($db->tablesname['Presentation'],$tabledata,$op)) {
+    if ($db->makeorupdate($db->tablesname['Presentation'],$table_data,$op)) {
     	$result .= "<p id='success'>'".$db->tablesname['Presentation']."' created</p>";
     } else {
         echo json_encode("<p id='warning'>'".$db->tablesname['Presentation']."' not created</p>");
@@ -245,7 +275,7 @@ if (!empty($_POST['install_db'])) {
     }
 
     // Create Session table
-    $tabledata = array(
+    $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "date"=>array("DATE",false),
         "status"=>array("CHAR(10)","FREE"),
@@ -256,18 +286,10 @@ if (!empty($_POST['install_db'])) {
         "chairs"=>array("VARCHAR(200)","NOT NULL"),
         "nbpres"=>array("INT(2)",0),
         "primary"=>"id");
-    if ($db->makeorupdate($db->tablesname['Session'],$tabledata,$op)) {
+    if ($db->makeorupdate($db->tablesname['Session'],$table_data,$op)) {
         $result .= "<p id='success'> '".$db->tablesname['Session']."' created</p>";
     } else {
         echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not created</p>");
-        exit;
-    }
-
-    // Check consistency between presentations and sessions table
-    if ($Sessions->checkcorrespondence()) {
-        $result .= "<p id='success'> '".$db->tablesname['Session']."' updated</p>";
-    } else {
-        echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not updated</p>");
         exit;
     }
 
@@ -275,26 +297,34 @@ if (!empty($_POST['install_db'])) {
     exit;
 }
 
-// Get page content
+if (!empty($_POST['checkdb'])) {
+    // Check consistency between presentations and sessions table
+    $result = $Sessions->checkcorrespondence()
+        ? "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>"
+        : "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+    echo json_encode($result);
+    exit;
+}
+
+/**
+ * Get page content
+ *
+ */
 if (!empty($_POST['getpagecontent'])) {
     $step = htmlspecialchars($_POST['getpagecontent']);
     $_SESSION['step'] = $step;
     $op = htmlspecialchars($_POST['op']);
-    $newversion = $AppConfig->version;
+    $new_version = $AppConfig->version;
 
     if ($op == "update") $config = new AppConfig($db);
 
-    $versionfile = PATH_TO_CONFIG."config.php";
-    if (is_file($versionfile)) {
-        require($versionfile);
-        if (!isset($version) && !isset($config)) {
-            $version = false;
-        } else {
-            $version = $config['version'];
-        }
-    } else {
-        $version = false;
-    }
+    /**
+     * Get configuration from previous installation
+     * @var  $config
+     *
+     */
+    $config = get_config();
+    $version = ($config !== false) ? $config['version']: false;
 
     if ($step == 1) {
         $title = "Welcome to the Journal Club Manager";
@@ -309,27 +339,27 @@ if (!empty($_POST['getpagecontent'])) {
         } else {
             $operation = "
                 <p>Hello</p>
-                <p>The current version of <i>Journal Club Manager</i> installed here is $version. You are about to install the version $newversion.</p>
+                <p>The current version of <i>Journal Club Manager</i> installed here is $version. You are about to install the version $new_version.</p>
                 <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
                 <p id='warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <i>Journal Club Manager</i> database!!</p>
                 <p style='text-align: center'>
                 <input type='button' id='submit' value='New installation'  class='start' data-op='new'>
-                <input type='button' id='submit' value='Update'  class='start' data-op='update'></p>";
+                <input type='button' id='submit' value='Update'  class='start' data-op='update'>
+                </p>";
         }
     } elseif ($step == 2) {
         if ($version !== false) {
-            require($versionfile);
+            $config = get_config();
             foreach ($config as $name=>$value) {
                 $$name = $value;
             }
-            $db_prefix = str_replace('_','',$config['dbprefix']);
-
+            $dbprefix = str_replace('_','',$config['dbprefix']);
         } else {
             $host = "localhost";
             $username = "root";
             $passw = "";
             $dbname = "test";
-            $db_prefix = "jcm";
+            $dbprefix = "jcm";
         }
 
 		$title = "Step 1: Database configuration";
@@ -342,7 +372,7 @@ if (!empty($_POST['getpagecontent'])) {
 				<label for='username' class='label'>Username</label><input class='field' name='username' type='text' value='$username'></br>
 				<label for='passw' class='label'>Password</label><input class='field' name='passw' type='password' value='$passw'></br>
 				<label for='dbname' class='label'>DB Name</label><input class='field' name='dbname' type='text' value='$dbname'></br>
-				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='$db_prefix'></br>
+				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='$dbprefix'></br>
 				<p style='text-align: right'><input type='submit' name='do_conf' value='Next' id='submit' class='do_conf' data-op='$op'></p>
 			</form>
 			<div class='feedback'></div>
@@ -357,11 +387,11 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='op' value='$op'/>
                 <input class='field' type='hidden' name='install_db' value='true' />
 
-                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About your Journal Club Manager</div>
+                <div style='display: block; padding: 5px; margin-left: 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About your Journal Club Manager</div>
                 <label for='sitetitle' class='label'>Site title</label><input class='field' name='sitetitle' type='text' value='$AppConfig->sitetitle'></br>
                 <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$AppConfig->site_url' size='30'></br>
 
-                <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About the mailing service</div>
+                <div style='display: block; padding: 5px; margin-left: 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About the mailing service</div>
                 <label for='mail_from' class='label'>Sender Email address</label><input class='field' name='mail_from' type='text' value='$AppConfig->mail_from'></br>
                 <label for='mail_from_name' class='label'>Sender name</label><input class='field' name='mail_from_name' type='text' value='$AppConfig->mail_from_name'></br>
                 <label for='mail_host' class='label'>Email host</label><input class='field' name='mail_host' type='text' value='$AppConfig->mail_host'></br>
@@ -443,14 +473,14 @@ if (!empty($_POST['getpagecontent'])) {
 
             //Show feedback
             var showfeedback = function(message,selector) {
-                if (typeof selector == undefined) {
+                if (typeof selector == "undefined") {
                     selector = ".feedback";
                 }
                 $(""+selector)
                     .show()
                     .html(message)
                     .fadeOut(5000);
-            }
+            };
 
             var getpagecontent = function(step,op) {
                 jQuery.ajax({
@@ -460,6 +490,12 @@ if (!empty($_POST['getpagecontent'])) {
                     data: {
                         getpagecontent: step,
                         op: op},
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
                     success: function(data){
                         var result = jQuery.parseJSON(data);
                         $('#loading').hide();
@@ -468,12 +504,12 @@ if (!empty($_POST['getpagecontent'])) {
                             .fadeIn('slow');
                     }
                 });
-            }
+            };
 
             var dobackup = function() {
                 $('#operation')
                     .hide()
-                    .html("<p id='status'>Backup previous database</p>")
+                    .html('<p id="status">Backup previous database</p>')
                     .fadeIn(200);
                 // Make configuration file
                 jQuery.ajax({
@@ -481,6 +517,12 @@ if (!empty($_POST['getpagecontent'])) {
                     type: 'POST',
                     async: true,
                     data: {backup: true},
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
                     success: function(data){
                         var result = jQuery.parseJSON(data);
                         var html = "<p id='success'>Backup created: "+result+"</p>";
@@ -491,7 +533,35 @@ if (!empty($_POST['getpagecontent'])) {
                     }
                 });
                 return false;
-            }
+            };
+
+            var checkdb = function() {
+                $('#operation')
+                    .hide()
+                    .html('<p id="status">Check consistency between session/presentation tables</p>')
+                    .fadeIn(200);
+                jQuery.ajax({
+                    url: 'install.php',
+                    type: 'POST',
+                    async: true,
+                    data: {checkdb: true},
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
+                    success: function(data){
+                        var result = jQuery.parseJSON(data);
+                        var html = "<p id='success'>result</p>";
+                        $('#operation')
+                            .hide()
+                            .append(html)
+                            .fadeIn(200);
+                    }
+                });
+                return false;
+            };
 
             $(document).ready(function () {
                 $('.mainbody')
@@ -541,20 +611,27 @@ if (!empty($_POST['getpagecontent'])) {
                             type: 'POST',
                             async: true,
                             data: data,
+                            beforeSend: function() {
+                                $('#loading').show();
+                            },
+                            complete: function() {
+                                $('#loading').hide();
+                            },
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
+                                var html;
                                 if (result === true) {
-                                    var html = "<p id='success'>Configuration file created/updated</p>";
+                                    html = "<p id='success'>Configuration file created/updated</p>";
                                 } else {
-                                    var html = "<p id='warning'>"+result+"</p>";
+                                    html = "<p id='warning'>"+result+"</p>";
                                 }
                                 $('#operation')
                                     .hide()
                                     .append(html)
                                     .fadeIn(200);
-                                var timer = setInterval(function() {
+                                // Go to the next step
+                                setTimeout(function(){
                                     getpagecontent(3,op);
-                                    clearInterval(timer);
                                 },2000);
                             }
                         });
@@ -570,7 +647,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: true,
+                            async: false,
                             data: data,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
@@ -578,13 +655,17 @@ if (!empty($_POST['getpagecontent'])) {
                                     .hide()
                                     .html(result)
                                     .fadeIn(200);
-                                var timer = setInterval(function() {
+
+                                // Check database consistency
+                                checkdb();
+
+                                // Go to next step
+                                setTimeout(function() {
                                     if (op !== "update") {
                                         getpagecontent(4,op);
                                     } else {
                                         getpagecontent(5,op);
                                     }
-                                    clearInterval(timer);
                                 },2000);
                             }
                         });
@@ -645,6 +726,12 @@ if (!empty($_POST['getpagecontent'])) {
                                 password: password,
                                 email: email,
                                 conf_password: conf_password},
+                            beforeSend: function() {
+                                $('#loading').show();
+                            },
+                            complete: function() {
+                                $('#loading').hide();
+                            },
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
                                 showfeedback(result);
@@ -652,9 +739,6 @@ if (!empty($_POST['getpagecontent'])) {
                             }
                         });
                     });
-            }).on({
-                ajaxStart: function() { $("#loading").show(); },
-                ajaxStop: function() { $("#loading").hide(); }
             });
         </script>
         <title>Journal Club Manager - Installation</title>
@@ -688,9 +772,9 @@ if (!empty($_POST['getpagecontent'])) {
 
         <!-- Footer section -->
         <div id="footer">
-            <span id="sign"><?php echo "<a href='$config->repository' target='_blank'>$config->app_name $config->version</a>
+            <span id="sign"><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a>
              | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
-             | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $config->author</a>" ?></span>
+             | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></span>
         </div>
     </body>
 </html>
