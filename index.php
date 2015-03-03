@@ -17,22 +17,14 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-session_set_cookie_params(3600);
-session_start();
-$_SESSION['app_name'] = basename(__DIR__);
-$_SESSION['path_to_app'] = dirname(__FILE__)."/";
-$_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
-$_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
-$_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
-$_SESSION['path_to_pages'] = $_SESSION['path_to_app']."pages/";
-date_default_timezone_set('Europe/Paris');
 if (empty($_SESSION['logok'])) { $_SESSION['logok'] = false;}
 
 // Includes required files (classes)
-require_once($_SESSION['path_to_includes'].'includes.php');
+require_once('includes/boot.php');
 
 // Get application settings
-$config = new site_config('get');
+$db = new DbSet();
+$config = new AppConfig($db);
 
 ?>
 
@@ -58,17 +50,17 @@ $config = new site_config('get');
     </head>
 
     <body class="mainbody">
-        <?php require($_SESSION['path_to_pages'].'modal.php'); ?>
+        <?php require(PATH_TO_PAGES.'modal.php'); ?>
 
         <div id="mainheader">
             <!-- Header section -->
             <div class="header">
-                <?php require($_SESSION['path_to_html'].'page_header.php'); ?>
+                <?php require(PATH_TO_PHP.'page_header.php'); ?>
             </div>
 
             <!-- Menu section -->
             <div class='menu'>
-                <?php require($_SESSION['path_to_html'].'page_menu.php'); ?>
+                <?php require(PATH_TO_PHP.'page_menu.php'); ?>
             </div>
         </div>
 

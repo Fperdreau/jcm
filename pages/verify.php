@@ -17,24 +17,13 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-session_start();
-$_SESSION['app_name'] = basename(dirname(__DIR__));
-$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
-$_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
-$_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
-$_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
-$_SESSION['path_to_pages'] = $_SESSION['path_to_app']."pages/";
-date_default_timezone_set('Europe/Paris');
-
-// Includes required files (classes)
-include_once($_SESSION['path_to_includes'].'includes.php');
+require('../includes/boot.php');
 
 if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
-    require_once($_SESSION['path_to_app'].'/includes/users.php');
     $hash = htmlspecialchars($_GET['hash']);
     $email = htmlspecialchars($_GET['email']);
     $result = htmlspecialchars($_GET['result']);
-    $user = new users();
+    $user = new User();
     $valid = $user -> check_account_activation($hash,$email,$result);
     $result = "
     <div id='content'>

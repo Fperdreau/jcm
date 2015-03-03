@@ -17,36 +17,32 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@session_start();
-$_SESSION['app_name'] = basename(dirname(__DIR__));
-$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
-$_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
-date_default_timezone_set('Europe/Paris');
+require('../includes/boot.php');
 
-// Includes
-require_once($_SESSION['path_to_includes'].'includes.php');
 
-// Execute cron job
+/**
+ * Send email notification
+ */
 function mailing() {
     // Declare classes
-    $mail = new myMail();
-    $config = new site_config('get');
-    $ids = Sessions::getsessions(true);
+    global $AppMail, $AppConfig, $Sessions;
+
+    $ids = $Sessions->getsessions(true);
     $nextsession = new Session($ids[0]);
 
 	// Number of users
-    $nusers = count($mail->get_mailinglist("reminder"));
+    $nusers = count($AppMail->get_mailinglist("reminder"));
 
 	// Compare date of the next presentation to today
     $today   = new DateTime(date('Y-m-d'));
-    $reminder_day = new DateTime(date("Y-m-d",strtotime($nextsession->date." - $config->reminder days")));
+    $reminder_day = new DateTime(date("Y-m-d",strtotime($nextsession->date." - $AppConfig->reminder days")));
     $send = $today->format('Y-m-d') == $reminder_day->format('Y-m-d');
 
     if ($send === true) {
-        $content = $mail->reminder_Mail();
-        $body = $mail -> formatmail($content['body']);
+        $content = $AppMail->reminder_Mail();
+        $body = $AppMail -> formatmail($content['body']);
         $subject = $content['subject'];
-        if ($mail->send_to_mailinglist($subject,$body,"reminder")) {
+        if ($AppMail->send_to_mailinglist($subject,$body,"reminder")) {
             $string = "[".date('Y-m-d H:i:s')."]: message sent successfully to $nusers users.\r\n";
         } else {
             $string = "[".date('Y-m-d H:i:s')."]: ERROR message not sent.\r\n";
@@ -68,6 +64,8 @@ function mailing() {
     }
 }
 
-// Run cron job
+/**
+ * Run cron job
+ */
 mailing();
 

@@ -17,16 +17,10 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@session_start();
-$_SESSION['app_name'] = basename(dirname(__DIR__));
-$_SESSION['path_to_app'] = dirname(dirname(__FILE__))."/";
-$_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
-date_default_timezone_set('Europe/Paris');
+require('../includes/boot.php');
 
-require_once($_SESSION['path_to_includes'].'includes.php');
-require_once($_SESSION['path_to_app'].'config/config.php');
-$user = new users();
-$db_set = new DB_set();
+$user = new User();
+$db_set = new DbSet();
 
 // Modify user password
 if (!empty($_GET['hash']) && !empty($_GET['email'])) {

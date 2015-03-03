@@ -17,20 +17,26 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@session_start();
-require_once($_SESSION['path_to_includes'].'includes.php');
+require_once('../includes/boot.php');
+$db = new DbSet();
+$last_news = new Posts($db);
+$sessions = new Sessions($db);
+$presentations = new Presentations($db);
 
-$last_news = new Posts();
+/** @var $news Sessions */
 $news = $last_news->show();
-$nextpres = Sessions::shownextsession();
-$futurepres = Sessions::showfuturesession(4);
-$wishlist = Presentations::getwishlist();
+/** @var $nextpres Sessions */
+$nextpres = $sessions->shownextsession();
+/** @var $futurepres Sessions */
+$futurepres = $sessions->showfuturesession(4);
+/** @var $wishlist Sessions */
+$wishlist = $presentations->getwishlist();
 
 
 if ( !(isset($_SESSION['logok']) && $_SESSION['logok'])) {
     $welcome_msg = "
-    <div style='width: 90%; padding: 10px; margin: auto; background: rgba(127,127,127,.1); text-align: justify;'>
-        <p>Welcome on the Journal Club website!</p>
+    <div id='welcome_msg'>
+        <p>Welcome to the Journal Club Manager &copy;!</p>
         <p>By <a href='#modal' rel='leanModal' id='modal_trigger_register' class='modal_trigger'>signing up</a> to our website, you will get access to the following
         features:</p>
         <ul>

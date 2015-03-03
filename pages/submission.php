@@ -17,31 +17,18 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
- @session_start();
-require_once($_SESSION['path_to_includes'].'includes.php');
+require('../includes/boot.php');
 check_login();
-
+global $db, $Presentations;
 // Declare classes
-$Presentation = new Presentation();
-$user = new users($_SESSION['username']);
+$user = new User($db,$_SESSION['username']);
 
 // Get options
 $op = htmlspecialchars($_GET['op']);
-
-// Select a presentation from the wishlist
-if (!empty($_POST['id'])) {
-    $id_pres = htmlspecialchars($_POST['id']);
-    $Presentation -> get($id_pres);
-}
-
-if (!empty($_GET['id'])) {
-    $id_pres = htmlspecialchars($_GET['id']);
-    $Presentation -> get($id_pres);
-}
-
+$result = "Oops";
 // Submit a new presentation
 if ($op == 'new') {
-    $submit_form = displayform($user,$Presentation,'submit');
+    $submit_form = displayform($user);
     $result = "
     <div id='content'>
         <div id='pagename'>Submit a presentation</div>
@@ -58,7 +45,7 @@ if ($op == 'new') {
 
 // Suggest a presentation
 } elseif ($op == 'suggest') {
-    $submit_form = displayform($user,$Presentation,"suggest");
+    $submit_form = displayform($user,false,"suggest");
     $result = "
     <div id='content'>
         <div id='pagename'>Suggest a wish</div>
@@ -73,7 +60,14 @@ if ($op == 'new') {
 
 // Select from the wish list
 } elseif ($op == 'wishpick') {
-    $selectopt = Presentations::generate_selectwishlist();
+    if (!empty($_GET['id'])) {
+        $id_pres = htmlspecialchars($_GET['id']);
+        $Presentation = new Presentation($db,$id_pres);
+    } else {
+        $Presentation = false;
+    }
+
+    $selectopt = $Presentations->generate_selectwishlist();
     if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
         $submit_form = displayform($user,$Presentation,'update');
     } else {

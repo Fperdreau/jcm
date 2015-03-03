@@ -17,19 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-session_set_cookie_params(3600);
-session_start();
-$_SESSION['app_name'] = basename(__DIR__);
-$_SESSION['path_to_app'] = dirname(__FILE__)."/";
-$_SESSION['path_to_img'] = $_SESSION['path_to_app'].'images/';
-$_SESSION['path_to_includes'] = $_SESSION['path_to_app']."includes/";
-$_SESSION['path_to_html'] = $_SESSION['path_to_app']."php/";
-$_SESSION['path_to_pages'] = $_SESSION['path_to_app']."pages/";
-date_default_timezone_set('Europe/Paris');
-set_time_limit(0);
-// Includes required files (classes)
-require_once($_SESSION['path_to_includes'].'includes.php');
-$config = new site_config();
+require 'includes/boot.php';
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
@@ -40,7 +28,7 @@ if (!empty($_POST['inst_admin'])) {
     $username = htmlspecialchars($_POST['username']);
     $email = htmlspecialchars($_POST['email']);
 
-    $user = new users();
+    $user = new User($db);
     $adduser = $user -> make($username,$pass_crypte,$username,"","",$email,"admin");
     $result = "<p id='success'>Admin account created</p>";
 
@@ -48,50 +36,45 @@ if (!empty($_POST['inst_admin'])) {
 	exit;
 }
 
-// Write application settings in config.php
+/**
+ * Write application settings to config.php
+ *
+ */
 if (!empty($_POST['do_conf'])) {
 
-    $filename = $_SESSION['path_to_app']."config/config.php";
+    $filename = PATH_TO_CONFIG."config.php";
 	$result = "";
 	if (is_file($filename)) {
-        chmod($filename,0777);
 		unlink($filename);
 	}
 
     // Make config folder
-    $dirname = $_SESSION['path_to_app']."config/";
+    $dirname = PATH_TO_CONFIG;
 	if (is_dir($dirname) === false) {
-		if (!mkdir($dirname)) {
+		if (!mkdir($dirname,0755)) {
             json_encode("Could not create config directory");
             exit;
         }
-        chmod($dirname,0755);
 	}
 
     // Make uploads folder
-    $dirname = $_SESSION['path_to_app']."uploads/";
+    $dirname = PATH_TO_APP."uploads/";
     if (is_dir($dirname) === false) {
-        if (!mkdir($dirname)) {
+        if (!mkdir($dirname,0755)) {
             json_encode("Could not create uploads directory");
             exit;
         }
-        chmod($dirname,0755);
     }
 
     // Write configuration information to config/config.php
-    $string = '<?php
-    $version = "'. $_POST["version"]. '";
-	$host = "'. $_POST["host"]. '";
-	$username = "'. $_POST["username"]. '";
-	$passw = "'. $_POST["passw"]. '";
-	$dbname = "'. $_POST["dbname"]. '";
-	$db_prefix = "'. $_POST["dbprefix"]. '_";
-	$users_table = "'. $_POST["dbprefix"].'_users";
-	$presentation_table = "'. $_POST["dbprefix"].'_presentations";
-    $config_table = "'. $_POST["dbprefix"].'_config";
-    $post_table = "'. $_POST["dbprefix"].'_post";
-    $session_table = "'. $_POST["dbprefix"].'_session";
-	?>';
+    $config = array();
+    foreach ($_POST as $name=>$value) {
+        if (!in_array($name,array("do_conf","op"))) {
+            $config[] = '"'.$name.'" => "'.$value.'"';
+        }
+    }
+    $config = implode(',',$config);
+    $string = '<?php $config = array('.$config.'); ?>';
 
 	// Create new config file
     if ($fp = fopen($filename, "w+")) {
@@ -107,7 +90,6 @@ if (!empty($_POST['do_conf'])) {
         echo json_encode($result);
         exit;
     }
-    chmod($filename,0644);
     echo json_encode(true);
     exit;
 }
@@ -121,24 +103,19 @@ if (!empty($_POST['backup'])) {
 
 // Configure database
 if (!empty($_POST['install_db'])) {
-    require($_SESSION['path_to_app'].'config/config.php');
 
     $op = htmlspecialchars($_POST['op']);
     $op = $op == "new";
     $result = "";
-
-    // Connect to DB
-    $db_set = new DB_set();
-
+    
     // Tables to create
-    $tablestocreate = array($users_table,$presentation_table,$config_table,
-        $post_table,$session_table);
+    $tablestocreate = $db->tablesname;
 
     // First we remove any deprecated tables
-    $oldtables = $db_set->apptables;
+    $oldtables = $db->apptables;
     foreach ($oldtables as $oldtable) {
         if (!in_array($oldtable,$tablestocreate)) {
-            if ($db_set->deletetable($oldtable) == true) {
+            if ($db->deletetable($oldtable) == true) {
                 $result .= "<p id='success'>$oldtable has been deleted because we do not longer need it</p>";
             } else {
                 $result .= "<p id='warning'>We could not remove $oldtable although we do not longer need it</p>";
@@ -168,10 +145,10 @@ if (!empty($_POST['install_db'])) {
         "primary"=>"id"
         );
 
-    if ($db_set->makeorupdate($users_table,$tabledata,$op)) {
-	    $result .= "<p id='success'>'$users_table' created</p>";
+    if ($db->makeorupdate($db->tablesname['User'],$tabledata,$op)) {
+	    $result .= "<p id='success'>'".$db->tablesname['User']."' created</p>";
     } else {
-        echo json_encode("<p id='warning'>'$users_table' not created</p>");
+        echo json_encode("<p id='warning'>'".$db->tablesname['User']."' not created</p>");
         exit;
     }
 
@@ -185,19 +162,19 @@ if (!empty($_POST['install_db'])) {
         "username"=>array("CHAR(30)",false),
         "homepage"=>array("INT(1)",0),
         "primary"=>"id");
-    if ($db_set->makeorupdate($post_table,$tabledata,$op)) {
-	    $result .= "<p id='success'> '$post_table' created</p>";
+    if ($db->makeorupdate($db->tablesname['Posts'],$tabledata,$op)) {
+	    $result .= "<p id='success'> '".$db->tablesname['Posts']."' created</p>";
     } else {
-        echo json_encode("<p id='warning'>'$post_table' not created</p>");
+        echo json_encode("<p id='warning'>'$db->tablesname['Posts']' not created</p>");
         exit;
     }
 
     // Give ids to posts that do not have one yet (compatibility with older verions)
-    $sql = "SELECT postid,date FROM $post_table";
-    $req = $db_set->send_query($sql);
+    $sql = "SELECT postid,date FROM ".$db->tablesname['Posts'];
+    $req = $db->send_query($sql);
     while ($row = mysqli_fetch_assoc($req)) {
         if (empty($row['postid'])) {
-            $post = new Posts();
+            $post = new Posts($db);
             $post->date = $row['date'];
             $post->postid = $post->makeID();
             $post->update();
@@ -210,24 +187,24 @@ if (!empty($_POST['install_db'])) {
         "variable"=>array("CHAR(20)",false),
         "value"=>array("TEXT",false),
         "primary"=>"id");
-    if ($db_set->makeorupdate($config_table,$tabledata,$op) == true) {
-    	$result .= "<p id='success'> '$config_table' created</p>";
+    if ($db->makeorupdate($db->tablesname['AppConfig'],$tabledata,$op) == true) {
+    	$result .= "<p id='success'> '".$db->tablesname['AppConfig']."' created</p>";
     } else {
-        echo json_encode("<p id='warning'>'$config_table' not created</p>");
+        echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not created</p>");
         exit;
     }
 
     // Get defaut application settings
     if ($op === false) {
-        $config = new site_config('get');
+        $config = new AppConfig($db);
     } else {
-        $config = new site_config();
+        $config = new AppConfig($db);
     }
 
     if ($config->update($_POST) === true) {
-        $result .= "<p id='success'> '$config_table' updated</p>";
+        $result .= "<p id='success'> '".$db->tablesname['AppConfig']."' updated</p>";
     } else {
-        echo json_encode("<p id='warning'>'$config_table' not updated</p>");
+        echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not updated</p>");
         exit;
     }
 
@@ -249,19 +226,19 @@ if (!empty($_POST['install_db'])) {
         "primary"=>"id"
         );
 
-    if ($db_set->makeorupdate($presentation_table,$tabledata,$op)) {
-    	$result .= "<p id='success'>'$presentation_table' created</p>";
+    if ($db->makeorupdate($db->tablesname['Presentation'],$tabledata,$op)) {
+    	$result .= "<p id='success'>'".$db->tablesname['Presentation']."' created</p>";
     } else {
-        echo json_encode("<p id='warning'>'$presentation_table' not created</p>");
+        echo json_encode("<p id='warning'>'".$db->tablesname['Presentation']."' not created</p>");
         exit;
     }
 
     // Set username of the uploader
-    $sql = "SELECT id_pres,username,orator FROM $presentation_table";
-    $req = $db_set->send_query($sql);
+    $sql = 'SELECT id_pres,username,orator FROM '.$db->tablesname['Presentation'];
+    $req = $db->send_query($sql);
     while ($row = mysqli_fetch_assoc($req)) {
         if (empty($row['username'])) {
-            $pub = new Presentation($row['id_pres']);
+            $pub = new Presentation($db,$row['id_pres']);
             $pub->username = $row['orator'];
             $pub->update();
         }
@@ -279,18 +256,18 @@ if (!empty($_POST['install_db'])) {
         "chairs"=>array("VARCHAR(200)","NOT NULL"),
         "nbpres"=>array("INT(2)",0),
         "primary"=>"id");
-    if ($db_set->makeorupdate($session_table,$tabledata,$op)) {
-        $result .= "<p id='success'> '$session_table' created</p>";
+    if ($db->makeorupdate($db->tablesname['Session'],$tabledata,$op)) {
+        $result .= "<p id='success'> '".$db->tablesname['Session']."' created</p>";
     } else {
-        echo json_encode("<p id='warning'>'$session_table' not created</p>");
+        echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not created</p>");
         exit;
     }
 
     // Check consistency between presentations and sessions table
-    if (Sessions::checkcorrespondence()) {
-        $result .= "<p id='success'> '$session_table' updated</p>";
+    if ($Sessions->checkcorrespondence()) {
+        $result .= "<p id='success'> '".$db->tablesname['Session']."' updated</p>";
     } else {
-        echo json_encode("<p id='warning'>'$session_table' not updated</p>");
+        echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not updated</p>");
         exit;
     }
 
@@ -303,15 +280,17 @@ if (!empty($_POST['getpagecontent'])) {
     $step = htmlspecialchars($_POST['getpagecontent']);
     $_SESSION['step'] = $step;
     $op = htmlspecialchars($_POST['op']);
-    if ($op == "update") {
-        $config = new site_config('get');
-    }
+    $newversion = $AppConfig->version;
 
-    $versionfile = $_SESSION['path_to_app']."config/config.php";
+    if ($op == "update") $config = new AppConfig($db);
+
+    $versionfile = PATH_TO_CONFIG."config.php";
     if (is_file($versionfile)) {
         require($versionfile);
-        if (empty($version)) {
+        if (!isset($version) && !isset($config)) {
             $version = false;
+        } else {
+            $version = $config['version'];
         }
     } else {
         $version = false;
@@ -330,7 +309,7 @@ if (!empty($_POST['getpagecontent'])) {
         } else {
             $operation = "
                 <p>Hello</p>
-                <p>The current version of <i>Journal Club Manager</i> installed here is $version. You are about to install the version $config->version.</p>
+                <p>The current version of <i>Journal Club Manager</i> installed here is $version. You are about to install the version $newversion.</p>
                 <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
                 <p id='warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <i>Journal Club Manager</i> database!!</p>
                 <p style='text-align: center'>
@@ -340,7 +319,11 @@ if (!empty($_POST['getpagecontent'])) {
     } elseif ($step == 2) {
         if ($version !== false) {
             require($versionfile);
-            $db_prefix = str_replace('_','',$db_prefix);
+            foreach ($config as $name=>$value) {
+                $$name = $value;
+            }
+            $db_prefix = str_replace('_','',$config['dbprefix']);
+
         } else {
             $host = "localhost";
             $username = "root";
@@ -352,7 +335,7 @@ if (!empty($_POST['getpagecontent'])) {
 		$title = "Step 1: Database configuration";
 		$operation = "
 			<form action='' method='post' name='install' id='do_conf'>
-                <input type='hidden' name='version' value='$config->version'>
+                <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
 				<input class='field' type='hidden' name='do_conf' value='true' />
 				<label for='host' class='label'>Host Name</label><input class='field' name='host' type='text' value='$host'></br>
@@ -365,33 +348,33 @@ if (!empty($_POST['getpagecontent'])) {
 			<div class='feedback'></div>
 		";
     } elseif ($step == 3) {
-        $config->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
+        $AppConfig->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
 
         $title = "Step 2: Application configuration";
         $operation = "
             <form action='' method='post' name='install' id='install_db'>
-                <input type='hidden' name='version' value='$config->version'>
+                <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
                 <input class='field' type='hidden' name='install_db' value='true' />
 
                 <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About your Journal Club Manager</div>
-                <label for='sitetitle' class='label'>Site title</label><input class='field' name='sitetitle' type='text' value='$config->sitetitle'></br>
-                <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$config->site_url' size='30'></br>
+                <label for='sitetitle' class='label'>Site title</label><input class='field' name='sitetitle' type='text' value='$AppConfig->sitetitle'></br>
+                <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$AppConfig->site_url' size='30'></br>
 
                 <div style='display: block; padding: 5px; margin-left: 10px 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About the mailing service</div>
-                <label for='mail_from' class='label'>Sender Email address</label><input class='field' name='mail_from' type='text' value='$config->mail_from'></br>
-                <label for='mail_from_name' class='label'>Sender name</label><input class='field' name='mail_from_name' type='text' value='$config->mail_from_name'></br>
-                <label for='mail_host' class='label'>Email host</label><input class='field' name='mail_host' type='text' value='$config->mail_host'></br>
+                <label for='mail_from' class='label'>Sender Email address</label><input class='field' name='mail_from' type='text' value='$AppConfig->mail_from'></br>
+                <label for='mail_from_name' class='label'>Sender name</label><input class='field' name='mail_from_name' type='text' value='$AppConfig->mail_from_name'></br>
+                <label for='mail_host' class='label'>Email host</label><input class='field' name='mail_host' type='text' value='$AppConfig->mail_host'></br>
                 <label for='SMTP_secure' class='label'>SMTP access</label>
                     <select name='SMTP_secure'>
-                        <option value='$config->SMTP_secure' selected='selected'>$config->SMTP_secure</option>
+                        <option value='$AppConfig->SMTP_secure' selected='selected'>$AppConfig->SMTP_secure</option>
                         <option value='ssl'>ssl</option>
                         <option value='tls'>tls</option>
                         <option value='none'>none</option>
                      </select><br>
-                <label for='mail_port' class='label'>Email port</label><input class='field' name='mail_port' type='text' value='$config->mail_port'></br>
-                <label for='mail_username' class='label'>Email username</label><input class='field' name='mail_username' type='text' value='$config->mail_username'></br>
-                <label for='mail_password' class='label'>Email password</label><input class='field' name='mail_password' type='password' value='$config->mail_password'></br>
+                <label for='mail_port' class='label'>Email port</label><input class='field' name='mail_port' type='text' value='$AppConfig->mail_port'></br>
+                <label for='mail_username' class='label'>Email username</label><input class='field' name='mail_username' type='text' value='$AppConfig->mail_username'></br>
+                <label for='mail_password' class='label'>Email password</label><input class='field' name='mail_password' type='password' value='$AppConfig->mail_password'></br>
 
                 <p style='text-align: right'><input type='submit' name='install_db' value='Next' id='submit' class='install_db' data-op='$op'></p>
             </form>

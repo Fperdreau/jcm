@@ -18,7 +18,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 @import url('forms.css');
 
-/* Bodytext */
+/* Body text */
 html { height: 100%; }
 
 body {
@@ -252,7 +252,6 @@ a:hover {
 .section_header {
     position: relative;
     background-color: rgba(187,81,81,1);
-    width: auto;
     color: #eeeeee;
     width: 200px;
     height: 20px;
@@ -304,6 +303,18 @@ a:hover {
     text-align: justify;
     padding: 10px;
     background-color: rgba(127,127,127,.1);
+}
+
+/* Home page */
+#welcome_msg {
+    width: 60%;
+    padding: 20px;
+    margin: auto;
+    background: rgba(127,127,127,.1);
+    text-align: justify;
+    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
+    -moz-box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
+    box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
 }
 
 /* Buttons */

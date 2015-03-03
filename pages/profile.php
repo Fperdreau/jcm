@@ -17,13 +17,12 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@session_start();
-require_once($_SESSION['path_to_includes'].'includes.php');
+require('../includes/boot.php');
 check_login();
 
 // Declare classes
-$user = new users($_SESSION['username']);
-$Presentation = new Presentation();
+$user = new User($db,$_SESSION['username']);
+$Presentation = new Presentation($db);
 $publication_list = $user->getpublicationlist(null);
 
 $notif_yes_status = 'unchecked';

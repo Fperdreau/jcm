@@ -16,12 +16,11 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-@session_start();
-require_once($_SESSION['path_to_includes'].'includes.php');
+require('../includes/boot.php');
 check_login();
+global $db, $Presentations;
 
-$years = Presentations::get_years();
+$years = $Presentations->get_years();
 
 // Select input (Years)
 $options = "
@@ -31,7 +30,7 @@ foreach ($years as $year) {
     $options .= "<option value='$year'>$year</option>";
 }
 
-$publist = Presentations::getpublicationlist();
+$publist = $Presentations->getpublicationlist();
 $result = "
     <div id='content'>
         <span id='pagename'>Archives</span>

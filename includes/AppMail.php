@@ -18,79 +18,56 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // Import html2text class
-require_once($_SESSION['path_to_app']."libs/html2text-0.2.2/html2text.php");
+require_once(PATH_TO_LIBS."html2text-0.2.2/html2text.php");
+require_once(PATH_TO_LIBS.'PHPMailer-master/class.phpmailer.php');
+require_once(PATH_TO_LIBS.'PHPMailer-master/class.smtp.php');
 
-require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.phpmailer.php');
-require_once($_SESSION['path_to_app'].'/libs/PHPMailer-master/class.smtp.php');
+class AppMail {
+    /**
+     * @inject $db
+     */
+    protected $db;
+    protected $tablename;
 
-require_once($_SESSION['path_to_app'].'/includes/includes.php');
+    /**
+     * @inject $config
+     */
+    private $config;
 
-class myMail {
-    public $mail_from = ""; // Sender's email
-    public $mail_from_name = ""; // Sender's name
-    public $mail_host = ""; // Email host (eg. gmail)
-    public $mail_port = "25"; // Email port
-    public $SMTPDebug = 0; // To show error messages
-    public $mail_username = ""; // Email username
-    public $mail_password = ""; // Email password
-    public $SMTP_secure = "none"; // Email protocol (ssl)
-    public $pre_header = "[Journal Club]"; // Email header
-    public $site_url = ""; // Url path to the application
+    /**
+     * @var bool
+     */
+    private $SMTPDebug = false;
 
-    function __construct() {
-        self::get();
+    /**
+     * Class constructor
+     * @param DbSet $db
+     * @param AppConfig $config
+     */
+    function __construct(DbSet $db, AppConfig $config) {
+        $this->db = $db;
+        $this->tablename = $this->db->tablesname['User'];
+        $this->config = $config;
     }
 
-    public function get() {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-        $sql = "select variable,value from $config_table";
-        $req = $db_set->send_query($sql);
-        $class_vars = get_class_vars("myMail");
-        while ($row = mysqli_fetch_assoc($req)) {
-            $varname = $row['variable'];
-            $value = $row["value"];
-            if (array_key_exists($varname,$class_vars)) {
-                $this->$varname = $value;
-            }
-        }
-        return true;
-    }
-
-    public function update($post) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-        $bdd = $db_set->bdd_connect();
-        $class_vars = get_class_vars("site_config");
-        foreach ($class_vars as $name=>$value) {
-            if (array_key_exists($name,$post)) {
-                $value = mysqli_real_escape_string($bdd,$post["$name"]);
-            } else {
-                $value = mysqli_real_escape_string($bdd,$this->$name);
-            }
-            $exist = $db_set->getinfo($config_table,"variable",array("variable"),array("'$name'"));
-            if (!empty($exist)) {
-                $db_set->updatecontent($config_table,"value","'$value'",array("variable"),array("'$name'"));
-            } else {
-                $db_set->addcontent($config_table,"variable,value","'$name','$value'");
-            }
-        }
-
-        self::get();
-        return true;
-    }
-
+    /**
+     * Send a verification email to organizers when someone signed up to the application.
+     * @param $hash
+     * @param $user_mail
+     * @param $username
+     * @return bool
+     */
     function send_verification_mail($hash,$user_mail,$username) {
-        $config = new site_config();
-        $admins = $config->getadmin('admin');
+        $Users = new Users($this->db);
+        $admins = $Users->getadmin('admin');
         $to = array();
         for ($i=0; $i<count($admins); $i++) {
             $to[] = $admins[$i]['email'];
         }
 
         $subject = 'Signup | Verification'; // Give the email a subject
-        $authorize_url = $this->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
-        $deny_url = $this->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
+        $authorize_url = $this->config->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
+        $deny_url = $this->config->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
 
         $content = "
         Hello,<br><br>
@@ -101,17 +78,23 @@ class myMail {
         <p>The Journal Club Team</p>
         ";
 
-        $body = $this -> formatmail($content);
-
-        return $this->send_mail($to,$subject,$body);
+        $body = self::formatmail($content);
+        return self::send_mail($to,$subject,$body);
     }
 
+    /**
+     * Send a confirmation email to the new user once his/her registration has been validated by an organizer
+     * @param $to
+     * @param $username
+     * @return bool
+     */
     function send_confirmation_mail($to,$username) {
-        $user = new users();
+        /** @var User $user */
+        $user = new User($this->db);
         $user->get($username);
 
         $subject = 'Signup | Confirmation'; // Give the email a subject
-        $login_url = $this->site_url."index.php";
+        $login_url = $this->config->site_url."index.php";
 
         $content = "
         Hello $user->fullname,<br><br>
@@ -123,19 +106,22 @@ class myMail {
         ------------------------</p>
         <p>The Journal Club Team</p>
         ";
-        $body = $this -> formatmail($content);
-        return $this->send_mail($to,$subject,$body);
+        $body = self::formatmail($content);
+        return self::send_mail($to,$subject,$body);
     }
 
+    /**
+     * Get list of users' email
+     * @param null $type
+     * @return array
+     */
     function get_mailinglist($type=null) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-        $sql = "select username,email from $users_table where active=1";
+        $sql = "select username,email from $this->tablename where active=1";
         if (null!=$type) {
             $sql .= " and $type=1";
         }
 
-        $req = $db_set->send_query($sql);
+        $req = $this->db->send_query($sql);
         $mailing_list = array();
         while ($data = mysqli_fetch_array($req)) {
             $cur_mail = $data['email'];
@@ -144,6 +130,14 @@ class myMail {
         return $mailing_list;
     }
 
+    /**
+     * Send an email to the whole mailing list (but only to users who agreed upon receiving emails)
+     * @param $subject
+     * @param $body
+     * @param null $type
+     * @param null $attachment
+     * @return bool
+     */
     function send_to_mailinglist($subject,$body,$type=null,$attachment = NULL) {
         $to = $this->get_mailinglist($type);
         if ($this->send_mail($to,$subject,$body,$attachment)) {
@@ -153,30 +147,38 @@ class myMail {
         }
     }
 
+    /**
+     * Send an email
+     * @param $to
+     * @param $subject
+     * @param $body
+     * @param null $attachment
+     * @return bool
+     * @throws Exception
+     * @throws phpmailerException
+     */
     function send_mail($to,$subject,$body,$attachment = NULL) {
-        require($_SESSION['path_to_app'].'config/config.php');
-
         $mail = new PHPMailer();
 
         $mail->IsSMTP();                                      // set mailer to use SMTP
-        $mail->SMTPDebug  = $this->SMTPDebug;                     // enables SMTP debug information (for testing)
+        $mail->SMTPDebug  = $this->SMTPDebug;         // enables SMTP debug information (for testing)
 
         $mail->Mailer = "smtp";
-        $mail->Host = $this->mail_host;
-        $mail->Port = $this->mail_port;
+        $mail->Host = $this->config->mail_host;
+        $mail->Port = $this->config->mail_port;
 
-        if ($this->SMTP_secure != "none") {
+        if ($this->config->SMTP_secure != "none") {
             $mail->SMTPAuth = true;     // turn on SMTP authentication
-            $mail->SMTPSecure = $this->SMTP_secure; // secure transfer enabled REQUIRED for GMail
-            $mail->Username = $this->mail_username;
-            $mail->Password = $this->mail_password;
+            $mail->SMTPSecure = $this->config->SMTP_secure; // secure transfer enabled REQUIRED for GMail
+            $mail->Username = $this->config->mail_username;
+            $mail->Password = $this->config->mail_password;
         }
 
-        $mail->From = $this->mail_from;
-        $mail->FromName = $this->mail_from_name;
+        $mail->From = $this->config->mail_from;
+        $mail->FromName = $this->config->mail_from_name;
 
         $mail->AddAddress("undisclosed-recipients:;");
-        $mail->AddReplyTo($this->mail_from, $this->mail_from_name);
+        $mail->AddReplyTo($this->config->mail_from, $this->config->mail_from_name);
 
         if (is_array($to)) {
             foreach($to as $to_add){
@@ -189,7 +191,7 @@ class myMail {
         $mail->WordWrap = 50;                                 // set word wrap to 50 characters
         $mail->IsHTML(true);
 
-        $mail->Subject = $this->pre_header." ".$subject;
+        $mail->Subject = $this->config->pre_header." ".$subject;
         $mail->Body    = $body;
         $mail->AltBody= @convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
 
@@ -209,15 +211,17 @@ class myMail {
 
     }
 
-    // Make notification email (weekly digest inludind last news, information about the upcoming session, about future sessions, and the wish list)
+    /**
+     * Make notification email
+     * (weekly digest including last news, information about the upcoming session, about future sessions, and the wish list)
+     * @return mixed
+     */
     function advertise_mail() {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $db_set = new DB_set();
-        $config = new site_config('get');
-
         // Get recent news
-        $last_news = new Posts();
+        $last_news = new Posts($this->db);
+        $sessions = new Sessions($this->db);
+        $presentations = new Presentations($this->db);
+
         $last_news->getlastnews();
         $today = date('Y-m-d');
         if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
@@ -225,13 +229,13 @@ class myMail {
         }
 
         // Get future presentations
-        $pres_list = Sessions::showfuturesession(4,'mail');
+        $pres_list = $sessions->showfuturesession(4,'mail');
 
         // Get wishlist
-        $wish_list = Presentations::getwishlist(4,true);
+        $wish_list = $presentations->getwishlist(4,true);
 
         // Get next session
-        $next_session = Sessions::shownextsession(true);
+        $next_session = $sessions->shownextsession(true);
 
         $content['body'] = "
 
@@ -286,19 +290,17 @@ class myMail {
         ";
 
         $content['subject'] = "Last News - ".date('d M Y');
-
         return $content;
     }
 
-    // Make reminder notification email (including only information about the upcoming session)
+    /**
+     * Make reminder notification email (including only information about the upcoming session)
+     * @return mixed
+     */
     function reminder_Mail() {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $db_set = new DB_set();
-        $config = new site_config('get');
-        $next_session = Sessions::getsessions(true);
-        $sessioncontent = Sessions::shownextsession();
-
+        $sessions = new Sessions($this->db);
+        $next_session = $sessions->getsessions(true);
+        $sessioncontent = $sessions->shownextsession();
         $date = $next_session[0];
 
         $content['body'] = "
@@ -321,20 +323,22 @@ class myMail {
                 The Journal Club Team</p>
             </div>
         ";
-
         $content['subject'] = "Next session: $date -reminder";
-
         return $content;
     }
 
-    // Format email (html)
+    /**
+     * Format email (html)
+     * @param $content
+     * @return string
+     */
     function formatmail($content) {
-        $config = new site_config('get');
-        $profile_url = $config->site_url.'index.php?page=profile';
+        $profile_url = $this->config->site_url.'index.php?page=profile';
+        $sitetitle = $this->config->sitetitle;
         $body = "
             <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; color: #000000; font-weight: 300; font-size: 15px; width: 95%; margin: auto;'>
                 <div style='line-height: 1.2; width: 100%; color: #000000;'>
-                    <div style='font-size: 30px; color: #cccccc; line-height: 40px; height: 40px; text-align: center; background-color: #555555;'>$config->sitetitle
+                    <div style='font-size: 30px; color: #cccccc; line-height: 40px; height: 40px; text-align: center; background-color: #555555;'>$sitetitle
                     </div>
 
                     <div style='padding: 10px; margin: auto; text-align: justify; background-color: #dddddd;'>
@@ -347,8 +351,6 @@ class myMail {
                     </div>
                 </div>
             </div>";
-
         return $body;
     }
-
 }

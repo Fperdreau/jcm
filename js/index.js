@@ -1,4 +1,4 @@
-/*
+/**
 Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
@@ -44,7 +44,7 @@ var showpubform = function(formel,idpress,type) {
                 .hide()
                 .html(result)
                 .show();
-        },
+        }
     });
 };
 
@@ -55,7 +55,7 @@ var displaypub = function(idpress,formel) {
         type: 'POST',
         async: false,
         data: {
-            show_pub: idpress,
+            show_pub: idpress
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
@@ -63,7 +63,7 @@ var displaypub = function(idpress,formel) {
                 .hide()
                 .html(result)
                 .fadeIn(200);
-        },
+        }
     });
 };
 
@@ -585,6 +585,27 @@ $( document ).ready(function() {
             return false;
         })
 
+        // Check db integrity (matching session/presentation table)
+        .on('click','.db_check',function(e){
+            e.preventDefault();
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                async: true,
+                data: {db_check: true},
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function () {
+                    $('#loading').hide();
+                },
+                success: function(data){
+                    var json = jQuery.parseJSON(data);
+                    showfeedback('<p id="success">OK</p>');
+                }
+            });
+        })
+
 		// Do a full backup (database + files) if asked
         .on('click','.fullbackup',function(){
             var webproc = true;
@@ -862,6 +883,34 @@ $( document ).ready(function() {
                 }
             });
         })
+
+        // Modify chairman
+        .on('change','.mod_chair',function(e) {
+            var session = $(this).attr('data-session');
+            var chair = $(this).val();
+            var presid = $(this).attr('data-pres');
+
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                async: true,
+                data: {
+                    mod_chair: true,
+                    session: session,
+                    chair: chair,
+                    presid: presid},
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    var feedbackdiv = '.feedback_'+session;
+                    if (result !== false) {
+                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
+                    } else {
+                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
+                    }
+                }
+            });
+        })
+
         // Modify session time
         .on('change','.set_sessiontime',function(e) {
             var session = $(this).attr('data-session');

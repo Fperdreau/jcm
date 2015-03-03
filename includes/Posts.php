@@ -16,9 +16,11 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager. If not, see <http://www.gnu.org/licenses/>.
 */
-require_once($_SESSION['path_to_app'].'/includes/includes.php');
 
 class Posts {
+    private $db;
+    private $tablename;
+
     public $postid = "";
     public $title = "";
     public $content = "";
@@ -26,15 +28,26 @@ class Posts {
     public $username = "";
     public $homepage = 0;
 
-    public function __construct($postid=null) {
+    /**
+     * Constructor
+     * @param $db DbSet
+     * @param null $postid
+     */
+    public function __construct($db,$postid=null) {
+        $this->db = $db;
+        $this->tablename = $this->db->tablesname["Posts"];
         if (null !== $postid) {
             self::get($postid);
         }
+        $this->postid = $postid;
     }
 
+    /**
+     * Create a post and add it to the database
+     * @param $post
+     * @return bool
+     */
     public function make($post) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
         $this->date = date('Y-m-d H:i:s');
         $this->day = date('Y-m-d',strtotime($this->date));
         $this->time = date('H:i',strtotime($this->date));
@@ -46,9 +59,9 @@ class Posts {
         $values = array();
         foreach ($class_vars as $name=>$value) {
             if (in_array($name,$postkeys)) {
-                $escaped = $db_set->escape_query($post[$name]);
+                $escaped = $this->db->escape_query($post[$name]);
             } else {
-                $escaped = $db_set->escape_query($this->$name);
+                $escaped = $this->db->escape_query($this->$name);
             }
             $this->$name = $escaped;
             $variables[] = "$name";
@@ -58,22 +71,21 @@ class Posts {
         $values = implode(',',$values);
 
         // Add post to the database
-        if ($db_set->addcontent($post_table,$variables,$values)) {
+        if ($this->db->addcontent($this->tablename,$variables,$values)) {
             return true;
         } else {
             return false;
         }
     }
 
+    /**
+     * Get post content
+     * @param $postid
+     * @return bool
+     */
     public function get($postid) {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $class_vars = get_class_vars("Posts");
-        $classkeys = array_keys($class_vars);
-
-        $db_set = new DB_set();
-        $sql = "SELECT * FROM $post_table WHERE postid='$postid'";
-        $req = $db_set->send_query($sql);
+        $sql = "SELECT * FROM $this->tablename WHERE postid='$postid'";
+        $req = $this->db->send_query($sql);
         $row = mysqli_fetch_assoc($req);
         if (!empty($row)) {
             foreach ($row as $varname=>$value) {
@@ -87,58 +99,65 @@ class Posts {
         }
     }
 
+    /**
+     * Update post's content
+     * @param array $post
+     * @return bool
+     */
     public function update($post=array()) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-
         $class_vars = get_class_vars("Posts");
         $postkeys = array_keys($post);
         foreach ($class_vars as $name => $value) {
             if (in_array($name,$postkeys)) {
-                $escaped = $db_set->escape_query($post[$name]);
+                $escaped = $this->db->escape_query($post[$name]);
             } else {
-                $escaped = $db_set->escape_query($this->$name);
+                $escaped = $this->db->escape_query($this->$name);
             }
             $this->$name = $escaped;
 
-            if (!$db_set->updatecontent($post_table,$name,"'$escaped'",array("postid"),array("'$this->postid'"))) {
+            if (!$this->db->updatecontent($this->tablename,$name,"'$escaped'",array("postid"),array("'$this->postid'"))) {
                 return false;
             }
         }
         return true;
     }
 
-    // Create an ID for the new presentation
+    /**
+     * Create an ID for the new post
+     * @return string
+     */
     function makeID() {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
         $id = md5($this->date.rand(1,10000));
 
         // Check if random ID does not already exist in our database
-        $prev_id = $db_set->getinfo($post_table,'postid');
+        $prev_id = $this->db->getinfo($this->tablename,'postid');
         while (in_array($id,$prev_id)) {
             $id = md5($this->date.rand(1,10000));
         }
         return $id;
     }
 
-    // Delete a post
-    function delete($postid) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        // Delete corresponding entry in the post table
-        $db_set = new DB_set();
-        return $db_set -> deletecontent($post_table,array('postid'),array("'$postid'"));
+    /**
+     * Delete a post
+     * @param $postid
+     * @return bool
+     */
+    public function delete($postid) {
+        return $this->db->deletecontent($this->tablename,array('postid'),array("'$postid'"));
     }
 
-    public function getlastnews($homepage=false) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-        $sql = "SELECT postid from $post_table";
+    /**
+     * Get the newest post
+     * @param bool $homepage
+     * @return bool
+     */
+    public  function getlastnews($homepage=false) {
+        $sql = "SELECT postid from $this->tablename";
         if ($homepage == true) {
             $sql .= " WHERE homepage='1'";
         }
         $sql .= " ORDER BY date DESC";
-        $req = $db_set->send_query($sql);
+        $req = $this->db->send_query($sql);
         $data = mysqli_fetch_array($req);
         if (!empty($data)) {
             $postid = $data[0];
@@ -149,6 +168,10 @@ class Posts {
         }
     }
 
+    /**
+     * Show post on the homepage
+     * @return string
+     */
     public function show() {
         if (self::getlastnews(true)) {
             $news = "
@@ -167,14 +190,20 @@ class Posts {
         return $news;
     }
 
+    /**
+     * Show post form
+     * @param $username
+     * @param bool $postid
+     * @return mixed
+     */
     public function showpost($username,$postid=false) {
         if (false == $postid) {
-            $post = new Posts();
+            $post = new self($this->db);
             $op = "post_add";
             $submit = "Add";
             $del_btn = "";
         } else {
-            $post = new Posts($postid);
+            $post = new self($this->db,$postid);
             $op = "post_mod";
             $submit = "Modify";
             $del_btn = "<input type='button' class='post_del' id='submit' data-id='$post->postid' value='Delete'/>";
@@ -188,6 +217,7 @@ class Posts {
         $result['form'] = "
             <form id='post_form'>
                 <div class='submit_btns'>
+                    $del_btn
                     <input type='submit' name='$op' value='$submit' id='submit' class='$op' data-id='$post->postid'/>
                 </div>
                 <input type='hidden' id='post_username' value='$username'/>
@@ -212,5 +242,4 @@ class Posts {
         $result['content'] = $post->content;
         return $result;
     }
-
 }

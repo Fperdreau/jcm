@@ -17,6 +17,25 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+ * Explode anc clean array (remove empty strings and force the variable returned by explode to be an array
+ * @param $delimiter
+ * @param $var
+ * @return array
+ */
+function explodecontent($delimiter,$var) {
+    $newvar = explode($delimiter,$var);
+    if (is_array($newvar) === false) {
+        $newvar = array($newvar);
+    }
+    $newvar = array_values(array_diff($newvar,array(''))); // Clean the array from empty strings
+    return $newvar;
+}
+
+/**
+ * Check if the user is logged in and has the required status to access the current page
+ * @param null $status
+ */
 function check_login($status=null) {
 	$cond = !isset($_SESSION['logok']) || $_SESSION['logok'] == false;
 	if (null != $status) {
@@ -39,13 +58,19 @@ function check_login($status=null) {
     }
 }
 
-// Generate submission form and automatically fill it up with data provided by Presentation object.
-function displayform($user,$Presentation,$submit="submit") {
-    $config = new site_config('get');
+/**
+ * Generate submission form and automatically fill it up with data provided by Presentation object.
+ * @param $user
+ * @param $Presentation
+ * @param string $submit
+ * @return string
+ */
+function displayform($user,$Presentation=false,$submit="submit") {
+    $db = new DbSet();
+    $config = new AppConfig($db);
     if ($Presentation == false) {
-        $Presentation = new Presentation();
+        $Presentation = new Presentation($db);
     }
-
     $date = $Presentation->date;
 
     // Get files associated to this publication
@@ -59,7 +84,7 @@ function displayform($user,$Presentation,$submit="submit") {
             "<div class='upl_info' id='$name'>
                 <div class='upl_name' id='$link'>$link</div>
                 <div class='del_upl' id='$link' data-upl='$name'>
-                    <img src='images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
+                    <img src='../images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
                 </div>
             </div>";
         }
@@ -93,7 +118,6 @@ function displayform($user,$Presentation,$submit="submit") {
 
     // Text of the submit button
     $submitxt = ucfirst($submit);
-
     return "
     <div class='submission'>
         <div class='feedback'></div>
@@ -156,7 +180,12 @@ function displayform($user,$Presentation,$submit="submit") {
 	";
 }
 
-// Generate submission form and automatically fill it up with data provided by Presentation object.
+/**
+ * Generate submission form and automatically fill it up with data provided by Presentation object.
+ * @param $user
+ * @param $Presentation
+ * @return string
+ */
 function displaypub($user,$Presentation) {
     if (!(empty($Presentation->link))) {
         $download_button = "<div class='dl_btn' id='$Presentation->id_pres'>Download</div>";
@@ -182,7 +211,7 @@ function displaypub($user,$Presentation) {
     $type = ucfirst($Presentation->type);
     $result = "
         <div class='pub_caps'>
-            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
+            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                 $type
             </div>
             <div id='pub_title'>$Presentation->title</div>
@@ -205,11 +234,15 @@ function displaypub($user,$Presentation) {
             </div>
         </div>
         ";
-
     return $result;
 }
 
-// Make hours options list
+/**
+ * Make hours options list
+ * @param string $start
+ * @param string $end
+ * @return string
+ */
 function maketimeopt($start="07:00",$end="20:00") {
     $tStart = strtotime($start);
     $tEnd = strtotime($end);
@@ -223,7 +256,12 @@ function maketimeopt($start="07:00",$end="20:00") {
     return $timeopt;
 }
 
-// Browse files for backup
+/**
+ * Browse files to backup
+ * @param $dir
+ * @param array $dirsNotToSaveArray
+ * @return array
+ */
 function browse($dir, $dirsNotToSaveArray = array()) {
     $filenames = array();
     if ($handle = opendir($dir)) {
@@ -231,9 +269,7 @@ function browse($dir, $dirsNotToSaveArray = array()) {
             $filename = $dir."/".$file;
             if ($file != "." && $file != ".." && is_file($filename)) {
                 $filenames[] = $filename;
-            }
-
-            else if ($file != "." && $file != ".." && is_dir($dir.$file) && !in_array($dir.$file, $dirsNotToSaveArray) ) {
+            } else if ($file != "." && $file != ".." && is_dir($dir.$file) && !in_array($dir.$file, $dirsNotToSaveArray) ) {
                 $newfiles = browse($dir.$file,$dirsNotToSaveArray);
                 $filenames = array_merge($filenames,$newfiles);
             }
@@ -243,15 +279,19 @@ function browse($dir, $dirsNotToSaveArray = array()) {
     return $filenames;
 }
 
-// Export target db to xls file
+/**
+ * Export target table to xls file
+ * @param $tablename
+ * @return string
+ */
 function exportdbtoxls($tablename) {
     /***** EDIT BELOW LINES *****/
-    $db_set = new DB_set();
-    $DB_Server = $db_set->host; // MySQL Server
-    $DB_Username = $db_set->username; // MySQL Username
-    $DB_Password = $db_set->password; // MySQL Password
-    $DB_DBName = $db_set->dbname; // MySQL Database Name
-    $DB_TBLName = $db_set->dbprefix.$tablename; // MySQL Table Name
+    $db = new DbSet();
+    $DB_Server = $db->host; // MySQL Server
+    $DB_Username = $db->username; // MySQL Username
+    $DB_Password = $db->password; // MySQL Password
+    $DB_DBName = $db->dbname; // MySQL Database Name
+    $DB_TBLName = $db->dbprefix.$tablename; // MySQL Table Name
     $xls_filename = 'backup/export_'.$tablename.date('Y-m-d').'.xls'; // Define Excel (.xls) file name
 	$out = "";
 
@@ -304,7 +344,7 @@ function exportdbtoxls($tablename) {
         $out .=  "\n";
     }
 
-	if ($fp = fopen($_SESSION['path_to_app'].$xls_filename, "w+")) {
+	if ($fp = fopen(PATH_TO_APP.$xls_filename, "w+")) {
         if (fwrite($fp, $out) == true) {
             fclose($fp);
         } else {
@@ -322,19 +362,17 @@ function exportdbtoxls($tablename) {
     return $xls_filename;
 }
 
-// Backup routine
+/**
+ * Backup routine
+ * @return string
+ */
 function backup_db(){
-    require_once($_SESSION['path_to_includes'].'db_connect.php');
-    require_once($_SESSION['path_to_includes'].'site_config.php');
-    require_once($_SESSION['path_to_includes'].'users.php');
-
     // Declare classes
-    $db_set = new DB_set();
-    $config = new site_config('get');
+    $db = new DbSet();
 
     // Create Backup Folder
     $mysqlrelativedir = 'backup/mysql';
-    $mysqlSaveDir = $_SESSION['path_to_app'].$mysqlrelativedir;
+    $mysqlSaveDir = PATH_TO_APP.'/'.$mysqlrelativedir;
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($mysqlSaveDir)) {
@@ -344,23 +382,23 @@ function backup_db(){
     // Do backup
     /* Store All Table name in an Array */
     $allTables = array();
-    $result = $db_set->send_query('SHOW TABLES');
+    $result = $db->send_query('SHOW TABLES');
     while($row = mysqli_fetch_row($result)){
         $allTables[] = $row[0];
     }
 
     $return = "";
     foreach($allTables as $table){
-        $result = $db_set->send_query('SELECT * FROM '.$table);
+        $result = $db->send_query("SELECT * FROM $table");
         $num_fields = mysqli_num_fields($result);
 
-        $return.= 'DROP TABLE IF EXISTS '.$table.';';
-        $row2 = mysqli_fetch_row($db_set->send_query('SHOW CREATE TABLE '.$table));
+        $return.= "DROP TABLE IF EXISTS $table";
+        $row2 = mysqli_fetch_row($db->send_query('SHOW CREATE TABLE '.$table));
         $return.= "\n\n".$row2[1].";\n\n";
 
         for ($i = 0; $i < $num_fields; $i++) {
             while($row = mysqli_fetch_row($result)){
-                $return.= 'INSERT INTO '.$table.' VALUES(';
+                $return.= "INSERT INTO $table VALUES(";
                 for($j=0; $j<$num_fields; $j++){
                     $row[$j] = addslashes($row[$j]);
                     $row[$j] = str_replace("\n","\\n",$row[$j]);
@@ -378,13 +416,16 @@ function backup_db(){
     fclose($handle);
 
     cleanbackups($mysqlSaveDir);
-
     return "$mysqlrelativedir/$fileNamePrefix.sql";
 }
 
-// Check for previous backup and delete old ones
+/**
+ * Check for previous backup and delete the oldest ones
+ * @param $mysqlSaveDir
+ */
 function cleanbackups($mysqlSaveDir) {
-    $config = new site_config('get');
+    $db = new DbSet();
+    $config = new AppConfig($db);
     $oldbackup = browse($mysqlSaveDir);
     if (!empty($oldbackup)) {
         $files = array();
@@ -419,11 +460,16 @@ function cleanbackups($mysqlSaveDir) {
     }
 }
 
-// Mail backup file to admins
+/**
+ * Mail backup file to admins
+ * @param $backupfile
+ * @return bool
+ */
 function mail_backup($backupfile) {
-    require_once($_SESSION['path_to_includes'].'myMail.php');
-    $mail = new myMail();
-    $admin = new users();
+    $db = new DbSet();
+    $config = new AppConfig($db);
+    $mail = new AppMail($db,$config);
+    $admin = new User($db);
     $admin->get('admin');
 
     // Send backup via email
@@ -440,13 +486,16 @@ function mail_backup($backupfile) {
     }
 }
 
-// Full backup routine
+/**
+ * Full backup routine (files + database)
+ * @return string
+ */
 function file_backup() {
 
-    $dirToSave = $_SESSION['path_to_app'];
-    $dirsNotToSaveArray = array($_SESSION['path_to_app']."backup");
-    $mysqlSaveDir = $_SESSION['path_to_app'].'backup/mysql';
-    $zipSaveDir = $_SESSION['path_to_app'].'backup/complete';
+    $dirToSave = PATH_TO_APP;
+    $dirsNotToSaveArray = array(PATH_TO_APP."backup");
+    $mysqlSaveDir = PATH_TO_APP.'/backup/mysql';
+    $zipSaveDir = PATH_TO_APP.'/backup/complete';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
     if (!is_dir($zipSaveDir)) {

@@ -16,22 +16,30 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
-require_once($_SESSION['path_to_includes'].'includes.php');
 
+/** Mother class Presentations.
+ * Handle methods to display presentations list (archives, homepage, wish list)
+ */
 class Presentations {
-// Mother class Presentations.
-// Handle methods to display presentations list (archives, homepage, wish list)
 
-    // Constructor
-    function __construct(){
+    protected $db;
+    protected $tablename;
+
+    /**
+     * Constructor
+     * @param DbSet $db
+     */
+    function __construct(DbSet $db){
+        $this->db = $db;
+        $this->tablename = $this->db->tablesname["Presentation"];
     }
 
-    // Collect years of presentations present in the database
+    /**
+     * Collect years of presentations present in the database
+     * @return array
+     */
     function get_years() {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $db_set = new DB_set();
-        $dates = $db_set -> getinfo($presentation_table,'date',array('type'),array("'wishlist'"),array('!='));
+        $dates = $this->db->getinfo($this->tablename,'date',array('type'),array("'wishlist'"),array('!='));
         if (is_array($dates)) {
             $years = array();
             foreach ($dates as $date) {
@@ -47,22 +55,26 @@ class Presentations {
         return $years;
     }
 
-    // Display a delete button
-    function display_deletebutton() {
-        return "<a href='#modal' rel='leanModal' data-id='$this->id_pres' class='modal_trigger' id='modal_trigger_deleteref'><img src='images/delete.png' alt='delete_button'></a>";
+    public function getpubbydates($excludetype=false) {
+        // Get presentations dates
+        $sql = "SELECT date,id_pres FROM $this->tablename";
+        if ($excludetype !== false) $sql .= " WHERE type!='$excludetype'";
+        $req = $this->db->send_query($sql);
+        $dates = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $dates[$row['date']][] = $row['id_pres'];
+        }
+        return $dates;
     }
 
-    // Display a modify button
-    function display_modifybutton() {
-        return "<img src='images/modify.png' alt='modify_button' data-id='$this->id_pres' class='modifyref'>";
-    }
-
-    // Get publication list by years
+    /**
+     * Get publication list by years
+     * @param null $filter
+     * @param null $user
+     * @return array
+     */
     function getyearspub($filter = NULL,$user = NULL) {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $db_set = new DB_set();
-        $sql = "SELECT YEAR(date),id_pres FROM $presentation_table WHERE ";
+        $sql = "SELECT YEAR(date),id_pres FROM $this->tablename WHERE ";
         $cond = array();
         if (null != $user) {
             $cond[] = "username='$user'";
@@ -74,10 +86,9 @@ class Presentations {
         }
         $cond = implode(' and ',$cond);
         $sql .= $cond." ORDER BY date DESC";
-        $req = $db_set -> send_query($sql);
+        $req = $this->db->send_query($sql);
 
         $yearpub = array();
-        $content = "";
         while ($data = mysqli_fetch_array($req)) {
             $year = $data['YEAR(date)'];
             $yearpub[$year][] = $data['id_pres'];
@@ -85,9 +96,13 @@ class Presentations {
         return $yearpub;
     }
 
-    // Get list of publications (sorted)
+    /**
+     * Get list of publications (sorted/archives page)
+     * @param null $filter
+     * @param null $user
+     * @return string
+     */
     function getpublicationlist($filter = NULL,$user = NULL) {
-        require($_SESSION['path_to_app'].'config/config.php');
         $yearpub = self::getyearspub($filter,$user);
         if (empty($yearpub)) {
             return "Nothing submitted yet!";
@@ -97,7 +112,7 @@ class Presentations {
         foreach ($yearpub as $year=>$publist) {
             $yearcontent = "";
             foreach ($publist as $pubid) {
-                $pres = new Presentation($pubid);
+                $pres = new Presentation($this->db,$pubid);
                 $yearcontent .= $pres->show();
             }
 
@@ -116,23 +131,25 @@ class Presentations {
         return $content;
     }
 
-    // Get wish list
-    function getwishlist($number=null,$mail=false) {
-        require($_SESSION['path_to_app'].'config/config.php');
-
+    /**
+     * Get wish list
+     * @param null $number
+     * @param bool $mail
+     * @return string
+     */
+    public function getwishlist($number=null,$mail=false) {
         $show = $mail == false && (!empty($_SESSION['logok']) && $_SESSION['logok'] == true);
 
-        $db_set = new DB_set();
-        $sql = "SELECT id_pres FROM $presentation_table WHERE type='wishlist' ORDER BY date DESC";
+        $sql = "SELECT id_pres FROM $this->tablename WHERE type='wishlist' ORDER BY date DESC";
         if (null !== $number) {
             $sql .= " LIMIT $number";
         }
 
-        $req = $db_set -> send_query($sql);
+        $req = $this->db->send_query($sql);
         $wish_list = "";
         if ($req->num_rows > 0) {
             while ($data = mysqli_fetch_array($req)) {
-                $pub = new Presentation($data['id_pres']);
+                $pub = new Presentation($this->db,$data['id_pres']);
                 $wish_list .= $pub->showwish($show);
             }
         } else {
@@ -141,19 +158,17 @@ class Presentations {
         return $wish_list;
     }
 
-    // Generate wish list (option menu)
+    /**
+     *  Generate wish list (option menu)
+     * @return string
+     */
     function generate_selectwishlist() {
-        require_once($_SESSION['path_to_includes'].'db_connect.php');
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $db_set = new DB_set();
-        $db_set->bdd_connect();
-        $sql = "SELECT id_pres FROM $presentation_table WHERE type='wishlist' ORDER BY title DESC";
-        $req = $db_set -> send_query($sql);
+        $sql = "SELECT id_pres FROM $this->tablename WHERE type='wishlist' ORDER BY title DESC";
+        $req = $this->db->send_query($sql);
 
         $option = "<option value=''>";
         while ($data = mysqli_fetch_array($req)) {
-            $pres = new Presentation($data['id_pres']);
+            $pres = new Presentation($this->db,$data['id_pres']);
             $option .= "<option value='$pres->id_pres'>$pres->authors | $pres->title</option>";
         }
 
@@ -174,6 +189,12 @@ class Presentations {
 
 }
 
+
+/**
+ * Class Presentation
+ * Handle attributes and methods proper to a single presentation
+ *
+ */
 class Presentation extends Presentations {
 
     public $type = "";
@@ -189,24 +210,32 @@ class Presentation extends Presentations {
     public $presented = 0;
     public $id_pres = "";
 
-    function __construct($id_pres=null){
+    /**
+     * @param DbSet $db
+     * @param null $id_pres
+     */
+    function __construct(DbSet $db, $id_pres=null){
+        $this->db = $db;
+        $this->tablename = $this->db->tablesname["Presentation"];
         if (null != $id_pres) {
             self::get($id_pres);
         }
     }
 
-    // Add a presentation to the database
+    /**
+     * Add a presentation to the database
+     * @param $post
+     * @return bool|string
+     */
     function make($post){
-        require($_SESSION['path_to_app'].'config/config.php');
-
         $class_vars = get_class_vars("Presentation");
-        $db_set = new DB_set();
-        $config = new site_config('get');
+        /** @var AppConfig $config */
+        $config = new AppConfig($this->db);
 
         $post['up_date'] = date('Y-m-d h:i:s'); // Date of creation
         $post['jc_time'] = "$config->jc_time_from,$config->jc_time_to";
         $postkeys = array_keys($post);
-        if (self::pres_exist($post['title']) == false) {
+        if ($this->pres_exist($post['title']) == false) {
 
             // Create an unique ID
             $this->id_pres = self::create_presID();
@@ -214,10 +243,12 @@ class Presentation extends Presentations {
             $variables = array();
             $values = array();
             foreach ($class_vars as $name=>$value) {
+                if (in_array($name,array("db","tablename"))) continue;
+
                 if (in_array($name,$postkeys)) {
-                    $escaped = $db_set->escape_query($post[$name]);
+                    $escaped = $this->db->escape_query($post[$name]);
                 } else {
-                    $escaped = $db_set->escape_query($this->$name);
+                    $escaped = $this->db->escape_query($this->$name);
                 }
                 $this->$name = $escaped;
                 $variables[] = "$name";
@@ -228,26 +259,25 @@ class Presentation extends Presentations {
             $values = implode(',',$values);
 
             // Add publication to the database
-            if ($db_set->addcontent($presentation_table,$variables,$values)) {
+            if ($this->db->addcontent($this->tablename,$variables,$values)) {
                 return $this->id_pres;
             } else {
                 return false;
             }
         } else {
-            self::get($this->id_pres);
+            $this->get($this->id_pres);
             return "exist";
         }
     }
 
+    /**
+     * Get publication's information from the database
+     * @param $id_pres
+     * @return bool
+     */
     public function get($id_pres) {
-        require($_SESSION['path_to_app'].'config/config.php');
-
-        $class_vars = get_class_vars("Presentation");
-        $classkeys = array_keys($class_vars);
-
-        $db_set = new DB_set();
-        $sql = "SELECT * FROM $presentation_table WHERE id_pres='$id_pres'";
-        $req = $db_set->send_query($sql);
+        $sql = "SELECT * FROM $this->tablename WHERE id_pres='$id_pres'";
+        $req = $this->db->send_query($sql);
         $row = mysqli_fetch_assoc($req);
         if (!empty($row)) {
             foreach ($row as $varname=>$value) {
@@ -255,13 +285,13 @@ class Presentation extends Presentations {
             }
 
             // Check if files are still where they are supposed to be
-            self::fileintegrity();
+            $this->fileintegrity();
 
             // If publication's date is past, assumes it has already been presented
             $pub_day = $this->date;
             if ($this->date != "0000-00-00" && $pub_day < date('Y-m-d')) {
                 $this->presented = 1;
-                self::update();
+                $this->update();
             }
             return true;
         } else {
@@ -269,11 +299,13 @@ class Presentation extends Presentations {
         }
     }
 
-    // Update a presentation (new info)
+    /**
+     * Update a presentation (new info)
+     * @param array $post
+     * @param null $id_pres
+     * @return bool
+     */
     function update($post=array(),$id_pres=null) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-
         if (null!=$id_pres) {
             $this->id_pres = $id_pres;
         } elseif (array_key_exists('id_pres',$post)) {
@@ -284,41 +316,60 @@ class Presentation extends Presentations {
             $post['link'] = implode(',',array($this->link,$post['link']));
         }
 
+        // Update session table if the user changed the date of presentation
+        $updatesession = !empty($post['date']) && ($post['date'] !== $this->date) && ($this->type !== "wishlist");
+        $olddate = $this->date;
+
         $class_vars = get_class_vars("Presentation");
+
         $postkeys = array_keys($post);
         foreach ($class_vars as $name => $value) {
-            if (in_array($name,$postkeys)) {
-                $escaped = $db_set->escape_query($post[$name]);
-            } else {
-                $escaped = $db_set->escape_query($this->$name);
-            }
+            if (in_array($name,array("db","tablename"))) continue;
+            $escaped = in_array($name, $postkeys) ? $this->db->escape_query($post[$name]) : $this->db->escape_query($this->$name);
             $this->$name = $escaped;
 
-            if (!$db_set->updatecontent($presentation_table,$name,"'$escaped'",array("id_pres"),array("'$this->id_pres'"))) {
+            if (!$this->db->updatecontent($this->tablename,$name,"'$escaped'",array("id_pres"),array("'$this->id_pres'"))) {
                 return false;
             }
+        }
+
+        // If the user changed the date of presentation, we remove the presentation from its previous session and update the new session
+        if (true === $updatesession) {
+            $sessionpost = array(
+                "date"=>$post['date'],
+                "speakers"=>$this->orator,
+                "presid"=>$this->id_pres
+                );
+            $session = new Session($this->db);
+            $session->make($sessionpost);
+            $session = new Session($this->db,$olddate);
+            $session->delete_pres($this->id_pres);
         }
         return true;
     }
 
-    // Create an ID for the new presentation
+    /**
+     *  Create an unique ID for the new presentation
+     * @return string
+     */
     function create_presID() {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
         $id_pres = date('Ymd').rand(1,10000);
 
         // Check if random ID does not already exist in our database
-        $prev_id = $db_set->getinfo($presentation_table,'id_pres');
+        $prev_id = $this->db->getinfo($this->tablename,'id_pres');
         while (in_array($id_pres,$prev_id)) {
             $id_pres = date('Ymd').rand(1,10000);
         }
         return $id_pres;
     }
 
-    // Check if associated files are still present on the server
+    /**
+     * Check if associated files are still present on the server
+     * @return bool
+     */
     private function fileintegrity() {
-        $pdfpath = $_SESSION['path_to_app'].'uploads/';
-        $links = explode(',',$this->link);
+        $pdfpath = PATH_TO_APP.'/uploads/';
+        $links = explodecontent(",",$this->link);
         $newlinks = array();
         foreach($links as $link) {
             if (is_file($pdfpath.$link)) {
@@ -330,9 +381,13 @@ class Presentation extends Presentations {
         return true;
     }
 
-    // Validate upload
+    /**
+     * Validate upload
+     * @param $file
+     * @return bool|string
+     */
     private function checkupload($file) {
-        $config = new site_config('get');
+        $config = new AppConfig($this->db);
         // Check $_FILES['upfile']['error'] value.
         if ($file['error'][0] != 0) {
             switch ($file['error'][0]) {
@@ -348,13 +403,13 @@ class Presentation extends Presentations {
             }
         }
 
-        // You should also check filesize here.
+        // You should also check file size here.
         if ($file['size'][0] > $config->upl_maxsize) {
             return "File Exceeds size limit";
         }
 
         // Check extension
-        $allowedtypes = explode(',',$config->upl_types);
+        $allowedtypes = explodecontent(',',$config->upl_types);
         $filename = basename($file['name'][0]);
         $ext = substr($filename, strrpos($filename, '.') + 1);
 
@@ -365,7 +420,11 @@ class Presentation extends Presentations {
         }
     }
 
-    // Upload a file
+    /**
+     * Upload a file
+     * @param $file
+     * @return mixed
+     */
     public function upload_file($file) {
         $result['status'] = false;
         if (isset($file['tmp_name'][0]) && !empty($file['name'][0])) {
@@ -375,7 +434,7 @@ class Presentation extends Presentations {
                 $splitname = explode(".", strtolower($file['name'][0]));
                 $extension = end($splitname);
 
-                $directory = $_SESSION['path_to_app'].'uploads/';
+                $directory = PATH_TO_APP.'/uploads/';
                 // Create uploads folder if it does not exist yet
                 if (!is_dir($directory)) {
                     mkdir($directory);
@@ -407,25 +466,30 @@ class Presentation extends Presentations {
         return $result;
     }
 
-    // Delete a presentation
+    /**
+     * Delete a presentation
+     * @param $pres_id
+     * @return bool
+     */
     function delete_pres($pres_id) {
-        require($_SESSION['path_to_app'].'config/config.php');
         self::get($pres_id);
 
         // Delete corresponding file
         self::delete_files();
 
         // Delete corresponding entry in the publication table
-        $db_set = new DB_set();
-        if ($db_set -> deletecontent($presentation_table,array('id_pres'),array("'$pres_id'"))) {
-            $session = new Session($this->date);
+        if ($this->db->deletecontent($this->tablename,array('id_pres'),array("'$pres_id'"))) {
+            $session = new self($this->db,$this->date);
             return $session->delete_pres($this->id_pres);
         } else {
             return false;
         }
     }
 
-    // Delete all files corresponding to the actual presentation
+    /**
+     * Delete all files corresponding to the actual presentation
+     * @return bool
+     */
     function delete_files() {
         $filelist = explode(',',$this->link);
         foreach ($filelist as $filename) {
@@ -436,9 +500,13 @@ class Presentation extends Presentations {
         return true;
     }
 
-    // Delete a file corresponding to the actual presentation
+    /**
+     * Delete a file corresponding to the actual presentation
+     * @param $filename
+     * @return bool|string
+     */
     function delete_file($filename) {
-        $pdfpath = $_SESSION['path_to_app'].'uploads/';
+        $pdfpath = PATH_TO_APP.'uploads/';
         if (is_file($pdfpath.$filename)) {
             return unlink($pdfpath.$filename);
         } else {
@@ -446,17 +514,22 @@ class Presentation extends Presentations {
         }
     }
 
-    // Check if presentation exists in the database
+    /**
+     * Check if presentation exists in the database
+     * @param $title
+     * @return bool
+     */
     function pres_exist($title) {
-        require($_SESSION['path_to_app'].'config/config.php');
-        $db_set = new DB_set();
-        $titlelist = $db_set -> getinfo($presentation_table,'title');
+        $titlelist = $this->db -> getinfo($this->tablename,'title');
         return in_array($title,$titlelist);
     }
 
-    // Show this presentation (list)
+    /**
+     * Show this presentation (in archives)
+     * @return string
+     */
     public function show() {
-     return "
+        return "
         <div class='pub_container' id='$this->id_pres'>
             <div class='list-container'>
                 <div style='text-align: center; width: 10%;'>$this->date</div>
@@ -468,46 +541,129 @@ class Presentation extends Presentations {
                 </div>
             </div>
         </div>
-    ";
+        ";
     }
 
-    // Show details about this presentation
-    public function showinsession($chair) {
+    /**
+     * Show publication details in session list
+     * @param $chair
+     * @param $mail
+     * @return string
+     */
+    public function showinsession($chair,$mail) {
+        $chair = new User($this->db,$chair);
+        $chair = $chair->fullname;
+        if ($this->id_pres === "") {
+            $speaker = 'TBA';
+            $show_but = "<a href='index.php?page=submission&op=new'>Free</a>";
+            $type = "TBA";
+        } else {
+            /** @var User $speaker */
+            $speaker = new User($this->db,$this->orator);
+            $speaker = $speaker->fullname;
+            // Make "Show" button
+            if (null != $mail) {
+                $show_but = "$this->title ($this->authors)";
+            } else {
+                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>";
+            }
+            $type = ucfirst($this->type);
+        }
+
+        return "
+        <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 55%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
+                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>$type</label>
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);' class='show_pres'>
+                    $show_but
+                </div>
+            </div>
+            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
+                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
+                </div>
+            </div>
+            <div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
+                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$chair
+                </div>
+            </div>
+        </div>";
+    }
+
+    /**
+     * Show details about this presentation
+     * @param $chair
+     * @return string
+     */
+    public function showinsessionmanager($chair,$sessionid) {
         if ($chair !== 'TBA') {
-            $chairman = new users($chair);
+            $chairman = new User($this->db,$chair);
             $chairman = $chairman->fullname;
         } else {
             $chairman = $chair;
         }
 
-        $speaker = new users($this->orator);
+        /** Get list of organizers */
+        $Users = new Users($this->db);
+        $organizers = $Users->getadmin();
+        $chairopt = "<option value='TBA'>TBA</option>";
+        foreach ($organizers as $key=>$organizer) {
+            $orguser = $organizer['username'];
+            $orgfull = $organizer['fullname'];
+            if ($orgfull === $chairman) {
+                $chairopt .= "<option value='$orguser' selected>$orgfull</option>";
+            } else {
+                $chairopt .= "<option value='$orguser'>$orgfull</option>";
+            }
+        }
+
+        /** title link */
+        if ($this->id_pres !== "") {
+            /** @var User $speaker */
+            $speaker = new User($this->db,$this->orator);
+            $type = $this->type;
+            $speaker = $speaker->fullname;
+            $titlelink = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>";
+        } else {
+            $speaker = "TBA";
+            $type = "TBA";
+            $titlelink = "TBA";
+        }
+
         return "
-        <div id='$this->id_pres' style='display: block; width: 100%; margin: 5px auto 0 0; font-size: 11px; font-weight: 300; overflow: hidden;'>
+        <div id='$this->id_pres' style='display: block; width: 100%; margin: 0; font-size: 11px; font-weight: 300;'>
             <div style='display: inline-block; vertical-align: middle; text-align: left; width: 40%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>$this->type</label>
+                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>$type</label>
                 <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #cccccc;padding: 5px;'>
-                    <a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>
+                    $titlelink
                 </div>
             </div>
             <div style='display: inline-block; vertical-align: middle; text-align: left; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
                 <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>$speaker->fullname
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>$speaker
                 </div>
             </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
+            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 25%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
                 <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>$chairman
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>
+                    <select class='mod_chair' data-pres='$this->id_pres' data-session='$sessionid' style='font-size: 10px; padding: 0;'>$chairopt</select>
                 </div>
             </div>
         </div>
         ";
     }
 
-    // Show in wish list (if I'm a wish)
+    /**
+     * Show in wish list (if instance is a wish)
+     * @param $show
+     * @return string
+     */
     public function showwish($show) {
-        $config = new site_config('get');
+        /** @var AppConfig $config */
+        $config = new AppConfig($this->db);
 
-        $url = $config->site_url."index.php?page=presentations&op=wishpick&id=$this->id_pres";
+        $url = $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres";
 
         // Make a show button (modal trigger) if not in email. Otherwise, a simple href.
         if ($show == true) {
@@ -516,7 +672,7 @@ class Presentation extends Presentations {
             $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
         }
 
-        $uploader = new users($this->username);
+        $uploader = new User($this->db,$this->username);
 
         return "
         <div style='display: block; padding: 5px; text-align: justify; background-color: #eeeeee;'>

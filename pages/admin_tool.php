@@ -17,27 +17,23 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@session_start();
-require_once($_SESSION['path_to_includes'].'includes.php');
+require('../includes/boot.php');
 check_login(array("organizer","admin"));
 
 // Declare classes
-$user = new users();
-$user->get($_SESSION['username']);
-$mail = new myMail();
-$config = new site_config('get');
+$user = new User($db,$_SESSION['username']);
 
 // Manage Sessions
 if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
-    $sessionlist = Sessions::managesessions();
+    $Sessionslist = $Sessions->managesessions();
     $timeopt = maketimeopt();
 
     //Get session types
-    $sessiontype = "";
-    $sessiontypes = explode(',',$config->session_type);
+    $Sessionstype = "";
+    $Sessionstypes = explode(',',$AppConfig->session_type);
     $opttypedflt = "";
-    foreach ($sessiontypes as $type) {
-        $sessiontype .= "
+    foreach ($Sessionstypes as $type) {
+        $Sessionstype .= "
             <div class='type_div' id='session_$type'>
                 <div class='type_name'>$type</div>
                 <div class='type_del' data-type='$type' data-class='session'>
@@ -45,16 +41,16 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                 </div>
             </div>
         ";
-        if ($type == $config->session_type_default) {
+        if ($type == $AppConfig->session_type_default) {
             $opttypedflt .= "<option value='$type' selected>$type</option>";
         } else {
             $opttypedflt .= "<option value='$type'>$type</option>";
         }
     }
 
-    //Get session types
+    /**  Get session types */
     $prestype = "";
-    $prestypes = explode(',',$config->pres_type);
+    $prestypes = explode(',',$AppConfig->pres_type);
     foreach ($prestypes as $type) {
         $prestype .= "
             <div class='type_div' id='pres_$type'>
@@ -66,10 +62,13 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         ";
     }
 
+    $chair_assignopt = array('auto'=>'In advance', 'manual'=>'On submission');
+    $chair_assignsel = "<option value='$AppConfig->chair_assign' selected>".$chair_assignopt[$AppConfig->chair_assign]."</option>";
+
     $result = "
         <div id='content'>
             <span id='pagename'>Manage Sessions</span>
-            <p class='page_description'>Here you can manage the journal club sessions, change their type, etc.</p>
+            <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
 
             <div class='section_header'>Sessions settings</div>
             <div class='section_content'>
@@ -78,12 +77,12 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                     <input type='hidden' name='config_modify' value='true'>
                     <div class='formcontrol' style='width: 100px;'>
                         <label>Room</label>
-                        <input type='text' name='room' value='$config->room'>
+                        <input type='text' name='room' value='$AppConfig->room'>
                     </div>
                     <div class='formcontrol' style='width: 20%;'>
                         <label for='jc_day'>Day</label>
                         <select name='jc_day'>
-                            <option value='$config->jc_day' selected='selected'>$config->jc_day</option>
+                            <option value='$AppConfig->jc_day' selected='selected'>$AppConfig->jc_day</option>
                             <option value='monday'>Monday</option>
                             <option value='tuesday'>Tuesday</option>
                             <option value='wednesday'>Wednesday</option>
@@ -94,20 +93,32 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                     <div class='formcontrol' style='width: 10%;'>
                         <label>From</label>
                         <select name='jc_time_from'>
-                            <option value='$config->jc_time_from' selected='selected'>$config->jc_time_from</option>
+                            <option value='$AppConfig->jc_time_from' selected='selected'>$AppConfig->jc_time_from</option>
                             $timeopt;
                         </select>
                     </div>
                     <div class='formcontrol' style='width: 10%;'>
                         <label>To</label>
                         <select name='jc_time_to'>
-                            <option value='$config->jc_time_to' selected='selected'>$config->jc_time_to</option>
+                            <option value='$AppConfig->jc_time_to' selected='selected'>$AppConfig->jc_time_to</option>
                             $timeopt;
                         </select>
                     </div>
                     <div class='formcontrol' style='width: 30%;'>
                         <label>Presentations/Session</label>
-                        <input type='text' size='3' name='max_nb_session' value='$config->max_nb_session'/>
+                        <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
+                    </div>
+                    <div class='formcontrol' style='width: 30%;'>
+                        <label>Chair assignement</label>
+                        <select name='chair_assign'>
+                            $chair_assignsel
+                            <option value='auto'>In advance</option>
+                            <option value='manual'>On submission</option>
+                        </select>
+                    </div>
+                    <div class='formcontrol' style='width: 30%;'>
+                        <label>Sessions to plan in advance</label>
+                        <input type='text' size='3' name='nbsessiontoplan' value='$AppConfig->nbsessiontoplan'/>
                     </div>
                     <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_session'/></p>
                 </form>
@@ -125,7 +136,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                 <input type='button' id='submit' class='type_add' data-class='session' value='Add a category'/>
                 <input id='new_session_type' type='text' placeholder='New Category'/>
                 <div class='feedback_session'></div>
-                <div class='type_list' id='session'>$sessiontype</div>
+                <div class='type_list' id='session'>$Sessionstype</div>
                 <div class='section_sub'>Presentations</div>
                 <input type='button' id='submit' class='type_add'  data-class='pres' value='Add a category'/>
                 <input id='new_pres_type' type='text' placeholder='New Category'/>
@@ -145,17 +156,15 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                     </select>
                 </div>
                 <div id='sessionlist'>
-                $sessionlist
+                $Sessionslist
                 </div>
             </div>
         </div>
     ";
-
 }
-
 // Manage users
 elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
-    $userlist = $config -> generateuserslist();
+    $userlist = $Users->generateuserslist();
 
     $result = "
 	    <div id='content'>
@@ -226,23 +235,23 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='hidden' name='config_modify' value='true'/>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Site title</label>
-                    <input type='text' size='30' name='sitetitle' value='$config->sitetitle'>
+                    <input type='text' size='30' name='sitetitle' value='$AppConfig->sitetitle'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Site url</label>
-                    <input type='text' size='30' name='site_url' value='$config->site_url'>
+                    <input type='text' size='30' name='site_url' value='$AppConfig->site_url'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Oldest DB backups to keep (in days)</label>
-                    <input type='text' size='30' name='clean_day' value='$config->clean_day'>
+                    <input type='text' size='30' name='clean_day' value='$AppConfig->clean_day'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Allowed file types (upload)</label>
-                    <input type='text' size='30' name='upl_types' value='$config->upl_types'>
+                    <input type='text' size='30' name='upl_types' value='$AppConfig->upl_types'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Maximum file size (in Kb)</label>
-                    <input type='text' size='30' name='upl_maxsize' value='$config->upl_maxsize'>
+                    <input type='text' size='30' name='upl_maxsize' value='$AppConfig->upl_maxsize'>
                 </div>
                 <div class='feedback_site'></div>
             </form>
@@ -257,27 +266,27 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='hidden' name='config_modify' value='true'/>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_name'>Name</label>
-                    <input type='text' size='50' name='lab_name' value='$config->lab_name'>
+                    <input type='text' size='50' name='lab_name' value='$AppConfig->lab_name'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_street'>Street</label>
-                    <input type='text' size='30' name='lab_street' value='$config->lab_street'>
+                    <input type='text' size='30' name='lab_street' value='$AppConfig->lab_street'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_postcode'>Post Code</label>
-                    <input type='text' size='30' name='lab_postcode' value='$config->lab_postcode'>
+                    <input type='text' size='30' name='lab_postcode' value='$AppConfig->lab_postcode'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_city'>City</label>
-                    <input type='text' size='30' name='lab_city' value='$config->lab_city'>
+                    <input type='text' size='30' name='lab_city' value='$AppConfig->lab_city'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_country'>Country</label>
-                    <input type='text' size='30' name='lab_country' value='$config->lab_country'>
+                    <input type='text' size='30' name='lab_country' value='$AppConfig->lab_country'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_mapurl'>Google Map's URL</label>
-                    <input type='text' size='30' name='lab_mapurl' value='$config->lab_mapurl'>
+                    <input type='text' size='30' name='lab_mapurl' value='$AppConfig->lab_mapurl'>
                 </div>
                 <div class='feedback_lab'></div>
             </form>
@@ -293,7 +302,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='notification'>Notification day</label>
                     <select name='notification'>
-                        <option value='$config->notification' selected='selected'>$config->notification</option>
+                        <option value='$AppConfig->notification' selected='selected'>$AppConfig->notification</option>
                         <option value='monday'>Monday</option>
                         <option value='tuesday'>Tuesday</option>
                         <option value='wednesday'>Wednesday</option>
@@ -305,7 +314,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='reminder'>Reminder (D-)</label>
-                    <input type='text' name='reminder' value='$config->reminder' size='1'>
+                    <input type='text' name='reminder' value='$AppConfig->reminder' size='1'>
                 </div>
                 <div class='feedback_jc'></div>
             </form>
@@ -320,20 +329,20 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='hidden' name='config_modify' value='true'/>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='mail_from'>Sender Email address</label>
-                    <input name='mail_from' type='text' value='$config->mail_from'>
+                    <input name='mail_from' type='text' value='$AppConfig->mail_from'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='mail_from_name'>Sender name</label>
-                    <input name='mail_from_name' type='text' value='$config->mail_from_name'>
+                    <input name='mail_from_name' type='text' value='$AppConfig->mail_from_name'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='mail_host'>Email host</label>
-                    <input name='mail_host' type='text' value='$config->mail_host'>
+                    <input name='mail_host' type='text' value='$AppConfig->mail_host'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='SMTP_secure'>SMTP access</label>
                     <select name='SMTP_secure'>
-                        <option value='$config->SMTP_secure' selected='selected'>$config->SMTP_secure</option>
+                        <option value='$AppConfig->SMTP_secure' selected='selected'>$AppConfig->SMTP_secure</option>
                         <option value='ssl'>ssl</option>
                         <option value='tls'>tls</option>
                         <option value='none'>none</option>
@@ -341,19 +350,19 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                  </div>
                  <div class='formcontrol' style='width: 30%;'>
                     <label for='mail_port'>Email port</label>
-                    <input name='mail_port' type='text' value='$config->mail_port'>
+                    <input name='mail_port' type='text' value='$AppConfig->mail_port'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='mail_username'>Email username</label>
-                    <input name='mail_username' type='text' value='$config->mail_username'>
+                    <input name='mail_username' type='text' value='$AppConfig->mail_username'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='mail_password'>Email password</label>
-                    <input name='mail_password' type='password' value='$config->mail_password'>
+                    <input name='mail_password' type='password' value='$AppConfig->mail_password'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='pre_header'>Email header prefix</label>
-                    <input name='pre_header' type='text' value='$config->pre_header'>
+                    <input name='pre_header' type='text' value='$AppConfig->pre_header'>
                 </div>
                 <div class='feedback_mail'></div>
             </form>
@@ -364,14 +373,12 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
 // Add a post
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'post') {
-    $db_set = new DB_set();
-    $user = new users($_SESSION['username']);
-
-    $last = new Posts();
+    $user = new User($_SESSION['username']);
+    $last = new Posts($db);
     $last->getlastnews();
 
     // Make post selection list
-    $postlist = $db_set -> getinfo($post_table,"postid");
+    $postlist = $db->getinfo($db->tablesname['Posts'],"postid");
     $options = "
         <select class='select_post' data-user='$user->fullname'>
             <option value='' selected>Select a post to modify</option>
@@ -419,6 +426,12 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<span id='pagename'>Admin tools</span>
         <div class='section_header'>Tools</div>
         <div class='section_content'>
+            <div id='db_check'>
+            <label for='backup'>Check db integrity database</label>
+            <input type='button' value='Proceed' id='submit' class='db_check'/>
+            <div class='feedback'></div>
+            </div><br>
+
             <div id='db_backup'>
             <label for='backup'>Backup database</label>
             <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>

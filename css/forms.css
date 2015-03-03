@@ -59,7 +59,7 @@ textarea {
     /* Styles */
     border:1px solid rgba(207, 81, 81, .3);
     background: #f9f9f9;
-    color: #777;
+    color: #555;
 }
 
 input:focus, textarea:focus {
@@ -71,8 +71,9 @@ input:focus, textarea:focus {
 select {
     min-width: 50px;
     width: auto;
-    border: 1px solid rgba(207, 81, 81, 1);
+    border:1px solid rgba(207, 81, 81, .3);
     padding: 7px 6px;
+    color: #555;
 }
 
 select:focus {

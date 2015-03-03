@@ -26,7 +26,6 @@ echo "
  </header>
 
     <section class='popupBody'>
-        <div class='feedback'></div>
 
         <div class='modal_section' id='user_login'>
             <form id='login_form'>
@@ -107,6 +106,7 @@ echo "
                 <div class='one_half last'><a href='' class='btn btn_red' id='modal_change_pwd'>Change</a></div>
             </div>
         </div>
+        <div class='feedback'></div>
     </section>
 </div>
 

@@ -17,13 +17,9 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@session_start();
-require_once($_SESSION['path_to_includes'].'includes.php');
+require('../includes/boot.php');
+$admin = $Users->getadmin();
 
-$admins = new users();
-$config = new site_config('get');
-
-$admin = $config -> getadmin();
 $mail_option = "";
 $msg = "";
 $organizers = "";
@@ -36,7 +32,7 @@ for ($i=0; $i<count($admin); $i++) {
     }
 }
 $admin_contact = "$organizers";
-$jc_day = ucfirst($config->jc_day);
+$jc_day = ucfirst($AppConfig->jc_day);
 // Lab information
 
 $result = "
@@ -44,28 +40,24 @@ $result = "
         <span id='pagename'>Contact information</span>
 
         <div style='vertical-align: top; display: inline-block; width: 45%;'>
-            <div class='section_header'>Organizer(s)</div>
-            <div class='section_content' style='width: 90%;'>
-                $admin_contact
-            </div>
             <div class='section_header'>Access</div>
             <div class='section_content' style='width: 90%;'>
-                $config->lab_name</br>
-                $config->lab_street</br>
-                $config->lab_postcode, $config->lab_city</br>
-                $config->lab_country
+                $AppConfig->lab_name</br>
+                $AppConfig->lab_street</br>
+                $AppConfig->lab_postcode, $AppConfig->lab_city</br>
+                $AppConfig->lab_country
             </div>
 
             <div class='section_header'>Journal Club information</div>
             <div class='section_content' style='width: 90%;'>
                 <b>Day:</b> $jc_day<br>
-                <b>From</b> $config->jc_time_from <b>to</b> $config->jc_time_to<br>
-                <b>Room:</b> $config->room
+                <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
+                <b>Room:</b> $AppConfig->room
             </div>
 
             <div class='section_header'>Map</div>
             <div class='section_content' style='width: 90%;'>
-                <iframe src='$config->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
+                <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
                 </iframe>
             </div>
         </div>
