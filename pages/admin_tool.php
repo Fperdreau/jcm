@@ -373,7 +373,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
 // Add a post
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'post') {
-    $user = new User($_SESSION['username']);
+    $user = new User($db,$_SESSION['username']);
     $last = new Posts($db);
     $last->getlastnews();
 
@@ -386,7 +386,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     if (!empty($postlist)) {
 
         foreach ($postlist as $postid) {
-            $post = new Posts($postid);
+            $post = new Posts($db,$postid);
             if ($post->homepage==1) {
                 $style = "style='background-color: rgba(207,81,81,.3);'";
             } else {

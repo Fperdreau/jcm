@@ -218,11 +218,12 @@ class AppMail {
      */
     function advertise_mail() {
         // Get recent news
-        $last_news = new Posts($this->db);
+        $Posts = new Posts($this->db);
         $sessions = new Sessions($this->db);
         $presentations = new Presentations($this->db);
 
-        $last_news->getlastnews();
+        $last = $Posts->getlastnews();
+        $last_news = new Posts($this->db,$last);
         $today = date('Y-m-d');
         if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
             $last_news->content = "No recent news this week";

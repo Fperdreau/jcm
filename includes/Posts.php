@@ -33,7 +33,7 @@ class Posts {
      * @param $db DbSet
      * @param null $postid
      */
-    public function __construct($db,$postid=null) {
+    public function __construct(DbSet $db,$postid=null) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname["Posts"];
         if (null !== $postid) {
@@ -58,11 +58,10 @@ class Posts {
         $variables = array();
         $values = array();
         foreach ($class_vars as $name=>$value) {
-            if (in_array($name,$postkeys)) {
-                $escaped = $this->db->escape_query($post[$name]);
-            } else {
-                $escaped = $this->db->escape_query($this->$name);
-            }
+            if (in_array($name,array("db","tablename"))) continue;
+            $escaped = in_array($name, $postkeys)
+                ? $this->db->escape_query($post[$name])
+                : $this->db->escape_query($this->$name);
             $this->$name = $escaped;
             $variables[] = "$name";
             $values[] = "'$escaped'";
@@ -108,6 +107,8 @@ class Posts {
         $class_vars = get_class_vars("Posts");
         $postkeys = array_keys($post);
         foreach ($class_vars as $name => $value) {
+            if (in_array($name,array("db","tablename"))) continue;
+
             if (in_array($name,$postkeys)) {
                 $escaped = $this->db->escape_query($post[$name]);
             } else {
@@ -147,22 +148,26 @@ class Posts {
     }
 
     /**
-     * Get the newest post
+     * Get the newest posts
      * @param bool $homepage
-     * @return bool
+     * @return bool|array
      */
-    public  function getlastnews($homepage=false) {
+    public function getlastnews($homepage=false) {
         $sql = "SELECT postid from $this->tablename";
-        if ($homepage == true) {
-            $sql .= " WHERE homepage='1'";
-        }
+        if ($homepage == true) $sql .= " WHERE homepage='1'";
         $sql .= " ORDER BY date DESC";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_array($req);
         if (!empty($data)) {
-            $postid = $data[0];
-            self::get($postid);
-            return true;
+            if ($homepage == true) {
+                $post_ids = array($data[0]);
+                while ($row = mysqli_fetch_array($req)) {
+                    $post_ids[] = $row[0];
+                }
+            } else {
+                $post_ids = $data[0];
+            }
+            return $post_ids;
         } else {
             return false;
         }
@@ -173,17 +178,22 @@ class Posts {
      * @return string
      */
     public function show() {
-        if (self::getlastnews(true)) {
-            $news = "
-            <div style='width: 95%; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
-                <div style='widht: 100%; height: 20px; line-height: 20px; margin: 5px 10px auto; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$this->title</div>
-                <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
-                    $this->content
-                </div>
-                <div style='widht: 100%; background-color: #aaaaaa; padding: 2px; margin: 0; text-align: right; font-size: 13px;'>
-                            $this->day at $this->time, Posted by <span id='author_name'>$this->username</span>
-                </div>
-            </div>";
+        $posts_ids = self::getlastnews(true);
+        if ($posts_ids !== false) {
+            $news = "";
+            foreach ($posts_ids as $id) {
+                $post = new self($this->db,$id);
+                $news .= "
+                <div style='width: 95%; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                    <div style='width: 60%; height: 20px; line-height: 20px; margin: 5px 10px auto; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
+                    <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
+                        $post->content
+                    </div>
+                    <div style='width: 95%; background-color: #aaaaaa; padding: 2px 10px 2px 10px; margin: auto; text-align: right; font-size: 13px;'>
+                                $post->day at $post->time, Posted by <span id='author_name'>$post->username</span>
+                    </div>
+                </div>";
+            }
         } else {
             $news = "No recent news";
         }
