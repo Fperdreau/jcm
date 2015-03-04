@@ -178,6 +178,16 @@ class User extends Users{
     public $hash = "";
 
     /**
+     * Number of unsuccessful login attempts
+     * @var int
+     *
+     */
+    public $attempt = 0;
+
+    /** @var  string */
+    private $last_login;
+
+    /**
      * Constructor
      *
      * @param DbSet $db
@@ -376,7 +386,7 @@ class User extends Users{
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
-                    $this->db->updatecontent($this->tablename,'active',1,array("email"),array("'$this->email'"));
+                    $this->db->updatecontent($this->tablename,array('active','attempt'),array(1,0),array("email"),array("'$this->email'"));
                     /** @var AppMail $mail */
                     $mail = new AppMail($this->db,$config);
                     $mail-> send_confirmation_mail($this->email,$this->username);
@@ -408,6 +418,31 @@ class User extends Users{
             $this->db->updatecontent($this->tablename,'active',0,array("email"),array("'$this->email'"));
             return "Account successfully deactivated";
         }
+    }
+
+    /**
+     * Check number of unsuccessful login attempts.
+     * Deactivate the user's account if this number exceeds the maximum
+     * allowed number of attempts and send an email to the user with an activation link.
+     * @return int
+     */
+    public function checkattempt() {
+        $last_login = new DateTime($this->last_login);
+        $now = new DateTime();
+        $diff = $now->diff($last_login);
+        // Reset the number of attempts if last login attempt was 1 hour ago
+        $this->attempt = $diff->h >= 1 ? 0:$this->attempt;
+        $this->attempt += 1;
+        $AppConfig = new AppConfig($this->db);
+        if ($this->attempt >= $AppConfig->max_nb_attempt) {
+            self::activation(0); // We deactivate the user's account
+            /** @var AppMail $mail */
+            $mail = new AppMail($this->db,$AppConfig);
+            $mail->send_activation_mail($this);
+            return false;
+        }
+        $this->db->updatecontent($this->tablename,'attempt',$this->attempt,array("username"),array("'$this->username'"));
+        return $AppConfig->max_nb_attempt - $this->attempt;
     }
 
     /**

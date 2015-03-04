@@ -551,8 +551,11 @@ class Presentation extends Presentations {
      * @return string
      */
     public function showinsession($chair,$mail) {
-        $chair = new User($this->db,$chair);
-        $chair = $chair->fullname;
+        if ($chair !== 'TBA') {
+            $chair = new User($this->db, $chair);
+            $chair = $chair->fullname;
+        }
+
         if ($this->id_pres === "") {
             $speaker = 'TBA';
             $show_but = "<a href='index.php?page=submission&op=new'>Free</a>";

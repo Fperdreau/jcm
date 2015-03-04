@@ -24,8 +24,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  * and environmental information (list of tables associated to the application,...).
  */
 
-require(PATH_TO_CONFIG."config.php");
-
 class DbSet {
 
     /**
@@ -34,6 +32,19 @@ class DbSet {
      * @var null
      */
     public $bdd = NULL;
+
+    /**
+     * Default settings
+     * @var array
+     */
+    static $default = array(
+        "version"=>false,
+        "dbname"=>"test",
+        "host"=>"localhost",
+        "dbprefix"=>"jcm",
+        "username"=>"root",
+        "passw"=>""
+    );
 
     /**
      * Password
@@ -47,28 +58,28 @@ class DbSet {
      *
      * @var string
      */
-    public $username = "";
+    public $username = "root";
 
     /**
      * Hostname
      *
      * @var string
      */
-    public $host = "";
+    public $host = "localhost";
 
     /**
      * Database name
      *
      * @var string
      */
-    public $dbname = "";
+    public $dbname = "test";
 
     /**
      * Tables prefix
      *
      * @var string
      */
-    public $dbprefix = "";
+    public $dbprefix = "jcm";
 
     /**
      * List of tables associated to the application
@@ -76,7 +87,7 @@ class DbSet {
      * @var array|string
      *
      */
-    public $apptables = "";
+    public $apptables;
 
     /**
      *
@@ -88,7 +99,9 @@ class DbSet {
      * Constructor
      */
     function __construct() {
-        global $config;
+        $config = self::get_config();
+        if ($config == false) return false;
+
         foreach ($config as $key=>$value) {
             $this->$key = $value;
         }
@@ -100,6 +113,28 @@ class DbSet {
             "Session" => $this->dbprefix."_session",
             "Posts" => $this->dbprefix."_post"
         );
+    }
+
+    /**
+     * Get db config
+     * @return bool|array
+     */
+    public static function get_config() {
+        $version_file = PATH_TO_CONFIG."config.php";
+        if (is_file($version_file)) {
+            require $version_file;
+            if (!isset($config)) {
+                $config['version'] = isset($version) ? $version : "unknown";
+                $config['host'] = $host;
+                $config['username'] = $username;
+                $config['passw'] = $passw;
+                $config['dbname'] = $dbname;
+                $config['dbprefix'] = str_replace('_','',$db_prefix);
+            }
+        } else {
+            $config = self::$default;
+        }
+        return $config;
     }
 
     /**
@@ -300,11 +335,7 @@ class DbSet {
 			$cpt++;
 		}
 
-		if ($nref > 1) {
-			$cond = implode(' AND ',$cond);
-		} else {
-			$cond = implode('',$cond);
-		}
+        $cond = $nref > 1 ? implode(' AND ', $cond) : implode('', $cond);
 
 		$sql = "DELETE FROM $table_name WHERE ".$cond;
         self::send_query($sql);

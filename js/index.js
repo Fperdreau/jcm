@@ -128,14 +128,14 @@ var checkemail = function(email) {
 
 //Show feedback
 var showfeedback = function(message,selector) {
-    if (typeof selector === "undefined") {
-        selector = ".feedback";
-    }
-    $(''+selector)
+    var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
+
+    $(el)
         .html(message)
         .fadeIn();
     setTimeout(function() {
-       $(""+selector).fadeOut(3000);
+       $(el)
+           .empty();
     },3000);
     return false;
 };
@@ -229,6 +229,11 @@ var tinymcesetup = function() {
             {title: 'Table row 1', selector: 'tr', classes: 'tablerow1'}
         ]
     });
+
+};
+
+// Load sections
+var loadsections = function(pagetoload) {
 
 };
 
@@ -468,7 +473,7 @@ $( document ).ready(function() {
         .on('click',".change_pwd",function(){
             var email = $(this).attr("id");
             send_verifmail(email);
-            showfeedback('<p id="success">An email with instructions has been sent to your address</p>','.feedback_perso');
+            showfeedback('<p id="success">An email with instructions has been sent to your address</p>','feedback_perso');
         })
 
 		// Open a dialog box
@@ -568,10 +573,10 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result.msg === "deleted") {
-                        showfeedback('<p id="success">Account successfully deleted!</p>','.feedback');
+                        showfeedback('<p id="success">Account successfully deleted!</p>');
                         $('#section_'+username).remove();
                     } else {
-                        showfeedback('<p id="success">'+result.status+'</p>','.feedback');
+                        showfeedback('<p id="success">'+result.status+'</p>');
                     }
 
                     setTimeout(function() {
@@ -839,7 +844,7 @@ $( document ).ready(function() {
                         $('.type_list#'+classname).html(result);
                         $('input#new_'+classname+'_type').empty();
                     } else {
-                        showfeedback("<span id='warning'>We could not add this new category",".feedback_"+classname);
+                        showfeedback("<span id='warning'>We could not add this new category","feedback_"+classname);
                     }
                 }
             });
@@ -901,7 +906,7 @@ $( document ).ready(function() {
                     presid: presid},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    var feedbackdiv = '.feedback_'+session;
+                    var feedbackdiv = 'feedback_'+session;
                     if (result !== false) {
                         showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
                     } else {
@@ -928,7 +933,7 @@ $( document ).ready(function() {
                     time: time},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    var feedbackdiv = '.feedback_'+session;
+                    var feedbackdiv = 'feedback_'+session;
                     if (result !== false) {
                         showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
                     } else {
@@ -952,7 +957,7 @@ $( document ).ready(function() {
                     type: type},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    var feedbackdiv = '.feedback_'+session;
+                    var feedbackdiv = 'feedback_'+session;
                     if (result !== false) {
                         showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
                     } else {
@@ -1378,13 +1383,17 @@ $( document ).ready(function() {
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    if (result == 'logok') {
+                    if (result.status == true) {
                         location.reload();
-                    } else if (result == "wrong_username") {
+                    } else if (result.msg == "wrong_username") {
                         showfeedback('<p id="warning">Wrong username</p>');
-                    } else if (result == "wrong_password") {
-                        showfeedback('<p id="warning">Wrong username/password</p>');
-                    } else if (result == "not_activated") {
+                    } else if (result.msg == "wrong_password") {
+                        showfeedback('<p id="warning">Wrong password. ' + result.status + ' login attempts remaining</p>');
+                    } else if (result.msg == "blocked_account") {
+                        showfeedback('<p id="warning">Wrong password. You have exceeded the maximum number ' +
+                        'of possible attempts, hence your account has been deactivated for security reasons. ' +
+                        'We have sent an email to your address including an activation link.</p>');
+                    } else if (result.msg == "not_activated") {
                         showfeedback('<p id="warning">Sorry, your account is not activated yet. ' +
                             '<br> You will receive an email as soon as your registration is confirmed by an admin.<br> ' +
                             'Please <a href="index.php?page=contact">contact us</a> if you have any question.</p>');

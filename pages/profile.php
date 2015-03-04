@@ -85,7 +85,7 @@ $result = "
                 <div>$user->nbpres</div>
             </div>
             <input type='hidden' name='user_modify' value='true' />
-            <div class='feedback_perso'></div>
+            <div class='feedback' id='feedback_perso'></div>
         </form>
     </div>
 
@@ -115,7 +115,7 @@ $result = "
             </div>
             <input type='hidden' name='user_modify' value='true' />
             <input type='hidden' name='username' value='$user->username'/>
-            <div class='feedback_mail'></div>
+            <div class='feedback' id='feedback_mail'></div>
         </form>
     </div>
 

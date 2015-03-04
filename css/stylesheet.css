@@ -765,6 +765,14 @@ a:hover {
 }
 
 /* Alerts */
+.feedback {
+    content: "";
+    min-width: 200px;
+    width: auto;
+    min-height: 30px;
+    height: auto;
+}
+
 #warning {
     color: #990000;
     font-size: 13px; /* Set message font size  */

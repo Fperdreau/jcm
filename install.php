@@ -19,34 +19,50 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'includes/boot.php';
 
-
 /**
- * Get previous config information. Return $config array if a config file already exist, or false otherwise.
- * @return bool|array
+ * Browse release content and returns associative array with folders name as keys
+ * @param $dir
+ * @param array $foldertoexclude
+ * @param array $filestoexclude
+ * @return mixed
  */
-function get_config() {
-    $version_file = PATH_TO_CONFIG."config.php";
-    if (is_file($version_file)) {
-        require $version_file;
-        if (!isset($version) && !isset($config)) {
-            $config = false;
-        } else {
-            if (isset($version)) {
-                // This is a config file from previous JCM version
-                $config['version'] = $version;
-                $config['host'] = $host;
-                $config['username'] = $username;
-                $config['passw'] = $passw;
-                $config['dbname'] = $dbname;
-                $config['dbprefix'] = $db_prefix;
+function browsecontent($dir,$foldertoexclude=array(),$filestoexclude=array()) {
+    $content[$dir] = array();
+    if ($handle = opendir($dir)) {
+        while (false !== ($file = readdir($handle))) {
+            $filename = $dir."/".$file;
+            if ($file != "." && $file != ".." && is_file($filename) && !in_array($filename,$filestoexclude)) {
+                $content[$dir][] = $filename;
+            } else if ($file != "." && $file != ".." && is_dir($dir.$file) && !in_array($dir.$file, $foldertoexclude) ) {
+                $content[$dir] = browsecontent($dir.$file,$foldertoexclude,$filestoexclude);
             }
         }
-    } else {
-        $config = false;
+        closedir($handle);
     }
-    return $config;
+    return $content;
 }
 
+/**
+ * Check release integrity (presence of folders/files and file content)
+ * @return bool
+ */
+function check_release_integrity() {
+    $releasefolder = PATH_TO_APP.'/jcm/';
+    $releasecontentfile = PATH_TO_APP.'/jcm/content.json';
+    if (is_dir($releasefolder)) {
+        require $releasecontentfile;
+        $release_content = json_decode($content);
+        $foldertoexclude = array('config','uploads','dev');
+        $copied_release_content = browsecontent($releasefolder,$foldertoexclude);
+        $diff = array_diff_assoc($release_content,$copied_release_content);
+        $result['status'] = empty($diff) ? true:false;
+        $result['msg'] = "";
+    } else {
+        $result['status'] = false;
+        $result['msg'] = "<p id='warning'>The jcm folder containing the new release files should be placed at the root of your website</p>";
+    }
+    return json_encode($result);
+}
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -172,6 +188,8 @@ if (!empty($_POST['install_db'])) {
         "status"=>array("CHAR(10)",false),
         "hash"=>array("CHAR(32)",false),
         "active"=>array("INT(1)",0),
+        "attempt"=>array("INT(1)",0),
+        "last_login"=>array("DATETIME","NOT NULL"),
         "primary"=>"id"
         );
 
@@ -316,15 +334,15 @@ if (!empty($_POST['getpagecontent'])) {
     $op = htmlspecialchars($_POST['op']);
     $new_version = $AppConfig->version;
 
-    if ($op == "update") $config = new AppConfig($db);
+    if ($op == "update") $AppConfig = new AppConfig($db);
 
     /**
      * Get configuration from previous installation
      * @var  $config
      *
      */
-    $config = get_config();
-    $version = ($config !== false) ? $config['version']: false;
+    $config = $db->get_config();
+    $version = ($config['version'] !== false) ? $config['version']: false;
 
     if ($step == 1) {
         $title = "Welcome to the Journal Club Manager";
@@ -349,7 +367,7 @@ if (!empty($_POST['getpagecontent'])) {
         }
     } elseif ($step == 2) {
         if ($version !== false) {
-            $config = get_config();
+            $config = $db->get_config();
             foreach ($config as $name=>$value) {
                 $$name = $value;
             }
@@ -482,6 +500,7 @@ if (!empty($_POST['getpagecontent'])) {
                     .fadeOut(5000);
             };
 
+            // Get page content
             var getpagecontent = function(step,op) {
                 jQuery.ajax({
                     url: 'install.php',
@@ -506,6 +525,7 @@ if (!empty($_POST['getpagecontent'])) {
                 });
             };
 
+            // Do a backup of the db before making any modification
             var dobackup = function() {
                 $('#operation')
                     .hide()
@@ -535,6 +555,7 @@ if (!empty($_POST['getpagecontent'])) {
                 return false;
             };
 
+            // Check consistency between session/presentation tables
             var checkdb = function() {
                 $('#operation')
                     .hide()
@@ -543,14 +564,8 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: true,
+                    async: false,
                     data: {checkdb: true},
-                    beforeSend: function() {
-                        $('#loading').show();
-                    },
-                    complete: function() {
-                        $('#loading').hide();
-                    },
                     success: function(data){
                         var result = jQuery.parseJSON(data);
                         var html = "<p id='success'>result</p>";
@@ -609,7 +624,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: true,
+                            async: false,
                             data: data,
                             beforeSend: function() {
                                 $('#loading').show();
@@ -647,8 +662,14 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: data,
+                            beforeSend: function() {
+                                $('#loading').show();
+                            },
+                            complete: function() {
+                                $('#loading').hide();
+                            },
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
                                 $('#operation')

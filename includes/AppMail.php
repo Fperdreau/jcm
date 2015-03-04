@@ -83,6 +83,32 @@ class AppMail {
     }
 
     /**
+     * Send an email to the user if his/her account has been deactivated due to too many login attempts.
+     * @param User $user
+     * @return bool
+     */
+    function send_activation_mail(User $user) {
+        $to = $user->email;
+        $subject = 'Your account has been deactivated'; // Give the email a subject
+        $authorize_url = $this->config->site_url."index.php?page=verify&email=$user->email&hash=$user->hash&result=true";
+        $newpwurl = $this->config->site_url."index.php?page=renew_pwd&hash=$user->hash&email=$user->email";
+        $content = "
+        <p>Hello <b>$user->fullname</b>,</p>
+        <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
+        <p>You can reactivate your account by following this link:<br>
+        <a href='$authorize_url'>$authorize_url</a>
+        </p>
+        <p>If you forgot your password, you can ask for another one here:<br>
+        <a href='$newpwurl'>$newpwurl</a>
+        </p>
+        <p>Cheers,<br>The Journal Club Team</p>
+        ";
+
+        $body = self::formatmail($content);
+        return self::send_mail($to,$subject,$body);
+    }
+
+    /**
      * Send a confirmation email to the new user once his/her registration has been validated by an organizer
      * @param $to
      * @param $username

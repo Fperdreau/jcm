@@ -41,6 +41,7 @@ class AppConfig {
     public $sitetitle = "Journal Club";
     public $site_url = "(e.g. http://www.mydomain.com/Pjc/)";
     public $clean_day = 10;
+    public $max_nb_attempt = 5; // Maximum nb of login attempt
 
     /**
      * Journal club info

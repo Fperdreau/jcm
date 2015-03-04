@@ -66,8 +66,7 @@ if (!empty($_POST['login'])) {
 
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
-    $result = "nothing";
-    if ($user -> get($username) == true) {
+    if ($user->get($username) == true) {
         if ($user->active == 1) {
             if ($user -> check_pwd($password) == true) {
                 $_SESSION['logok'] = true;
@@ -75,16 +74,20 @@ if (!empty($_POST['login'])) {
                 $_SESSION['firstname'] = $user -> firstname;
                 $_SESSION['lastname'] = $user -> lastname;
                 $_SESSION['status'] = $user -> status;
-                $result = "logok";
+                $result['status'] = true;
             } else {
+                $attempt = $user->checkattempt();
+                $result['msg'] = $attempt == false ? "blocked_account":"wrong_password";
+                $result['status'] = $attempt;
                 $_SESSION['logok'] = false;
-                $result = "wrong_password";
             }
         } else {
-            $result = "not_activated";
+            $result['status'] = false;
+            $result['msg'] = "not_activated";
         }
     } else {
-        $result = "wrong_username";
+        $result['status'] = false;
+        $result['msg'] = "wrong_username";
     }
     echo json_encode($result);
     exit;
