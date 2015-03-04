@@ -22,6 +22,9 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 date_default_timezone_set('Europe/Paris');
+if (!ini_get('display_errors')) {
+    ini_set('display_errors', '1');
+}
 
 /**
  * Define paths
