@@ -23,7 +23,7 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $hash = htmlspecialchars($_GET['hash']);
     $email = htmlspecialchars($_GET['email']);
     $result = htmlspecialchars($_GET['result']);
-    $user = new User();
+    $user = new User($db);
     $valid = $user -> check_account_activation($hash,$email,$result);
     $result = "
     <div id='content'>
@@ -34,4 +34,5 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     </div>";
 
 	echo json_encode($result);
+    exit;
 }

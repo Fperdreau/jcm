@@ -233,61 +233,60 @@ var tinymcesetup = function() {
 };
 
 // Load sections
+var index = 0, section_pages = $('.section_page');
 var loadsections = function(pagetoload) {
+    var section;
 
+    if (index <= section_pages.length) {
+        section = $(section_pages[index]);
+        ++index;
+        section.load(loadsections(pagetoload));
+    }
 };
 
 // Load page by clicking on menu sections
 var loadpageonclick = function(pagetoload,param) {
-    param = typeof param !== 'undefined' ? param : false;
+    param = (typeof param !== 'undefined') ? param : false;
     var stateObj = { page: pagetoload };
+    var url = (param === false) ? "index.php?page="+pagetoload:"index.php?page="+pagetoload+"&"+param;
 
-    if (param === false) {
-        jQuery.ajax({
-            url: 'pages/'+pagetoload+'.php',
-            type: 'GET',
-            async: true,
-            data: param,
-            beforeSend: function() {
-                $('#loading').show();
-            },
-            complete: function () {
-                $('#loading').hide();
-            },
-            success: function(data){
-                var json = jQuery.parseJSON(data);
-                history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload);
+    /*$('#pagecontent')
+        .fadeOut(200)
+        .empty()
+        .html('<div id="content"></div>')
+        .show();
+    $('#content')
+        .empty()
+        .load('pages/'+pagetoload+'.php .section_page')
+        .fadeIn(200);
+    history.pushState(stateObj, pagetoload, url);*/
 
-                $('#pagecontent')
-                    .html('<div>'+json+'</div>')
-                    .fadeIn('slow');
-                tinymcesetup();
+    jQuery.ajax({
+        url: 'pages/'+pagetoload+'.php',
+        type: 'GET',
+        async: true,
+        data: param,
+        beforeSend: function() {
+            $('#pagecontent').fadeOut(200);
+            $('#loading').show();
+        },
+        complete: function () {
+            $('#loading').hide();
+        },
+        success: function(data){
+            var json = jQuery.parseJSON(data);
+            history.pushState(stateObj, pagetoload, url);
 
-            }
-        });
-    } else {
-        jQuery.ajax({
-            url: 'pages/'+pagetoload+'.php',
-            type: 'GET',
-            async: true,
-            data: param,
-            beforeSend: function() {
-                $('#loading').show();
-            },
-            complete: function () {
-                $('#loading').hide();
-            },
-            success: function(data){
-                var json = jQuery.parseJSON(data);
-                history.pushState(stateObj, pagetoload, "index.php?page="+pagetoload+"&"+param);
-
-                $('#pagecontent')
-                    .html('<div>'+json+'</div>')
-                    .fadeIn('slow');
-                tinymcesetup();
-            }
-        });
-    }
+            $('#pagecontent')
+                .empty()
+                .html(json)
+                .fadeIn(200)
+                .find(".section_page").each(function() {
+                    $(this).fadeIn('slow');
+                });
+            tinymcesetup();
+        }
+    });
 };
 
 var showpostform = function(postid) {
@@ -606,7 +605,7 @@ $( document ).ready(function() {
                 },
                 success: function(data){
                     var json = jQuery.parseJSON(data);
-                    showfeedback('<p id="success">OK</p>');
+                    showfeedback('<p id="success">OK</p>','db_check');
                 }
             });
         })
@@ -622,7 +621,7 @@ $( document ).ready(function() {
                 data: {webproc: webproc},
                 success: function(data){
                     var json = jQuery.parseJSON(data);
-                    $('#full_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
+                    $('.feedback#full_backup').html('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
                 }
             });
         })
@@ -637,7 +636,7 @@ $( document ).ready(function() {
                 data: {webproc: webproc},
                 success: function(data){
                     var json = jQuery.parseJSON(data);
-                    $('#db_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
+                    $('.feedback#db_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
                 }
             });
         })
@@ -1384,7 +1383,13 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result.status == true) {
-                        location.reload();
+                        $('#login_form')
+                            .hide()
+                            .html('<p id="success">Welcome back!</p>')
+                            .fadeIn(200);
+                        setTimeout(function() {
+                            location.reload();
+                        },2000);
                     } else if (result.msg == "wrong_username") {
                         showfeedback('<p id="warning">Wrong username</p>');
                     } else if (result.msg == "wrong_password") {

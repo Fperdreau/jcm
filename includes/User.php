@@ -441,7 +441,8 @@ class User extends Users{
             $mail->send_activation_mail($this);
             return false;
         }
-        $this->db->updatecontent($this->tablename,'attempt',$this->attempt,array("username"),array("'$this->username'"));
+        $this->last_login = date('Y-m-d H:i:s');
+        $this->db->updatecontent($this->tablename,array('attempt','last_login'),array($this->attempt,$this->last_login),array("username"),array("'$this->username'"));
         return $AppConfig->max_nb_attempt - $this->attempt;
     }
 
@@ -453,14 +454,13 @@ class User extends Users{
      */
     function check_pwd($password) {
         $truepwd = $this->db-> getinfo($this->tablename,"password",array("username"),array("'$this->username'"));
-
         $check = validate_password($password, $truepwd);
-
         if ($check == 1) {
-            $this->logged = true;
+            $this->attempt = 0;
+            $this->last_login = date('Y-m-d H:i:s');
+            $this->db->updatecontent($this->tablename,array('attempt','last_login'),array($this->attempt,$this->last_login),array("username"),array("'$this->username'"));
             return true;
         } else {
-            $this->logged = false;
             return false;
         }
     }

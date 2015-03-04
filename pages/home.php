@@ -58,22 +58,32 @@ $result = "
     <div id='content'>
         <span id='pagename'>Home</span>
         $welcome_msg
+        <div class='section_page'>
         <div class='section_header'>News</div>
         <div class='section_content'>
             $news
         </div>
+        </div>
 
+        <div class='section_page'>
         <div class='section_header'>Next Session</div>
         <div class='section_content'>
         	$nextpres
 		</div>
+		</div>
+
+		<div class='section_page'>
         <div class='section_header'>Future sessions</div>
         <div class='section_content' style='font-size: 13px;'>
         	$futurepres
 		</div>
+		</div>
+
+		<div class='section_page'>
         <div class='section_header'>Wish list</div>
         <div class='section_content' style='font-size: 13px;'>
         	$wishlist
+        </div>
         </div>
     </div>
 ";

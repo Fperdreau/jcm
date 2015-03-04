@@ -472,8 +472,6 @@ if (!empty($_POST['getpagecontent'])) {
         <META NAME="keywords" CONTENT="Journal Club Manager">
         <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
-        <link type='text/css' rel='stylesheet' href="css/jquery-ui.css"/>
-        <link type='text/css' rel='stylesheet' href="css/jquery-ui.theme.css"/>
 
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>

@@ -65,137 +65,130 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     $chair_assignopt = array('auto'=>'In advance', 'manual'=>'On submission');
     $chair_assignsel = "<option value='$AppConfig->chair_assign' selected>".$chair_assignopt[$AppConfig->chair_assign]."</option>";
 
-    $result = "
-        <div id='content'>
-            <span id='pagename'>Manage Sessions</span>
-            <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
+    $content = "
+    <span id='pagename'>Manage Sessions</span>
+    <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
 
-            <div class='section_header'>Sessions settings</div>
-            <div class='section_content'>
-                <form method='post' action='' class='form' id='config_form_session'>
-                    <div class='feedback_jc'></div>
-                    <input type='hidden' name='config_modify' value='true'>
-                    <div class='formcontrol' style='width: 100px;'>
-                        <label>Room</label>
-                        <input type='text' name='room' value='$AppConfig->room'>
-                    </div>
-                    <div class='formcontrol' style='width: 20%;'>
-                        <label for='jc_day'>Day</label>
-                        <select name='jc_day'>
-                            <option value='$AppConfig->jc_day' selected='selected'>$AppConfig->jc_day</option>
-                            <option value='monday'>Monday</option>
-                            <option value='tuesday'>Tuesday</option>
-                            <option value='wednesday'>Wednesday</option>
-                            <option value='thursday'>Thursday</option>
-                            <option value='friday'>Friday</option>
-                        </select>
-                    </div>
-                    <div class='formcontrol' style='width: 10%;'>
-                        <label>From</label>
-                        <select name='jc_time_from'>
-                            <option value='$AppConfig->jc_time_from' selected='selected'>$AppConfig->jc_time_from</option>
-                            $timeopt;
-                        </select>
-                    </div>
-                    <div class='formcontrol' style='width: 10%;'>
-                        <label>To</label>
-                        <select name='jc_time_to'>
-                            <option value='$AppConfig->jc_time_to' selected='selected'>$AppConfig->jc_time_to</option>
-                            $timeopt;
-                        </select>
-                    </div>
-                    <div class='formcontrol' style='width: 30%;'>
-                        <label>Presentations/Session</label>
-                        <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
-                    </div>
-                    <div class='formcontrol' style='width: 30%;'>
-                        <label>Chair assignement</label>
-                        <select name='chair_assign'>
-                            $chair_assignsel
-                            <option value='auto'>In advance</option>
-                            <option value='manual'>On submission</option>
-                        </select>
-                    </div>
-                    <div class='formcontrol' style='width: 30%;'>
-                        <label>Sessions to plan in advance</label>
-                        <input type='text' size='3' name='nbsessiontoplan' value='$AppConfig->nbsessiontoplan'/>
-                    </div>
-                    <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_session'/></p>
-                </form>
+    <div class='section_header'>Sessions settings</div>
+    <div class='section_content'>
+        <form method='post' action='' class='form' id='config_form_session'>
+            <div class='feedback_jc'></div>
+            <input type='hidden' name='config_modify' value='true'>
+            <div class='formcontrol' style='width: 100px;'>
+                <label>Room</label>
+                <input type='text' name='room' value='$AppConfig->room'>
             </div>
+            <div class='formcontrol' style='width: 20%;'>
+                <label for='jc_day'>Day</label>
+                <select name='jc_day'>
+                    <option value='$AppConfig->jc_day' selected='selected'>$AppConfig->jc_day</option>
+                    <option value='monday'>Monday</option>
+                    <option value='tuesday'>Tuesday</option>
+                    <option value='wednesday'>Wednesday</option>
+                    <option value='thursday'>Thursday</option>
+                    <option value='friday'>Friday</option>
+                </select>
+            </div>
+            <div class='formcontrol' style='width: 10%;'>
+                <label>From</label>
+                <select name='jc_time_from'>
+                    <option value='$AppConfig->jc_time_from' selected='selected'>$AppConfig->jc_time_from</option>
+                    $timeopt;
+                </select>
+            </div>
+            <div class='formcontrol' style='width: 10%;'>
+                <label>To</label>
+                <select name='jc_time_to'>
+                    <option value='$AppConfig->jc_time_to' selected='selected'>$AppConfig->jc_time_to</option>
+                    $timeopt;
+                </select>
+            </div>
+            <div class='formcontrol' style='width: 30%;'>
+                <label>Presentations/Session</label>
+                <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
+            </div>
+            <div class='formcontrol' style='width: 30%;'>
+                <label>Chair assignement</label>
+                <select name='chair_assign'>
+                    $chair_assignsel
+                    <option value='auto'>In advance</option>
+                    <option value='manual'>On submission</option>
+                </select>
+            </div>
+            <div class='formcontrol' style='width: 30%;'>
+                <label>Sessions to plan in advance</label>
+                <input type='text' size='3' name='nbsessiontoplan' value='$AppConfig->nbsessiontoplan'/>
+            </div>
+            <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_session'/></p>
+        </form>
+    </div>
 
-            <div class='section_header'>Session/Presentation</div>
-            <div class='section_content'>
-                <div class='section_sub'>Sessions</div>
-                <div class='formcontrol' style='width: 30%;'>
-                    <label>Default session type </label>
-                    <select class='session_type_default'>
-                        $opttypedflt
-                    </select>
-                </div><br>
-                <input type='button' id='submit' class='type_add' data-class='session' value='Add a category'/>
-                <input id='new_session_type' type='text' placeholder='New Category'/>
-                <div class='feedback_session'></div>
-                <div class='type_list' id='session'>$Sessionstype</div>
-                <div class='section_sub'>Presentations</div>
-                <input type='button' id='submit' class='type_add'  data-class='pres' value='Add a category'/>
-                <input id='new_pres_type' type='text' placeholder='New Category'/>
-                <div class='feedback_pres'></div>
-                <div class='type_list' id='pres'>$prestype</div>
-            </div>
+    <div class='section_header'>Session/Presentation</div>
+    <div class='section_content'>
+        <div class='section_sub'>Sessions</div>
+        <div class='formcontrol' style='width: 30%;'>
+            <label>Default session type </label>
+            <select class='session_type_default'>
+                $opttypedflt
+            </select>
+        </div><br>
+        <input type='button' id='submit' class='type_add' data-class='session' value='Add a category'/>
+        <input id='new_session_type' type='text' placeholder='New Category'/>
+        <div class='feedback_session'></div>
+        <div class='type_list' id='session'>$Sessionstype</div>
+        <div class='section_sub'>Presentations</div>
+        <input type='button' id='submit' class='type_add'  data-class='pres' value='Add a category'/>
+        <input id='new_pres_type' type='text' placeholder='New Category'/>
+        <div class='feedback_pres'></div>
+        <div class='type_list' id='pres'>$prestype</div>
+    </div>
 
-            <div class='section_header'>Manage Sessions</div>
-            <div class='section_content'>
-                <div class='formcontrol' style='width: 30%;'>
-                <label>Number of sessions to show</label>
-                    <select class='show_sessions'>
-                        <option value='1'>1</option>
-                        <option value='4' selected>4</option>
-                        <option value='8'>8</option>
-                        <option value='10'>10</option>
-                    </select>
-                </div>
-                <div id='sessionlist'>
-                $Sessionslist
-                </div>
-            </div>
+    <div class='section_header'>Manage Sessions</div>
+    <div class='section_content'>
+        <div class='formcontrol' style='width: 30%;'>
+        <label>Number of sessions to show</label>
+            <select class='show_sessions'>
+                <option value='1'>1</option>
+                <option value='4' selected>4</option>
+                <option value='8'>8</option>
+                <option value='10'>10</option>
+            </select>
         </div>
-    ";
+        <div id='sessionlist'>
+        $Sessionslist
+        </div>
+    </div>";
 }
 // Manage users
 elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $userlist = $Users->generateuserslist();
 
-    $result = "
-	    <div id='content'>
-			<span id='pagename'>Manage Users</span>
-            <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
-	        <div class='section_header'>Manage users</div>
-            <div class='section_content'>
-                <div class='formcontrol' style='width: 100px;'>
-                    <label for='order'>Sort by</label>
-    	            <select name='order' class='user_select'>
-    	            	<option value='' selected></option>
-    	            	<option value='firstname'>First name</option>
-    	            	<option value='lastname'>Last name</option>
-    	            	<option value='username'>User name</option>
-    	            	<option value='email'>Email</option>
-    	            	<option value='active'>Activation date</option>
-    	            	<option value='status'>Status</option>
-    	        	</select>
-                </div>
-                <div class='feedback'></div>
-            	<div id='user_list'>
-				$userlist
-				</div>
-			</div>
-		</div>
-	";
+    $content = "
+    <span id='pagename'>Manage Users</span>
+    <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
+    <div class='section_header'>Manage users</div>
+    <div class='section_content'>
+        <div class='formcontrol' style='width: 100px;'>
+            <label for='order'>Sort by</label>
+            <select name='order' class='user_select'>
+                <option value='' selected></option>
+                <option value='firstname'>First name</option>
+                <option value='lastname'>Last name</option>
+                <option value='username'>User name</option>
+                <option value='email'>Email</option>
+                <option value='active'>Activation date</option>
+                <option value='status'>Status</option>
+            </select>
+        </div>
+        <div class='feedback'></div>
+        <div id='user_list'>
+        $userlist
+        </div>
+    </div>";
 
 // Send mail
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'mail') {
-    $result = "
-    <div id='content'>
+    $content = "
 		<span id='pagename'>Mailing list</span>
         <p class='page_description'>Here you can send an email to users who subscribed to the newsletter.</p>
         <div class='feedback'></div>
@@ -214,17 +207,14 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <textarea name='spec_msg' id='spec_msg' cols='70' rows='15' class='tinymce'></textarea>
                 </div>
             </form>
-        </div>
-    </div>
-    ";
+        </div>";
 
 // Configuration
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'config') {
     // Make hours options list
     $timeopt = maketimeopt();
 
-    $result = "
-    <div id='content'>
+    $content = "
 		<span id='pagename'>Configuration</span>
         <div class='section_header'>Site parameters</div>
         <div class='section_content'>
@@ -366,10 +356,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 </div>
                 <div class='feedback_mail'></div>
             </form>
-        </div>
-    </div>
-
-    ";
+        </div>";
 
 // Add a post
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'post') {
@@ -399,8 +386,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     }
     $options .= "</select>";
 
-    $result = "
-    <div id='content'>
+    $content = "
 		<span id='pagename'>News</span>
          <p class='page_description'>Here you can add a post on the homepage.</p>
         <div style='display: block; width: 100%;'>
@@ -416,34 +402,40 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
             <div class='postcontent'>
             </div>
         </div>
-    </div>
         ";
 
 // Admin tools page
 } elseif  (!empty($_GET['op']) && $_GET['op'] == 'tools') {
-    $result = "
-    <div id='content'>
+    $content = "
 		<span id='pagename'>Admin tools</span>
-        <div class='section_header'>Tools</div>
-        <div class='section_content'>
-            <div id='db_check'>
-            <label for='backup'>Check db integrity database</label>
-            <input type='button' value='Proceed' id='submit' class='db_check'/>
-            <div class='feedback'></div>
-            </div><br>
+		<div class='section_page'>
+            <div class='section_header'>Tools</div>
+            <div class='section_content'>
+                <div id='db_check' style='display: inline-block;'>
+                <label for='backup'>Check db integrity database</label>
+                <input type='button' value='Proceed' id='submit' class='db_check'/>
+                </div>
+                <div class='feedback' id='db_check' style='display: inline-block;'></div><br>
 
-            <div id='db_backup'>
-            <label for='backup'>Backup database</label>
-            <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>
-            </div><br>
+                <div id='db_backup' style='display: inline-block;'>
+                <label for='backup'>Backup database</label>
+                <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>
+                </div>
+                <div class='feedback' id='db_backup' style='display: inline-block;'></div><br>
 
-            <div id='full_backup'>
-            <label for='full_backup'>Full backup (database + files)</label>
-            <input type='button' name='full_backup' value='Proceed' id='submit' class='fullbackup'/>
+                <div id='full_backup' style='display: inline-block;'>
+                <label for='full_backup'>Full backup (database + files)</label>
+                <input type='button' name='full_backup' value='Proceed' id='submit' class='fullbackup'/>
+                </div>
+                <div class='feedback' id='full_backup' style='display: inline-block;'></div>
             </div>
-
-        </div>
-    </div>";
+        </div>";
 }
+
+$result = "
+<div id='content'>
+$content
+</div>
+";
 
 echo json_encode($result);
