@@ -147,18 +147,37 @@ class DbSet {
         $this->bdd = mysqli_connect($this->host,$this->username,$this->password);
         if (!$this->bdd) {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'> Failed to connect to the database<br>" . mysqli_error($this->bdd) . "</p>";
-            return $result;
+            die(json_encode("<p id='warning'> Failed to connect to the database<br>" . mysqli_error($this->bdd) . "</p>"));
         }
 
         if (!mysqli_select_db($this->bdd,"$this->dbname")) {
+            die(json_encode("<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>"));
+        }
+        return $this->bdd;
+	}
+
+    /**
+     * Test credentials and throws exceptions
+     * @return mysqli|null
+     */
+    function testdb($config) {
+        $link = mysqli_connect($config['host'],$config['username'],$config['passw']);
+        if (!$link) {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>";
+            $result['msg'] = "<p id='warning'> Failed to connect to the database<br>" . mysqli_error($link) . "</p>";
+            return $result;
+        }
+
+        if (!mysqli_select_db($link,$config['dbname'])) {
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning'>Database '".$config['dbname']."' cannot be selected<br/>".mysqli_error($link)."</p>";
             return $result;
         }
         $result['status'] = true;
+        $result['msg'] = "<p id='success'>Connected</p>";
         return $result;
-	}
+    }
+
 
     /**
      * Get list of tables associated to the application
@@ -197,8 +216,7 @@ class DbSet {
      * @return bool|mysqli_result
      */
     public function send_query($sql,$silent=false) {
-        $result = self::bdd_connect();
-        if ($result['status'] == false) die($result['msg']);
+        self::bdd_connect();
 
         $req = mysqli_query($this->bdd,$sql);
         if (false === $req) {
@@ -218,8 +236,7 @@ class DbSet {
      * @return string
      */
     public function escape_query($query) {
-        $result = self::bdd_connect();
-        if ($result['status'] == false) die($result['msg']);
+        self::bdd_connect();
         return mysqli_real_escape_string($this->bdd,$query);
     }
 

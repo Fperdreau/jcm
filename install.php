@@ -112,261 +112,270 @@ function check_release_integrity() {
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
-if (!empty($_POST['inst_admin'])) {
-    $encrypted_pw = htmlspecialchars($_POST['password']);
-    $username = htmlspecialchars($_POST['username']);
-    $email = htmlspecialchars($_POST['email']);
+if (!empty($_POST['operation'])) {
+    $operation = $_POST['operation'];
 
-    $user = new User($db);
-    if ($user -> make($username,$encrypted_pw,$username,"","",$email,"admin")) {
-        $result = "<p id='success'>Admin account created</p>";
-    } else {
-        $result = "<p id='warning'>We could not create the admin account</p>";
-    }
-    echo json_encode($result);
-	exit;
-}
-
-/**
- * Write application settings to config.php
- *
- */
-if (!empty($_POST['do_conf'])) {
-
-    $filename = PATH_TO_CONFIG."config.php";
-	$result = "";
-	if (is_file($filename)) {
-		unlink($filename);
-	}
-
-    // Make config folder
-    $dirname = PATH_TO_CONFIG;
-	if (is_dir($dirname) === false) {
-		if (!mkdir($dirname,0755)) {
-            json_encode("Could not create config directory");
-            exit;
-        }
-	}
-
-    // Make uploads folder
-    $dirname = PATH_TO_APP."/uploads/";
-    if (is_dir($dirname) === false) {
-        if (!mkdir($dirname,0755)) {
-            json_encode("Could not create uploads directory");
-            exit;
-        }
-    }
-
-    // Write configuration information to config/config.php
-    $config = array();
-    foreach ($_POST as $name=>$value) {
-        if (!in_array($name,array("do_conf","op"))) {
-            $config[] = '"'.$name.'" => "'.$value.'"';
-        }
-    }
-    $config = implode(',',$config);
-    $string = '<?php $config = array('.$config.'); ?>';
-
-	// Create new config file
-    if ($fp = fopen($filename, "w+")) {
-        if (fwrite($fp, $string) == true) {
-            fclose($fp);
-        } else {
-            $result = "Impossible to write";
-	        echo json_encode($result);
-            exit;
-        }
-    } else {
-        $result = "Impossible to open the file";
+    // STEP 1: Check database credentials provided by the user
+    if ($operation == "db_info") {
+        $result = $db->testdb($_POST);
         echo json_encode($result);
         exit;
     }
-    echo json_encode(true);
-    exit;
-}
 
-// Do Back ups
-if (!empty($_POST['backup'])) {
-    $backup_file = backup_db();
-    echo json_encode($backup_file);
-    exit;
-}
+    // STEP 2: Write database credentials to config.php file
+    if ($operation == "do_conf") {
 
-// Configure database
-if (!empty($_POST['install_db'])) {
+        $filename = PATH_TO_CONFIG."config.php";
+        $result = "";
+        if (is_file($filename)) {
+            unlink($filename);
+        }
 
-    $op = htmlspecialchars($_POST['op']);
-    $op = $op == "new";
-    $result = "";
-    
-    // Tables to create
-    $tables_to_create = $db->tablesname;
-
-    // First we remove any deprecated tables
-    $old_tables = $db->getapptables();
-    foreach ($old_tables as $old_table) {
-        if (!in_array($old_table,$tables_to_create)) {
-            if ($db->deletetable($old_table) == true) {
-                $result .= "<p id='success'>$old_table has been deleted because we do not longer need it</p>";
-            } else {
-                $result .= "<p id='warning'>We could not remove $old_table although we do not longer need it</p>";
-                echo json_encode($result);
+        // Make config folder
+        $dirname = PATH_TO_CONFIG;
+        if (is_dir($dirname) === false) {
+            if (!mkdir($dirname,0755)) {
+                json_encode("Could not create config directory");
                 exit;
             }
         }
+
+        // Make uploads folder
+        $dirname = PATH_TO_APP."/uploads/";
+        if (is_dir($dirname) === false) {
+            if (!mkdir($dirname,0755)) {
+                json_encode("Could not create uploads directory");
+                exit;
+            }
+        }
+
+        // Write configuration information to config/config.php
+        $config = array();
+        foreach ($_POST as $name=>$value) {
+            if (!in_array($name,array("do_conf","op"))) {
+                $config[] = '"'.$name.'" => "'.$value.'"';
+            }
+        }
+        $config = implode(',',$config);
+        $string = '<?php $config = array('.$config.'); ?>';
+
+        // Create new config file
+        if ($fp = fopen($filename, "w+")) {
+            if (fwrite($fp, $string) == true) {
+                fclose($fp);
+            } else {
+                $result = "Impossible to write";
+                echo json_encode($result);
+                exit;
+            }
+        } else {
+            $result = "Impossible to open the file";
+            echo json_encode($result);
+            exit;
+        }
+        echo json_encode(true);
+        exit;
     }
 
-    // Create users table
-    $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "date"=>array("DATETIME",date('Y-m-d h:i:s')),
-        "firstname"=>array("CHAR(30)",false),
-        "lastname"=>array("CHAR(30)",false),
-        "fullname"=>array("CHAR(30)",false),
-        "username"=>array("CHAR(30)",false),
-        "password"=>array("CHAR(50)",false),
-        "position"=>array("CHAR(10)",false),
-        "email"=>array("CHAR(100)",false),
-        "notification"=>array("INT(1)",1),
-        "reminder"=>array("INT(1)",1),
-        "nbpres"=>array("INT(3)",0),
-        "status"=>array("CHAR(10)",false),
-        "hash"=>array("CHAR(32)",false),
-        "active"=>array("INT(1)",0),
-        "attempt"=>array("INT(1)",0),
-        "last_login"=>array("DATETIME","NOT NULL"),
-        "primary"=>"id"
+    // STEP 3: Do Backups before making any modifications to the db
+    if ($operation == "backup") {
+        $backup_file = backup_db();
+        echo json_encode($backup_file);
+        exit;
+    }
+
+    // STEP 4: Configure database
+    if ($operation == "install_db") {
+
+        $op = htmlspecialchars($_POST['op']);
+        $op = $op == "new";
+        $result = "";
+
+        // Tables to create
+        $tables_to_create = $db->tablesname;
+
+        // First we remove any deprecated tables
+        $old_tables = $db->getapptables();
+        foreach ($old_tables as $old_table) {
+            if (!in_array($old_table,$tables_to_create)) {
+                if ($db->deletetable($old_table) == true) {
+                    $result .= "<p id='success'>$old_table has been deleted because we do not longer need it</p>";
+                } else {
+                    $result .= "<p id='warning'>We could not remove $old_table although we do not longer need it</p>";
+                    echo json_encode($result);
+                    exit;
+                }
+            }
+        }
+
+        // Create users table
+        $table_data = array(
+            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
+            "date"=>array("DATETIME",date('Y-m-d h:i:s')),
+            "firstname"=>array("CHAR(30)",false),
+            "lastname"=>array("CHAR(30)",false),
+            "fullname"=>array("CHAR(30)",false),
+            "username"=>array("CHAR(30)",false),
+            "password"=>array("CHAR(50)",false),
+            "position"=>array("CHAR(10)",false),
+            "email"=>array("CHAR(100)",false),
+            "notification"=>array("INT(1)",1),
+            "reminder"=>array("INT(1)",1),
+            "nbpres"=>array("INT(3)",0),
+            "status"=>array("CHAR(10)",false),
+            "hash"=>array("CHAR(32)",false),
+            "active"=>array("INT(1)",0),
+            "attempt"=>array("INT(1)",0),
+            "last_login"=>array("DATETIME","NOT NULL"),
+            "primary"=>"id"
         );
 
-    if ($db->makeorupdate($db->tablesname['User'],$table_data,$op)) {
-	    $result .= "<p id='success'>'".$db->tablesname['User']."' created</p>";
-    } else {
-        echo json_encode("<p id='warning'>'".$db->tablesname['User']."' not created</p>");
-        exit;
-    }
-
-    // Create Post table
-    $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "postid"=>array("CHAR(30)","NOT NULL"),
-        "date"=>array("DATETIME",date('Y-m-d h:i:s')),
-        "title"=>array("VARCHAR(255)","NOT NULL"),
-        "content"=>array("TEXT(5000)",false),
-        "username"=>array("CHAR(30)",false),
-        "homepage"=>array("INT(1)",0),
-        "primary"=>"id");
-    if ($db->makeorupdate($db->tablesname['Posts'],$table_data,$op)) {
-	    $result .= "<p id='success'> '".$db->tablesname['Posts']."' created</p>";
-    } else {
-        echo json_encode("<p id='warning'>'$db->tablesname['Posts']' not created</p>");
-        exit;
-    }
-
-    // Give ids to posts that do not have one yet (compatibility with older verions)
-    $sql = "SELECT postid,date FROM ".$db->tablesname['Posts'];
-    $req = $db->send_query($sql);
-    while ($row = mysqli_fetch_assoc($req)) {
-        if (empty($row['postid'])) {
-            $post = new Posts($db);
-            $post->date = $row['date'];
-            $post->postid = $post->makeID();
-            $post->update();
+        if ($db->makeorupdate($db->tablesname['User'],$table_data,$op)) {
+            $result .= "<p id='success'>'".$db->tablesname['User']."' created</p>";
+        } else {
+            echo json_encode("<p id='warning'>'".$db->tablesname['User']."' not created</p>");
+            exit;
         }
-    }
 
-    // Create config table
-    $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "variable"=>array("CHAR(20)",false),
-        "value"=>array("TEXT",false),
-        "primary"=>"id");
-    if ($db->makeorupdate($db->tablesname['AppConfig'],$table_data,$op) == true) {
-    	$result .= "<p id='success'> '".$db->tablesname['AppConfig']."' created</p>";
-    } else {
-        echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not created</p>");
-        exit;
-    }
+        // Create Post table
+        $table_data = array(
+            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
+            "postid"=>array("CHAR(30)","NOT NULL"),
+            "date"=>array("DATETIME",date('Y-m-d h:i:s')),
+            "title"=>array("VARCHAR(255)","NOT NULL"),
+            "content"=>array("TEXT(5000)",false),
+            "username"=>array("CHAR(30)",false),
+            "homepage"=>array("INT(1)",0),
+            "primary"=>"id");
+        if ($db->makeorupdate($db->tablesname['Posts'],$table_data,$op)) {
+            $result .= "<p id='success'> '".$db->tablesname['Posts']."' created</p>";
+        } else {
+            echo json_encode("<p id='warning'>'$db->tablesname['Posts']' not created</p>");
+            exit;
+        }
 
-    // Get default application settings
-    if ($op === false) {
-        $config = new AppConfig($db,false);
-    } else {
-        $config = new AppConfig($db);
-    }
+        // Give ids to posts that do not have one yet (compatibility with older verions)
+        $sql = "SELECT postid,date FROM ".$db->tablesname['Posts'];
+        $req = $db->send_query($sql);
+        while ($row = mysqli_fetch_assoc($req)) {
+            if (empty($row['postid'])) {
+                $post = new Posts($db);
+                $post->date = $row['date'];
+                $post->postid = $post->makeID();
+                $post->update();
+            }
+        }
 
-    if ($config->update($_POST) === true) {
-        $result .= "<p id='success'> '".$db->tablesname['AppConfig']."' updated</p>";
-    } else {
-        echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not updated</p>");
-        exit;
-    }
+        // Create config table
+        $table_data = array(
+            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
+            "variable"=>array("CHAR(20)",false),
+            "value"=>array("TEXT",false),
+            "primary"=>"id");
+        if ($db->makeorupdate($db->tablesname['AppConfig'],$table_data,$op) == true) {
+            $result .= "<p id='success'> '".$db->tablesname['AppConfig']."' created</p>";
+        } else {
+            echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not created</p>");
+            exit;
+        }
 
-    // Create presentations table
-    $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "up_date"=>array("DATETIME",false),
-        "id_pres"=>array("BIGINT(15)",false),
-        "username"=>array("CHAR(30)","NOT NULL"),
-        "type"=>array("CHAR(30)",false),
-        "date"=>array("DATE",false),
-        "jc_time"=>array("CHAR(15)",false),
-        "title"=>array("CHAR(150)",false),
-        "authors"=>array("CHAR(150)",false),
-        "summary"=>array("TEXT(5000)",false),
-        "link"=>array("TEXT(500)",false),
-        "orator"=>array("CHAR(50)",false),
-        "presented"=>array("INT(1)",0),
-        "primary"=>"id"
+        // Get default application settings
+        if ($op === false) {
+            $config = new AppConfig($db,false);
+        } else {
+            $config = new AppConfig($db);
+        }
+
+        if ($config->update($_POST) === true) {
+            $result .= "<p id='success'> '".$db->tablesname['AppConfig']."' updated</p>";
+        } else {
+            echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not updated</p>");
+            exit;
+        }
+
+        // Create presentations table
+        $table_data = array(
+            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
+            "up_date"=>array("DATETIME",false),
+            "id_pres"=>array("BIGINT(15)",false),
+            "username"=>array("CHAR(30)","NOT NULL"),
+            "type"=>array("CHAR(30)",false),
+            "date"=>array("DATE",false),
+            "jc_time"=>array("CHAR(15)",false),
+            "title"=>array("CHAR(150)",false),
+            "authors"=>array("CHAR(150)",false),
+            "summary"=>array("TEXT(5000)",false),
+            "link"=>array("TEXT(500)",false),
+            "orator"=>array("CHAR(50)",false),
+            "presented"=>array("INT(1)",0),
+            "primary"=>"id"
         );
 
-    if ($db->makeorupdate($db->tablesname['Presentation'],$table_data,$op)) {
-    	$result .= "<p id='success'>'".$db->tablesname['Presentation']."' created</p>";
-    } else {
-        echo json_encode("<p id='warning'>'".$db->tablesname['Presentation']."' not created</p>");
-        exit;
-    }
-
-    // Set username of the uploader
-    $sql = 'SELECT id_pres,username,orator FROM '.$db->tablesname['Presentation'];
-    $req = $db->send_query($sql);
-    while ($row = mysqli_fetch_assoc($req)) {
-        if (empty($row['username'])) {
-            $pub = new Presentation($db,$row['id_pres']);
-            $pub->username = $row['orator'];
-            $pub->update();
+        if ($db->makeorupdate($db->tablesname['Presentation'],$table_data,$op)) {
+            $result .= "<p id='success'>'".$db->tablesname['Presentation']."' created</p>";
+        } else {
+            echo json_encode("<p id='warning'>'".$db->tablesname['Presentation']."' not created</p>");
+            exit;
         }
-    }
 
-    // Create Session table
-    $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "date"=>array("DATE",false),
-        "status"=>array("CHAR(10)","FREE"),
-        "time"=>array("VARCHAR(200)",false),
-        "type"=>array("CHAR(30)","NOT NULL"),
-        "presid"=>array("VARCHAR(200)","NOT NULL"),
-        "speakers"=>array("VARCHAR(200)","NOT NULL"),
-        "chairs"=>array("VARCHAR(200)","NOT NULL"),
-        "nbpres"=>array("INT(2)",0),
-        "primary"=>"id");
-    if ($db->makeorupdate($db->tablesname['Session'],$table_data,$op)) {
-        $result .= "<p id='success'> '".$db->tablesname['Session']."' created</p>";
-    } else {
-        echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not created</p>");
+        // Set username of the uploader
+        $sql = 'SELECT id_pres,username,orator FROM '.$db->tablesname['Presentation'];
+        $req = $db->send_query($sql);
+        while ($row = mysqli_fetch_assoc($req)) {
+            if (empty($row['username'])) {
+                $pub = new Presentation($db,$row['id_pres']);
+                $pub->username = $row['orator'];
+                $pub->update();
+            }
+        }
+
+        // Create Session table
+        $table_data = array(
+            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
+            "date"=>array("DATE",false),
+            "status"=>array("CHAR(10)","FREE"),
+            "time"=>array("VARCHAR(200)",false),
+            "type"=>array("CHAR(30)","NOT NULL"),
+            "presid"=>array("VARCHAR(200)","NOT NULL"),
+            "speakers"=>array("VARCHAR(200)","NOT NULL"),
+            "chairs"=>array("VARCHAR(200)","NOT NULL"),
+            "nbpres"=>array("INT(2)",0),
+            "primary"=>"id");
+        if ($db->makeorupdate($db->tablesname['Session'],$table_data,$op)) {
+            $result .= "<p id='success'> '".$db->tablesname['Session']."' created</p>";
+        } else {
+            echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not created</p>");
+            exit;
+        }
+
+        echo json_encode($result);
         exit;
     }
 
-    echo json_encode($result);
-    exit;
-}
+    // STEP 5:Check consistency between presentations and sessions table
+    if (!empty($_POST['checkdb'])) {
+        $result = $Sessions->checkcorrespondence()
+            ? "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>"
+            : "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+        echo json_encode($result);
+        exit;
+    }
 
-if (!empty($_POST['checkdb'])) {
-    // Check consistency between presentations and sessions table
-    $result = $Sessions->checkcorrespondence()
-        ? "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>"
-        : "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
-    echo json_encode($result);
-    exit;
+    // Final step: create admin account (for new installation only)
+    if (!empty($_POST['inst_admin'])) {
+        $encrypted_pw = htmlspecialchars($_POST['password']);
+        $username = htmlspecialchars($_POST['username']);
+        $email = htmlspecialchars($_POST['email']);
+
+        $user = new User($db);
+        if ($user -> make($username,$encrypted_pw,$username,"","",$email,"admin")) {
+            $result = "<p id='success'>Admin account created</p>";
+        } else {
+            $result = "<p id='warning'>We could not create the admin account</p>";
+        }
+        echo json_encode($result);
+        exit;
+    }
 }
 
 /**
@@ -417,16 +426,16 @@ if (!empty($_POST['getpagecontent'])) {
 
 		$title = "Step 1: Database configuration";
 		$operation = "
-			<form action='' method='post' name='install' id='do_conf'>
+			<form action='' method='post' name='install' id='db_info'>
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
-				<input class='field' type='hidden' name='do_conf' value='true' />
+				<input class='field' type='hidden' name='db_info' value='true' />
 				<label for='host' class='label'>Host Name</label><input class='field' name='host' type='text' value='$host'></br>
 				<label for='username' class='label'>Username</label><input class='field' name='username' type='text' value='$username'></br>
 				<label for='passw' class='label'>Password</label><input class='field' name='passw' type='password' value='$passw'></br>
 				<label for='dbname' class='label'>DB Name</label><input class='field' name='dbname' type='text' value='$dbname'></br>
 				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='$dbprefix'></br>
-				<p style='text-align: right'><input type='submit' name='do_conf' value='Next' id='submit' class='do_conf' data-op='$op'></p>
+				<p style='text-align: right'><input type='submit' name='db_info' value='Next' id='submit' class='db_info' data-op='$op'></p>
 			</form>
 			<div class='feedback'></div>
 		";
@@ -465,7 +474,7 @@ if (!empty($_POST['getpagecontent'])) {
             <div class='feedback'></div>
         ";
 	} elseif ($step == 4) {
-		$title = "Step 2: Admin account creation";
+		$title = "Step 3: Admin account creation";
 		$operation = "
             <div class='feedback'></div>
 			<form method='post' id='admin_creation'>
@@ -490,6 +499,7 @@ if (!empty($_POST['getpagecontent'])) {
 		<span id='pagename'>Installation</span>
 		<div class='section_header' style='width: 300px'>$title</div>
 		<div class='section_content'>
+		    <div class='feedback'></div>
 			<div id='operation'>$operation</div>
 		</div>
 	</div>";
@@ -559,18 +569,39 @@ if (!empty($_POST['getpagecontent'])) {
                 });
             };
 
-            // Do a backup of the db before making any modification
-            var dobackup = function() {
+            var makeconfigfile = function(data) {
+                data = modifyopeation(data,"do_conf");
                 $('#operation')
-                    .hide()
-                    .html('<p id="status">Backup previous database</p>')
-                    .fadeIn(200);
+                    .append("<p id='status'>Creation of configuration file</p>");
                 // Make configuration file
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
                     async: true,
-                    data: {backup: true},
+                    data: data,
+                    success: function(data){
+                        var result = jQuery.parseJSON(data);
+                        var html;
+                        if (result === true) {
+                            html = "<p id='success'>Configuration file created/updated</p>";
+                        } else {
+                            html = "<p id='warning'>"+result+"</p>";
+                        }
+                        $('#operation').append(html);
+                    }
+                });
+            };
+
+            // Do a backup of the db before making any modification
+            var dobackup = function() {
+                $('#operation')
+                    .append('<p id="status">Backup previous database</p>');
+                // Make configuration file
+                jQuery.ajax({
+                    url: 'install.php',
+                    type: 'POST',
+                    async: true,
+                    data: {operation: "backup"},
                     beforeSend: function() {
                         $('#loading').show();
                     },
@@ -581,8 +612,8 @@ if (!empty($_POST['getpagecontent'])) {
                         var result = jQuery.parseJSON(data);
                         var html = "<p id='success'>Backup created: "+result+"</p>";
                         $('#operation')
-                            .hide()
-                            .append(html)
+                            .empty()
+                            .html(html)
                             .fadeIn(200);
                     }
                 });
@@ -592,25 +623,35 @@ if (!empty($_POST['getpagecontent'])) {
             // Check consistency between session/presentation tables
             var checkdb = function() {
                 $('#operation')
-                    .hide()
-                    .html('<p id="status">Check consistency between session/presentation tables</p>')
-                    .fadeIn(200);
+                    .append('<p id="status">Check consistency between session/presentation tables</p>');
+
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
                     async: true,
-                    data: {checkdb: true},
+                    data: {operation: "checkdb"},
                     success: function(data){
                         var result = jQuery.parseJSON(data);
                         var html = "<p id='success'>result</p>";
                         $('#operation')
-                            .hide()
                             .append(html)
                             .fadeIn(200);
                     }
                 });
                 return false;
             };
+
+            function modifyopeation(data,operation) {
+                var index;
+                // Find and replace `content` if there
+                for (index = 0; index < data.length; ++index) {
+                    if (data[index].name == "operation") {
+                        data[index].value = operation;
+                        break;
+                    }
+                }
+                return data;
+            }
 
             $(document).ready(function () {
                 $('.mainbody')
@@ -643,45 +684,34 @@ if (!empty($_POST['getpagecontent'])) {
                         window.location = "index.php";
                     })
 
-                    // Launch database setup
-                    .on('click','.do_conf',function(e) {
+                    // Step 1->3: Launch database setup
+                    .on('click','.db_info',function(e) {
                         e.preventDefault();
                         var op = $(this).attr('data-op');
-                        var data = $("#do_conf").serializeArray();
+                        var formdata = $("#db_info").serializeArray();
+                        formdata.push({name:"operation",value:"db_info"});
 
-                        // Backup the database before updating it
-                        if (op == "update") {
-                            dobackup();
-                        }
-
-                        // Make configuration file
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
                             async: true,
-                            data: data,
-                            beforeSend: function() {
-                                $('#loading').show();
-                            },
-                            complete: function() {
-                                $('#loading').hide();
-                            },
+                            data: formdata,
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
-                                var html;
-                                if (result === true) {
-                                    html = "<p id='success'>Configuration file created/updated</p>";
+                                if (result.status == false) {
+                                    showfeedback(result.msg);
                                 } else {
-                                    html = "<p id='warning'>"+result+"</p>";
+                                    showfeedback(result.msg);
+                                    $('#operation').empty();
+
+                                    // Make config.php file
+                                    makeconfigfile(formdata);
+
+                                    // Go to the next step
+                                    setTimeout(function(){
+                                        getpagecontent(3,op);
+                                    },2000);
                                 }
-                                $('#operation')
-                                    .hide()
-                                    .append(html)
-                                    .fadeIn(200);
-                                // Go to the next step
-                                setTimeout(function(){
-                                    getpagecontent(3,op);
-                                },2000);
                             }
                         });
                     })
@@ -690,14 +720,19 @@ if (!empty($_POST['getpagecontent'])) {
                     .on('click','.install_db',function(e) {
                         e.preventDefault();
                         var op = $(this).attr('data-op');
-                        var data = $("#install_db").serializeArray();
+                        var formdata = $("#install_db").serializeArray();
+                        formdata.push({name:"operation",value:"install_db"});
+                        $('#operation').empty();
 
-                        // Configure database
+                        // First we backup the db before making any modifications
+                        dobackup();
+
+                        // Next, configure database
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
                             async: true,
-                            data: data,
+                            data: formdata,
                             beforeSend: function() {
                                 $('#loading').show();
                             },
@@ -706,10 +741,7 @@ if (!empty($_POST['getpagecontent'])) {
                             },
                             success: function(data){
                                 var result = jQuery.parseJSON(data);
-                                $('#operation')
-                                    .hide()
-                                    .html(result)
-                                    .fadeIn(200);
+                                $('#operation').append(result);
 
                                 // Check database consistency
                                 checkdb();
@@ -726,7 +758,7 @@ if (!empty($_POST['getpagecontent'])) {
                         });
                     })
 
-                    // Create admin account
+                    // Final step: Create admin account
                     .on('click','.admin_creation',function(e) {
                         e.preventDefault();
                         var op = $(this).attr('data-op');
@@ -776,7 +808,7 @@ if (!empty($_POST['getpagecontent'])) {
                             type: 'POST',
                             async: true,
                             data: {
-                                inst_admin: true,
+                                operation: "inst_admin",
                                 username: username,
                                 password: password,
                                 email: email,
