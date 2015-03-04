@@ -17,7 +17,52 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-require 'includes/boot.php';
+
+/**
+ * Define timezone
+ *
+ */
+date_default_timezone_set('Europe/Paris');
+if (!ini_get('display_errors')) {
+    ini_set('display_errors', '1');
+}
+
+/**
+ * Define paths
+ */
+if(!defined('APP_NAME')) define('APP_NAME', basename(__DIR__));
+if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(__FILE__).'/');
+if(!defined('PATH_TO_IMG')) define('PATH_TO_IMG', PATH_TO_APP.'/images/');
+if(!defined('PATH_TO_INCLUDES')) define('PATH_TO_INCLUDES', PATH_TO_APP.'/includes/');
+if(!defined('PATH_TO_PHP')) define('PATH_TO_PHP', PATH_TO_APP.'/php/');
+if(!defined('PATH_TO_PAGES')) define('PATH_TO_PAGES', PATH_TO_APP.'/pages/');
+if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP.'/config/');
+if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
+
+/**
+ * Includes required files (classes)
+ */
+require_once(PATH_TO_INCLUDES.'SessionInstance.php');
+require_once(PATH_TO_INCLUDES.'DbSet.php');
+require_once(PATH_TO_INCLUDES.'User.php');
+require_once(PATH_TO_INCLUDES."Presentation.php");
+require_once(PATH_TO_INCLUDES."Session.php");
+require_once(PATH_TO_INCLUDES."AppConfig.php");
+include_once(PATH_TO_INCLUDES.'functions.php');
+
+/**
+ * Start session
+ *
+ */
+SessionInstance::initsession();
+
+/**
+ * Declare classes
+ *
+ */
+$db = new DbSet();
+$AppConfig = new AppConfig($db,false);
+
 
 /**
  * Browse release content and returns associative array with folders name as keys
@@ -158,7 +203,7 @@ if (!empty($_POST['install_db'])) {
     $tables_to_create = $db->tablesname;
 
     // First we remove any deprecated tables
-    $old_tables = $db->apptables;
+    $old_tables = $db->getapptables();
     foreach ($old_tables as $old_table) {
         if (!in_array($old_table,$tables_to_create)) {
             if ($db->deletetable($old_table) == true) {
@@ -334,8 +379,6 @@ if (!empty($_POST['getpagecontent'])) {
     $op = htmlspecialchars($_POST['op']);
     $new_version = $AppConfig->version;
 
-    if ($op == "update") $AppConfig = new AppConfig($db);
-
     /**
      * Get configuration from previous installation
      * @var  $config
@@ -366,19 +409,11 @@ if (!empty($_POST['getpagecontent'])) {
                 </p>";
         }
     } elseif ($step == 2) {
-        if ($version !== false) {
-            $config = $db->get_config();
-            foreach ($config as $name=>$value) {
-                $$name = $value;
-            }
-            $dbprefix = str_replace('_','',$config['dbprefix']);
-        } else {
-            $host = "localhost";
-            $username = "root";
-            $passw = "";
-            $dbname = "test";
-            $dbprefix = "jcm";
+        $config = $db->get_config();
+        foreach ($config as $name=>$value) {
+            $$name = $value;
         }
+        $dbprefix = str_replace('_','',$config['dbprefix']);
 
 		$title = "Step 1: Database configuration";
 		$operation = "
@@ -397,6 +432,7 @@ if (!empty($_POST['getpagecontent'])) {
 		";
     } elseif ($step == 3) {
         $AppConfig->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
+        if ($op == "update") $AppConfig = new AppConfig($db);
 
         $title = "Step 2: Application configuration";
         $operation = "
@@ -562,7 +598,7 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: false,
+                    async: true,
                     data: {checkdb: true},
                     success: function(data){
                         var result = jQuery.parseJSON(data);
@@ -622,7 +658,7 @@ if (!empty($_POST['getpagecontent'])) {
                         jQuery.ajax({
                             url: 'install.php',
                             type: 'POST',
-                            async: false,
+                            async: true,
                             data: data,
                             beforeSend: function() {
                                 $('#loading').show();

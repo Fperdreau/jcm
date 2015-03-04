@@ -64,8 +64,8 @@ SessionInstance::initsession();
  *
  */
 $db = new DbSet();
+$AppConfig = new AppConfig($db);
 $Presentations = new Presentations($db);
 $Users = new Users($db);
 $Sessions = new Sessions($db);
-$AppConfig = new AppConfig($db);
 $AppMail = new AppMail($db,$AppConfig);

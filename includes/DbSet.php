@@ -47,6 +47,11 @@ class DbSet {
     );
 
     /**
+     * @var
+     */
+    public $config;
+
+    /**
      * Password
      *
      * @var string
@@ -99,13 +104,10 @@ class DbSet {
      * Constructor
      */
     function __construct() {
-        $config = self::get_config();
-        if ($config == false) return false;
-
-        foreach ($config as $key=>$value) {
+        $this->config = self::get_config();
+        foreach ($this->config as $key=>$value) {
             $this->$key = $value;
         }
-        $this->apptables = self::getapptables();
         $this->tablesname = array(
             "Presentation" => $this->dbprefix."_presentations",
             "AppConfig" => $this->dbprefix."_config",
@@ -142,10 +144,20 @@ class DbSet {
      * @return mysqli|null
      */
     function bdd_connect() {
-		$bdd = mysqli_connect($this->host,$this->username,$this->password) or exit(json_encode("<p id='warning'> Failed to connect to the database</p>").mysqli_error($bdd));
-		mysqli_select_db($bdd,"$this->dbname") or exit(json_encode("<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($bdd)."</p>"));
-		$this->bdd = $bdd;
-        return $this->bdd;
+        $this->bdd = mysqli_connect($this->host,$this->username,$this->password);
+        if (!$this->bdd) {
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning'> Failed to connect to the database<br>" . mysqli_error($this->bdd) . "</p>";
+            return $result;
+        }
+
+        if (!mysqli_select_db($this->bdd,"$this->dbname")) {
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>";
+            return $result;
+        }
+        $result['status'] = true;
+        return $result;
 	}
 
     /**
@@ -155,11 +167,12 @@ class DbSet {
     public function getapptables() {
         $sql = "SHOW TABLES FROM ".$this->dbname." LIKE '".$this->dbprefix."%'";
         $req = self::send_query($sql);
-        $tablelist = array();
+        $table_list = array();
         while ($row = mysqli_fetch_array($req)) {
-            $tablelist[] = $row[0];
+            $table_list[] = $row[0];
         }
-        return $tablelist;
+        $this->apptables = $table_list;
+        return $this->apptables;
     }
 
     /**
@@ -184,11 +197,13 @@ class DbSet {
      * @return bool|mysqli_result
      */
     public function send_query($sql,$silent=false) {
-        $bdd = self::bdd_connect();
-        $req = mysqli_query($bdd,$sql);
+        $result = self::bdd_connect();
+        if ($result['status'] == false) die($result['msg']);
+
+        $req = mysqli_query($this->bdd,$sql);
         if (false === $req) {
             if ($silent == false) {
-                echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($bdd).'<br>');
+                echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
             }
             return false;
         } else {
@@ -203,7 +218,8 @@ class DbSet {
      * @return string
      */
     public function escape_query($query) {
-        self::bdd_connect();
+        $result = self::bdd_connect();
+        if ($result['status'] == false) die($result['msg']);
         return mysqli_real_escape_string($this->bdd,$query);
     }
 
