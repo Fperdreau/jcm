@@ -69,9 +69,8 @@ var displaypub = function(idpress,formel) {
 
 // Process submitted form
 var processform = function(formid,feedbackid) {
-    if (typeof feedbackid === undefined) {
-        feedbackid = ".feedback";
-    }
+    var feedbackdiv = (typeof feedbackid === "undefined") ? feedbackdiv = "feedback": feedbackdiv=feedbackid;
+
     var data = $("#"+formid).serialize();
     jQuery.ajax({
         url: 'php/form.php',
@@ -86,7 +85,7 @@ var processform = function(formid,feedbackid) {
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
-            showfeedback(result,feedbackid);
+            showfeedback(result,feedbackdiv);
         }
     });
 };
@@ -459,13 +458,13 @@ $( document ).ready(function() {
 		 // Process personal info form
         .on('click',".profile_persoinfo_form",function(e) {
             e.preventDefault();
-            processform("profile_persoinfo_form",".feedback_perso");
+            processform("profile_persoinfo_form","feedback_perso");
         })
 
 		// Process coordinates (email, etc) form
         .on('click',".profile_emailinfo_form",function(e) {
             e.preventDefault();
-            processform("profile_emailinfo_form",".feedback_mail");
+            processform("profile_emailinfo_form","feedback_mail");
         })
 
 		// Send a verification email to the user if a change of password is requested
@@ -801,27 +800,27 @@ $( document ).ready(function() {
 		// Configuration of the application
         .on('click','.config_form_site',function(e) {
             e.preventDefault();
-            processform("config_form_site",".feedback_site");
+            processform("config_form_site","feedback_site");
         })
 
         .on('click','.config_form_lab',function(e) {
             e.preventDefault();
-            processform("config_form_lab",".feedback_lab");
+            processform("config_form_lab","feedback_lab");
         })
 
         .on('click','.config_form_jc',function(e) {
             e.preventDefault();
-            processform("config_form_jc",".feedback_jc");
+            processform("config_form_jc","feedback_jc");
         })
 
         .on('click','.config_form_mail',function(e) {
             e.preventDefault();
-            processform("config_form_mail",".feedback_mail");
+            processform("config_form_mail","feedback_mail");
         })
 
         .on('click','.config_form_session',function(e) {
             e.preventDefault();
-            processform("config_form_session",".feedback_mail");
+            processform("config_form_session","feedback_jcsession");
         })
 
 

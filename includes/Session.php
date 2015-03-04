@@ -314,7 +314,7 @@ class Sessions {
                 <div class='session_header'>
                     <div class='session_date'>$session->date</div>
                     <div class='session_status'>$session->status</div>
-                    <div class='feedback_$session->date' style='width: auto;'>
+                    <div class='feedback' id='feedback_$session->date' style='width: auto;'>
                     </div>
                 </div>
                 <div class='session_core'>

@@ -72,7 +72,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     <div class='section_header'>Sessions settings</div>
     <div class='section_content'>
         <form method='post' action='' class='form' id='config_form_session'>
-            <div class='feedback_jc'></div>
+            <div class='feedback' id='feedback_jcsession'></div>
             <input type='hidden' name='config_modify' value='true'>
             <div class='formcontrol' style='width: 100px;'>
                 <label>Room</label>
@@ -134,12 +134,12 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         </div><br>
         <input type='button' id='submit' class='type_add' data-class='session' value='Add a category'/>
         <input id='new_session_type' type='text' placeholder='New Category'/>
-        <div class='feedback_session'></div>
+        <div class='feedback' id='feedback_session'></div>
         <div class='type_list' id='session'>$Sessionstype</div>
         <div class='section_sub'>Presentations</div>
         <input type='button' id='submit' class='type_add'  data-class='pres' value='Add a category'/>
         <input id='new_pres_type' type='text' placeholder='New Category'/>
-        <div class='feedback_pres'></div>
+        <div class='feedback' id='feedback_pres'></div>
         <div class='type_list' id='pres'>$prestype</div>
     </div>
 
@@ -243,7 +243,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <label>Maximum file size (in Kb)</label>
                     <input type='text' size='30' name='upl_maxsize' value='$AppConfig->upl_maxsize'>
                 </div>
-                <div class='feedback_site'></div>
+                <div class='feedback' id='feedback_site'></div>
             </form>
         </div>
 
@@ -278,7 +278,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <label for='lab_mapurl'>Google Map's URL</label>
                     <input type='text' size='30' name='lab_mapurl' value='$AppConfig->lab_mapurl'>
                 </div>
-                <div class='feedback_lab'></div>
+                <div class='feedback' id='feedback_lab'></div>
             </form>
         </div>
 
@@ -306,7 +306,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <label for='reminder'>Reminder (D-)</label>
                     <input type='text' name='reminder' value='$AppConfig->reminder' size='1'>
                 </div>
-                <div class='feedback_jc'></div>
+                <div class='feedback' id='feedback_jc'></div>
             </form>
         </div>
 
@@ -354,7 +354,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <label for='pre_header'>Email header prefix</label>
                     <input name='pre_header' type='text' value='$AppConfig->pre_header'>
                 </div>
-                <div class='feedback_mail'></div>
+                <div class='feedback' id='feedback_mail'></div>
             </form>
         </div>";
 
