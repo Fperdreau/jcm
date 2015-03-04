@@ -506,7 +506,7 @@ if (!empty($_POST['getpagecontent'])) {
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <META NAME="description" CONTENT="Journal Club Manager. The easiest way to manage your lab's journal club.">
         <META NAME="keywords" CONTENT="Journal Club Manager">
-        <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
 
         <!-- JQuery -->
