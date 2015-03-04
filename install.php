@@ -31,7 +31,7 @@ if (!ini_get('display_errors')) {
  * Define paths
  */
 if(!defined('APP_NAME')) define('APP_NAME', basename(__DIR__));
-if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(__FILE__).'/');
+if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(__FILE__));
 if(!defined('PATH_TO_IMG')) define('PATH_TO_IMG', PATH_TO_APP.'/images/');
 if(!defined('PATH_TO_INCLUDES')) define('PATH_TO_INCLUDES', PATH_TO_APP.'/includes/');
 if(!defined('PATH_TO_PHP')) define('PATH_TO_PHP', PATH_TO_APP.'/php/');
@@ -354,8 +354,8 @@ if (!empty($_POST['operation'])) {
     }
 
     // STEP 5:Check consistency between presentations and sessions table
-    if (!empty($_POST['checkdb'])) {
-        $result = $Sessions->checkcorrespondence()
+    if ($operation == "checkdb") {
+        $result = ($Sessions->checkcorrespondence() == true)
             ? "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>"
             : "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
         echo json_encode($result);
@@ -363,7 +363,7 @@ if (!empty($_POST['operation'])) {
     }
 
     // Final step: create admin account (for new installation only)
-    if (!empty($_POST['inst_admin'])) {
+    if ($operation == 'inst_admin') {
         $encrypted_pw = htmlspecialchars($_POST['password']);
         $username = htmlspecialchars($_POST['username']);
         $email = htmlspecialchars($_POST['email']);
@@ -442,6 +442,7 @@ if (!empty($_POST['getpagecontent'])) {
 		";
     } elseif ($step == 3) {
         $AppConfig->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
+        $db->get_config();
         if ($op == "update") $AppConfig = new AppConfig($db);
 
         $title = "Step 2: Application configuration";

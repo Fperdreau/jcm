@@ -56,7 +56,7 @@ class DbSet {
      *
      * @var string
      */
-    public $password = "";
+    public $passw = "";
 
     /**
      * Mysql username
@@ -98,16 +98,13 @@ class DbSet {
      *
      * @var array
      */
-    public  $tablesname;
+    public $tablesname;
 
     /**
      * Constructor
      */
     function __construct() {
-        $this->config = self::get_config();
-        foreach ($this->config as $key=>$value) {
-            $this->$key = $value;
-        }
+        $this->config = $this->get_config();
         $this->tablesname = array(
             "Presentation" => $this->dbprefix."_presentations",
             "AppConfig" => $this->dbprefix."_config",
@@ -121,7 +118,7 @@ class DbSet {
      * Get db config
      * @return bool|array
      */
-    public static function get_config() {
+    public function get_config() {
         $version_file = PATH_TO_CONFIG."config.php";
         if (is_file($version_file)) {
             require $version_file;
@@ -136,6 +133,9 @@ class DbSet {
         } else {
             $config = self::$default;
         }
+        foreach ($config as $key=>$value) {
+            $this->$key = $value;
+        }
         return $config;
     }
 
@@ -144,7 +144,7 @@ class DbSet {
      * @return mysqli|null
      */
     function bdd_connect() {
-        $this->bdd = mysqli_connect($this->host,$this->username,$this->password);
+        $this->bdd = mysqli_connect($this->host,$this->username,$this->passw);
         if (!$this->bdd) {
             $result['status'] = false;
             die(json_encode("<p id='warning'> Failed to connect to the database<br>" . mysqli_error($this->bdd) . "</p>"));
