@@ -408,7 +408,7 @@ class Sessions {
                     <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                         $day
                     </div>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px;'>
+                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; min-width: 100px; width: auto; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px;'>
                         $type
                     </div>
                 </div>
