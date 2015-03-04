@@ -555,13 +555,7 @@ class Session extends Sessions {
         $this->status = parent::isbooked($this->date);
 
         // Check if presentation does not already exist for this day
-        if (array_key_exists('presid', $post)) {
-            $oldpres = explodecontent(',',$this->presid);
-            if (in_array($post['presid'],$oldpres)) {
-                if (!self::chairexist()) $post['chairs'] = Sessions::getchair($post['date'],$post['speakers']);
-                return self::update_pres($post);
-            }
-        }
+        if (self::updatechair($post) == true) return true;
 
         $class_vars = get_class_vars("Session");
         $postkeys = array_keys($post);
@@ -599,6 +593,25 @@ class Session extends Sessions {
         $presids = explodecontent(',',$this->presid);
         if (empty($chairs)) return false;
         return count($chairs)<count($presids);
+    }
+
+    /**
+     * @param $post
+     * @return bool
+     */
+    private function updatechair($post) {
+        if (array_key_exists('presid', $post)) {
+            $AppConfig = new AppConfig($this->db);
+            $oldpres = explodecontent(',',$this->presid);
+            $pub = new Presentation($this->db,$post['presid']);
+            if (in_array($post['presid'],$oldpres)) {
+                if (!self::chairexist()
+                    && $AppConfig->chair_assign == "manual")
+                    $post['chairs'] = Sessions::getchair($post['date'],$pub->orator);
+                return self::update_pres($post);
+            }
+        }
+        return false;
     }
 
     /**
