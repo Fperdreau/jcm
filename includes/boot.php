@@ -37,12 +37,6 @@ if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
 
 
 /**
- * Include dependencies
- *
- */
-set_include_path(PATH_TO_INCLUDES);
-
-/**
  * Includes required files (classes)
  */
 require_once('SessionInstance.php');
