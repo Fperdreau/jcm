@@ -150,9 +150,10 @@ if (!empty($_POST['operation'])) {
         }
 
         // Write configuration information to config/config.php
+        $fields_to_write = array("version","host","username","passw","dbname","dbprefix");
         $config = array();
         foreach ($_POST as $name=>$value) {
-            if (!in_array($name,array("do_conf","op"))) {
+            if (in_array($name,$fields_to_write)) {
                 $config[] = '"'.$name.'" => "'.$value.'"';
             }
         }

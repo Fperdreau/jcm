@@ -161,16 +161,16 @@ class DbSet {
      * @return mysqli|null
      */
     function testdb($config) {
-        $link = mysqli_connect($config['host'],$config['username'],$config['passw']);
+        $link = @mysqli_connect($config['host'],$config['username'],$config['passw']);
         if (!$link) {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'> Failed to connect to the database<br>" . mysqli_error($link) . "</p>";
+            $result['msg'] = "<p id='warning'>Failed to connect to the database<br></p>";
             return $result;
         }
 
-        if (!mysqli_select_db($link,$config['dbname'])) {
+        if (!@mysqli_select_db($link,$config['dbname'])) {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'>Database '".$config['dbname']."' cannot be selected<br/>".mysqli_error($link)."</p>";
+            $result['msg'] = "<p id='warning'>Database '".$config['dbname']."' cannot be selected<br/></p>";
             return $result;
         }
         $result['status'] = true;
