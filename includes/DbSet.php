@@ -158,7 +158,7 @@ class DbSet {
 
     /**
      * Test credentials and throws exceptions
-     * @return mysqli|null
+     * @return array
      */
     function testdb($config) {
         $link = @mysqli_connect($config['host'],$config['username'],$config['passw']);
@@ -192,6 +192,21 @@ class DbSet {
         }
         $this->apptables = $table_list;
         return $this->apptables;
+    }
+
+    /**
+     * Get columns names
+     * @param $tablename
+     * @return array
+     */
+    public function getcolumns($tablename) {
+        $sql = "SHOW COLUMNS FROM $tablename";
+        $req = self::send_query($sql);
+        $keys = array();
+        while ($row = mysqli_fetch_array($req)) {
+            $keys[] = $row['Field'];
+        }
+        return $keys;
     }
 
     /**
@@ -435,7 +450,7 @@ class DbSet {
                 $columns[] = "PRIMARY KEY($data)";
             } else {
                 $datatype = $data[0];
-                $defaut = $data[1];
+                $defaut = (isset($data[1])) ? $data[1]:false;
                 $col = "`$column` $datatype";
                 if ($defaut != false) {
                     $col .= " DEFAULT '$defaut'";
@@ -445,35 +460,40 @@ class DbSet {
         }
         $columndata = implode(',',$columns);
 
+        // If overwrite, then we simply create a new table and drop the previous one
         if ($overwrite || self::tableExists($tablename) == false) {
-            // If overwrite, then we simply create a new table and drop the previous one
             self::createtable($tablename,$columndata,$overwrite);
         } else {
-            // Get columns names
-            $sql = "SHOW COLUMNS FROM $tablename";
-            $req = self::send_query($sql);
-            $keys = array();
-            while ($row = mysqli_fetch_array($req)) {
-                $keys[] = $row['Field'];
-            }
-
-            // Add new unexistant columns or update previous version
+            // Get existent columns
+            $keys = self::getcolumns($tablename);
+            // Add new non existent columns or update previous version
             $prevcolumn = "id";
             foreach ($tabledata as $column=>$data) {
                 if ($column !== "primary" && $column != "id") {
                     $datatype = $data[0];
-                    if (!in_array($column,$keys)) {
-                        // If the column does not exist already, then we simply add it to the table
+                    $default = (isset($data[1])) ? $data[1]:false;
+                    $oldname = (isset($data[2])) ? $data[2]:false;
+
+                    // Change the column's name if asked and if this column exists
+                    if ($oldname !== false && in_array($oldname,$keys)) {
+                        $sql = "ALTER TABLE $tablename CHANGE $oldname $column $datatype";
+                        if ($default !== false) $sql .= " DEFAULT '$default'";
+                        self::send_query($sql);
+                    // If the column does not exist already, then we simply add it to the table
+                    } elseif (!in_array($column,$keys)) {
                         self::addcolumn($tablename,$column,$datatype,$prevcolumn);
+                    // Check if the column's data type is consistent with the new version
                     } else {
-                        // Check if the column's data type is consistent with the new version
                         $sql = "ALTER TABLE $tablename MODIFY $column $datatype";
+                        if ($default !== false) $sql .= " DEFAULT '$default'";
                         self::send_query($sql);
                     }
                     $prevcolumn = $column;
                 }
             }
 
+            // Get updated columns
+            $keys = self::getcolumns($tablename);
             // Remove deprecated columns
             foreach ($keys as $key) {
                 if (!in_array($key,$defcolumns)) {

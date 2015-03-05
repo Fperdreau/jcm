@@ -18,10 +18,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 require('../includes/boot.php');
 check_login();
-global $db, $Presentations;
 
 $years = $Presentations->get_years();
-
 // Select input (Years)
 $options = "
 <option value='' selected>Select a year</option>
@@ -31,16 +29,20 @@ foreach ($years as $year) {
 }
 
 $publist = $Presentations->getpublicationlist();
+
 $result = "
-    <div id='content'>
-        <span id='pagename'>Archives</span>
+<div id='content'>
+    <span id='pagename'>Archives</span>
+    <div class='section_page'>
         <div class='feedback'></div>
             <select name='year' class='archive_select'>
-				$options
+                $options
             </select>
         <div id='archives_list'>
-        	$publist
+            $publist
         </div>
-	</div>";
+    </div>
+</div>";
 
 echo json_encode($result);
+exit;

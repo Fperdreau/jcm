@@ -49,6 +49,7 @@ require_once(PATH_TO_INCLUDES."Presentation.php");
 require_once(PATH_TO_INCLUDES."Session.php");
 require_once(PATH_TO_INCLUDES."AppConfig.php");
 include_once(PATH_TO_INCLUDES.'functions.php');
+require_once(PATH_TO_INCLUDES."Posts.php");
 
 /**
  * Start session
@@ -62,7 +63,6 @@ SessionInstance::initsession();
  */
 $db = new DbSet();
 $AppConfig = new AppConfig($db,false);
-
 
 /**
  * Browse release content and returns associative array with folders name as keys
@@ -227,7 +227,7 @@ if (!empty($_POST['operation'])) {
             "hash"=>array("CHAR(32)",false),
             "active"=>array("INT(1)",0),
             "attempt"=>array("INT(1)",0),
-            "last_login"=>array("DATETIME","NOT NULL"),
+            "last_login"=>array("DATETIME NOT NULL"),
             "primary"=>"id"
         );
 
@@ -241,12 +241,12 @@ if (!empty($_POST['operation'])) {
         // Create Post table
         $table_data = array(
             "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-            "postid"=>array("CHAR(30)","NOT NULL"),
+            "postid"=>array("CHAR(30) NOT NULL"),
             "date"=>array("DATETIME",date('Y-m-d h:i:s')),
-            "title"=>array("VARCHAR(255)","NOT NULL"),
-            "content"=>array("TEXT(5000)",false),
-            "username"=>array("CHAR(30)",false),
-            "homepage"=>array("INT(1)",0),
+            "title"=>array("VARCHAR(255) NOT NULL"),
+            "content"=>array("TEXT(5000) NOT NULL",false,"post"),
+            "username"=>array("CHAR(30) NOT NULL",false),
+            "homepage"=>array("INT(1) NOT NULL",0),
             "primary"=>"id");
         if ($db->makeorupdate($db->tablesname['Posts'],$table_data,$op)) {
             $result .= "<p id='success'> '".$db->tablesname['Posts']."' created</p>";
@@ -256,14 +256,23 @@ if (!empty($_POST['operation'])) {
         }
 
         // Give ids to posts that do not have one yet (compatibility with older verions)
-        $sql = "SELECT postid,date FROM ".$db->tablesname['Posts'];
+        $post = new Posts($db);
+        $sql = "SELECT postid,date,username FROM ".$db->tablesname['Posts'];
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
-            if (empty($row['postid'])) {
-                $post = new Posts($db);
-                $post->date = $row['date'];
-                $post->postid = $post->makeID();
-                $post->update();
+            $date = $row['date'];
+            if (empty($row['postid']) || $row['postid'] == "NULL") {
+
+                // Get uploader username
+                $userid = $row['username'];
+                $sql = "SELECT username FROM ".$db->tablesname['User']." WHERE username='$userid' OR fullname='$userid'";
+                $userreq = $db->send_query($sql);
+                $data = mysqli_fetch_assoc($userreq);
+
+                $username = $data['username'];
+                $post->date = $date;
+                $postid = $post->makeID();
+                $db->updatecontent($db->tablesname['Posts'],array('postid','username'),array($postid,$username),array('date'),array("'$date'"));
             }
         }
 
@@ -299,7 +308,7 @@ if (!empty($_POST['operation'])) {
             "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
             "up_date"=>array("DATETIME",false),
             "id_pres"=>array("BIGINT(15)",false),
-            "username"=>array("CHAR(30)","NOT NULL"),
+            "username"=>array("CHAR(30) NOT NULL"),
             "type"=>array("CHAR(30)",false),
             "date"=>array("DATE",false),
             "jc_time"=>array("CHAR(15)",false),
@@ -308,7 +317,7 @@ if (!empty($_POST['operation'])) {
             "summary"=>array("TEXT(5000)",false),
             "link"=>array("TEXT(500)",false),
             "orator"=>array("CHAR(50)",false),
-            "presented"=>array("INT(1)",0),
+            "presented"=>array("INT(1) NOT NULL",0),
             "primary"=>"id"
         );
 
@@ -323,10 +332,17 @@ if (!empty($_POST['operation'])) {
         $sql = 'SELECT id_pres,username,orator FROM '.$db->tablesname['Presentation'];
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
-            if (empty($row['username'])) {
+            if (empty($row['username']) || $row['username'] == "") {
                 $pub = new Presentation($db,$row['id_pres']);
-                $pub->username = $row['orator'];
-                $pub->update();
+                $userid = $row['orator'];
+                $sql = "SELECT username FROM ".$db->tablesname['User']." WHERE username='$userid' OR fullname='$userid'";
+                $userreq = $db->send_query($sql);
+                $data = mysqli_fetch_assoc($userreq);
+                if (!empty($data)) {
+                    $pub->orator = $data['username'];
+                    $pub->username = $data['username'];
+                    $pub->update();
+                }
             }
         }
 
@@ -336,10 +352,10 @@ if (!empty($_POST['operation'])) {
             "date"=>array("DATE",false),
             "status"=>array("CHAR(10)","FREE"),
             "time"=>array("VARCHAR(200)",false),
-            "type"=>array("CHAR(30)","NOT NULL"),
-            "presid"=>array("VARCHAR(200)","NOT NULL"),
-            "speakers"=>array("VARCHAR(200)","NOT NULL"),
-            "chairs"=>array("VARCHAR(200)","NOT NULL"),
+            "type"=>array("CHAR(30) NOT NULL"),
+            "presid"=>array("VARCHAR(200) NOT NULL"),
+            "speakers"=>array("VARCHAR(200) NOT NULL"),
+            "chairs"=>array("VARCHAR(200) NOT NULL"),
             "nbpres"=>array("INT(2)",0),
             "primary"=>"id");
         if ($db->makeorupdate($db->tablesname['Session'],$table_data,$op)) {
@@ -355,6 +371,7 @@ if (!empty($_POST['operation'])) {
 
     // STEP 5:Check consistency between presentations and sessions table
     if ($operation == "checkdb") {
+        $Sessions = new Sessions($db);
         $result = ($Sessions->checkcorrespondence() == true)
             ? "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>"
             : "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
@@ -579,8 +596,14 @@ if (!empty($_POST['getpagecontent'])) {
                 jQuery.ajax({
                     url: 'install.php',
                     type: 'POST',
-                    async: true,
+                    async: false,
                     data: data,
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
                     success: function(data){
                         var result = jQuery.parseJSON(data);
                         var html;
@@ -632,9 +655,15 @@ if (!empty($_POST['getpagecontent'])) {
                     type: 'POST',
                     async: true,
                     data: {operation: "checkdb"},
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
                     success: function(data){
                         var result = jQuery.parseJSON(data);
-                        var html = "<p id='success'>result</p>";
+                        var html = "<p id='success'>"+result+"</p>";
                         $('#operation')
                             .append(html)
                             .fadeIn(200);

@@ -716,6 +716,7 @@ class Session extends Sessions {
             if ($prestoshow != false && $presid !=$prestoshow) continue;
 
             $pres = new Presentation($this->db,$presid);
+            $orator = new User($this->db,$pres->orator);
             $chair = $chairs[$i];
             if ($chair !== 'TBA') {
                 $chair = new User($this->db,$chair);
@@ -753,7 +754,7 @@ class Session extends Sessions {
                         <b>Authors:</b> $pres->authors
                     </div>
                     <div style='display: inline-block; width: 45%; margin: 0 auto 0 0; text-align: right;'>
-                        <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $pres->orator</div>
+                        <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $orator->fullname</div>
                         <div style='display: inline-block; margin-left: 30px; font-size: 15px; font-weight: 300;'><b>Chair:</b> $chair</div>
                     </div>
                 </div>
