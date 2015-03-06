@@ -439,7 +439,6 @@ class Presentation extends Presentations {
                 if (!is_dir($directory)) {
                     mkdir($directory);
                 }
-                chmod($directory,0777);
 
                 $rnd = date('Ymd')."_".rand(0,100);
                 $newname = "pres_".$rnd.".".$extension;
@@ -451,7 +450,6 @@ class Presentation extends Presentations {
                 // Move file to the upload folder
                 $dest = $directory.$newname;
                 $results['error'] = move_uploaded_file($tmp,$dest);
-                chmod($directory,0755);
 
                 if ($results['error'] == false) {
                     $result['error'] = "Uploading process failed";
@@ -506,7 +504,7 @@ class Presentation extends Presentations {
      * @return bool|string
      */
     function delete_file($filename) {
-        $pdfpath = PATH_TO_APP.'uploads/';
+        $pdfpath = PATH_TO_APP.'/uploads/';
         if (is_file($pdfpath.$filename)) {
             return unlink($pdfpath.$filename);
         } else {
