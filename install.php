@@ -447,12 +447,27 @@ if (!empty($_POST['getpagecontent'])) {
 			<form action='' method='post' name='install' id='db_info'>
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
-				<input class='field' type='hidden' name='db_info' value='true' />
-				<label for='host' class='label'>Host Name</label><input class='field' name='host' type='text' value='$host'></br>
-				<label for='username' class='label'>Username</label><input class='field' name='username' type='text' value='$username'></br>
-				<label for='passw' class='label'>Password</label><input class='field' name='passw' type='password' value='$passw'></br>
-				<label for='dbname' class='label'>DB Name</label><input class='field' name='dbname' type='text' value='$dbname'></br>
-				<label for='dbprefix' class='label'>DB Prefix</label><input class='field' name='dbprefix' type='text' value='$dbprefix'></br>
+				<input type='hidden' name='db_info' value='true' />
+                <div class='formcontrol' style='width: 30%'>
+    				<label for='host'>Host Name</label>
+    				<input name='host' type='text' value='$host'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+    				<label for='username'>Username</label>
+    				<input name='username' type='text' value='$username'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+				    <label for='passw'>Password</label>
+				    <input name='passw' type='password' value='$passw'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+				    <label for='dbname'>DB Name</label>
+				    <input name='dbname' type='text' value='$dbname'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+				    <label for='dbprefix'>DB Prefix</label>
+				    <input name='dbprefix' type='text' value='$dbprefix'>
+                </div>
 				<p style='text-align: right'><input type='submit' name='db_info' value='Next' id='submit' class='db_info' data-op='$op'></p>
 			</form>
 			<div class='feedback'></div>
@@ -467,26 +482,52 @@ if (!empty($_POST['getpagecontent'])) {
             <form action='' method='post' name='install' id='install_db'>
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
-                <input class='field' type='hidden' name='install_db' value='true' />
+                <input type='hidden' name='install_db' value='true' />
 
-                <div style='display: block; padding: 5px; margin-left: 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About your Journal Club Manager</div>
-                <label for='sitetitle' class='label'>Site title</label><input class='field' name='sitetitle' type='text' value='$AppConfig->sitetitle'></br>
-                <label for='site_url' class='label'>Web path to root</label><input class='field' name='site_url' type='text' value='$AppConfig->site_url' size='30'></br>
+                <div class='section_sub'>Journal Club Manager - Website</div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='sitetitle'>Site title</label>
+                    <input name='sitetitle' type='text' value='$AppConfig->sitetitle'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='site_url'>Web path to root</label>
+                    <input name='site_url' type='text' value='$AppConfig->site_url' size='30'>
+                </div>
 
-                <div style='display: block; padding: 5px; margin-left: 10px; background-color: #CF5151; color: #EEEEEE; font-size: 16px; width: 300px;'> About the mailing service</div>
-                <label for='mail_from' class='label'>Sender Email address</label><input class='field' name='mail_from' type='text' value='$AppConfig->mail_from'></br>
-                <label for='mail_from_name' class='label'>Sender name</label><input class='field' name='mail_from_name' type='text' value='$AppConfig->mail_from_name'></br>
-                <label for='mail_host' class='label'>Email host</label><input class='field' name='mail_host' type='text' value='$AppConfig->mail_host'></br>
-                <label for='SMTP_secure' class='label'>SMTP access</label>
+                <div class='section_sub'>Journal Club Manager - Mailing service</div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='mail_from'>Sender Email address</label>
+                    <input name='mail_from' type='text' value='$AppConfig->mail_from'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='mail_from_name'>Sender name</label>
+                    <input name='mail_from_name' type='text' value='$AppConfig->mail_from_name'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='mail_host'>Email host</label>
+                    <input name='mail_host' type='text' value='$AppConfig->mail_host'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='SMTP_secure'>SMTP access</label>
                     <select name='SMTP_secure'>
                         <option value='$AppConfig->SMTP_secure' selected='selected'>$AppConfig->SMTP_secure</option>
                         <option value='ssl'>ssl</option>
                         <option value='tls'>tls</option>
                         <option value='none'>none</option>
-                     </select><br>
-                <label for='mail_port' class='label'>Email port</label><input class='field' name='mail_port' type='text' value='$AppConfig->mail_port'></br>
-                <label for='mail_username' class='label'>Email username</label><input class='field' name='mail_username' type='text' value='$AppConfig->mail_username'></br>
-                <label for='mail_password' class='label'>Email password</label><input class='field' name='mail_password' type='password' value='$AppConfig->mail_password'></br>
+                     </select>
+                 </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='mail_port'>Email port</label>
+                    <input name='mail_port' type='text' value='$AppConfig->mail_port'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='mail_username'>Email username</label>
+                    <input name='mail_username' type='text' value='$AppConfig->mail_username'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+                    <label for='mail_password'>Email password</label>
+                    <input name='mail_password' type='password' value='$AppConfig->mail_password'>
+                </div>
 
                 <p style='text-align: right'><input type='submit' name='install_db' value='Next' id='submit' class='install_db' data-op='$op'></p>
             </form>
@@ -497,10 +538,22 @@ if (!empty($_POST['getpagecontent'])) {
 		$operation = "
             <div class='feedback'></div>
 			<form method='post' id='admin_creation'>
-				<label for='admin_username' class='label'>UserName : </label><input class='field' id='admin_username' type='text' name='username'><br/>
-				<label for='admin_password' class='label'>Password : </label><input class='field' id='admin_password' type='password' name='password'><br/>
-				<label for='admin_confpassword' class='label'>Confirm password: </label><input class='field' id='admin_confpassword' type='password' name='admin_confpassword'><br/>
-				<label for='admin_email' class='label'>Email: </label><input class='field' type='text' name='email' id='admin_email'><br/>
+			    <div class='formcontrol' style='width: 30%'>
+				    <label for='admin_username'>UserName : </label>
+				    <input id='admin_username' type='text' name='username'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+				    <label for='admin_password'>Password : </label>
+				    <input id='admin_password' type='password' name='password'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+				    <label for='admin_confpassword'>Confirm password: </label>
+				    <input id='admin_confpassword' type='password' name='admin_confpassword'>
+                </div>
+                <div class='formcontrol' style='width: 30%'>
+				    <label for='admin_email'>Email: </label>
+				    <input type='text' name='email' id='admin_email'>
+                </div>
 				<input type='hidden' name='inst_admin' value='true'>
 				<p style='text-align: right;'><input type='submit' name='submit' value='Next' id='submit' class='admin_creation' data-op='$op'></p>
 			</form>

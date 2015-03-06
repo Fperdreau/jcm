@@ -68,7 +68,7 @@ class AppConfig {
     public $nbsessiontoplan = 10;
     public $chair_assign = "manual";
     public $session_chairs = "TBA";
-    public $session_type = "Journal Club,Business Meeting";
+    public $session_type = "Journal Club,Business Meeting,No group meeting";
     public $session_type_default = "Journal Club";
     public $pres_type = "paper,research,methodology,guest,business";
 

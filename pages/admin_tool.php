@@ -108,7 +108,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                 <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
             </div>
             <div class='formcontrol' style='width: 30%;'>
-                <label>Chair assignement</label>
+                <label>Chair assignment</label>
                 <select name='chair_assign'>
                     $chair_assignsel
                     <option value='auto'>In advance</option>
