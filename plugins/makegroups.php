@@ -38,9 +38,9 @@ function makegroups($ngroups=2) {
 
     // If the nb of users if smaller than the nb of groups, we shut this beast down!
     $nusers = count($users); // total nb of users
-    echo "<p>we found $nusers users for $ngroups groups</p>";
 
-    if ($nusers <= $ngroups) {echo "Not enough users to make groups"; return false;}
+    if ($nusers <= $ngroups) {echo "<p>we found $nusers users for $ngroups groups</p> => Not enough users to make groups"; return false;}
+    if ($session->type == "none") {echo "No meeting for the next session"; return false;}
 
     // First we assign speakers and chairs to each group
     $chairs = explodecontent(',',$session->chairs);
@@ -209,7 +209,8 @@ $day = "Saturday"; // Line to change if you want to run the cron job another day
 $today = date('l');
 if ($day == $today) {
     $assigned_groups = makegroups(2); // Make groups
-    mailing($assigned_groups); // Send emails to users
+    if ($assigned_groups !== false)
+        mailing($assigned_groups); // Send emails to users
 } else {
     echo "Assignment Day is $day but we are on $today. So nothing to send today!";
 }

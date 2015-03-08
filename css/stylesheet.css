@@ -1266,7 +1266,6 @@ input.dateinput {
 }
 .ui-datepicker tbody td {
     padding: 0;
-    border-right: 1px solid #bbb;
 }
 .ui-datepicker tbody td:last-child {
     border-right: 0px;
@@ -1293,7 +1292,7 @@ input.dateinput {
 }
 
 .ui-datepicker-calendar .ui-state-hover {
-    background: rgba(207, 81, 81, .9);
+    background: #F5D3D3;
 }
 
 .ui-datepicker-unselectable .ui-state-default {
@@ -1315,6 +1314,14 @@ input.dateinput {
 
 .bookedday .ui-state-default{
     color: #b43d3d;
+}
+
+.activeday .ui-state-default{
+}
+
+.pastday .ui-state-default{
+    opacity: 0.5;
+    background: #f4f4f4;
 }
 
 .ui-datepicker-calendar td:first-child .ui-state-active {

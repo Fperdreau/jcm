@@ -329,21 +329,26 @@ if (!empty($_POST['operation'])) {
         }
 
         // Set username of the uploader
-        $sql = 'SELECT id_pres,username,orator FROM '.$db->tablesname['Presentation'];
+        $sql = 'SELECT id_pres,username,orator,summary,authors,title FROM '.$db->tablesname['Presentation'];
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
+            $pub = new Presentation($db,$row['id_pres']);
+            $userid = $row['orator'];
+            $pub->summary = str_replace('\\','',htmlspecialchars($row['summary']));
+            $pub->authors = str_replace('\\','',htmlspecialchars($row['authors']));
+            $pub->title = str_replace('\\','',htmlspecialchars($row['title']));
+
             if (empty($row['username']) || $row['username'] == "") {
-                $pub = new Presentation($db,$row['id_pres']);
-                $userid = $row['orator'];
                 $sql = "SELECT username FROM ".$db->tablesname['User']." WHERE username='$userid' OR fullname='$userid'";
                 $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
                 if (!empty($data)) {
                     $pub->orator = $data['username'];
                     $pub->username = $data['username'];
-                    $pub->update();
                 }
             }
+            $pub->update();
+
         }
 
         // Create Session table

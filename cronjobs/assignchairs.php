@@ -33,13 +33,12 @@ function assignchairs() {
     $jc_days = $Sessions->getjcdates($nbsessions);
     foreach ($jc_days as $day) {
         $session = new Session($db, $day);
-
         $chairs = explodecontent(',',$session->chairs);
         $presids = explodecontent(',',$session->presid);
         $speakers = explodecontent(',',$session->speakers);
-        $truechairs = array_values(array_diff($chairs,array("TBA")));
+        $truechairs = array_values(array_diff($chairs,array("TBA"))); // Remove to be announced chairs
         $chairstoplan = $AppConfig->max_nb_session - count($truechairs); // Number of chairs to plan for this session
-        if ($chairstoplan > 0 && $session->type !== "No group meeting") {
+        if ($chairstoplan > 0 && $session->type !== "none") {
             for ($p = 1; $p <= $AppConfig->max_nb_session; $p++) {
                 $presid = (!empty($presids[$p]) ? $presids[$p]:false);
                 $speaker = (!empty($speakers[$p]) ? $speakers[$p]:false);

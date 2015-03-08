@@ -172,7 +172,8 @@ var send_verifmail = function(email) {
 };
 
 // initialize jQuery-UI Calendar
-var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb,sessiontype) {
+var inititdatepicker = function(jcdays,selected) {
+
     $('#datepicker').datepicker({
         defaultDate: selected,
         firstDay: 1,
@@ -184,20 +185,27 @@ var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb,session
             var days = new Array("sunday","monday","tuesday","wednesday","thursday","friday","saturday");
             var cur_date = $.datepicker.formatDate('dd-mm-yy',date);
             var today = new Date();
-            if (days[day] == jc_day && date >= today) {
-                var find = $.inArray(cur_date,booked);
-                if (find > -1) { // If the date is booked
-                    if ((max_nb_session-nb[find])>0) {
-                        var msg = max_nb_session-nb[find]+" presentation(s) available";
-                        console.log(msg);
-                        return [true,"jcday_rem",msg];
+            if (days[day] == jcdays.jc_day) {
+                var css = (date >= today) ? "activeday":"pastday";
+                var find = $.inArray(cur_date,jcdays.booked);
+                var status = jcdays.status[find];
+                var clickable = (date >= today && status != 'none' && status != 'Booked out');
+                // If the date is booked
+                if (find > -1) {
+                    var type = jcdays.sessiontype[find];
+                    var rem = jcdays.max_nb_session-jcdays.nb[find]; // Number of presentations available that day
+                    var msg = type+": ("+rem+" presentation(s) available)";
+                    if (status == 'Free') {
+                        return [clickable,"jcday "+css,msg];
+                    } else if (status == 'Booked') {
+                        return [clickable,"jcday_rem "+css,msg];
                     } else {
-                        return [false,"bookedday","Booked out"];
+                        return [clickable,"bookedday "+css,type+": Booked out"];
                     }
                 } else {
-                    return [true,"jcday",max_nb_session+" presentation(s) available"];
+                    return [clickable,"jcday "+css,jcdays.max_nb_session+" presentation(s) available"];
                 }
-            } else {
+            } else if (days[day] !== jcdays.jc_day) {
                 return [false,"","Not a journal club day"];
             }
         }
@@ -437,7 +445,7 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('mouseover','input#datepicker',function(e) {
+        .on('mouseenter','.submission',function(e) {
             e.preventDefault();
             jQuery.ajax({
                 url: 'php/form.php',
@@ -447,7 +455,7 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     var selected_date = $('input#selected_date').val();
-                    inititdatepicker(result.jc_day,result.max_nb_session,selected_date,result.booked,result.nb,result.sessiontype);
+                    inititdatepicker(result,selected_date);
                 }
             });
         })

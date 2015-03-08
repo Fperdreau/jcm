@@ -67,8 +67,10 @@ class AppConfig {
      */
     public $nbsessiontoplan = 10;
     public $chair_assign = "manual";
-    public $session_chairs = "TBA";
-    public $session_type = "Journal Club,Business Meeting,No group meeting";
+    public $session_type = array(
+        "Journal Club"=>array('TBA'),
+        'Business Meeting'=>array('TBA'),
+        'No group meeting'=>array('TBA'));
     public $session_type_default = "Journal Club";
     public $pres_type = "paper,research,methodology,guest,business";
 
@@ -124,7 +126,7 @@ class AppConfig {
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = htmlspecialchars_decode($row['value']);
+            $value = ($varname == "session_type") ? json_decode($row['value'],true):htmlspecialchars_decode($row['value']);
             $this->$varname = $value;
         }
         return true;
@@ -140,13 +142,9 @@ class AppConfig {
         $postkeys = array_keys($post);
         foreach ($class_vars as $name => $value) {
             if (in_array($name,array("db","tablename"))) continue;
-
-            if (in_array($name,$postkeys)) {
-                $escape_value = $this->db->escape_query($post[$name]);
-            } else {
-                $escape_value = $this->db->escape_query($this->$name);
-            }
-            $this->$name = $escape_value;
+            $newvalue = (in_array($name,$postkeys)) ? $post[$name]:$this->$name;
+            $escape_value = ($name == "session_type") ? json_encode($newvalue):$this->db->escape_query($newvalue);
+            $this->$name = $newvalue;
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
             if (!empty($exist)) {
                 $this->db->updatecontent($this->tablename,"value","'$escape_value'",array("variable"),array("'$name'"));

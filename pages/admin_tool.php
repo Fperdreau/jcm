@@ -30,9 +30,8 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
 
     //Get session types
     $Sessionstype = "";
-    $Sessionstypes = explode(',',$AppConfig->session_type);
     $opttypedflt = "";
-    foreach ($Sessionstypes as $type) {
+    foreach ($AppConfig->session_type as $type=>$chairs) {
         $Sessionstype .= "
             <div class='type_div' id='session_$type'>
                 <div class='type_name'>$type</div>
@@ -81,7 +80,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
             <div class='formcontrol' style='width: 20%;'>
                 <label for='jc_day'>Day</label>
                 <select name='jc_day'>
-                    <option value='$AppConfig->jc_day' selected='selected'>$AppConfig->jc_day</option>
+                    <option value='$AppConfig->jc_day' selected>$AppConfig->jc_day</option>
                     <option value='monday'>Monday</option>
                     <option value='tuesday'>Tuesday</option>
                     <option value='wednesday'>Wednesday</option>
@@ -92,14 +91,14 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
             <div class='formcontrol' style='width: 10%;'>
                 <label>From</label>
                 <select name='jc_time_from'>
-                    <option value='$AppConfig->jc_time_from' selected='selected'>$AppConfig->jc_time_from</option>
+                    <option value='$AppConfig->jc_time_from' selected>$AppConfig->jc_time_from</option>
                     $timeopt;
                 </select>
             </div>
             <div class='formcontrol' style='width: 10%;'>
                 <label>To</label>
                 <select name='jc_time_to'>
-                    <option value='$AppConfig->jc_time_to' selected='selected'>$AppConfig->jc_time_to</option>
+                    <option value='$AppConfig->jc_time_to' selected>$AppConfig->jc_time_to</option>
                     $timeopt;
                 </select>
             </div>

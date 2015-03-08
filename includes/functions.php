@@ -32,6 +32,29 @@ function explodecontent($delimiter,$var) {
     return $newvar;
 }
 
+
+/**
+ * Show session/presentation types list (admin -> manage session)
+ * @param $types
+ * @param $class
+ * @param $divid
+ * @return string
+ */
+function showtypelist($types,$class,$divid) {
+    $result = "";
+    foreach ($types as $type) {
+        $result .= "
+                <div class='type_div' id='$divid'>
+                    <div class='type_name'>$type</div>
+                    <div class='type_del' data-type='$type' data-class='$class'>
+                    <img src='images/delete.png' style='width: 15px; height: auto;'>
+                    </div>
+                </div>
+            ";
+    }
+    return $result;
+}
+
 /**
  * Check if the user is logged in and has the required status to access the current page
  * @param null $status
@@ -393,7 +416,7 @@ function backup_db(){
         $num_fields = mysqli_num_fields($result);
 
         $return.= "DROP TABLE IF EXISTS $table";
-        $row2 = mysqli_fetch_row($db->send_query('SHOW CREATE TABLE '.$table));
+        $row2 = mysqli_fetch_row($db->send_query("SHOW CREATE TABLE $table"));
         $return.= "\n\n".$row2[1].";\n\n";
 
         for ($i = 0; $i < $num_fields; $i++) {

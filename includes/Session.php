@@ -157,7 +157,7 @@ class Sessions {
         }
 
         /** @var  $prevchairs */
-        $prevchairs = explodecontent(',',$AppConfig->session_chairs);
+        $prevchairs = $AppConfig->session_type[$session->type];
 
         if (empty($chairs)) {
             /** If no users have the organizer status, the chairman is to be announced.*/
@@ -194,7 +194,7 @@ class Sessions {
 
         // Update the previous chairmen list
         $prevchairs[] = $chair;
-        $AppConfig->session_chairs = implode(',',$prevchairs);
+        $AppConfig->session_type[$session->type] = $prevchairs;
         $AppConfig->update();
 
         return $chair;
@@ -272,7 +272,7 @@ class Sessions {
         $AppConfig = new AppConfig($this->db);
         $timeopt = maketimeopt();
 
-        $session_type = explodecontent(',',$AppConfig->session_type);
+        $session_type = array_keys($AppConfig->session_type);
         $sessions = self::getjcdates($nbsession);
 
         $content = "";
@@ -284,7 +284,7 @@ class Sessions {
                 $session->date = $date;
             }
             // Get type options
-            $typeoptions = "";
+            $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
             foreach ($session_type as $type) {
                 if ($type === $session->type) {
                     $typeoptions .= "<option value='$type' selected>$type</option>";
@@ -401,7 +401,7 @@ class Sessions {
                     </div>
                 </div>";
             }
-            $type = ucfirst($session->type);
+            $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
             $content .= "
             <div style='display: block; margin: 5px auto 0 auto;'>
                 <div style='display: block; margin: 0;'>
@@ -510,7 +510,9 @@ class Session extends Sessions {
     function updatestatus() {
         $pres = explodecontent(',',$this->presid);
         $this->nbpres = count($pres);
-        if ($this->nbpres == 0) {
+        if ($this->type=="none") {
+            $status = "Booked out";
+        } elseif ($this->nbpres == 0) {
             $status = "Free";
         } elseif ($this->nbpres<$this->max_nb_session) {
             $status = "Booked";
@@ -666,7 +668,6 @@ class Session extends Sessions {
             $this->speakers = implode(',',$speakers);
             return $this->update();
         } else {
-            var_dump("not in session");
             return true;
         }
     }
@@ -677,6 +678,9 @@ class Session extends Sessions {
      * @return string
      */
     public function showsession($mail=true) {
+        if ($this->type == 'none')
+            return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
+                    <b>No Journal Club this day</b></div>";
         $content = "";
         $presids = explodecontent(',',$this->presid);
         $chairs = explodecontent(',',$this->chairs);

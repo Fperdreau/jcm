@@ -315,6 +315,7 @@ class Presentation extends Presentations {
         if (array_key_exists("link", $post)) {
             $post['link'] = implode(',',array($this->link,$post['link']));
         }
+        $this->type = (array_key_exists("type", $post)) ? $post['type']:$this->type;
 
         // Update session table if the user changed the date of presentation
         $updatesession = !empty($post['date']) && ($post['date'] !== $this->date) && ($this->type !== "wishlist");
@@ -684,8 +685,8 @@ class Presentation extends Presentations {
                     $pick_url
                 </div>
             </div>
-            <div style='display: block; padding: 0; text-align: center; color: #555555; font-weight: 300; font-style: italic; width: auto; font-size: 12px; text-align: left;'>
-                    $this->up_date
+            <div style='display: block; padding: 0; width: auto; font-size: 12px; text-align: left;'>
+                <div style='color: #555555; font-weight: 300; font-style: italic; '>$this->up_date</div>
             </div>
         </div>";
     }

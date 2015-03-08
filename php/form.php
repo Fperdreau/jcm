@@ -32,12 +32,13 @@ if (!empty($_POST['get_calendar_param'])) {
 	$formatdate = array();
     $nb_pres = array();
     $type = array();
+    $status = array();
 	foreach($booked as $date) {
         // Count how many presentations there are for this day
         $session = new Session($db,$date);
         $nb_pres[] = $session->nbpres;
         $type[] = $session->type;
-
+        $status[] = $session->status;
         // Format date
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
@@ -52,6 +53,7 @@ if (!empty($_POST['get_calendar_param'])) {
         "today"=>date('d-m-Y'),
         "booked"=>$formatdate,
         "nb"=>$nb_pres,
+        "status"=>$status,
         "sessiontype"=>$type);
 	echo json_encode($result);
     exit;
@@ -304,13 +306,10 @@ if (!empty($_POST['update'])) {
 
         $created = $pub->update($_POST);
         if ($created !== false) {
-            // Pseudo randomly choose a chairman for this presentation
-            $chairs = $Sessions->getchair($date,$_POST['orator']);
             // Add to sessions table
             $postsession = array(
                 "date"=>$date,
                 "presid"=>$created,
-                "chairs"=>$chairs,
                 "speakers"=>$_POST['orator']
                 );
             $session = new Session($db);
@@ -575,22 +574,17 @@ if (!empty($_POST['add_type'])) {
     $class = $_POST['add_type'];
     $typename = $_POST['typename'];
     $varname = $class."_type";
-    $AppConfig->$varname .= ",$typename";
+    $divid = $class.'_'.$typename;
+    if ($class == "session") {
+        $AppConfig->session_type[$typename] = array();
+        $types = array_keys($AppConfig->$varname);
+    } else {
+        $AppConfig->$varname .= ",$typename";
+        $types = explode(',',$AppConfig->$varname);
+    }
     if ($AppConfig->update()) {
         //Get session types
-        $result = "";
-        $types = explode(',',$AppConfig->$varname);
-        $divid = $class.'_'.$typename;
-        foreach ($types as $type) {
-            $result .= "
-                <div class='type_div' id='$divid'>
-                    <div class='type_name'>$type</div>
-                    <div class='type_del' data-type='$type' data-class='$class'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
-                    </div>
-                </div>
-            ";
-        }
+        $result = showtypelist($types,$class,$divid);
     } else {
         $result = false;
     }
@@ -603,24 +597,19 @@ if (!empty($_POST['del_type'])) {
     $class = $_POST['del_type'];
     $typename = $_POST['typename'];
     $varname = $class."_type";
-    $AppConfig->$varname = explode(',',$AppConfig->$varname);
-    $AppConfig->$varname = array_diff($AppConfig->$varname,array($typename));
-    $AppConfig->$varname = implode(',',$AppConfig->$varname);
+    $divid = $class.'_'.$typename;
+    if ($class == "session") {
+        unset($AppConfig->session_type[$typename]);
+        $types = array_keys($AppConfig->$varname);
+    } else {
+        $AppConfig->$varname = explode(',',$AppConfig->$varname);
+        $types = array_values(array_diff($AppConfig->$varname,array($typename)));
+        $AppConfig->$varname = implode(',',$types);
+    }
+
     if ($AppConfig->update()) {
         //Get session types
-        $result = "";
-        $types = explode(',',$AppConfig->$varname);
-        $divid = $class.'_'.$typename;
-        foreach ($types as $type) {
-            $result .= "
-                <div class='type_div' id='$divid'>
-                    <div class='type_name'>$type</div>
-                    <div class='type_del' data-type='$type' data-class='$class'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
-                    </div>
-                </div>
-            ";
-        }
+        $result = showtypelist($types,$class,$divid);
     } else {
         $result = false;
     }
