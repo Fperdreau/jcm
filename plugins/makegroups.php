@@ -176,7 +176,7 @@ function mailing($assigned_groups) {
                 $pubcontent
                 ";
 
-                $body = $AppMail -> formatmail($content); print_r($body); exit;
+                $body = $AppMail -> formatmail($content);
                 $subject = "Your group assignment - $pres->date";
                 if ($AppMail->send_mail($user->email,$subject,$body)) {
                     $nsent += 1;
