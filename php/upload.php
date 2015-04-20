@@ -19,8 +19,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require('../includes/boot.php');
 /** @var Presentation $pub */
-$pub = new Presentation($db);
-$result = $pub->upload_file($_FILES['file']);
+$upload = new Media($db);
+$result = $upload->make($_FILES['file']);
 $result['name'] = false;
 if ($result['error'] == true) {
     $name = explode('.',$result['status']);

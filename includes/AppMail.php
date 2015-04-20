@@ -238,123 +238,6 @@ class AppMail {
     }
 
     /**
-     * Make notification email
-     * (weekly digest including last news, information about the upcoming session, about future sessions, and the wish list)
-     * @return mixed
-     */
-    function advertise_mail() {
-        // Get recent news
-        $Posts = new Posts($this->db);
-        $sessions = new Sessions($this->db);
-        $presentations = new Presentations($this->db);
-
-        $last = $Posts->getlastnews();
-        $last_news = new Posts($this->db,$last);
-        $today = date('Y-m-d');
-        if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
-            $last_news->content = "No recent news this week";
-        }
-
-        // Get future presentations
-        $pres_list = $sessions->showfuturesession(4,'mail');
-
-        // Get wishlist
-        $wish_list = $presentations->getwishlist(4,true);
-
-        // Get next session
-        $next_session = $sessions->shownextsession(true);
-
-        $content['body'] = "
-
-                <div style='width: 95%; margin: auto; font-size: 16px;'>
-                    <p>Hello,</p>
-                    <p>This is your Journal Club weekly digest.</p>
-                </div>
-
-                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
-                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                        Last News
-                    </div>
-
-                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
-                        $last_news->content
-                    </div>
-                </div>
-
-                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
-                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                        Upcoming session
-                    </div>
-                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
-                        $next_session
-                    </div>
-                </div>
-
-                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
-                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                        Future sessions
-                    </div>
-
-                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
-                        $pres_list
-                    </div>
-                </div>
-
-                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
-                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                        Wish list
-                    </div>
-
-                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5); height: auto;'>
-                        $wish_list
-                    </div>
-                </div>
-
-                <div style='width: 95%; margin: auto; font-size: 16px;'>
-                    <p>Cheers,<br>
-                    The Journal Club Team</p>
-                </div>
-        ";
-
-        $content['subject'] = "Last News - ".date('d M Y');
-        return $content;
-    }
-
-    /**
-     * Make reminder notification email (including only information about the upcoming session)
-     * @return mixed
-     */
-    function reminder_Mail() {
-        $sessions = new Sessions($this->db);
-        $next_session = $sessions->getsessions(true);
-        $sessioncontent = $sessions->shownextsession();
-        $date = $next_session[0];
-
-        $content['body'] = "
-            <div style='width: 95%; margin: auto; font-size: 16px;'>
-                <p>Hello,<br>
-                This is a reminder for the next Journal Club session.</p>
-            </div>
-
-            <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
-                <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                    Next session
-                </div>
-                <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
-                    $sessioncontent
-                </div>
-            </div>
-
-            <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
-                <p>Cheers,<br>
-                The Journal Club Team</p>
-            </div>
-        ";
-        $content['subject'] = "Next session: $date -reminder";
-        return $content;
-    }
-
-    /**
      * Format email (html)
      * @param $content
      * @return string
@@ -363,16 +246,16 @@ class AppMail {
         $profile_url = $this->config->site_url.'index.php?page=profile';
         $sitetitle = $this->config->sitetitle;
         $body = "
-            <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; color: #000000; font-weight: 300; font-size: 15px; width: 95%; margin: auto;'>
+            <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; background-color: #cccccc; color: #222222; font-weight: 300; font-size: 12px; min-width: 600px; margin: auto;'>
                 <div style='line-height: 1.2; width: 100%; color: #000000;'>
                     <div style='font-size: 30px; color: #cccccc; line-height: 40px; height: 40px; text-align: center; background-color: #555555;'>$sitetitle
                     </div>
 
-                    <div style='padding: 10px; margin: auto; text-align: justify; background-color: #dddddd;'>
+                    <div style='padding: 10px; margin: auto; text-align: justify; background-color: rgba(255,255,255,.5);'>
                         $content
                     </div>
 
-                    <div style='color: #EEEEEE; width: 100%; min-height: 30px; line-height: 30px; text-align: center; background-color: #555555;'>
+                    <div style='color: #EEEEEE; width: 100%; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #555555;'>
                         This email has been sent automatically. You can choose to no longer receive notification emails from your
                         <a href='$profile_url' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
                     </div>

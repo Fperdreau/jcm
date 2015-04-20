@@ -20,18 +20,23 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Class Sessions
  */
-class Sessions {
+class Sessions extends Table {
 
-    protected $db;
-    protected $tablename;
-
+    protected $table_data = array(
+        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
+        "date" => array("DATE", false),
+        "status" => array("CHAR(10)", "FREE"),
+        "time" => array("VARCHAR(200)", false),
+        "type" => array("CHAR(30) NOT NULL"),
+        "nbpres" => array("INT(2)", 0),
+        "primary" => "id");
     /**
      * Constructor
      * @param DbSet $db
      */
     function __construct(DbSet $db) {
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["Session"];
+        parent::__construct($db, "Session", $this->table_data);
+
         /** @var AppConfig $AppConfig */
         $AppConfig = new AppConfig($this->db);
         $this->max_nb_session = $AppConfig->max_nb_session;
@@ -39,12 +44,13 @@ class Sessions {
 
     /**
      *  Get all sessions
-     * @param null $next
+     * @param null $opt
      * @return array|bool
+     * @internal param null $next
      */
-    public function getsessions($next=null) {
+    public function getsessions($opt=null) {
         $sql = "SELECT date FROM $this->tablename";
-        if ($next !== null) {
+        if ($opt !== null) {
             $sql .= " WHERE date>=CURDATE()";
         }
         $sql .= " ORDER BY date ASC";
@@ -60,31 +66,50 @@ class Sessions {
     /**
      * Get journal club days
      * @param int $nsession
+     * @param bool $from
      * @return array
      */
-    public function getjcdates($nsession=20) {
+    public function getjcdates($nsession=20,$from=false) {
         /** @var AppConfig $AppConfig */
         $AppConfig = new AppConfig($this->db);
 
         // Get next journal club days
-        $today = strtotime("now");
-        $year = date('Y'); // Current year
-        $month = date('F'); // Current month;
-        $first = strtotime("first ".$AppConfig->jc_day." of $month $year"); // First journal club of the year
-        $lastday = mktime(0, 0, 0, 12, 31, $year); // Last day of the year
+        if ($from === false) {
+            $startdate = strtotime("now");
+            $year = date('Y'); // Current year
+            $month = date('F'); // Current month;
+        } else {
+            $startdate = $from;
+            $exploded = explode('-',$from);
+            if (count($exploded) == 3) {
+                $monthNb = $exploded[1];
+                $month = date('F', mktime(0, 0, 0, $monthNb, 10)); // March
+                $year = $exploded[0];
+            } else {
+                $month = $exploded[0];
+                $year = $exploded[1];
+            }
+        }
+        if ($from === false) {
+            $first = strtotime("first " . $AppConfig->jc_day . " of $month $year"); // First journal club of the year
+            $lastday = mktime(0, 0, 0, 12, 31, $year); // Last day of the year
+        } else {
+            $first = strtotime($from);
+            $lastday = strtotime("$from + $nsession weeks");
+
+        }
 
         $day = $first;
         $jc_days = array();
         $cpt = 0;
         $curdate = date('Y-m-d',$day);
         while ($day < $lastday) {
-            if ($day >= $today) {
+            if ($day >= $startdate || $from == false) {
                 $jc_days[] = $curdate;
                 $cpt++;
             }
             if($cpt>=$nsession) { break; }
             $curdate = date('Y-m-d',$day += 7 * 86400);
-
         }
         return $jc_days;
     }
@@ -123,146 +148,6 @@ class Sessions {
     }
 
     /**
-     * Get a chairman for the session
-     * @param $sessionid
-     * @param null $speaker
-     * @return string
-     */
-    public function getchair($sessionid,$speaker=null) {
-        /** @var Session $session */
-        $session = new Session($this->db,$sessionid);
-
-        /** @var AppConfig $AppConfig */
-        $AppConfig = new AppConfig($this->db);
-
-        /** Get speakers planned for this session */
-        $speakers = explodecontent(',',$session->speakers);
-        $speakers[] = $speaker; // Add the current speaker to the list
-        $speakers = array_values(array_diff($speakers,array("")));
-
-        /** Get chairmen planned for this session */
-        $cur_chairs = explodecontent(',',$session->chairs);
-        $cur_chairs = array_values(array_diff($cur_chairs,array("")));
-
-        $exclude = array_merge($speakers,$cur_chairs);
-
-         /** Get list of organizers */
-        $Users = new Users($this->db);
-        $organizers = $Users->getadmin();
-        $chairs = array();
-        if (!empty($organizers)) {
-            foreach ($organizers as $organizer) {
-                $chairs[] = $organizer['username'];
-            }
-        }
-
-        /** @var  $prevchairs */
-        $prevchairs = $AppConfig->session_type[$session->type];
-
-        if (empty($chairs)) {
-            /** If no users have the organizer status, the chairman is to be announced.*/
-            /** To Be Announced as a default */
-            $chair = 'TBA';
-            /** We start a new list of previous chairmen*/
-            $prevchairs = array();
-        } else {
-            $allexclude = array_merge($exclude,$prevchairs);
-            $possiblechairs = array_values(array_diff($chairs,$allexclude));
-            /** We randomly pick a chairman among organizers who have not chaired a session yet,
-             * apart from the speakers and the other chairmen of this session.
-             */
-            if (!empty($possiblechairs)) {
-                $ind = rand(0,count($possiblechairs)-1);
-                $chair = $possiblechairs[$ind];
-            /** Otherwise, if all organizers already have been chairman once,
-            * we randomly pick one among all the organizers,
-            * apart from the speakers and the other chairmen of this session
-             */
-            } else {
-                $possiblechairs = array_values(array_diff($chairs,$exclude));
-                if (empty($possiblechairs)) {
-                    /** RARE: in case all organizers are speakers and chairmen for this session, the chairman is to be announced.*/
-                    $chair = 'TBA';
-                } else {
-                    $ind = rand(0,count($possiblechairs)-1);
-                    $chair = $possiblechairs[$ind];
-                }
-                /** We start a new list of previous chairmen */
-                $prevchairs = array();
-            }
-        }
-
-        // Update the previous chairmen list
-        $prevchairs[] = $chair;
-        $AppConfig->session_type[$session->type] = $prevchairs;
-        $AppConfig->update();
-
-        return $chair;
-    }
-
-    /**
-     * Check consistency between session/presentation tables
-     * @return bool
-     */
-    public function checkcorrespondence() {
-        /** @var Presentations $presentations */
-        $presentations = new Presentations($this->db);
-        $dates = $presentations->getpubbydates("wishlist");
-
-        // See if dates are missing in the session table
-        foreach ($dates as $date=>$id_pres) {
-            /** @var Session $session */
-            $session = new Session($this->db,$date);
-
-            /** First drop non existent presentations */
-            if ($session->date != "") {
-                $presids = explodecontent(',',$session->presid);
-                $chairs = explodecontent(',',$session->chairs);
-                $speakers = explodecontent(',',$session->speakers);
-                $speakertodel = array();
-                $prestodel = array();
-                $chairtodel = array();
-                for ($i=0;$i<$session->nbpres;$i++) {
-                    $presid = $presids[$i];
-                    $pub = new Presentation($this->db,$presid);
-                    if ($pub->id_pres === '') {
-                        $prestodel[] = $presid;
-                        $chairtodel[] = $chairs[$i];
-                        $speakertodel[] = $speakers[$i];
-                    }
-                }
-                $speakers = array_values(array_diff($speakers,$speakertodel));
-                $chairs = array_values(array_diff($chairs,$chairtodel));
-                $presids = array_values(array_diff($presids,$prestodel));
-                $session->speakers = implode(',',$speakers);
-                $session->chairs = implode(',',$chairs);
-                $session->presids = implode(',',$presids);
-                $session->update();
-            }
-
-            /**
-             * Add missing presentation to this session
-             * @var $id
-             *
-             */
-            for ($i=0;$i<count($id_pres);$i++) {
-                /** @var Presentation $pres */
-                $pres = new Presentation($this->db,$id_pres[$i]);
-                $chair = (empty($chairs[$i]) ? $chair=self::getchair($session->date,$pres->orator):$chairs[$i]);
-                $sessionpost = array(
-                    'date'=>$date,
-                    "speakers"=>$pres->orator,
-                    "presid"=>$id_pres[$i],
-                    "chairs"=>$chair);
-                if (!$session->make($sessionpost)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * Get all sessions
      * @param int $nbsession
      * @return string
@@ -281,8 +166,10 @@ class Sessions {
                 $session = new Session($this->db,$date);
             } else {
                 $session = new Session($this->db);
-                $session->date = $date;
+                $session->make(array('date'=>$date));
+                $session->get();
             }
+
             // Get type options
             $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
             foreach ($session_type as $type) {
@@ -294,14 +181,13 @@ class Sessions {
             }
 
             // Get time
-            $time = explodecontent(',',$session->time);
+            $time = explode(',',$session->time);
             $timefrom = $time[0];
             $timeto = $time[1];
 
             // Get presentations
             $presentations = "";
-            $presids = explodecontent(',',$session->presid);
-            $chairs = explodecontent(',',$session->chairs);
+            $chairs = $session->chairs;
             for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
                 $presid = (isset($presids[$i]) ? $presids[$i] : false);
                 $chair = (isset($chairs[$i]) ? $chairs[$i] : "TBA");
@@ -377,30 +263,19 @@ class Sessions {
      * @return string
      */
     public function showfuturesession($nsession = 4,$mail=null) {
-        $AppConfig = new AppConfig($this->db);
+        // Get future planned dates
+        $dates = $this->getsessions(1);
+        $dates = ($dates == false) ? false: $dates[0];
 
         // Get journal club days
-        $jc_days = $this->getjcdates($nsession);
-
-        // Get future planned dates
-        $dates = $this->getsessions($nsession);
-        if ($dates == false) {$dates = array();}
+        $jc_days = $this->getjcdates($nsession, $dates);
 
         // Get futures journal club sessions
         $content = "";
         foreach ($jc_days as $day) {
-            if (in_array($day,$dates)) {
-                $session = new Session($this->db,$day);
-                $sessioncontent = $session->showsession($mail);
-            } else {
-                $session = new Session($this->db);
-                $sessioncontent = "
-                <div style='display: block; text-align: justify; background-color: rgba(255,255,255,.5); padding: 5px; margin: 0;'>
-                    <div style='display: inline-block; width: 100%; padding-left: 10px; text-align: left; vertical-align: middle;'>
-                        <span style='font-weight: bold; color: #CF5151;'>$AppConfig->max_nb_session presentation(s) available</span>
-                    </div>
-                </div>";
-            }
+            $session = new Session($this->db,$day);
+            $sessioncontent = $session->showsession($mail);
+
             $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
             $content .= "
             <div style='display: block; margin: 5px auto 0 auto;'>
@@ -432,10 +307,10 @@ class Session extends Sessions {
     public $status = "FREE";
     public $time = "";
     public $type = "Journal Club";
-    public $presid = "";
-    public $speakers = "";
-    public $chairs = "";
     public $nbpres = 0;
+    public $presids = array();
+    public $speakers = array();
+    public $chairs = array();
 
     /**
      * @param DbSet $db
@@ -443,9 +318,6 @@ class Session extends Sessions {
      */
     public function __construct(DbSet $db,$date=null) {
         parent::__construct($db);
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["Session"];
-
         $AppConfig = new AppConfig($this->db);
         $this->time = "$AppConfig->jc_time_from,$AppConfig->jc_time_to";
         $this->type = $AppConfig->session_type_default;
@@ -461,46 +333,22 @@ class Session extends Sessions {
      * @param $post
      * @return bool
      */
-    public function make($post) {
-        if (!parent::dateexists($post['date'])) {
-
+    public function make($post=array()) {
+        if (!$this::dateexists($post['date'])) {
             $class_vars = get_class_vars("Session");
-            if (array_key_exists("presid", $post)) {
-                // Pseudo randomly choose a chairman for this presentation
-                if (empty($post['speakers'])) $post['speakers'] = null;
-                $post['chairs'] = Sessions::getchair($post['date'],$post['speakers']);
-            }
+            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers','chairs'));
 
-            $postkeys = array_keys($post);
-
-            $variables = array();
-            $values = array();
-            foreach ($class_vars as $name=>$value) {
-                if (in_array($name,array("db","tablename"))) continue;
-
-                if (in_array($name,$postkeys)) {
-                    $escaped = $this->db->escape_query($post[$name]);
-                } else {
-                    $escaped = $this->db->escape_query($this->$name);
-                }
-                $variables[] = "$name";
-                $values[] = "'$escaped'";
-            }
-
-            $variables = implode(',',$variables);
-            $values = implode(',',$values);
-
-            // Add publication to the database
-            if (!$this->db->addcontent($this->tablename,$variables,$values)) {
-                return false;
+            // Add session to the database
+            if ($this->db->addcontent($this->tablename,$content)) {
+                // Assign chairs for this session
+                return $this->addChairs();
+            } else {
+                return False;
             }
         } else {
             self::get($post['date']);
-            if (!self::update($post)) {
-                return false;
-            };
+            return self::update($post);
         }
-        return self::get($post['date']);
     }
 
     /**
@@ -508,8 +356,7 @@ class Session extends Sessions {
      * @return bool
      */
     function updatestatus() {
-        $pres = explodecontent(',',$this->presid);
-        $this->nbpres = count($pres);
+        $this->nbpres = count($this->presids);
         if ($this->type=="none") {
             $status = "Booked out";
         } elseif ($this->nbpres == 0) {
@@ -519,9 +366,7 @@ class Session extends Sessions {
         } else {
             $status = "Booked out";
         }
-        $escapedstatus = $this->db->escape_query($status);
-        $escapednbpres = $this->db->escape_query($this->nbpres);
-        return $this->db->updatecontent($this->tablename,array('nbpres','status'),array($escapednbpres,$escapedstatus),array("date"),array("'$this->date'"));
+        return $this->db->updatecontent($this->tablename,array("status"=>$status, "nbpres"=>$this->nbpres),array('date'=>$this->date));
     }
 
     /**
@@ -530,10 +375,14 @@ class Session extends Sessions {
      * @return bool
      */
     public function get($date=null) {
-        if ($date == null) $date = $this->date;
+        $this->date = ($date !== null) ? $date : $this->date;
+
+        // Get the associated presentations
+        $this->getChairs();
+        $this->getPresids();
 
         $class_vars = get_class_vars("Session");
-        $sql = "SELECT * FROM $this->tablename WHERE date='$date'";
+        $sql = "SELECT * FROM $this->tablename WHERE date='$this->date'";
         $req = $this->db -> send_query($sql);
         $data = mysqli_fetch_assoc($req);
         if (!empty($data)) {
@@ -549,6 +398,54 @@ class Session extends Sessions {
     }
 
     /**
+     * Get planned chairs of this session
+     * @return array
+     */
+    public function getChairs() {
+        $sql = "SELECT id,chair FROM ".$this->db->tablesname['Chairs']." WHERE date='$this->date'";
+        $req = $this->db->send_query($sql);
+        $this->chairs = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $this->chairs[] = array('chair'=>$row['chair'],'id'=>$row['id']);
+        }
+        if (count($this->chairs) < $this->max_nb_session) {
+            if ($this->addChairs()) {
+                $this->getChairs();
+            }
+        }
+    }
+
+    /**
+     * Add temporary chairs ('TBA') to the chair table
+     * @return bool
+     */
+    function addChairs() {
+        $nbChairs = count($this->chairs);
+        $Chairs = new Chairs($this->db);
+        for ($p=$nbChairs;$p<$this->max_nb_session;$p++) {
+            if (!$Chairs->make($this->date,'TBA')) {
+                return False;
+            }
+        }
+        return True;
+    }
+
+    /**
+     * Get presentations and speakers
+     * @return array
+     */
+    public function getPresids() {
+        $sql = "SELECT id_pres,orator FROM ".$this->db->tablesname['Presentation']." WHERE date='$this->date'";
+        $req = $this->db->send_query($sql);
+        $this->presids = array();
+        $this->speakers = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $this->presids[] = $row['id_pres'];
+            $this->speakers[] = $row['orator'];
+        }
+    }
+
+    /**
      * Update session info
      * @param array $post
      * @return bool
@@ -556,30 +453,10 @@ class Session extends Sessions {
     public function update($post=array()) {
         $this->status = parent::isbooked($this->date);
 
-        // Check if presentation does not already exist for this day
-        if (self::updatechair($post) == true) return true;
-
         $class_vars = get_class_vars("Session");
-        $postkeys = array_keys($post);
-        foreach ($class_vars as $name => $value) {
-            if (in_array($name,array("db","tablename"))) continue;
-
-            if (in_array($name,$postkeys)) {
-                if (in_array($name,array("presid","chairs","speakers"))) {
-                    $oldval = explodecontent(',',$this->$name);
-                    $oldval[] = $post[$name];
-                    $oldval = implode(',',$oldval);
-                    $escaped = $this->db->escape_query($oldval);
-                } else {
-                    $escaped = $this->db->escape_query($post[$name]);
-                }
-            } else {
-                $escaped = $this->db->escape_query($this->$name);
-            }
-
-            if (!$this->db->updatecontent($this->tablename,$name,"'$escaped'",array("date"),array("'$this->date'"))) {
-                return false;
-            }
+        $content = $this->parsenewdata($class_vars,$post, array('speakers','presids','chairs'));
+        if (!$this->db->updatecontent($this->tablename,$content,array('date'=>$this->date))) {
+            return false;
         }
 
         self::get();
@@ -591,85 +468,8 @@ class Session extends Sessions {
      * @return bool
      */
     public function chairexist() {
-        $chairs = explodecontent(',',$this->chairs);
-        $presids = explodecontent(',',$this->presid);
-        if (empty($chairs)) return false;
-        return count($chairs)<count($presids);
-    }
-
-    /**
-     * @param $post
-     * @return bool
-     */
-    private function updatechair($post) {
-        if (array_key_exists('presid', $post)) {
-            $AppConfig = new AppConfig($this->db);
-            $oldpres = explodecontent(',',$this->presid);
-            $pub = new Presentation($this->db,$post['presid']);
-            if (in_array($post['presid'],$oldpres)) {
-                if (!self::chairexist()
-                    && $AppConfig->chair_assign == "manual")
-                    $post['chairs'] = Sessions::getchair($post['date'],$pub->orator);
-                return self::update_pres($post);
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Update presentation information (speaker, chairman) in this session
-     *
-     * @param $post
-     * @return bool
-     */
-    private function update_pres($post) {
-        $presid = $post['presid'];
-        $oldpres = explodecontent(',',$this->presid);
-        $oldchair = explodecontent(',',$this->chairs);
-        $oldspeaker = explodecontent(',',$this->speakers);
-        $i = 0;
-        foreach ($oldpres as $id) {
-            if ($id == $presid) {
-                if (!empty($post['chairs'])) $oldchair[$i] = $post['chairs'];
-                if (!empty($post['speakers'])) $oldspeaker[$i] = $post['speakers'];
-                break;
-            }
-            $i++;
-        }
-        $escapedpresid = $this->db->escape_query(implode(',',$oldpres));
-        $escapedchairs = $this->db->escape_query(implode(',',$oldchair));
-        $escapedspeakers = $this->db->escape_query(implode(',',$oldspeaker));
-        return $this->db->updatecontent($this->tablename,array('presid','chairs','speakers'),array("$escapedpresid","$escapedchairs","$escapedspeakers"),array("date"),array("'$this->date'"));
-    }
-
-    /**
-     * Delete a presentation from this session
-     * @param $presid
-     * @return bool
-     */
-    public function delete_pres($presid) {
-        $presids = explodecontent(',',$this->presid);
-        $key = 0;
-        if (in_array($presid,$presids)) {
-            $chairs = explodecontent(',',$this->chairs);
-            $speakers = explodecontent(',',$this->speakers);
-            foreach ($presids as $id) {
-                if ($id == $presid) {
-                    break;
-                }
-                $key += 1;
-            }
-
-            $chairs = array_values(array_diff($chairs,array($chairs[$key])));
-            $speakers = array_values(array_diff($speakers,array($presids[$key])));
-            $presids = array_values(array_diff($presids,array($presids[$key])));
-            $this->presid = implode(',',$presids);
-            $this->chairs = implode(',',$chairs);
-            $this->speakers = implode(',',$speakers);
-            return $this->update();
-        } else {
-            return true;
-        }
+        if (empty($this->chairs)) return false;
+        return count($this->chairs)<count($this->presids);
     }
 
     /**
@@ -682,14 +482,10 @@ class Session extends Sessions {
             return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
                     <b>No Journal Club this day</b></div>";
         $content = "";
-        $presids = explodecontent(',',$this->presid);
-        $chairs = explodecontent(',',$this->chairs);
-        $maxtopres = ($this->max_nb_session >= $this->nbpres) ? $this->max_nb_session:$this->nbpres;
-        for ($i=0;$i<$maxtopres;$i++) {
-            $presid = (isset($presids[$i]) ? $presids[$i] : false);
-            $chair = (isset($chairs[$i]) ? $chairs[$i] : "TBA");
+        for ($i=0;$i<$this->max_nb_session;$i++) {
+            $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
             $pub = new Presentation($this->db,$presid);
-            $content .= $pub->showinsession($chair,$mail);
+            $content .= $pub->showinsession($this->chairs[$i],$mail);
         }
         return $content;
     }
@@ -702,12 +498,10 @@ class Session extends Sessions {
     public function showsessiondetails($show=true,$prestoshow=false) {
         $AppConfig = new AppConfig($this->db);
 
-        $presids = explodecontent(',',$this->presid);
-        $chairs = explodecontent(',',$this->chairs);
-        $time = explodecontent(',',$this->time);
+        $time = explode(',',$this->time);
         $time_from = $time[0];
         $time_to = $time[1];
-        if (count($presids) == 0) return "Nothing planned yet";
+        if (count($this->presids) == 0) return "Nothing planned yet";
 
         $content = "<div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px; border: 1px solid #bebebe;'>
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>$this->date</div>
@@ -716,12 +510,12 @@ class Session extends Sessions {
                 Our next session will host $this->nbpres presentations.
             </div>";
         $i = 0;
-        foreach ($presids as $presid) {
-            if ($prestoshow != false && $presid !=$prestoshow) continue;
+        foreach ($this->presids as $presid) {
+            if ($prestoshow != false && $presid != $prestoshow) continue;
 
             $pres = new Presentation($this->db,$presid);
             $orator = new User($this->db,$pres->orator);
-            $chair = $chairs[$i];
+            $chair = (isset($this->chairs[$i])) ? $this->chairs[$i]['chair']:'TBA';
             if ($chair !== 'TBA') {
                 $chair = new User($this->db,$chair);
                 $chair = $chair->fullname;
@@ -729,19 +523,18 @@ class Session extends Sessions {
            // Get file list
             $filediv = "";
             if ($show && !empty($pres->link)) {
-                $filelist = explodecontent(',',$pres->link);
                 $filecontent = "";
-                foreach ($filelist as $file) {
-                    $ext = explode('.',$file);
-                    $ext = strtoupper($ext[1]);
-                    $urllink = $AppConfig->site_url."uploads/".$file;
-                    $filecontent .= "<div style='display: inline-block; height: 15px; line-height: 15px; text-align: center; padding: 5px; white-space: pre-wrap; min-width: 40px; width: auto; margin: 5px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'><a href='$urllink' target='_blank'>$ext</a></div>";
+                foreach ($pres->link as $fileid=>$info) {
+                    $urllink = $AppConfig->site_url."uploads/".$info['filename'];
+                    $filecontent .= "
+                        <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
+                                    margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                            <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                        </div>";
                 }
-                $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto; margin: auto; background-color: #444444;'>
-                    $filecontent
-                </div>";
+                $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto;
+                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
             }
-
             $type = ucfirst($pres->type);
             $content .= "
             <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
@@ -750,7 +543,7 @@ class Session extends Sessions {
                         $type
                     </div>
                     <div style='display: inline-block; width: auto; padding: 5px; margin-left: 30px;'>
-                        <div style='font-weight: bold; font-size: 18px;'>$pres->title</div>
+                        <div style='font-weight: bold; font-size: 16px;'>$pres->title</div>
                     </div>
                 </div>
                 <div style='width: 95%; text-align: justify; margin: auto; padding: 5px 10px 0 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid rgba(207,81,81,.5);'>

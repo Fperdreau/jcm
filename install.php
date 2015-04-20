@@ -44,12 +44,18 @@ if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
  */
 require_once(PATH_TO_INCLUDES.'SessionInstance.php');
 require_once(PATH_TO_INCLUDES.'DbSet.php');
+require_once(PATH_TO_INCLUDES.'Table.php');
 require_once(PATH_TO_INCLUDES.'User.php');
 require_once(PATH_TO_INCLUDES."Presentation.php");
 require_once(PATH_TO_INCLUDES."Session.php");
 require_once(PATH_TO_INCLUDES."AppConfig.php");
 include_once(PATH_TO_INCLUDES.'functions.php');
 require_once(PATH_TO_INCLUDES."Posts.php");
+require_once(PATH_TO_INCLUDES."Chairs.php");
+require_once(PATH_TO_INCLUDES."Media.php");
+require_once(PATH_TO_INCLUDES."AppPlugins.php");
+require_once(PATH_TO_INCLUDES."AppCron.php");
+
 
 /**
  * Start session
@@ -108,12 +114,14 @@ function check_release_integrity() {
     }
     return json_encode($result);
 }
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 if (!empty($_POST['operation'])) {
     $operation = $_POST['operation'];
+
 
     // STEP 1: Check database credentials provided by the user
     if ($operation == "db_info") {
@@ -125,7 +133,7 @@ if (!empty($_POST['operation'])) {
     // STEP 2: Write database credentials to config.php file
     if ($operation == "do_conf") {
 
-        $filename = PATH_TO_CONFIG."config.php";
+        $filename = PATH_TO_CONFIG . "config.php";
         $result = "";
         if (is_file($filename)) {
             unlink($filename);
@@ -134,31 +142,31 @@ if (!empty($_POST['operation'])) {
         // Make config folder
         $dirname = PATH_TO_CONFIG;
         if (is_dir($dirname) === false) {
-            if (!mkdir($dirname,0755)) {
+            if (!mkdir($dirname, 0755)) {
                 json_encode("Could not create config directory");
                 exit;
             }
         }
 
         // Make uploads folder
-        $dirname = PATH_TO_APP."/uploads/";
+        $dirname = PATH_TO_APP . "/uploads/";
         if (is_dir($dirname) === false) {
-            if (!mkdir($dirname,0755)) {
+            if (!mkdir($dirname, 0755)) {
                 json_encode("Could not create uploads directory");
                 exit;
             }
         }
 
         // Write configuration information to config/config.php
-        $fields_to_write = array("version","host","username","passw","dbname","dbprefix");
+        $fields_to_write = array("version", "host", "username", "passw", "dbname", "dbprefix");
         $config = array();
-        foreach ($_POST as $name=>$value) {
-            if (in_array($name,$fields_to_write)) {
-                $config[] = '"'.$name.'" => "'.$value.'"';
+        foreach ($_POST as $name => $value) {
+            if (in_array($name, $fields_to_write)) {
+                $config[] = '"' . $name . '" => "' . $value . '"';
             }
         }
-        $config = implode(',',$config);
-        $string = '<?php $config = array('.$config.'); ?>';
+        $config = implode(',', $config);
+        $string = '<?php $config = array(' . $config . '); ?>';
 
         // Create new config file
         if ($fp = fopen($filename, "w+")) {
@@ -198,7 +206,7 @@ if (!empty($_POST['operation'])) {
         // First we remove any deprecated tables
         $old_tables = $db->getapptables();
         foreach ($old_tables as $old_table) {
-            if (!in_array($old_table,$tables_to_create)) {
+            if (!in_array($old_table, $tables_to_create)) {
                 if ($db->deletetable($old_table) == true) {
                     $result .= "<p id='success'>$old_table has been deleted because we do not longer need it</p>";
                 } else {
@@ -210,136 +218,107 @@ if (!empty($_POST['operation'])) {
         }
 
         // Create users table
-        $table_data = array(
-            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-            "date"=>array("DATETIME",date('Y-m-d h:i:s')),
-            "firstname"=>array("CHAR(30)",false),
-            "lastname"=>array("CHAR(30)",false),
-            "fullname"=>array("CHAR(30)",false),
-            "username"=>array("CHAR(30)",false),
-            "password"=>array("CHAR(50)",false),
-            "position"=>array("CHAR(10)",false),
-            "email"=>array("CHAR(100)",false),
-            "notification"=>array("INT(1)",1),
-            "reminder"=>array("INT(1)",1),
-            "nbpres"=>array("INT(3)",0),
-            "status"=>array("CHAR(10)",false),
-            "hash"=>array("CHAR(32)",false),
-            "active"=>array("INT(1)",0),
-            "attempt"=>array("INT(1)",0),
-            "last_login"=>array("DATETIME NOT NULL"),
-            "primary"=>"id"
-        );
-
-        if ($db->makeorupdate($db->tablesname['User'],$table_data,$op)) {
-            $result .= "<p id='success'>'".$db->tablesname['User']."' created</p>";
-        } else {
-            echo json_encode("<p id='warning'>'".$db->tablesname['User']."' not created</p>");
-            exit;
-        }
+        $Users = new Users($db);
+        $Users->setup($op);
 
         // Create Post table
-        $table_data = array(
-            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-            "postid"=>array("CHAR(30) NOT NULL"),
-            "date"=>array("DATETIME",date('Y-m-d h:i:s')),
-            "title"=>array("VARCHAR(255) NOT NULL"),
-            "content"=>array("TEXT(5000) NOT NULL",false,"post"),
-            "username"=>array("CHAR(30) NOT NULL",false),
-            "homepage"=>array("INT(1) NOT NULL",0),
-            "primary"=>"id");
-        if ($db->makeorupdate($db->tablesname['Posts'],$table_data,$op)) {
-            $result .= "<p id='success'> '".$db->tablesname['Posts']."' created</p>";
-        } else {
-            echo json_encode("<p id='warning'>'$db->tablesname['Posts']' not created</p>");
-            exit;
-        }
+        $Posts = new Posts($db);
+        $Posts->setup($op);
 
         // Give ids to posts that do not have one yet (compatibility with older verions)
         $post = new Posts($db);
-        $sql = "SELECT postid,date,username FROM ".$db->tablesname['Posts'];
+        $sql = "SELECT postid,date,username FROM " . $db->tablesname['Posts'];
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $date = $row['date'];
             if (empty($row['postid']) || $row['postid'] == "NULL") {
-
                 // Get uploader username
                 $userid = $row['username'];
-                $sql = "SELECT username FROM ".$db->tablesname['User']." WHERE username='$userid' OR fullname='$userid'";
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
                 $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
 
                 $username = $data['username'];
                 $post->date = $date;
                 $postid = $post->makeID();
-                $db->updatecontent($db->tablesname['Posts'],array('postid','username'),array($postid,$username),array('date'),array("'$date'"));
+                $db->updatecontent($db->tablesname['Posts'], array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
             }
         }
 
         // Create config table
-        $table_data = array(
-            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-            "variable"=>array("CHAR(20)",false),
-            "value"=>array("TEXT",false),
-            "primary"=>"id");
-        if ($db->makeorupdate($db->tablesname['AppConfig'],$table_data,$op) == true) {
-            $result .= "<p id='success'> '".$db->tablesname['AppConfig']."' created</p>";
-        } else {
-            echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not created</p>");
-            exit;
-        }
-
         // Get default application settings
         if ($op === false) {
-            $config = new AppConfig($db,false);
+            $AppConfig = new AppConfig($db, false);
         } else {
-            $config = new AppConfig($db);
+            $AppConfig = new AppConfig($db);
         }
-
-        if ($config->update($_POST) === true) {
-            $result .= "<p id='success'> '".$db->tablesname['AppConfig']."' updated</p>";
+        $AppConfig->setup($op);
+        if ($AppConfig->update($_POST) === true) {
+            $result .= "<p id='success'> '" . $db->tablesname['AppConfig'] . "' updated</p>";
         } else {
-            echo json_encode("<p id='warning'>'".$db->tablesname['AppConfig']."' not updated</p>");
+            echo json_encode("<p id='warning'>'" . $db->tablesname['AppConfig'] . "' not updated</p>");
             exit;
         }
 
-        // Create presentations table
-        $table_data = array(
-            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-            "up_date"=>array("DATETIME",false),
-            "id_pres"=>array("BIGINT(15)",false),
-            "username"=>array("CHAR(30) NOT NULL"),
-            "type"=>array("CHAR(30)",false),
-            "date"=>array("DATE",false),
-            "jc_time"=>array("CHAR(15)",false),
-            "title"=>array("CHAR(150)",false),
-            "authors"=>array("CHAR(150)",false),
-            "summary"=>array("TEXT(5000)",false),
-            "link"=>array("TEXT(500)",false),
-            "orator"=>array("CHAR(50)",false),
-            "presented"=>array("INT(1) NOT NULL",0),
-            "primary"=>"id"
-        );
+        // Create Media table
+        $Media = new Uploads($db);
+        $Media->setup($op);
 
-        if ($db->makeorupdate($db->tablesname['Presentation'],$table_data,$op)) {
-            $result .= "<p id='success'>'".$db->tablesname['Presentation']."' created</p>";
-        } else {
-            echo json_encode("<p id='warning'>'".$db->tablesname['Presentation']."' not created</p>");
-            exit;
+        // Write previous uploads to this new table
+        $columns = $db->getcolumns($db->tablesname['Presentation']);
+        $filenames = $db->getinfo($db->tablesname['Media'], 'filename');
+        if (in_array('link', $columns)) {
+            $sql = "SELECT up_date,id_pres,link FROM " . $db->tablesname['Presentation'];
+            $req = $db->send_query($sql);
+            while ($row = mysqli_fetch_assoc($req)) {
+                $links = explode(',', $row['link']);
+                if (!empty($links)) {
+                    foreach ($links as $link) {
+                        // Check if uploads does not already exist in the table
+                        if (!in_array($link, $filenames)) {
+                            // Make a unique id for this link
+                            $exploded = explode('.', $link);
+                            if (!empty($exploded)) {
+                                $id = $exploded[0];
+                                $type = $exploded[1];
+                                // Add upload to the Media table
+                                $content = array(
+                                    'date' => $row['update'],
+                                    'fileid' => $id,
+                                    'filename' => $link,
+                                    'presid' => $row['presid'],
+                                    'type' => $type
+                                );
+                                $db->addcontent($db->tablesname['Media'], $content);
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        // Create Presentation table
+        $Presentations = new Presentations($db);
+        $Presentations->setup($op);
 
         // Set username of the uploader
-        $sql = 'SELECT id_pres,username,orator,summary,authors,title FROM '.$db->tablesname['Presentation'];
+        $sql = 'SELECT id_pres,username,orator,summary,authors,title,notified FROM ' . $db->tablesname['Presentation'];
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
-            $pub = new Presentation($db,$row['id_pres']);
+            $pub = new Presentation($db, $row['id_pres']);
             $userid = $row['orator'];
-            $pub->summary = str_replace('\\','',htmlspecialchars($row['summary']));
-            $pub->authors = str_replace('\\','',htmlspecialchars($row['authors']));
-            $pub->title = str_replace('\\','',htmlspecialchars($row['title']));
+            $pub->summary = str_replace('\\', '', htmlspecialchars($row['summary']));
+            $pub->authors = str_replace('\\', '', htmlspecialchars($row['authors']));
+            $pub->title = str_replace('\\', '', htmlspecialchars($row['title']));
+
+            // If publication's submission date is past, we assume it has already been notified
+            if ($pub->up_date < date('Y-m-d H:i:s', strtotime('-2 days', strtotime(date('Y-m-d H:i:s'))))) {
+                $pub->notified = 1;
+                $pub->update();
+            }
 
             if (empty($row['username']) || $row['username'] == "") {
-                $sql = "SELECT username FROM ".$db->tablesname['User']." WHERE username='$userid' OR fullname='$userid'";
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
                 $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
                 if (!empty($data)) {
@@ -348,27 +327,41 @@ if (!empty($_POST['operation'])) {
                 }
             }
             $pub->update();
+        }
 
+        // Create Chairs Table
+        $Chairs = new Chairs($db);
+        $Chairs->setup($op);
+
+        if (in_array('chair',$db->getcolumns($db->tablesname['Presentation']))){
+            $sql = 'SELECT chair,date,id_pres FROM ' . $db->tablesname['Presentation'];
+            $req = $db->send_query($sql);
+            while ($row = mysqli_fetch_assoc($req)) {
+                $chair = $row['chair'];
+                $date = $row['date'];
+                $presid = $row['id_pres'];
+                if (!empty($chair)) {
+                    $sql = "SELECT * FROM ". $db->tablesname['Chairs']. " WHERE chair='$chair' and date='$date' and presid='$presid'";
+                    $check = $db->send_query($sql);
+                    $data = mysqli_fetch_assoc($check);
+                    if (empty($data)) {
+                        $Chairs->make($date,$chair,$presid);
+                    }
+                }
+            }
         }
 
         // Create Session table
-        $table_data = array(
-            "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-            "date"=>array("DATE",false),
-            "status"=>array("CHAR(10)","FREE"),
-            "time"=>array("VARCHAR(200)",false),
-            "type"=>array("CHAR(30) NOT NULL"),
-            "presid"=>array("VARCHAR(200) NOT NULL"),
-            "speakers"=>array("VARCHAR(200) NOT NULL"),
-            "chairs"=>array("VARCHAR(200) NOT NULL"),
-            "nbpres"=>array("INT(2)",0),
-            "primary"=>"id");
-        if ($db->makeorupdate($db->tablesname['Session'],$table_data,$op)) {
-            $result .= "<p id='success'> '".$db->tablesname['Session']."' created</p>";
-        } else {
-            echo json_encode("<p id='warning'>'".$db->tablesname['Session']."' not created</p>");
-            exit;
-        }
+        $Sessions = new Sessions($db);
+        $Sessions->setup($op);
+
+        // Create Plugins table
+        $Plugins = new AppPlugins($db);
+        $Plugins->setup($op);
+
+        // Create CronJobs table
+        $CronJobs = new AppCron($db);
+        $CronJobs->setup($op);
 
         echo json_encode($result);
         exit;
@@ -376,10 +369,23 @@ if (!empty($_POST['operation'])) {
 
     // STEP 5:Check consistency between presentations and sessions table
     if ($operation == "checkdb") {
-        $Sessions = new Sessions($db);
-        $result = ($Sessions->checkcorrespondence() == true)
-            ? "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>"
-            : "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+        $session_date = $db->getinfo($db->tablesname['Session'],'date');
+
+        $sql = "SELECT date,jc_time FROM " . $db->tablesname['Presentation'];
+        $req = $db->send_query($sql);
+        while ($row = mysqli_fetch_assoc($req)) {
+            $date = $row['date'];
+            $time = $row['time'];
+            if (!in_array($date,$session_date)) {
+                $session = new Session($db);
+                if (!$session->make(array('date'=>$date,'time'=>$time))) {
+                    $result = "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+                    echo json_encode($result);
+                    exit;
+                }
+            }
+        }
+        $result = "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>";
         echo json_encode($result);
         exit;
     }
@@ -391,7 +397,7 @@ if (!empty($_POST['operation'])) {
         $email = htmlspecialchars($_POST['email']);
 
         $user = new User($db);
-        if ($user -> make($username,$encrypted_pw,$username,"","",$email,"admin")) {
+        if ($user->make($username, $encrypted_pw, $username, "", "", $email, "admin")) {
             $result = "<p id='success'>Admin account created</p>";
         } else {
             $result = "<p id='warning'>We could not create the admin account</p>";
@@ -447,8 +453,8 @@ if (!empty($_POST['getpagecontent'])) {
         }
         $dbprefix = str_replace('_','',$config['dbprefix']);
 
-		$title = "Step 1: Database configuration";
-		$operation = "
+        $title = "Step 1: Database configuration";
+        $operation = "
 			<form action='' method='post' name='install' id='db_info'>
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
@@ -538,9 +544,9 @@ if (!empty($_POST['getpagecontent'])) {
             </form>
             <div class='feedback'></div>
         ";
-	} elseif ($step == 4) {
-		$title = "Step 3: Admin account creation";
-		$operation = "
+    } elseif ($step == 4) {
+        $title = "Step 3: Admin account creation";
+        $operation = "
             <div class='feedback'></div>
 			<form method='post' id='admin_creation'>
 			    <div class='formcontrol' style='width: 30%'>
@@ -563,13 +569,13 @@ if (!empty($_POST['getpagecontent'])) {
 				<p style='text-align: right;'><input type='submit' name='submit' value='Next' id='submit' class='admin_creation' data-op='$op'></p>
 			</form>
 		";
-	} elseif ($step == 5) {
-		$title = "Installation complete!";
-		$operation = "
+    } elseif ($step == 5) {
+        $title = "Installation complete!";
+        $operation = "
 		<p id='success'>Congratulations!</p>
 		<p id='warning'> Now you can delete the 'install.php' file from the root folder of the application</p>
 		<p style='text-align: right'><input type='submit' name='submit' value='Finish' id='submit' class='finish'></p>";
-	}
+    }
 
     $result = "
 	<div id='content'>
@@ -589,368 +595,364 @@ if (!empty($_POST['getpagecontent'])) {
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
-    <head>
-        <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <META NAME="description" CONTENT="Journal Club Manager. The easiest way to manage your lab's journal club.">
-        <META NAME="keywords" CONTENT="Journal Club Manager">
-        <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-        <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
+<head>
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <META NAME="description" CONTENT="Journal Club Manager. The easiest way to manage your lab's journal club.">
+    <META NAME="keywords" CONTENT="Journal Club Manager">
+    <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
 
-        <!-- JQuery -->
-        <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+    <!-- JQuery -->
+    <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
 
-        <!-- Bunch of jQuery functions -->
-        <script type="text/javascript">
-            // Spin animation when a page is loading
-            var $loading = $('#loading').hide();
+    <!-- Bunch of jQuery functions -->
+    <script type="text/javascript">
+        // Spin animation when a page is loading
+        var $loading = $('#loading').hide();
 
-            // Check email validity
-            function checkemail(email) {
-                var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
-                return pattern.test(email);
+        // Check email validity
+        function checkemail(email) {
+            var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
+            return pattern.test(email);
+        }
+
+        //Show feedback
+        var showfeedback = function(message,selector) {
+            if (typeof selector == "undefined") {
+                selector = ".feedback";
             }
+            $(""+selector)
+                .show()
+                .html(message)
+                .fadeOut(5000);
+        };
 
-            //Show feedback
-            var showfeedback = function(message,selector) {
-                if (typeof selector == "undefined") {
-                    selector = ".feedback";
+        // Get page content
+        var getpagecontent = function(step,op) {
+            jQuery.ajax({
+                url: 'install.php',
+                type: 'POST',
+                async: true,
+                data: {
+                    getpagecontent: step,
+                    op: op},
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    $('#loading').hide();
+                    $('#pagecontent')
+                        .html('<div>'+result+'</div>')
+                        .fadeIn('slow');
                 }
-                $(""+selector)
-                    .show()
-                    .html(message)
-                    .fadeOut(5000);
-            };
+            });
+        };
 
-            // Get page content
-            var getpagecontent = function(step,op) {
-                jQuery.ajax({
-                    url: 'install.php',
-                    type: 'POST',
-                    async: true,
-                    data: {
-                        getpagecontent: step,
-                        op: op},
-                    beforeSend: function() {
-                        $('#loading').show();
-                    },
-                    complete: function() {
-                        $('#loading').hide();
-                    },
-                    success: function(data){
-                        var result = jQuery.parseJSON(data);
-                        $('#loading').hide();
-                        $('#pagecontent')
-                            .html('<div>'+result+'</div>')
-                            .fadeIn('slow');
+        var makeconfigfile = function(data) {
+            data = modifyopeation(data,"do_conf");
+            $('#operation').append("<p id='status'>Creation of configuration file</p>");
+            // Make configuration file
+            jQuery.ajax({
+                url: 'install.php',
+                type: 'POST',
+                async: false,
+                data: data,
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    var html;
+                    if (result === true) {
+                        html = "<p id='success'>Configuration file created/updated</p>";
+                    } else {
+                        html = "<p id='warning'>"+result+"</p>";
                     }
-                });
-            };
-
-            var makeconfigfile = function(data) {
-                data = modifyopeation(data,"do_conf");
-                $('#operation')
-                    .append("<p id='status'>Creation of configuration file</p>");
-                // Make configuration file
-                jQuery.ajax({
-                    url: 'install.php',
-                    type: 'POST',
-                    async: false,
-                    data: data,
-                    beforeSend: function() {
-                        $('#loading').show();
-                    },
-                    complete: function() {
-                        $('#loading').hide();
-                    },
-                    success: function(data){
-                        var result = jQuery.parseJSON(data);
-                        var html;
-                        if (result === true) {
-                            html = "<p id='success'>Configuration file created/updated</p>";
-                        } else {
-                            html = "<p id='warning'>"+result+"</p>";
-                        }
-                        $('#operation').append(html);
-                    }
-                });
-            };
-
-            // Do a backup of the db before making any modification
-            var dobackup = function() {
-                $('#operation')
-                    .append('<p id="status">Backup previous database</p>');
-                // Make configuration file
-                jQuery.ajax({
-                    url: 'install.php',
-                    type: 'POST',
-                    async: true,
-                    data: {operation: "backup"},
-                    beforeSend: function() {
-                        $('#loading').show();
-                    },
-                    complete: function() {
-                        $('#loading').hide();
-                    },
-                    success: function(data){
-                        var result = jQuery.parseJSON(data);
-                        var html = "<p id='success'>Backup created: "+result+"</p>";
-                        $('#operation')
-                            .empty()
-                            .html(html)
-                            .fadeIn(200);
-                    }
-                });
-                return false;
-            };
-
-            // Check consistency between session/presentation tables
-            var checkdb = function() {
-                $('#operation')
-                    .append('<p id="status">Check consistency between session/presentation tables</p>');
-
-                jQuery.ajax({
-                    url: 'install.php',
-                    type: 'POST',
-                    async: true,
-                    data: {operation: "checkdb"},
-                    beforeSend: function() {
-                        $('#loading').show();
-                    },
-                    complete: function() {
-                        $('#loading').hide();
-                    },
-                    success: function(data){
-                        var result = jQuery.parseJSON(data);
-                        var html = "<p id='success'>"+result+"</p>";
-                        $('#operation')
-                            .append(html)
-                            .fadeIn(200);
-                    }
-                });
-                return false;
-            };
-
-            function modifyopeation(data,operation) {
-                var index;
-                // Find and replace `content` if there
-                for (index = 0; index < data.length; ++index) {
-                    if (data[index].name == "operation") {
-                        data[index].value = operation;
-                        break;
-                    }
+                    $('#operation').append(html);
                 }
-                return data;
+            });
+        };
+
+        // Do a backup of the db before making any modification
+        var dobackup = function() {
+            $('#operation').append('<p id="status">Backup previous database</p>');
+            // Make configuration file
+            jQuery.ajax({
+                url: 'install.php',
+                type: 'POST',
+                async: true,
+                data: {operation: "backup"},
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    var html = "<p id='success'>Backup created: "+result+"</p>";
+                    $('#operation')
+                        .empty()
+                        .html(html)
+                        .fadeIn(200);
+                }
+            });
+            return false;
+        };
+
+        // Check consistency between session/presentation tables
+        var checkdb = function() {
+            $('#operation').append('<p id="status">Check consistency between session/presentation tables</p>');
+
+            jQuery.ajax({
+                url: 'install.php',
+                type: 'POST',
+                async: true,
+                data: {operation: "checkdb"},
+                beforeSend: function() {
+                    $('#loading').show();
+                },
+                complete: function() {
+                    $('#loading').hide();
+                },
+                success: function(data){
+                    var result = jQuery.parseJSON(data);
+                    var html = "<p id='success'>"+result+"</p>";
+                    $('#operation')
+                        .append(html)
+                        .fadeIn(200);
+                }
+            });
+            return false;
+        };
+
+        function modifyopeation(data,operation) {
+            var index;
+            // Find and replace `content` if there
+            for (index = 0; index < data.length; ++index) {
+                if (data[index].name == "operation") {
+                    data[index].value = operation;
+                    break;
+                }
             }
+            return data;
+        }
 
-            $(document).ready(function () {
-                $('.mainbody')
-                    .ready(function() {
-                        // Get step
-                        getpagecontent(1,false);
-                    })
+        $(document).ready(function () {
+            $('.mainbody')
+                .ready(function() {
+                    // Get step
+                    getpagecontent(1,false);
+                })
 
-                    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                     Installation/Update
-                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+                /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                 Installation/Update
+                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
-                    // Go to next installation step
-                    .on('click', '.start', function(e) {
-                        e.preventDefault();
-                        var op = $(this).attr('data-op');
-                        getpagecontent(2,op);
-                    })
+                // Go to next installation step
+                .on('click', '.start', function(e) {
+                    e.preventDefault();
+                    var op = $(this).attr('data-op');
+                    getpagecontent(2,op);
+                })
 
-                    // Go to next installation step
-                    .on('click', '.next', function(e) {
-                        var op = $(this).attr('data-op');
-                        e.preventDefault();
-                        getpagecontent(2,op);
-                    })
+                // Go to next installation step
+                .on('click', '.next', function(e) {
+                    var op = $(this).attr('data-op');
+                    e.preventDefault();
+                    getpagecontent(2,op);
+                })
 
-                    // Go to next installation step
-                    .on('click', '.finish', function(e) {
-                        e.preventDefault();
-                        window.location = "index.php";
-                    })
+                // Go to next installation step
+                .on('click', '.finish', function(e) {
+                    e.preventDefault();
+                    window.location = "index.php";
+                })
 
-                    // Step 1->3: Launch database setup
-                    .on('click','.db_info',function(e) {
-                        e.preventDefault();
-                        var op = $(this).attr('data-op');
-                        var formdata = $("#db_info").serializeArray();
-                        formdata.push({name:"operation",value:"db_info"});
+                // Step 1->3: Launch database setup
+                .on('click','.db_info',function(e) {
+                    e.preventDefault();
+                    var op = $(this).attr('data-op');
+                    var formdata = $("#db_info").serializeArray();
+                    formdata.push({name:"operation",value:"db_info"});
 
-                        jQuery.ajax({
-                            url: 'install.php',
-                            type: 'POST',
-                            async: true,
-                            data: formdata,
-                            success: function(data){
-                                var result = jQuery.parseJSON(data);
-                                if (result.status == false) {
-                                    showfeedback(result.msg);
-                                } else {
-                                    showfeedback(result.msg);
-                                    $('#operation').empty();
+                    jQuery.ajax({
+                        url: 'install.php',
+                        type: 'POST',
+                        async: true,
+                        data: formdata,
+                        success: function(data){
+                            var result = jQuery.parseJSON(data);
+                            if (result.status == false) {
+                                showfeedback(result.msg);
+                            } else {
+                                showfeedback(result.msg);
+                                $('#operation').empty();
 
-                                    // Make config.php file
-                                    makeconfigfile(formdata);
+                                // Make config.php file
+                                makeconfigfile(formdata);
 
-                                    // Go to the next step
-                                    setTimeout(function(){
-                                        getpagecontent(3,op);
-                                    },2000);
-                                }
-                            }
-                        });
-                    })
-
-                    // Launch database setup
-                    .on('click','.install_db',function(e) {
-                        e.preventDefault();
-                        var op = $(this).attr('data-op');
-                        var formdata = $("#install_db").serializeArray();
-                        formdata.push({name:"operation",value:"install_db"});
-                        $('#operation').empty();
-
-                        // First we backup the db before making any modifications
-                        dobackup();
-
-                        // Next, configure database
-                        jQuery.ajax({
-                            url: 'install.php',
-                            type: 'POST',
-                            async: true,
-                            data: formdata,
-                            beforeSend: function() {
-                                $('#loading').show();
-                            },
-                            complete: function() {
-                                $('#loading').hide();
-                            },
-                            success: function(data){
-                                var result = jQuery.parseJSON(data);
-                                $('#operation').append(result);
-
-                                // Check database consistency
-                                checkdb();
-
-                                // Go to next step
-                                setTimeout(function() {
-                                    if (op !== "update") {
-                                        getpagecontent(4,op);
-                                    } else {
-                                        getpagecontent(5,op);
-                                    }
+                                // Go to the next step
+                                setTimeout(function(){
+                                    getpagecontent(3,op);
                                 },2000);
                             }
-                        });
-                    })
-
-                    // Final step: Create admin account
-                    .on('click','.admin_creation',function(e) {
-                        e.preventDefault();
-                        var op = $(this).attr('data-op');
-                        var username = $("input#admin_username").val();
-                        var password = $("input#admin_password").val();
-                        var conf_password = $("input#admin_confpassword").val();
-                        var email = $("input#admin_email").val();
-
-                        if (username == "") {
-                            showfeedback('<p id="warning">This field is required</p>','.feedback');
-                            $("input#admin_username").focus();
-                            return false;
                         }
-
-                        if (password == "") {
-                            showfeedback('<p id="warning">This field is required</p>','.feedback');
-                            $("input#admin_password").focus();
-                            return false;
-                        }
-
-                        if (conf_password == "") {
-                            showfeedback('<p id="warning">This field is required</p>','.feedback');
-                            $("input#admin_confpassword").focus();
-                            return false;
-                        }
-
-                        if (conf_password != password) {
-                            showfeedback('<p id="warning">Password must match</p>');
-                            $("input#admin_confpassword").focus();
-                            return false;
-                        }
-
-                        if (email == "") {
-                            showfeedback('<p id="warning">This field is required</p>','.feedback');
-                            $("input#admin_email").focus();
-                            return false;
-                        }
-
-                        if (!checkemail(email)) {
-                            showfeedback('<p id="warning">Oops, this is an invalid email</p>','.feedback');
-                            $("input#admin_email").focus();
-                            return false;
-                        }
-
-                        jQuery.ajax({
-                            url: 'install.php',
-                            type: 'POST',
-                            async: true,
-                            data: {
-                                operation: "inst_admin",
-                                username: username,
-                                password: password,
-                                email: email,
-                                conf_password: conf_password},
-                            beforeSend: function() {
-                                $('#loading').show();
-                            },
-                            complete: function() {
-                                $('#loading').hide();
-                            },
-                            success: function(data){
-                                var result = jQuery.parseJSON(data);
-                                showfeedback(result);
-                                getpagecontent(5,op);
-                            }
-                        });
                     });
-            });
-        </script>
-        <title>Journal Club Manager - Installation</title>
-    </head>
+                })
 
-    <body class="mainbody">
-        <!-- Header section -->
-        <div id="mainheader">
-            <!-- Header section -->
-            <div class="header">
-                <div class='header_container'>
-                    <div id='title'>
-                        <span id='sitetitle'>Journal Club Manager</span>
-                    </div>
-                </div>
-            </div>
+                // Launch database setup
+                .on('click','.install_db',function(e) {
+                    e.preventDefault();
+                    var op = $(this).attr('data-op');
+                    var formdata = $("#install_db").serializeArray();
+                    formdata.push({name:"operation",value:"install_db"});
+                    $('#operation').empty();
 
-            <!-- Menu section -->
-            <div class='menu'>
-                <div class='menu-container'>
-                </div>
+                    // First we backup the db before making any modifications
+                    dobackup();
+
+                    // Next, configure database
+                    jQuery.ajax({
+                        url: 'install.php',
+                        type: 'POST',
+                        async: true,
+                        data: formdata,
+                        beforeSend: function() {
+                            $('#loading').show();
+                        },
+                        complete: function() {
+                            $('#loading').hide();
+                        },
+                        success: function(data){
+                            var result = jQuery.parseJSON(data);
+                            $('#operation').append(result);
+
+                            // Check database consistency
+                            checkdb();
+
+                            // Go to next step
+                            setTimeout(function() {
+                                if (op !== "update") {
+                                    getpagecontent(4,op);
+                                } else {
+                                    getpagecontent(5,op);
+                                }
+                            },2000);
+                        }
+                    });
+                })
+
+                // Final step: Create admin account
+                .on('click','.admin_creation',function(e) {
+                    e.preventDefault();
+                    var op = $(this).attr('data-op');
+                    var username = $("input#admin_username").val();
+                    var password = $("input#admin_password").val();
+                    var conf_password = $("input#admin_confpassword").val();
+                    var email = $("input#admin_email").val();
+
+                    if (username == "") {
+                        showfeedback('<p id="warning">This field is required</p>','.feedback');
+                        $("input#admin_username").focus();
+                        return false;
+                    }
+
+                    if (password == "") {
+                        showfeedback('<p id="warning">This field is required</p>','.feedback');
+                        $("input#admin_password").focus();
+                        return false;
+                    }
+
+                    if (conf_password == "") {
+                        showfeedback('<p id="warning">This field is required</p>','.feedback');
+                        $("input#admin_confpassword").focus();
+                        return false;
+                    }
+
+                    if (conf_password != password) {
+                        showfeedback('<p id="warning">Password must match</p>');
+                        $("input#admin_confpassword").focus();
+                        return false;
+                    }
+
+                    if (email == "") {
+                        showfeedback('<p id="warning">This field is required</p>','.feedback');
+                        $("input#admin_email").focus();
+                        return false;
+                    }
+
+                    if (!checkemail(email)) {
+                        showfeedback('<p id="warning">Oops, this is an invalid email</p>','.feedback');
+                        $("input#admin_email").focus();
+                        return false;
+                    }
+
+                    jQuery.ajax({
+                        url: 'install.php',
+                        type: 'POST',
+                        async: true,
+                        data: {
+                            operation: "inst_admin",
+                            username: username,
+                            password: password,
+                            email: email,
+                            conf_password: conf_password},
+                        beforeSend: function() {
+                            $('#loading').show();
+                        },
+                        complete: function() {
+                            $('#loading').hide();
+                        },
+                        success: function(data){
+                            var result = jQuery.parseJSON(data);
+                            showfeedback(result);
+                            getpagecontent(5,op);
+                        }
+                    });
+                });
+        });
+    </script>
+    <title>Journal Club Manager - Installation</title>
+</head>
+
+<body class="mainbody">
+<!-- Header section -->
+<div id="mainheader">
+    <!-- Header section -->
+    <div class="header">
+        <div class='header_container'>
+            <div id='title'>
+                <span id='sitetitle'>Journal Club Manager</span>
             </div>
         </div>
+    </div>
 
-        <!-- Core section -->
-        <div id="core">
-        	<div id="loading"></div>
-        	<div id="pagecontent">
-        	</div>
+    <!-- Menu section -->
+    <div class='menu'>
+        <div class='menu-container'>
         </div>
+    </div>
+</div>
 
-        <!-- Footer section -->
-        <div id="footer">
+<!-- Core section -->
+<div id="core">
+    <div id="loading"></div>
+    <div id="pagecontent"></div>
+</div>
+
+<!-- Footer section -->
+<div id="footer">
             <span id="sign"><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a>
              | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
              | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></span>
-        </div>
-    </body>
+</div>
+</body>
 </html>

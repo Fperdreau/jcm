@@ -19,14 +19,13 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require('../includes/boot.php');
 
-$user = new User();
-$db_set = new DbSet();
+$user = new User($db);
 
 // Modify user password
 if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     $hash = htmlspecialchars($_GET['hash']);
     $email = htmlspecialchars($_GET['email']);
-    $username = $db_set ->getinfo($users_table,'username',array("email"),array("'$email'"));
+    $username = $db ->getinfo($db->tablesname['User'],'username',array("email"),array("'$email'"));
     $user->get($username);
     if ($user->hash == $hash) {
         $result = "

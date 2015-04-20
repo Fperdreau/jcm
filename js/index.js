@@ -292,6 +292,8 @@ var loadpageonclick = function(pagetoload,param) {
                     $(this).fadeIn('slow');
                 });
             tinymcesetup();
+            var callback = showplugins;
+            getPlugins(pagetoload, callback);
         }
     });
 };
@@ -349,6 +351,37 @@ var getParams = function() {
     return params;
 };
 
+function getpage() {
+    var params = getParams();
+    var page = (params.page == undefined) ? 'home':params.page;
+
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: {get_app_status: true},
+        type: 'POST',
+        async: true,
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            if (json === 'Off' && page !== 'admin_tool') {
+                console.log('Site status: '+json);
+                console.log('page: '+page);
+                $('#pagecontent')
+                    .html("<div id='content'><p id='warning'>Sorry, the website is currently under maintenance.</p></div>")
+                    .fadeIn(200);
+            } else {
+                if (page === undefined) {
+                    loadpageonclick('home',false);
+                } else {
+                    if (page !== false && page != 'install') {
+                        var urlparam = parseurl();
+                        loadpageonclick(page,''+urlparam);
+                    }
+                }
+            }
+        }
+    })
+}
+
 $( document ).ready(function() {
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -356,25 +389,7 @@ $( document ).ready(function() {
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
         .ready(function() {
-
-			// Automatically parse url and load the corresponding page
-            var params = getParams();
-            var page = params.page;
-
-            if (page === undefined) {
-                loadpageonclick('home',false);
-            } else {
-                if (page !== false && page == 'install') {
-                    if (params.step !== undefined) {
-                        loadpageonclick('install','step='+params.step);
-                    } else {
-                        loadpageonclick('install','step=1');
-                    }
-                } else if (page !== false && page != 'install') {
-                    var urlparam = parseurl();
-                    loadpageonclick(page,''+urlparam);
-                }
-            }
+            getpage();
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -622,7 +637,7 @@ $( document ).ready(function() {
             var webproc = true;
 
             jQuery.ajax({
-                url: 'cronjobs/full_backup.php',
+                url: 'cronjobs/FullBackup.php',
                 type: 'GET',
                 async: true,
                 data: {webproc: webproc},
@@ -637,7 +652,7 @@ $( document ).ready(function() {
         .on('click','.dbbackup',function(){
             var webproc = true;
             jQuery.ajax({
-                url: 'cronjobs/db_backup.php',
+                url: 'cronjobs/DbBackup.php',
                 type: 'GET',
                 async: true,
                 data: {webproc: webproc},
@@ -899,6 +914,7 @@ $( document ).ready(function() {
         .on('change','.mod_chair',function(e) {
             var session = $(this).attr('data-session');
             var chair = $(this).val();
+            var chairID = $(this).attr('data-chair');
             var presid = $(this).attr('data-pres');
 
             jQuery.ajax({
@@ -909,6 +925,7 @@ $( document ).ready(function() {
                     mod_chair: true,
                     session: session,
                     chair: chair,
+                    chairID: chairID,
                     presid: presid},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -1049,8 +1066,9 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result === true) {
-                        $('.upl_info#'+uplname).remove();
-                        $('.upl_link #'+uplname).remove();
+                        console.log('Delete upload: '+uplname);
+                        $('.upl_info#upl_'+uplname).remove();
+                        $('.upl_link#upl_'+uplname).remove();
                     }
                 }
             });

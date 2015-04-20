@@ -17,14 +17,24 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager. If not, see <http://www.gnu.org/licenses/>.
 */
 
-class Posts {
-    private $db;
-    private $tablename;
+class Posts extends Table {
+
+    protected $table_data = array(
+        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
+        "postid" => array("CHAR(30) NOT NULL"),
+        "date" => array("DATETIME", False),
+        "title" => array("VARCHAR(255) NOT NULL"),
+        "content" => array("TEXT(5000) NOT NULL", false, "post"),
+        "username" => array("CHAR(30) NOT NULL", false),
+        "homepage" => array("INT(1) NOT NULL", 0),
+        "primary" => "id");
 
     public $postid = "";
     public $title = "";
     public $content = "";
     public $date = "";
+    public $day;
+    public $time;
     public $username = "";
     public $homepage = 0;
 
@@ -34,8 +44,7 @@ class Posts {
      * @param null $postid
      */
     public function __construct(DbSet $db,$postid=null) {
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["Posts"];
+        parent::__construct($db,'Posts', $this->table_data);
         if (null !== $postid) {
             self::get($postid);
         }
@@ -54,23 +63,10 @@ class Posts {
         $post['postid'] = self::makeID();
 
         $class_vars = get_class_vars("Posts");
-        $postkeys = array_keys($post);
-        $variables = array();
-        $values = array();
-        foreach ($class_vars as $name=>$value) {
-            if (in_array($name,array("db","tablename"))) continue;
-            $escaped = in_array($name, $postkeys)
-                ? $this->db->escape_query($post[$name])
-                : $this->db->escape_query($this->$name);
-            $this->$name = $escaped;
-            $variables[] = "$name";
-            $values[] = "'$escaped'";
-        }
-        $variables = implode(',',$variables);
-        $values = implode(',',$values);
+        $content = $this->parsenewdata($class_vars, $post, array('day','time'));
 
         // Add post to the database
-        if ($this->db->addcontent($this->tablename,$variables,$values)) {
+        if ($this->db->addcontent($this->tablename,$content)) {
             return true;
         } else {
             return false;
@@ -105,20 +101,9 @@ class Posts {
      */
     public function update($post=array()) {
         $class_vars = get_class_vars("Posts");
-        $postkeys = array_keys($post);
-        foreach ($class_vars as $name => $value) {
-            if (in_array($name,array("db","tablename"))) continue;
-
-            if (in_array($name,$postkeys)) {
-                $escaped = $this->db->escape_query($post[$name]);
-            } else {
-                $escaped = $this->db->escape_query($this->$name);
-            }
-            $this->$name = $escaped;
-
-            if (!$this->db->updatecontent($this->tablename,$name,"'$escaped'",array("postid"),array("'$this->postid'"))) {
-                return false;
-            }
+        $content = $this->parsenewdata($class_vars, $post, array('day','time'));
+        if (!$this->db->updatecontent($this->tablename,$content,array("postid"=>$this->postid))) {
+            return false;
         }
         return true;
     }
@@ -184,12 +169,12 @@ class Posts {
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
                 $news .= "
-                <div style='width: 95%; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                <div style='width: 100%; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
                     <div style='width: 60%; height: 20px; line-height: 20px; margin: 5px 10px auto; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
                     <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
                         $post->content
                     </div>
-                    <div style='width: 95%; background-color: #aaaaaa; padding: 2px 10px 2px 10px; margin: auto; text-align: right; font-size: 13px;'>
+                    <div style='width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
                                 $post->day at $post->time, Posted by <span id='author_name'>$post->username</span>
                     </div>
                 </div>";

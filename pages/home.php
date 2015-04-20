@@ -32,7 +32,6 @@ $futurepres = $sessions->showfuturesession(4);
 /** @var $wishlist Sessions */
 $wishlist = $presentations->getwishlist();
 
-
 if ( !(isset($_SESSION['logok']) && $_SESSION['logok'])) {
     $welcome_msg = "
     <div id='welcome_msg'>
@@ -60,20 +59,13 @@ $result = "
         $welcome_msg
         <div class='section_page'>
         <div class='section_header'>News</div>
-        <div class='section_content'>
+        <div class='section_content news'>
             $news
         </div>
         </div>
 
-        <div class='section_page'>
-        <div class='section_header'>Next Session</div>
-        <div class='section_content'>
-        	$nextpres
-		</div>
-		</div>
-
 		<div class='section_page'>
-        <div class='section_header'>Future sessions</div>
+        <div class='section_header'>Next Sessions</div>
         <div class='section_content' style='font-size: 13px;'>
         	$futurepres
 		</div>

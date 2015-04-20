@@ -20,6 +20,135 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 // Includes required files (classes)
 require('../includes/boot.php');
 
+if (!empty($_POST['get_app_status'])) {
+    echo json_encode($AppConfig->status);
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Scheduled Tasks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['mod_cron'])) {
+    $cronName = $_POST['cron'];
+    $option = $_POST['option'];
+    $value = $_POST['value'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cronName);
+    if ($cron->isInstalled()) {
+        $cron->get();
+        $cron->$option = $value;
+        $cron->time = AppCron::parseTime($cron->dayNb, $cron->dayName, $cron->hour);
+        if ($cron->update()) {
+            $result = $cron->time;
+        } else {
+            $result = false;
+        }
+    } else {
+        $result = False;
+    }
+
+    echo json_encode($result);
+    exit;
+}
+
+// Install/uninstall cron jobs
+if (!empty($_POST['install_cron'])) {
+    $cronName = $_POST['cron'];
+    $op = $_POST['op'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cronName);
+    if ($op == 'install') {
+        $result = $cron->install();
+    } elseif ($op == 'uninstall') {
+        $result = $cron->delete();
+    } else {
+        $result = $cron->run();
+    }
+    echo json_encode($result);
+    exit;
+}
+
+// Run cron job
+if (!empty($_POST['run_cron'])) {
+    $cronName = $_POST['cron'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cronName);
+    $result = $cron->run();
+    echo json_encode($result);
+    exit;
+}
+
+// Modify cron status (on/off)
+if (!empty($_POST['cron_status'])) {
+    $cron = $_POST['cron'];
+    $status = $_POST['status'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cron);
+    $cron->status = $status;
+    if ($cron->isInstalled()) {
+        $result = $cron->update();
+    } else {
+        $result = False;
+    }
+    echo json_encode($result);
+    exit;
+}
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Plugins
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['get_plugins'])) {
+    $page = $_POST['page'];
+    $Plugins = new AppPlugins($db);
+    $plugins = $Plugins->getPlugins($page);
+    echo json_encode($plugins);
+    exit;
+}
+
+if (!empty($_POST['mod_plugins'])) {
+    $plugin = $_POST['plugin'];
+    $option = $_POST['option'];
+    $value = $_POST['value'];
+    $Plugins = new AppPlugins($db);
+    $plugin = $Plugins->instantiatePlugin($plugin);
+    if ($plugin->installed) {
+        $plugin->get();
+        $plugin->options[$option] = $value;
+        $result = $plugin->update();
+    } else {
+        $result = False;
+    }
+
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['install_plugin'])) {
+    $plugin = $_POST['plugin'];
+    $op = $_POST['op'];
+    $Plugins = new AppPlugins($db);
+    $plugin = $Plugins->instantiatePlugin($plugin);
+    if ($op == 'install') {
+        $result = $plugin->install();
+    } else {
+        $result = $plugin->delete();
+    }
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['plugin_status'])) {
+    $plugin = $_POST['plugin'];
+    $status = $_POST['status'];
+    $Plugins = new AppPlugins($db);
+    $plugin = $Plugins->instantiatePlugin($plugin);
+    $plugin->status = $status;
+    if ($plugin->installed) {
+        $result = $plugin->update();
+    } else {
+        $result = False;
+    }
+    echo json_encode($result);
+    exit;
+}
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -243,8 +372,10 @@ if (!empty($_POST['del_pub'])) {
 //  delete files
 if (!empty($_POST['del_upl'])) {
     $uplname = htmlspecialchars($_POST['uplname']);
-    $pub = new Presentation($db);
-    $result = $pub->delete_file($uplname);
+    $fileid = explode(".",$uplname);
+    $fileid = $fileid[0];
+    $up = new Media($db, $fileid);
+    $result = $up->delete();
     echo json_encode($result);
     exit;
 }
@@ -350,7 +481,7 @@ if (isset($_POST['suggest'])) {
     exit;
 }
 
-// Display presentation (modal dialog)
+// Display submission form
 if (!empty($_POST['getpubform'])) {
     $id_Presentation = $_POST['getpubform'];
     $type = $_POST['type'];
@@ -358,24 +489,6 @@ if (!empty($_POST['getpubform'])) {
         $pub = false;
     } else {
         $pub = new Presentation($db,$id_Presentation);
-    }
-    if (!isset($_SESSION['username'])) {
-        $_SESSION['username'] = false;
-    }
-    $user = new User($db,$_SESSION['username']);
-    $result = displayform($user,$pub,$type);
-    echo json_encode($result);
-    exit;
-}
-
-// Display presentation (modal dialog)
-if (!empty($_POST['getpubform'])) {
-    $id_press = $_POST['getpubform'];
-    $type = $_POST['type'];
-    if ($id_press == "false") {
-        $pub = false;
-    } else {
-        $pub = new Presentation($db,$id_press);
     }
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
@@ -656,12 +769,17 @@ if (!empty($_POST['mod_chair'])) {
     $sessionid = $_POST['session'];
     $chair = $_POST['chair'];
     $presid = $_POST['presid'];
-    $session = new Session($db,$sessionid);
-    $sessionpost = array(
-        'date'=>$sessionid,
-        'chairs'=>$chair,
-        'presid'=>$presid);
-    $result = $session->update($sessionpost);
+    $chairID = $_POST['chairID'];
+
+    $Chairs = new Chairs($db);
+    $Chairs->get('id',$chairID);
+    $Chairs->chair = $chair;
+    $result = $Chairs->update();
+
+    $Presentation = new Presentation($db,$presid);
+    $Presentation->chair = $chair;
+    $result = $Presentation->update();
+
     echo json_encode($result);
     exit;
 }

@@ -99,14 +99,12 @@ function displayform($user,$Presentation=false,$submit="submit") {
     // Get files associated to this publication
     $filelist = "";
     if (!empty($Presentation->link)) {
-        $links = explode(',',$Presentation->link);
-        foreach ($links as $link) {
-            $name = explode('.',$link);
-            $name = $name[0];
+        $links = $Presentation->link;
+        foreach ($links as $fileid=>$info) {
             $filelist .=
-            "<div class='upl_info' id='$name'>
-                <div class='upl_name' id='$link'>$link</div>
-                <div class='del_upl' id='$link' data-upl='$name'>
+            "<div class='upl_info' id='upl_$fileid'>
+                <div class='upl_name' id='$fileid'>$fileid</div>
+                <div class='del_upl' id='$fileid' data-upl='$fileid'>
                     <img src='../images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
                 </div>
             </div>";
@@ -212,10 +210,14 @@ function displayform($user,$Presentation=false,$submit="submit") {
 function displaypub($user,$Presentation) {
     if (!(empty($Presentation->link))) {
         $download_button = "<div class='dl_btn' id='$Presentation->id_pres'>Download</div>";
-        $filelist = explode(',',$Presentation->link);
+        $filelist = $Presentation->link;
         $dlmenu = "<div class='dlmenu'>";
-        foreach ($filelist as $file) {
-            $dlmenu .= "<div class='dl_info'><div class='upl_name' id='$file'>$file</div></div>";
+        foreach ($filelist as $fileid=>$info) {
+            $dlmenu .= "
+                <div class='dl_info'>
+                    <div class='dl_type'>".strtoupper($info['type'])."</div>
+                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
+                </div>";
         }
         $dlmenu .= "</div>";
     } else {

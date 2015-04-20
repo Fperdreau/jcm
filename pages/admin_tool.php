@@ -158,6 +158,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         </div>
     </div>";
 }
+
 // Manage users
 elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $userlist = $Users->generateuserslist();
@@ -184,6 +185,153 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
         $userlist
         </div>
     </div>";
+
+// Plugins
+} elseif (!empty($_GET['op']) && $_GET['op'] == 'plugins') {
+    $plugins = new AppPlugins($db);
+    $pluginsList = $plugins->getPlugins();
+    $plugin_list = "
+        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
+            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
+            <div style='text-align: center; font-weight: bold; width: 5%;'>Version</div>
+            <div style='text-align: center; font-weight: bold; width: 20%;'>Page</div>
+            <div style='text-align: center; font-weight: bold; width: 30%;'>Options</div>
+            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
+            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+        </div>";
+    foreach ($pluginsList as $pluginName => $info) {
+        $installed = $info['installed'];
+        if ($installed) {
+            $install_btn = "<div class='install_plugin install_btn' data-op='uninstall' data-plugin='$pluginName'>Uninstall</div>";
+        } else {
+            $install_btn = "<div class='install_plugin install_btn' data-op='install' data-plugin='$pluginName'>Install</div>";
+        }
+        $status = $info['status'];
+        $option_list = '';
+        foreach ($info['options'] as $option => $settings) {
+            $option_list .= "<label>$option</label><input type='text' value='$settings' class='input_opt plugin_setting' data-plugin='$pluginName' data-option='$option'/><br>";
+        }
+        $plugin_list .= "
+        <div class='list-container' style='font-size: 12px;' id='plugin_$pluginName'>
+            <div style='width: 10%'><b>$pluginName</b></div>
+            <div style='width: 5%'>" . $info['version'] . "</div>
+            <div style='width: 20%'>" . $info['page'] . "</div>
+            <div style='width: 30%; vertical-align: top;'>$option_list</div>
+            <div style='width: 5%'>
+                <select class='select_opt plugin_status' data-plugin='$pluginName'>
+                <option value='$status' selected>$status</option>
+                <option value='On'>On</option>
+                <option value='Off'>Off</option>
+                </select>
+            </div>
+            <div style='width: 10%'>$install_btn</div>
+        </div>
+        ";
+    }
+    $content = "
+        <span id='pagename'>Plugins</span>
+        <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
+        Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
+        <div class='feedback'></div>
+        <div class='section_header'>Plugins list</div>
+        <div class='section_content'>
+            $plugin_list
+        </div>
+    ";
+
+// Cronjobs settings
+} elseif (!empty($_GET['op']) && $_GET['op'] == 'cronjobs') {
+    $CronJobs = new AppCron($db);
+    $jobsList = $CronJobs->getJobs();
+    $cronList = "
+        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
+            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
+            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
+            <div style='text-align: center; font-weight: bold; width: 40%;'>Time</div>
+            <div style='text-align: center; font-weight: bold; width: 20%;'>Next run</div>
+            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+        </div>";
+    foreach ($jobsList as $cronName => $info) {
+        $installed = $info['installed'];
+        if ($installed) {
+            $install_btn = "<div class='install_cron install_btn' data-op='uninstall' data-cron='$cronName'>Uninstall</div>";
+        } else {
+            $install_btn = "<div class='install_cron install_btn' data-op='install' data-cron='$cronName'>Install</div>";
+        }
+
+        $runBtn = "<div class='run_cron install_btn' data-cron='$cronName'>Run</div>";
+        $status = $info['status'];
+        $time = $info['time'];
+
+        $dayName_list = "";
+        foreach ($CronJobs->daysNames as $day) {
+            if ($day == $info['dayName']) {
+                $dayName_list .= "<option value='$day' selected>$day</option>";
+            } else {
+                $dayName_list .= "<option value='$day'>$day</option>";
+            }
+        }
+
+        $dayNb_list = "";
+        foreach ($CronJobs->daysNbs as $i) {
+            if ($i == $info['dayNb']) {
+                $dayNb_list .= "<option value='$i' selected>$i</option>";
+            } else {
+                $dayNb_list .= "<option value='$i'>$i</option>";
+            }
+        }
+
+        $hours_list = "";
+        foreach ($CronJobs->hours as $i) {
+            if ($i == $info['hour']) {
+                $hours_list .= "<option value='$i' selected>$i:00</option>";
+            } else {
+                $hours_list .= "<option value='$i'>$i:00</option>";
+            }
+        }
+
+        $cronList .= "
+        <div class='list-container' id='cron_$cronName'>
+            <div style='width: 10%;'><b>$cronName</b></div>
+            <div style='width: 5%; text-align: center;'>
+                <select class='select_opt cron_status' data-cron='$cronName'>
+                <option value='$status' selected>$status</option>
+                <option value='On'>On</option>
+                <option value='Off'>Off</option>
+                </select></div>
+            <div style='width: 40%; text-align: center;'>
+                <label>Day</label>
+                    <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayName'>
+                        $dayName_list
+                    </select>
+                <label>Date</label>
+                    <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayNb'>
+                        $dayNb_list
+                    </select>
+               <label>Time</label>
+                    <select class='select_opt cron_setting' data-cron='$cronName' data-setting='hour'>
+                        $hours_list
+                    </select>
+            </div>
+            <div style='width: 20%; text-align: center;' id='cron_time_$cronName'>$time</div>
+            <div style='width: 10%; text-align: center;'>$install_btn</div>
+            <div style='width: 10%; text-align: center;'>$runBtn</div>
+        </div>
+        ";
+    }
+    $content = "
+        <span id='pagename'>Scheduled tasks</span>
+        <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
+        Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
+        either via a Cron Table (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
+        <div class='feedback'></div>
+        <div class='section_header'>Tasks list</div>
+        <div class='section_content'>
+            $cronList
+        </div>
+    ";
+
 
 // Send mail
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'mail') {
@@ -222,6 +370,14 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_site'>
                 </div>
                 <input type='hidden' name='config_modify' value='true'/>
+                <div class='formcontrol' style='width: 30%;'>
+                    <label>Status</label>
+                    <select name='status'>
+                        <option value='$AppConfig->status' selected>$AppConfig->status</option>
+                        <option value='On'>On</option>
+                        <option value='Off'>Off</option>
+                    </select>
+                </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Site title</label>
                     <input type='text' size='30' name='sitetitle' value='$AppConfig->sitetitle'>
@@ -278,34 +434,6 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <input type='text' size='30' name='lab_mapurl' value='$AppConfig->lab_mapurl'>
                 </div>
                 <div class='feedback' id='feedback_lab'></div>
-            </form>
-        </div>
-
-        <div class='section_header'>Email notifications</div>
-        <div class='section_content'>
-            <form method='post' action='' class='form' id='config_form_jc'>
-                <div class='submit_btns'>
-                    <input type='submit' name='modify' value='Modify' id='submit' class='config_form_jc'>
-                </div>
-                <input type='hidden' name='config_modify' value='true'/>
-                <div class='formcontrol' style='width: 30%;'>
-                    <label for='notification'>Notification day</label>
-                    <select name='notification'>
-                        <option value='$AppConfig->notification' selected='selected'>$AppConfig->notification</option>
-                        <option value='monday'>Monday</option>
-                        <option value='tuesday'>Tuesday</option>
-                        <option value='wednesday'>Wednesday</option>
-                        <option value='thursday'>Thursday</option>
-                        <option value='friday'>Friday</option>
-                        <option value='saturday'>Saturday</option>
-                        <option value='sunday'>Sunday</option>
-                    </select>
-                </div>
-                <div class='formcontrol' style='width: 30%;'>
-                    <label for='reminder'>Reminder (D-)</label>
-                    <input type='text' name='reminder' value='$AppConfig->reminder' size='1'>
-                </div>
-                <div class='feedback' id='feedback_jc'></div>
             </form>
         </div>
 
@@ -410,12 +538,6 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<div class='section_page'>
             <div class='section_header'>Tools</div>
             <div class='section_content'>
-                <div id='db_check' style='display: inline-block;'>
-                <label for='backup'>Check db integrity database</label>
-                <input type='button' value='Proceed' id='submit' class='db_check'/>
-                </div>
-                <div class='feedback' id='db_check' style='display: inline-block;'></div><br>
-
                 <div id='db_backup' style='display: inline-block;'>
                 <label for='backup'>Backup database</label>
                 <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>
