@@ -80,11 +80,11 @@ class Groups extends AppPlugins {
         $this->clearTable();
 
         // 2: Assign groups
-        $result = $assigned_groups = $this->makegroups(); // Make groups
+        $result = $this->makegroups(); // Make groups
 
         // 3: If new groups have been assigned, we send an email to every user
-        if ($assigned_groups !== false)
-            $result = $this->mailing($assigned_groups);
+        if ($result !== false)
+            $result = $this->mailing($result);
         return $result;
     }
 
@@ -115,15 +115,17 @@ class Groups extends AppPlugins {
         $users = $Users->getUsers();
         $nusers = count($users); // total nb of users
 
-        if ($nusers <= $ngroups) {echo "<p>we found $nusers users for $ngroups groups</p> => Not enough users to make groups"; return false;}
-        if ($session->type == "none") {echo "No meeting for the next session"; return false;}
+        if ($nusers <= $ngroups || $session->type == "none") {return false; }
 
         $excludedusers = array();
         $pregroups = array();
         for ($i=0;$i<$ngroups;$i++) {
             $speaker = (isset($session->speakers[$i])) ? $session->speakers[$i]:'TBA';
             $chair = (isset($session->chairs[$i]['chair'])) ? $session->chairs[$i]['chair']:'TBA';
-            $pregroups[$i] = array($speaker,$chair);
+            $pregroups[$i][] = array("member"=>$chair,"role"=>"chair");
+            if ($chair != $speaker) {
+                $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
+            }
             $excludedusers[] = $speaker;
             $excludedusers[] = $chair;
         }
@@ -139,18 +141,21 @@ class Groups extends AppPlugins {
         // Assign presentation
         $assigned_groups = array();
         for ($i=0;$i<$ngroups;$i++) {
-            $presid = (isset($presids[$i])) ? $presids[$i]:'TBA';
-            $group = array_merge($pregroups[$i], $groups[$i]);
+            $presid = (isset($session->presids[$i])) ? $session->presids[$i]:'TBA';
+            $group = $pregroups[$i];
+            foreach ($groups[$i] as $mbr) {
+                $group[] = array("member"=>$mbr,"role"=>false);
+            }
             $assigned_groups[$i] = array('presid'=>$presid,'group'=>$group);
 
             // Add to the table
-            foreach ($group as $user) {
+            foreach ($group as $mbr) {
                 $content = array(
-                    'groups'=>$i,
-                    'username'=>$user,
-                    'role'=>'TBA',
-                    'presid'=>$presid,
-                    'date'=>$session->date
+                    'groups' => $i,
+                    'username' => $mbr['member'],
+                    'role' => $mbr['role'],
+                    'presid' => $presid,
+                    'date' => $session->date
                 );
                 $this->db->addcontent($this->tablename, $content);
             }
@@ -244,8 +249,9 @@ class Groups extends AppPlugins {
                      </div>
                 </div>";
 
-            foreach($group as $username) {
-                if ($username == 'TBA') continue; // We do not send emails to fake users
+            foreach($group as $mbr) {
+                $username = $mbr['member'];
+                if (empty($username) || $username == 'TBA') continue; // We do not send emails to fake users
                 // Get the user's group
                 $groupcontent = $this->show($username);
 

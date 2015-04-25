@@ -82,34 +82,27 @@ class Chairs extends Table{
         return $this->db->deletecontent($this->tablename,$ref,$value);
     }
 
-    /**
-     * Check correspondence between chairs present in the Presentation table and those present in the Chairs table
-     * @return bool
-     */
-    function checkchairs() {
-        // Get assigned chairs from the presentation table
-        $sql = "SELECT presid FROM ". $this->db->tablesname['Presentation'];
+    public function getPrevious($organizers, $type) {
+        $sql = "SELECT chair,date FROM $this->tablename";
         $req = $this->db->send_query($sql);
-        while ($row = mysqli_fetch_assoc($req)) {
-            $pres = new Presentation($this->db, $row['presid']);
+        $list = array();
+        $session = new Session($this->db);
 
-            $chair = new Chairs($this->db);
-            $chair->get('presid',$pres->id_pres);
-
-            // Check if the chair table is more up to date than the presentation table
-            if ($pres->chair == 'TBA' && $chair->chair !== 'TBA') {
-                $pres->chair = $chair->chair;
-                if (!$pres->update()) {
-                    return false;
+        while ($row=mysqli_fetch_assoc($req)) {
+            $chair = $row['chair'];
+            $session->get($row['date']);
+            if ($session->type == $type) {
+                if (!in_array($chair, $list) && $chair != "TBA") {
+                    $list[] = $chair;
                 }
-            } elseif ($pres->chair !== 'TBA' && $chair->chair == 'TBA') {
-                $chair->chair = $pres->chair;
-                if (!$chair->update()) {
-                    return false;
+                $diff = array_values(array_diff($organizers,$list));
+                if (empty($diff)) {
+                    $list = array();
                 }
             }
+
         }
-        return true;
+        return $list;
     }
 
     /**
@@ -130,8 +123,6 @@ class Chairs extends Table{
             // Different rule for journal club sessions: the speaker is the chair
             $chair = $speaker;
         } else {
-            $speakers = $session->speakers;
-            $speakers = array(); // Add the current speaker to the list
 
             /** Get chairmen planned for this session */
             $exclude = array();
@@ -142,9 +133,7 @@ class Chairs extends Table{
 
             /** Get list of previous chairmen*/
             $prevchairs = $AppConfig->session_type[$session->type];
-            foreach ($prevchairs as $prev) {
-                $exclude[] = $prev;
-            }
+
 
             /** Get list of organizers */
             $Users = new Users($this->db);
@@ -154,6 +143,11 @@ class Chairs extends Table{
                 foreach ($organizers as $organizer) {
                     $chairs[] = $organizer['username'];
                 }
+            }
+
+            $prevchairs = $this->getPrevious($chairs,$session->type);
+            foreach ($prevchairs as $prev) {
+                $exclude[] = $prev;
             }
 
             if (empty($chairs)) {

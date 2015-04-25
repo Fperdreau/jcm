@@ -66,15 +66,16 @@ class AssignChairs extends AppCron {
         foreach ($jc_days as $day) {
             $session = new Session($db, $day);
             $chair = new Chairs($this->db);
-            $speakers = $session->speakers;
 
             // Number of chairs to plan for this session
             if ($session->type !== "none") {
                 for ($p = 0; $p < $AppConfig->max_nb_session; $p++) {
-                    $speaker = (!empty($speakers[$p]) ? $speakers[$p] : false);
+                    $speaker = (!empty($session->speakers[$p]) ? $session->speakers[$p] : false);
+                    $presid = (!empty($session->presids[$p]) ? $session->presids[$p] : null);
                     if ($session->chairs[$p]['chair'] == 'TBA'){
                         $thisChair = new Chairs($this->db);
                         $thisChair->get('id',$session->chairs[$p]['id']);
+                        $thisChair->presid = $presid;
                         $thisChair->date = $session->date;
                         $thisChair->chair = $chair->getChair($session->date, $speaker);
                         $thisChair->update();

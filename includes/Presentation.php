@@ -34,7 +34,6 @@ class Presentations extends Table {
         "authors" => array("CHAR(150)", false),
         "summary" => array("TEXT(5000)", false),
         "orator" => array("CHAR(50)", false),
-        "chair" => array("VARCHAR(200) NOT NULL"),
         "notified" => array("INT(1) NOT NULL", 0),
         "primary" => "id"
     );
@@ -278,15 +277,16 @@ class Presentation extends Presentations {
                 $this->add_upload($post['link']);
             }
 
-            // Get a chair for this presentation
-            $this->date = $post['date'];
             if ($post['type'] !== 'wishlist') {
-                $this->get_chair();
+                $this->date = $post['date'];
             }
-            $content = $this->parsenewdata($class_vars, $post, array("link"));
+
+            $content = $this->parsenewdata($class_vars, $post, array("link","chair"));
 
             // Add publication to the database
             if ($this->db->addcontent($this->tablename,$content)) {
+                // Assign a chair man for this presentation
+                $this->get_chair();
                 return $this->id_pres;
             } else {
                 return false;
@@ -346,11 +346,10 @@ class Presentation extends Presentations {
 
         // Update table
         $class_vars = get_class_vars("Presentation");
-        $content = $this->parsenewdata($class_vars,$post,array('link'));
+        $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
         if (!$this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
             return false;
         }
-
         return true;
     }
 
@@ -358,11 +357,42 @@ class Presentation extends Presentations {
      * Pseudo randomly choose a chairman for this presentation if none has been assigned yet
      */
     private function get_chair() {
-        if ($this->chair == 'TBA') {
-            $Chairs = new Chairs($this->db);
-            $this->chair = $Chairs->getchair($this->date, $this->orator);
-            $Chairs->make($this->date,$this->chair,$this->id_pres);
+        // Get session type
+        $session = new Session($this->db, $this->date);
+        $Chairs = new Chairs($this->db);
+        if (!$Chairs->get('presid',$this->id_pres)) {
+            // If the presentation does not have a corresponding chair
+            // Check if preassigned chairs for this session exist
+            $i = false;
+            foreach ($session->chairs as $chair) {
+                $thisChair = new Chairs($this->db);
+                if ($session->type == 'Journal Club' && $chair['chair'] == $this->orator) {
+                    $thisChair->get('id',$chair['id']);
+                    $thisChair->presid = $this->id_pres;
+                    $i = true;
+                } elseif ($thisChair->presid == 0) {
+                    $thisChair->get('id', $chair['id']);
+                    $thisChair->presid = $this->id_pres;
+                    if ($session->type == 'Journal Club') {
+                        // If journal club session, the chair is the speaker
+                        $thisChair->chair = $this->orator;
+                    }
+                    $i = true;
+                }
+                if ($i == true) {
+                    $thisChair->update();
+                    $this->chair = $thisChair->chair;
+                    break;
+                }
+            }
+            // If we found none, let's get a new one
+            if ($i == false) {
+                $this->chair = $Chairs->getChair($session->date,$this->orator);
+                $Chairs->make($session->date,$this->chair,$this->id_pres);
+            }
+
         }
+        return $this->chair;
     }
 
     /**
@@ -416,6 +446,9 @@ class Presentation extends Presentations {
         // Delete corresponding file
         $uploads = new Uploads($this->db);
         $uploads->delete_files($this->id_pres);
+
+        // Delete corresponding entry in the Chairs table
+        $this->db->updatecontent($this->db->tablesname['Chairs'],array('presid'=>0),array('presid'=>$this->id_pres));
 
         // Delete corresponding entry in the publication table
         if ($this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id))) {

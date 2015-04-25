@@ -158,7 +158,10 @@ class Sessions extends Table {
         $timeopt = maketimeopt();
 
         $session_type = array_keys($AppConfig->session_type);
-        $sessions = self::getjcdates($nbsession);
+
+        $dates = $this->getsessions(1);
+        $dates = ($dates == false) ? false: $dates[0];
+        $sessions = self::getjcdates($nbsession,$dates);
 
         $content = "";
         foreach ($sessions as $date) {
@@ -187,10 +190,9 @@ class Sessions extends Table {
 
             // Get presentations
             $presentations = "";
-            $chairs = $session->chairs;
             for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
-                $presid = (isset($presids[$i]) ? $presids[$i] : false);
-                $chair = (isset($chairs[$i]) ? $chairs[$i] : "TBA");
+                $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
+                $chair = (isset($session->chairs[$i]) ? $session->chairs[$i] : "TBA");
                 $pres = new Presentation($this->db,$presid);
                 $presentations .= $pres->showinsessionmanager($chair,$session->date);
             }

@@ -333,24 +333,6 @@ if (!empty($_POST['operation'])) {
         $Chairs = new Chairs($db);
         $Chairs->setup($op);
 
-        if (in_array('chair',$db->getcolumns($db->tablesname['Presentation']))){
-            $sql = 'SELECT chair,date,id_pres FROM ' . $db->tablesname['Presentation'];
-            $req = $db->send_query($sql);
-            while ($row = mysqli_fetch_assoc($req)) {
-                $chair = $row['chair'];
-                $date = $row['date'];
-                $presid = $row['id_pres'];
-                if (!empty($chair)) {
-                    $sql = "SELECT * FROM ". $db->tablesname['Chairs']. " WHERE chair='$chair' and date='$date' and presid='$presid'";
-                    $check = $db->send_query($sql);
-                    $data = mysqli_fetch_assoc($check);
-                    if (empty($data)) {
-                        $Chairs->make($date,$chair,$presid);
-                    }
-                }
-            }
-        }
-
         // Create Session table
         $Sessions = new Sessions($db);
         $Sessions->setup($op);
