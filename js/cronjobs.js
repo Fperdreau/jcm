@@ -117,7 +117,7 @@ $(document).ready(function() {
 
         .on('click','.install_cron',function(e) {
             e.preventDefault();
-            var el = $(this)
+            var el = $(this);
             var cron = $(this).attr('data-cron');
             var op = $(this).attr('data-op');
             jQuery.ajax({
@@ -141,7 +141,7 @@ $(document).ready(function() {
                         $(el)
                             .attr('data-op',newattr)
                             .html(newcontent);
-                        showfeedback("<p id='success'>cron successfully "+result+"</p>");
+                        showfeedback("<p id='success'>"+cron+" successfully "+result+"</p>");
                     } else {
                         showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
 
