@@ -402,28 +402,33 @@ function backup_db(){
     $allTables = $db->getapptables();
 
     $return = "";
-    foreach($allTables as $table){
-        $result = $db->send_query("SELECT * FROM $table");
+    //cycle through
+	foreach($allTables as $table)
+    {
+        $result = $db->send_query('SELECT * FROM '.$table);
         $num_fields = mysqli_num_fields($result);
 
-        $return.= "DROP TABLE IF EXISTS $table";
-        $row2 = mysqli_fetch_row($db->send_query("SHOW CREATE TABLE $table"));
+        $return.= 'DROP TABLE '.$table.';';
+        $row = $db->send_query('SHOW CREATE TABLE '.$table);
+        $row2 = mysqli_fetch_row($row);
         $return.= "\n\n".$row2[1].";\n\n";
 
-        for ($i = 0; $i < $num_fields; $i++) {
-            while($row = mysqli_fetch_row($result)){
-                $return.= "INSERT INTO $table VALUES(";
-                for($j=0; $j<$num_fields; $j++){
+        for ($i = 0; $i < $num_fields; $i++)
+        {
+            while($row = mysqli_fetch_row($result))
+            {
+                $return.= 'INSERT INTO '.$table.' VALUES(';
+                for($j=0; $j<$num_fields; $j++)
+                {
                     $row[$j] = addslashes($row[$j]);
-                    $row[$j] = str_replace("\n","\\n",$row[$j]);
-                    if (isset($row[$j])) { $return.= '"'.$row[$j].'"' ; }
-                    else { $return.= '""'; }
+                    $row[$j] = ereg_replace("\n","\\n",$row[$j]);
+                    if (isset($row[$j])) { $return.= '"'.$row[$j].'"' ; } else { $return.= '""'; }
                     if ($j<($num_fields-1)) { $return.= ','; }
                 }
                 $return.= ");\n";
             }
         }
-        $return.="\n\n";
+        $return.="\n\n\n";
     }
     $handle = fopen($mysqlSaveDir."/".$fileNamePrefix.".sql",'w+');
     fwrite($handle,$return);
