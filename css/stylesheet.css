@@ -832,12 +832,14 @@ a:hover {
 }
 
 .show_btn {
+    cursor: pointer;
     background-color: #BE4141;
     padding: 2px;
     margin: 0;
     width: 50px;
     height: 22px;
     text-align: center;
+    color: #FFFFFF;
     line-height: 22px;
 }
 

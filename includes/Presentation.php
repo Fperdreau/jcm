@@ -505,7 +505,7 @@ class Presentation extends Presentations {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='index.php?page=submission&op=new'>Free</a>";
+            $show_but = "<a href='index.php?page=submission&op=new&date=$this->date'>Free</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
@@ -515,10 +515,17 @@ class Presentation extends Presentations {
             if (null != $mail) {
                 $show_but = "$this->title ($this->authors)";
             } else {
-                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>";
+                $authors = ($this->type !== 'minute') ? "($this->authors)" : "";
+                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title $authors</a>";
             }
             $type = ucfirst($this->type);
         }
+
+        $chairDiv = ($this->type !== 'minute') ? "<div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
+                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$chair
+                </div>
+            </div>" : "";
 
         return "
         <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
@@ -533,11 +540,7 @@ class Presentation extends Presentations {
                 <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
                 </div>
             </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$chair
-                </div>
-            </div>
+            $chairDiv
         </div>";
     }
 

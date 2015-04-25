@@ -290,8 +290,12 @@ class Sessions extends Table {
                     </div>
                 </div>
                 <div style='padding: 10px 20px 10px 10px; background-color: #eee; margin: 0; border: 1px solid rgba(175,175,175,.8);'>
-                $sessioncontent
+                    $sessioncontent
+                    <div style='text-align: right; width: 100%;'>
+                        <div class='show_btn' style='width: 80px; vertical-align: middle; padding: 5px 7px 5px 7px;'><a href='#pub_modal' class='modal_trigger' id='addminute' rel='pub_leanModal' data-date='$session->date'>Add a minute</a></div>
+                    </div>
                 </div>
+
             </div>";
         }
         return $content;
@@ -484,10 +488,12 @@ class Session extends Sessions {
             return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
                     <b>No Journal Club this day</b></div>";
         $content = "";
-        for ($i=0;$i<$this->max_nb_session;$i++) {
+        $max = (count($this->presids) < $this->max_nb_session) ? $this->max_nb_session:count($this->presids);
+        for ($i=0;$i<$max;$i++) {
             $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
+            $chair['chair'] = (isset($this->chairs[$i])) ? $this->chairs[$i]['chair']:'';
             $pub = new Presentation($this->db,$presid);
-            $content .= $pub->showinsession($this->chairs[$i],$mail);
+            $content .= $pub->showinsession($chair,$mail);
         }
         return $content;
     }

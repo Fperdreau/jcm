@@ -101,6 +101,12 @@ class DbSet {
     public $tablesname;
 
     /**
+     * Default charset
+     * @var string
+     */
+    public $charset = 'utf8';
+
+    /**
      * Constructor
      */
     function __construct() {
@@ -158,8 +164,8 @@ class DbSet {
             die(json_encode("<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>"));
         }
 
-        if (!mysqli_set_charset($this->bdd,"utf8")) {
-            print('We could not load UTF8 charset');
+        if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
+            die(json_encode("<p id='warning'>Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd)."</p>"));
         }
 
         return $this->bdd;
@@ -185,6 +191,13 @@ class DbSet {
         $result['status'] = true;
         $result['msg'] = "<p id='success'>Connected</p>";
         return $result;
+    }
+
+    /**
+     * @return mixed
+     */
+    function getCharSet() {
+        return $this->bdd->get_charset();
     }
 
     /**
@@ -240,7 +253,9 @@ class DbSet {
      */
     public function send_query($sql,$silent=false) {
         self::bdd_connect();
-        mysqli_query($this->bdd, "SET NAMES 'utf8'");
+        if (!mysqli_set_charset($this->bdd,"utf8")) {
+            print('We could not load UTF8 charset');
+        }
         $req = mysqli_query($this->bdd,$sql);
         if (false === $req) {
             if ($silent == false) {
@@ -288,6 +303,10 @@ class DbSet {
             return false;
         }
 	}
+
+    public function modifyCharSet() {
+
+    }
 
     /**
      * Drop a table

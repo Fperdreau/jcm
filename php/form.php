@@ -385,7 +385,7 @@ if (!empty($_POST['submit'])) {
     // check entries
     $user = new User($db,$_SESSION['username']);
     $date = $_POST['date'];
-    if ($Sessions->isbooked($date) == "Booked out") {
+    if ($Sessions->isbooked($date) == "Booked out" && $_POST['type'] !== 'minute') {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
@@ -428,7 +428,7 @@ if (!empty($_POST['update'])) {
     // check entries
     $user = new User($db,$_SESSION['username']);
     $date = $_POST['date'];
-    if ($Sessions->isbooked($date) === "Booked out") {
+    if ($Sessions->isbooked($date) === "Booked out" && $_POST['type'] !== 'minute') {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
@@ -483,8 +483,8 @@ if (isset($_POST['suggest'])) {
 
 // Display submission form
 if (!empty($_POST['getpubform'])) {
+
     $id_Presentation = $_POST['getpubform'];
-    $type = $_POST['type'];
     if ($id_Presentation == "false") {
         $pub = false;
     } else {
@@ -493,8 +493,12 @@ if (!empty($_POST['getpubform'])) {
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
     }
+    $date = (!empty($_POST['date']) && $_POST['date'] !== 'false') ? $_POST['date']:false;
+    $type = (!empty($_POST['type']) && $_POST['type'] !== 'false') ? $_POST['type']:false;
+    $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
+
     $user = new User($db,$_SESSION['username']);
-    $result = displayform($user,$pub,$type);
+    $result = displayform($user,$pub,$type,$prestype,$date);
     echo json_encode($result);
     exit;
 }
@@ -508,6 +512,7 @@ if (!empty($_POST['show_pub'])) {
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
     }
+
     $user = new User($db,$_SESSION['username']);
     $pub = new Presentation($db,$id_Presentation);
     $form = displaypub($user,$pub);

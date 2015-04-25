@@ -54,12 +54,6 @@ class AppConfig extends Table {
     public $max_nb_session = 2;
 
     /**
-     * Notifications
-     *
-     */
-
-
-    /**
      * Session info
      *
      */
@@ -70,7 +64,7 @@ class AppConfig extends Table {
         'Business Meeting'=>array('TBA'),
         'No group meeting'=>array('TBA'));
     public $session_type_default = "Journal Club";
-    public $pres_type = "paper,research,methodology,guest,business";
+    public $pres_type = "paper,research,methodology,guest,minute";
 
     /**
      * Lab info

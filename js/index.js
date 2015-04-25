@@ -22,24 +22,27 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 var modalpubform = $('.modal_section#submission_form');
 
 // Show publication form
-var showpubform = function(formel,idpress,type) {
+var showpubform = function(formel,idpress,type,date,prestype) {
     if (idpress === undefined) {idpress = false;}
     if (type === undefined) {type = "submit";}
+    if (date === undefined) {date = false;}
+    if (prestype === undefined) {prestype = false;}
 
     // First we remove any existing submission form
     $('.submission').remove();
-
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: false,
         data: {
             getpubform: idpress,
-            type: type
+            type: type,
+            date: date,
+            prestype: prestype
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
-            console.log("showpubform");
+            console.log(result);
             formel
                 .hide()
                 .html(result)
@@ -50,6 +53,7 @@ var showpubform = function(formel,idpress,type) {
 
 // Display presentation information in a modal window
 var displaypub = function(idpress,formel) {
+
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -1273,6 +1277,15 @@ $( document ).ready(function() {
             showmodal('submission_form');
             displaypub(id_pres,modalpubform);
             $(".header_title").text('Presentation');
+        })
+
+        // add a minute
+        .on('click','#addminute',function(e) {
+            e.preventDefault();
+            var date = $(this).attr('data-date');
+            showmodal('submission_form');
+            $(".header_title").text('Add a minute');
+            showpubform(modalpubform,false,'submit',date,'minute');
         })
 
         // Choose a wish
