@@ -35,7 +35,7 @@ class AppConfig extends Table {
      */
     public $status = 'On';
     public $app_name = "Journal Club Manager";
-    public $version = "v1.3";
+    public $version = "v1.3.1";
     public $author = "Florian Perdreau";
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";

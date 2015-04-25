@@ -249,9 +249,13 @@ if (!empty($_POST['operation'])) {
         // Get default application settings
         if ($op === false) {
             $AppConfig = new AppConfig($db, false);
+            $version = $AppConfig->version;
         } else {
-            $AppConfig = new AppConfig($db);
+            $AppConfig = new AppConfig($db,false);
+            $version = $AppConfig->version;
+            $AppConfig->get();
         }
+        $_POST['version'] = $version;
         $AppConfig->setup($op);
         if ($AppConfig->update($_POST) === true) {
             $result .= "<p id='success'> '" . $db->tablesname['AppConfig'] . "' updated</p>";
