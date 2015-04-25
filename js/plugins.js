@@ -107,6 +107,7 @@ $(document).ready(function() {
 
         .on('click','.install_plugin',function(e) {
             e.preventDefault();
+            var el = $(this);
             var plugin = $(this).attr('data-plugin');
             var op = $(this).attr('data-op');
             jQuery.ajax({
@@ -119,23 +120,24 @@ $(document).ready(function() {
                 },
                 async: true,
                 beforeSend: function() {
-                    $(this).html('<div style="text-align: center; padding: 0; margin: 0;"><img src="images/36.gif" width="70%"></div>');
-                },
-                complete: function() {
-                    $(this).html('Download a PDF');
+                    $(el).html('<div style="text-align: center; padding: 0; margin: 0;"><img src="images/36.gif" width="70%"></div>');
                 },
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
                     var result = (op=='install') ? 'installed':'uninstalled';
                     if (json === true) {
                         var newcontent = (op=='install') ? 'Uninstall':'Install';
-                        $(this).html(newcontent);
-                        showfeedback("<p id='success'>Plugin successfully "+result+"</p>");
+                        var newattr = (op=='install') ? 'uninstall':'install';
+                        $(el)
+                            .attr('data-op',newattr)
+                            .html(newcontent);
+                        showfeedback("<p id='success'>"+plugin+" successfully "+result+"</p>");
                     } else {
                         showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
 
                     }
                 }
+
             });
         });
 });
