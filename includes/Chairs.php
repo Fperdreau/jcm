@@ -82,6 +82,12 @@ class Chairs extends Table{
         return $this->db->deletecontent($this->tablename,$ref,$value);
     }
 
+    /**
+     * Get previous chairs
+     * @param $organizers
+     * @param $type
+     * @return array
+     */
     public function getPrevious($organizers, $type) {
         $sql = "SELECT chair,date FROM $this->tablename";
         $req = $this->db->send_query($sql);
