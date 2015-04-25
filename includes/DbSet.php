@@ -157,6 +157,11 @@ class DbSet {
         if (!mysqli_select_db($this->bdd,"$this->dbname")) {
             die(json_encode("<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>"));
         }
+
+        if (!mysqli_set_charset($this->bdd,"utf8")) {
+            print('We could not load UTF8 charset');
+        }
+
         return $this->bdd;
 	}
 
