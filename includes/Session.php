@@ -192,7 +192,7 @@ class Sessions extends Table {
             $presentations = "";
             for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
                 $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
-                $chair = (isset($session->chairs[$i]) ? $session->chairs[$i] : "TBA");
+                $chair = (isset($session->chairs[$i]) ? $session->chairs[$i] : array('chair'=>'TBA','id'=>false));
                 $pres = new Presentation($this->db,$presid);
                 $presentations .= $pres->showinsessionmanager($chair,$session->date);
             }
