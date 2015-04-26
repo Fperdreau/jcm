@@ -560,7 +560,7 @@ class Presentation extends Presentations {
 
         /** Get list of organizers */
         $Users = new Users($this->db);
-        $organizers = $Users->getadmin();
+        $organizers = $Users->getadmin('admin');
         $chairopt = "<option value='TBA'>TBA</option>";
         foreach ($organizers as $key=>$organizer) {
             $orguser = $organizer['username'];
