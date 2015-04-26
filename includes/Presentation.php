@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** Mother class Presentations.
+/** class Presentations.
  * Handle methods to display presentations list (archives, homepage, wish list)
  */
 class Presentations extends Table {

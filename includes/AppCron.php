@@ -1,11 +1,29 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Florian
- * Date: 30/03/2015
- * Time: 18:33
- */
+/*
+Copyright © 2014, Florian Perdreau
+This file is part of Journal Club Manager.
 
+Journal Club Manager is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Journal Club Manager is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+ * Manage scheduled tasks.
+ * - installation
+ * - update
+ * - run
+ * Class AppCron
+ */
 class AppCron extends Table {
 
     protected $table_data = array(
@@ -35,6 +53,11 @@ class AppCron extends Table {
     public $options;
 
 
+    /**
+     * Constructor
+     * @param DbSet $db
+     * @param bool $name
+     */
     public function __construct(DbSet $db, $name=False) {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
@@ -45,12 +68,20 @@ class AppCron extends Table {
         }
     }
 
+    /**
+     * Register cronjobs to the table
+     * @param array $post
+     * @return bool|mysqli_result
+     */
     public function make($post=array()) {
         $class_vars = get_class_vars('AppCron');
         $content = $this->parsenewdata($class_vars,$post,array('installed','daysNames','daysNbs','hours'));
         return $this->db->addcontent($this->tablename,$content);
     }
 
+    /**
+     * Get info from the cronjobs table
+     */
     public function get() {
         $sql = "SELECT * FROM $this->tablename WHERE name='$this->name'";
         $req = $this->db->send_query($sql);
@@ -60,36 +91,52 @@ class AppCron extends Table {
         }
     }
 
+    /**
+     * Update cronjobs table
+     * @param array $post
+     * @return bool
+     */
     public function update($post=array()) {
         $class_vars = get_class_vars('AppCron');
         $content = $this->parsenewdata($class_vars,$post,array('installed','daysNames','daysNbs','hours'));
         return $this->db->updatecontent($this->tablename,$content,array("name"=>$this->name));
     }
 
+    /**
+     * Delete tasks from the cronjobs table
+     * @return bool|mysqli_result
+     */
     public function delete() {
         $this->db->deletecontent($this->db->tablesname['Crons'],array('name'),array($this->name));
         return $this->db->deletetable($this->tablename);
     }
 
+    /**
+     * Check if this plugin is registered to the db
+     */
     public function isInstalled() {
-        /**
-         * Check if this plugin is registered to the db
-         */
         $plugins = $this->db->getinfo($this->db->tablesname['Crons'],'name');
         return in_array($this->name,$plugins);
     }
 
+    /**
+     * Instantiate a class from class name
+     * @param: class name (must be the same as the file name)
+     * @return: object
+     */
     public function instantiateCron($pluginName) {
-        /**
-         * Instantiate a class from class name
-         * @param: class name (must be the same as the file name)
-         * @return: object
-         */
         $folder = PATH_TO_APP.'/cronjobs/';
         include_once($folder . $pluginName .'.php');
         return new $pluginName($this->db);
     }
 
+    /**
+     * Get next running time from day number, day name and hour
+     * @param $dayNb
+     * @param $dayName
+     * @param $hour
+     * @return string
+     */
     static function parseTime($dayNb, $dayName, $hour) {
         $today = date('Y-m-d');
         $month = date('m');
@@ -114,6 +161,11 @@ class AppCron extends Table {
         return $time;
     }
 
+    /**
+     * Write logs into file
+     * @param $file
+     * @param $string
+     */
     static function logger($file, $string) {
         // Write log
         $cronlog = PATH_TO_APP."/cronjobs/logs/$file";
@@ -128,6 +180,10 @@ class AppCron extends Table {
         fclose($fp);
     }
 
+    /**
+     * Get list of the scheduled tasks to run
+     * @return array
+     */
     public function getRunningJobs() {
         $now = strtotime(date('Y-m-d H:i:s'));
         $jobs = $this->getJobs();
@@ -142,7 +198,7 @@ class AppCron extends Table {
     }
 
     /**
-     * Get list of plugins, their settings and status
+     * Get list of scheduled tasks, their settings and status
      * @return array
      * @internal param bool $page
      */
