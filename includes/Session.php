@@ -515,7 +515,7 @@ class Session extends Sessions {
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>$this->date</div>
                 <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>$time_from <b>To: </b>$time_to</div>
                 <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b> $AppConfig->room</div><br>
-                Our next session will host $this->nbpres presentations.
+                Our next session is a <span style='font-weight: 500'>$this->type</span> and will host $this->nbpres presentations.
             </div>";
         $i = 0;
         foreach ($this->presids as $presid) {
