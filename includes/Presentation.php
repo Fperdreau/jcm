@@ -496,6 +496,7 @@ class Presentation extends Presentations {
      * @return string
      */
     public function showinsession($chair,$mail,$date) {
+
         if ($chair['chair'] !== 'TBA') {
             $chair = new User($this->db, $chair['chair']);
             $chair = $chair->fullname;

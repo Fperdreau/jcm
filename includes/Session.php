@@ -98,7 +98,6 @@ class Sessions extends Table {
             $lastday = strtotime("$from + $nsession weeks");
 
         }
-        $first = strtotime("first " . $AppConfig->jc_day . " of $month $year"); // First journal club of the year
 
         $day = $first;
         $jc_days = array();
