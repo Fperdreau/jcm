@@ -22,20 +22,20 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Handles application configuration information and routines (updates, get).
  */
-class AppConfig {
-    /**
-     * Database instance
-     *
-     */
-    private $db;
-    private $tablename;
+class AppConfig extends Table {
 
+    protected $table_data = array(
+        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
+        "variable" => array("CHAR(20)", false),
+        "value" => array("TEXT", false),
+        "primary" => "id");
     /**
      * Application info
      *
      */
+    public $status = 'On';
     public $app_name = "Journal Club Manager";
-    public $version = "v1.3";
+    public $version = "v1.3.1";
     public $author = "Florian Perdreau";
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
@@ -54,23 +54,17 @@ class AppConfig {
     public $max_nb_session = 2;
 
     /**
-     * Notifications
-     *
-     */
-    public $notification_active = true;
-    public $notification = "sunday";
-    public $reminder = 1;
-
-    /**
      * Session info
      *
      */
     public $nbsessiontoplan = 10;
     public $chair_assign = "manual";
-    public $session_chairs = "TBA";
-    public $session_type = "Journal Club,Business Meeting,No group meeting";
+    public $session_type = array(
+        "Journal Club"=>array('TBA'),
+        'Business Meeting'=>array('TBA'),
+        'No group meeting'=>array('TBA'));
     public $session_type_default = "Journal Club";
-    public $pres_type = "paper,research,methodology,guest,business";
+    public $pres_type = "paper,research,methodology,guest,minute";
 
     /**
      * Lab info
@@ -109,8 +103,7 @@ class AppConfig {
      * @param bool $get
      */
     public function __construct(DbSet $db,$get=true) {
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["AppConfig"];
+        parent::__construct($db, 'AppConfig',$this->table_data);
         if ($get) {
             self::get();
         }
@@ -124,7 +117,7 @@ class AppConfig {
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = htmlspecialchars_decode($row['value']);
+            $value = ($varname == "session_type") ? json_decode($row['value'],true):htmlspecialchars_decode($row['value']);
             $this->$varname = $value;
         }
         return true;
@@ -138,20 +131,18 @@ class AppConfig {
     public function update($post=array()) {
         $class_vars = get_class_vars("AppConfig");
         $postkeys = array_keys($post);
-        foreach ($class_vars as $name => $value) {
-            if (in_array($name,array("db","tablename"))) continue;
 
-            if (in_array($name,$postkeys)) {
-                $escape_value = $this->db->escape_query($post[$name]);
-            } else {
-                $escape_value = $this->db->escape_query($this->$name);
-            }
-            $this->$name = $escape_value;
+        foreach ($class_vars as $name => $value) {
+            if (in_array($name,array("db","tablename","table_data"))) continue;
+            $newvalue = (in_array($name,$postkeys)) ? $post[$name]:$this->$name;
+            $newvalue = ($name == "session_type") ? json_encode($newvalue):$newvalue;
+            $this->$name = $newvalue;
+
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
             if (!empty($exist)) {
-                $this->db->updatecontent($this->tablename,"value","'$escape_value'",array("variable"),array("'$name'"));
+                $this->db->updatecontent($this->tablename,array("value"=>$newvalue),array("variable"=>$name));
             } else {
-                $this->db->addcontent($this->tablename,"variable,value","'$name','$escape_value'");
+                $this->db->addcontent($this->tablename,array("variable"=>$name,"value"=>$newvalue));
             }
         }
         return true;

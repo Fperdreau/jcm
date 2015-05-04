@@ -17,21 +17,33 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** Mother class Presentations.
+/** class Presentations.
  * Handle methods to display presentations list (archives, homepage, wish list)
  */
-class Presentations {
+class Presentations extends Table {
 
-    protected $db;
-    protected $tablename;
+    protected $table_data = array(
+        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
+        "up_date" => array("DATETIME", false),
+        "id_pres" => array("BIGINT(15)", false),
+        "username" => array("CHAR(30) NOT NULL"),
+        "type" => array("CHAR(30)", false),
+        "date" => array("DATE", false),
+        "jc_time" => array("CHAR(15)", false),
+        "title" => array("CHAR(150)", false),
+        "authors" => array("CHAR(150)", false),
+        "summary" => array("TEXT(5000)", false),
+        "orator" => array("CHAR(50)", false),
+        "notified" => array("INT(1) NOT NULL", 0),
+        "primary" => "id"
+    );
 
     /**
      * Constructor
      * @param DbSet $db
      */
     function __construct(DbSet $db){
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["Presentation"];
+        parent::__construct($db, "Presentation", $this->table_data);
     }
 
     /**
@@ -55,6 +67,11 @@ class Presentations {
         return $years;
     }
 
+    /**
+     * Get publications by date
+     * @param bool $excludetype
+     * @return array
+     */
     public function getpubbydates($excludetype=false) {
         // Get presentations dates
         $sql = "SELECT date,id_pres FROM $this->tablename";
@@ -187,6 +204,20 @@ class Presentations {
         return $nextcontent;
     }
 
+    /**
+     * Get latest submitted presentations
+     * @return array
+     */
+    public function getLatest() {
+        $sql = "SELECT id_pres FROM $this->tablename WHERE notified='0'";
+        $req = $this->db->send_query($sql);
+        $publicationList = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $publicationList[] = $row['id_pres'];
+        }
+        return $publicationList;
+    }
+
 }
 
 
@@ -205,9 +236,10 @@ class Presentation extends Presentations {
     public $title = "";
     public $authors = "";
     public $summary = "";
-    public $link = "";
+    public $link = array();
     public $orator = "";
-    public $presented = 0;
+    public $chair = "TBA";
+    public $notified = 0;
     public $id_pres = "";
 
     /**
@@ -215,8 +247,13 @@ class Presentation extends Presentations {
      * @param null $id_pres
      */
     function __construct(DbSet $db, $id_pres=null){
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["Presentation"];
+        parent::__construct($db);
+
+        /** @var AppConfig $config */
+        $config = new AppConfig($db);
+        $this->jc_time = "$config->jc_time_from,$config->jc_time_to";
+        $this->up_date = date('Y-m-d h:i:s'); // Date of creation
+
         if (null != $id_pres) {
             self::get($id_pres);
         }
@@ -229,37 +266,27 @@ class Presentation extends Presentations {
      */
     function make($post){
         $class_vars = get_class_vars("Presentation");
-        /** @var AppConfig $config */
-        $config = new AppConfig($this->db);
 
-        $post['up_date'] = date('Y-m-d h:i:s'); // Date of creation
-        $post['jc_time'] = "$config->jc_time_from,$config->jc_time_to";
-        $postkeys = array_keys($post);
         if ($this->pres_exist($post['title']) == false) {
 
             // Create an unique ID
             $this->id_pres = self::create_presID();
 
-            $variables = array();
-            $values = array();
-            foreach ($class_vars as $name=>$value) {
-                if (in_array($name,array("db","tablename"))) continue;
-
-                if (in_array($name,$postkeys)) {
-                    $escaped = $this->db->escape_query($post[$name]);
-                } else {
-                    $escaped = $this->db->escape_query($this->$name);
-                }
-                $this->$name = $escaped;
-                $variables[] = "$name";
-                $values[] = "'$escaped'";
+            // Associates this presentation to an uploaded file if there is one
+            if (!empty($post['link'])) {
+                $this->add_upload($post['link']);
             }
 
-            $variables = implode(',',$variables);
-            $values = implode(',',$values);
+            if ($post['type'] !== 'wishlist') {
+                $this->date = $post['date'];
+            }
+
+            $content = $this->parsenewdata($class_vars, $post, array("link","chair"));
 
             // Add publication to the database
-            if ($this->db->addcontent($this->tablename,$variables,$values)) {
+            if ($this->db->addcontent($this->tablename,$content)) {
+                // Assign a chair man for this presentation
+                $this->get_chair();
                 return $this->id_pres;
             } else {
                 return false;
@@ -284,15 +311,9 @@ class Presentation extends Presentations {
                 $this->$varname = htmlspecialchars_decode($value);
             }
 
-            // Check if files are still where they are supposed to be
-            $this->fileintegrity();
+            // Get associated files
+            $this->get_uploads();
 
-            // If publication's date is past, assumes it has already been presented
-            $pub_day = $this->date;
-            if ($this->date != "0000-00-00" && $pub_day < date('Y-m-d')) {
-                $this->presented = 1;
-                $this->update();
-            }
             return true;
         } else {
             return false;
@@ -312,40 +333,66 @@ class Presentation extends Presentations {
             $this->id_pres = $_POST['id_pres'];
         }
 
+        // Associate the new uploaded file (if there is one)
         if (array_key_exists("link", $post)) {
-            $post['link'] = implode(',',array($this->link,$post['link']));
+            $this->add_upload($post['link']);
         }
 
-        // Update session table if the user changed the date of presentation
-        $updatesession = !empty($post['date']) && ($post['date'] !== $this->date) && ($this->type !== "wishlist");
-        $olddate = $this->date;
+        // Get presentation's type
+        $this->type = (array_key_exists("type", $post)) ? $post['type']:$this->type;
 
+        // Get a chair man for this presentation
+        $this->get_chair();
+
+        // Update table
         $class_vars = get_class_vars("Presentation");
-
-        $postkeys = array_keys($post);
-        foreach ($class_vars as $name => $value) {
-            if (in_array($name,array("db","tablename"))) continue;
-            $escaped = in_array($name, $postkeys) ? $this->db->escape_query($post[$name]) : $this->db->escape_query($this->$name);
-            $this->$name = $escaped;
-
-            if (!$this->db->updatecontent($this->tablename,$name,"'$escaped'",array("id_pres"),array("'$this->id_pres'"))) {
-                return false;
-            }
-        }
-
-        // If the user changed the date of presentation, we remove the presentation from its previous session and update the new session
-        if (true === $updatesession) {
-            $sessionpost = array(
-                "date"=>$post['date'],
-                "speakers"=>$this->orator,
-                "presid"=>$this->id_pres
-                );
-            $session = new Session($this->db);
-            $session->make($sessionpost);
-            $session = new Session($this->db,$olddate);
-            $session->delete_pres($this->id_pres);
+        $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
+        if (!$this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
+            return false;
         }
         return true;
+    }
+
+    /**
+     * Pseudo randomly choose a chairman for this presentation if none has been assigned yet
+     */
+    private function get_chair() {
+        // Get session type
+        $session = new Session($this->db, $this->date);
+        $Chairs = new Chairs($this->db);
+        if (!$Chairs->get('presid',$this->id_pres)) {
+            // If the presentation does not have a corresponding chair
+            // Check if preassigned chairs for this session exist
+            $i = false;
+            foreach ($session->chairs as $chair) {
+                $thisChair = new Chairs($this->db);
+                if ($session->type == 'Journal Club' && $chair['chair'] == $this->orator) {
+                    $thisChair->get('id',$chair['id']);
+                    $thisChair->presid = $this->id_pres;
+                    $i = true;
+                } elseif ($thisChair->presid == 0) {
+                    $thisChair->get('id', $chair['id']);
+                    $thisChair->presid = $this->id_pres;
+                    if ($session->type == 'Journal Club') {
+                        // If journal club session, the chair is the speaker
+                        $thisChair->chair = $this->orator;
+                    }
+                    $i = true;
+                }
+                if ($i == true) {
+                    $thisChair->update();
+                    $this->chair = $thisChair->chair;
+                    break;
+                }
+            }
+            // If we found none, let's get a new one
+            if ($i == false) {
+                $this->chair = $Chairs->getChair($session->date,$this->orator);
+                $Chairs->make($session->date,$this->chair,$this->id_pres);
+            }
+
+        }
+        return $this->chair;
     }
 
     /**
@@ -364,104 +411,28 @@ class Presentation extends Presentations {
     }
 
     /**
-     * Check if associated files are still present on the server
+     * Associates this presentation to an uploaded file
+     * @param $filenames
      * @return bool
+     * @internal param $filename
      */
-    private function fileintegrity() {
-        $pdfpath = PATH_TO_APP.'/uploads/';
-        $links = explodecontent(",",$this->link);
-        $newlinks = array();
-        foreach($links as $link) {
-            if (is_file($pdfpath.$link)) {
-                $newlinks[] = $link;
+    function add_upload($filenames) {
+        $filenames = explode(',',$filenames);
+        $upload = new Media($this->db);
+        foreach ($filenames as $filename) {
+            if ($upload->add_presid($filename,$this->id_pres) !== true) {
+                return False;
             }
         }
-        $this->link = implode(',',$newlinks);
-        self::update();
         return true;
     }
 
     /**
-     * Validate upload
-     * @param $file
-     * @return bool|string
+     * Get associated files
      */
-    private function checkupload($file) {
-        $config = new AppConfig($this->db);
-        // Check $_FILES['upfile']['error'] value.
-        if ($file['error'][0] != 0) {
-            switch ($file['error'][0]) {
-                case UPLOAD_ERR_OK:
-                    break;
-                case UPLOAD_ERR_NO_FILE:
-                    return "No file to upload";
-                case UPLOAD_ERR_INI_SIZE:
-                case UPLOAD_ERR_FORM_SIZE:
-                    return 'File Exceeds size limit';
-                default:
-                    return "Unknown error";
-            }
-        }
-
-        // You should also check file size here.
-        if ($file['size'][0] > $config->upl_maxsize) {
-            return "File Exceeds size limit";
-        }
-
-        // Check extension
-        $allowedtypes = explodecontent(',',$config->upl_types);
-        $filename = basename($file['name'][0]);
-        $ext = substr($filename, strrpos($filename, '.') + 1);
-
-        if (false === in_array($ext,$allowedtypes)) {
-            return "Invalid file type";
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Upload a file
-     * @param $file
-     * @return mixed
-     */
-    public function upload_file($file) {
-        $result['status'] = false;
-        if (isset($file['tmp_name'][0]) && !empty($file['name'][0])) {
-            $result['error'] = self::checkupload($file);
-            if ($result['error'] === true) {
-                $tmp = htmlspecialchars($file['tmp_name'][0]);
-                $splitname = explode(".", strtolower($file['name'][0]));
-                $extension = end($splitname);
-
-                $directory = PATH_TO_APP.'/uploads/';
-                // Create uploads folder if it does not exist yet
-                if (!is_dir($directory)) {
-                    mkdir($directory);
-                }
-
-                $rnd = date('Ymd')."_".rand(0,100);
-                $newname = "pres_".$rnd.".".$extension;
-                while (is_file($directory.$newname)) {
-                    $rnd = date('Ymd')."_".rand(0,100);
-                    $newname = "pres_".$rnd.".".$extension;
-                }
-
-                // Move file to the upload folder
-                $dest = $directory.$newname;
-                $results['error'] = move_uploaded_file($tmp,$dest);
-
-                if ($results['error'] == false) {
-                    $result['error'] = "Uploading process failed";
-                } else {
-                    $results['error'] = true;
-                    $result['status'] = $newname;
-                }
-            }
-        } else {
-            $result['error'] = "No File to upload";
-        }
-        return $result;
+    function get_uploads() {
+        $upload = new Uploads($this->db);
+        $this->link = $upload->get_uploads($this->id_pres);
     }
 
     /**
@@ -473,42 +444,18 @@ class Presentation extends Presentations {
         self::get($pres_id);
 
         // Delete corresponding file
-        self::delete_files();
+        $uploads = new Uploads($this->db);
+        $uploads->delete_files($this->id_pres);
+
+        // Delete corresponding entry in the Chairs table
+        $this->db->updatecontent($this->db->tablesname['Chairs'],array('presid'=>0),array('presid'=>$this->id_pres));
 
         // Delete corresponding entry in the publication table
-        if ($this->db->deletecontent($this->tablename,array('id_pres'),array("'$pres_id'"))) {
-            $session = new self($this->db,$this->date);
-            return $session->delete_pres($this->id_pres);
+        if ($this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id))) {
+            $Chairs = new Chairs($this->db);
+            return $Chairs->delete('presid',$this->id_pres);
         } else {
             return false;
-        }
-    }
-
-    /**
-     * Delete all files corresponding to the actual presentation
-     * @return bool
-     */
-    function delete_files() {
-        $filelist = explode(',',$this->link);
-        foreach ($filelist as $filename) {
-            if (self::delete_file($filename) === false) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Delete a file corresponding to the actual presentation
-     * @param $filename
-     * @return bool|string
-     */
-    function delete_file($filename) {
-        $pdfpath = PATH_TO_APP.'/uploads/';
-        if (is_file($pdfpath.$filename)) {
-            return unlink($pdfpath.$filename);
-        } else {
-            return "no_file";
         }
     }
 
@@ -548,15 +495,17 @@ class Presentation extends Presentations {
      * @param $mail
      * @return string
      */
-    public function showinsession($chair,$mail) {
-        if ($chair !== 'TBA') {
-            $chair = new User($this->db, $chair);
+    public function showinsession($chair,$mail,$date) {
+        if ($chair['chair'] !== 'TBA') {
+            $chair = new User($this->db, $chair['chair']);
             $chair = $chair->fullname;
+        } else {
+            $chair = 'TBA';
         }
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='index.php?page=submission&op=new'>Free</a>";
+            $show_but = "<a href='index.php?page=submission&op=new&date=$date'>Free</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
@@ -566,10 +515,17 @@ class Presentation extends Presentations {
             if (null != $mail) {
                 $show_but = "$this->title ($this->authors)";
             } else {
-                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>";
+                $authors = ($this->type !== 'minute') ? "($this->authors)" : "";
+                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title $authors</a>";
             }
             $type = ucfirst($this->type);
         }
+
+        $chairDiv = ($this->type !== 'minute') ? "<div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
+                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
+                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$chair
+                </div>
+            </div>" : "";
 
         return "
         <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
@@ -584,11 +540,7 @@ class Presentation extends Presentations {
                 <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
                 </div>
             </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$chair
-                </div>
-            </div>
+            $chairDiv
         </div>";
     }
 
@@ -598,16 +550,17 @@ class Presentation extends Presentations {
      * @return string
      */
     public function showinsessionmanager($chair,$sessionid) {
-        if ($chair !== 'TBA') {
-            $chairman = new User($this->db,$chair);
+        if ($chair['chair'] !== 'TBA') {
+            $chairman = new User($this->db,$chair['chair']);
             $chairman = $chairman->fullname;
         } else {
-            $chairman = $chair;
+            $chairman = $chair['chair'];
         }
+        $chairID = $chair['id'];
 
         /** Get list of organizers */
         $Users = new Users($this->db);
-        $organizers = $Users->getadmin();
+        $organizers = $Users->getadmin('admin');
         $chairopt = "<option value='TBA'>TBA</option>";
         foreach ($organizers as $key=>$organizer) {
             $orguser = $organizer['username'];
@@ -648,7 +601,7 @@ class Presentation extends Presentations {
             <div style='display: inline-block; vertical-align: middle; text-align: left; width: 25%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
                 <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
                 <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>
-                    <select class='mod_chair' data-pres='$this->id_pres' data-session='$sessionid' style='font-size: 10px; padding: 0;'>$chairopt</select>
+                    <select class='mod_chair' data-chair='$chairID' data-pres='$this->id_pres' data-session='$sessionid' style='font-size: 10px; padding: 0;'>$chairopt</select>
                 </div>
             </div>
         </div>
@@ -684,8 +637,8 @@ class Presentation extends Presentations {
                     $pick_url
                 </div>
             </div>
-            <div style='display: block; padding: 0; text-align: center; color: #555555; font-weight: 300; font-style: italic; width: auto; font-size: 12px; text-align: left;'>
-                    $this->up_date
+            <div style='display: block; padding: 0; width: auto; font-size: 12px; text-align: left;'>
+                <div style='color: #555555; font-weight: 300; font-style: italic; '>$this->up_date</div>
             </div>
         </div>";
     }

@@ -17,25 +17,38 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-require('../includes/boot.php');
+/**
+ * todo: implement a dependency container that handles instances of configuration, database, plugins,
+ * todo: all linked to a particular session instance
+ * Class AppCore
+ */
+class AppCore {
 
-// Includes
-require_once(PATH_TO_INCLUDES.'boot.php');
+    public $config;
+    public $plugins;
+    public $db;
 
-// Run cron job
-$backupfile = backup_db();
-$filelink = json_encode($backupfile);
-echo $filelink;
+    /**
+     * Constructor
+     */
+    public function __construct() {
 
-// Write log only if server request
-if (empty($_GET['webproc'])) {
-    $cronlog ='backup_log.txt';
-    if (!is_file($cronlog)) {
-        $fp = fopen($cronlog,"w");
-    } else {
-        $fp = fopen($cronlog,"a+");
     }
-    $string = "[".date('Y-m-d H:i:s')."]: Backup successfully done.\r\n";
-    fwrite($fp,$string);
-    fclose($fp);
+
+    /**
+     * Get application's configuration
+     * @return mixed
+     */
+    public function getConfig() {
+        $this->config = new AppConfig($this->db);
+        return $this->config;
+    }
+
+    /**
+     * Get list of installed plugins
+     */
+    public function getPlugins() {
+        $this->plugins;
+    }
+
 }

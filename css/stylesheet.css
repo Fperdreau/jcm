@@ -23,6 +23,16 @@ form {
     text-align: left;
 }
 
+.valid_input{
+    border: 1px solid #3CB371;
+    box-shadow: 0 0 10px #3CB371;
+}
+
+.wrong_input{
+    border: 1px solid #3CB371;
+    box-shadow: 0 0 10px #3CB371;
+}
+
 input[type="text"], input[type="email"], input[type="password"] {
     display: inline-block;
     width:200px;
@@ -34,6 +44,24 @@ input[type="text"], input[type="email"], input[type="password"] {
     /* Styles */
     background: #f9f9f9;
     color: #777;
+}
+
+input.input_opt {
+    display: inline-block;
+    padding: 5px 2px 5px 2px;
+    min-width: 100px;
+    width: auto;
+    border:1px solid rgba(207, 81, 81, .3);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    margin: 0 auto;
+}
+
+select.select_opt {
+    min-width: 30px;
+    width: auto;
+    border: 1px solid rgba(207, 81, 81, .3);
+    padding: 5px 4px;
+    color: #555;
 }
 
 input[type="checkbox"] {
@@ -190,7 +218,7 @@ html { height: 100%; }
 body {
     font-family: 'Lato', Calibri, Arial, sans-serif;
     font-weight: 300;
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1.2;
 	width: 100%;
     margin: auto;
@@ -320,8 +348,8 @@ a:hover {
     position: relative;
     clear: both;
     width: auto;
-    height: 30px;
-    background-color: rgba(90,90,90,.9);
+    min-height: 30px;
+    background-color: rgba(34,34,34,.9);
     box-shadow: 0 2px 2px #555;
     z-index: 10;
     text-align: center;
@@ -392,7 +420,7 @@ a:hover {
 #content {
     position: relative;
     padding: 100px 20px;
-    width: 90%;
+    width: 95%;
     margin: 0 auto;
     vertical-align: middle;
 }
@@ -409,6 +437,11 @@ a:hover {
                 url('../images/spinner.gif')
                 50% 50%
                 no-repeat;
+}
+
+.plugins {
+    display: block;
+    margin: 50px 0 50px 0;
 }
 
 .page_description {
@@ -428,6 +461,7 @@ a:hover {
 }
 
 .section_header {
+    display: block;
     position: relative;
     background-color: rgba(187,81,81,1);
     color: #eeeeee;
@@ -449,13 +483,36 @@ a:hover {
     display: block;
     font-size: 16px;
     margin: auto;
-    width: 95%;
     text-align: justify;
     padding: 20px;
     background-color: rgba(200,200,200,.1);
     -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
     -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
     box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+}
+
+.section_page {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.half_section {
+    vertical-align: top;
+    width: 60%;
+    display: inline-block;
+}
+
+.half_section>div{
+    vertical-align: top;
+}
+
+.section_left {
+}
+
+.section_right {
+    width: 30%;
+    margin-left: 20px;
 }
 
 .section_sub {
@@ -495,6 +552,11 @@ a:hover {
     -webkit-box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
     -moz-box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
     box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
+}
+
+.news {
+    max-height: 400px;
+    overflow-y: scroll;
 }
 
 /* *********************************************************************/
@@ -549,7 +611,7 @@ a:hover {
 
 .dlmenu {
     display: none;
-    width: 160px;
+    width: 130px;
     position: relative;
     z-index: 1100;
     margin: 0;
@@ -564,6 +626,7 @@ a:hover {
     height: 30px;
     line-height: 30px;
     margin: 0;
+    padding: 0;
     cursor: pointer;
     background-color: rgba(200,200,200,.5);
     border-bottom: 1px solid #CF5151;
@@ -576,6 +639,30 @@ a:hover {
 .dl_info:active {
     background-color: #222222;
     padding: 6px 10px 4px;
+}
+
+.upl_name.dl_name {
+    display: inline-block;
+    line-height: 30px;
+    width: 80px;
+    white-space: pre-wrap;
+    font-weight: bold;
+}
+
+.upl_name.dl_name:hover {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
+}
+
+.dl_type {
+    display: inline-block;
+    width: 20px;
+    padding: 0 5px 0 5px;
+    margin: 0;
+    left: 0;
+    font-weight: bold;
+    background-color: #555555;
+    color: #EEEEEE;
 }
 
 /* *********************************************************************/
@@ -692,6 +779,15 @@ a:hover {
     color: #EEEEEE;
 }
 
+.upl_type {
+    display: inline-block;
+    padding: 0 5px 0 5px;
+    margin-left: 0;
+    font-weight: bold;
+    background-color: #555555;
+    color: #EEEEEE;
+}
+
 .del_upl {
     background-color: #666666;
     line-height: 30px;
@@ -736,12 +832,14 @@ a:hover {
 }
 
 .show_btn {
+    cursor: pointer;
     background-color: #BE4141;
     padding: 2px;
     margin: 0;
     width: 50px;
     height: 22px;
     text-align: center;
+    color: #FFFFFF;
     line-height: 22px;
 }
 
@@ -795,6 +893,26 @@ a:hover {
 
 .list-section {
     text-align: left;
+}
+
+/* *********************************************************************/
+/* Admin - Plugins
+/* *********************************************************************/
+
+.install_btn {
+    padding: 5px 5px;
+    height: 20px;
+    background: #CF5151;
+    color: #EEE;
+    width: 50px;
+    text-align: center;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.install_btn:hover {
+    color:#222222;
+    background: #E4E4E2;
 }
 
 /* *********************************************************************/
@@ -1266,7 +1384,6 @@ input.dateinput {
 }
 .ui-datepicker tbody td {
     padding: 0;
-    border-right: 1px solid #bbb;
 }
 .ui-datepicker tbody td:last-child {
     border-right: 0px;
@@ -1293,7 +1410,7 @@ input.dateinput {
 }
 
 .ui-datepicker-calendar .ui-state-hover {
-    background: rgba(207, 81, 81, .9);
+    background: #F5D3D3;
 }
 
 .ui-datepicker-unselectable .ui-state-default {
@@ -1315,6 +1432,14 @@ input.dateinput {
 
 .bookedday .ui-state-default{
     color: #b43d3d;
+}
+
+.activeday .ui-state-default{
+}
+
+.pastday .ui-state-default{
+    opacity: 0.5;
+    background: #f4f4f4;
 }
 
 .ui-datepicker-calendar td:first-child .ui-state-active {

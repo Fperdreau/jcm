@@ -22,24 +22,27 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 var modalpubform = $('.modal_section#submission_form');
 
 // Show publication form
-var showpubform = function(formel,idpress,type) {
+var showpubform = function(formel,idpress,type,date,prestype) {
     if (idpress === undefined) {idpress = false;}
     if (type === undefined) {type = "submit";}
+    if (date === undefined) {date = false;}
+    if (prestype === undefined) {prestype = false;}
 
     // First we remove any existing submission form
     $('.submission').remove();
-
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: false,
         data: {
             getpubform: idpress,
-            type: type
+            type: type,
+            date: date,
+            prestype: prestype
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
-            console.log("showpubform");
+            console.log(result);
             formel
                 .hide()
                 .html(result)
@@ -50,6 +53,7 @@ var showpubform = function(formel,idpress,type) {
 
 // Display presentation information in a modal window
 var displaypub = function(idpress,formel) {
+
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -172,7 +176,8 @@ var send_verifmail = function(email) {
 };
 
 // initialize jQuery-UI Calendar
-var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb,sessiontype) {
+var inititdatepicker = function(jcdays,selected) {
+
     $('#datepicker').datepicker({
         defaultDate: selected,
         firstDay: 1,
@@ -184,20 +189,27 @@ var inititdatepicker = function(jc_day,max_nb_session,selected,booked,nb,session
             var days = new Array("sunday","monday","tuesday","wednesday","thursday","friday","saturday");
             var cur_date = $.datepicker.formatDate('dd-mm-yy',date);
             var today = new Date();
-            if (days[day] == jc_day && date >= today) {
-                var find = $.inArray(cur_date,booked);
-                if (find > -1) { // If the date is booked
-                    if ((max_nb_session-nb[find])>0) {
-                        var msg = max_nb_session-nb[find]+" presentation(s) available";
-                        console.log(msg);
-                        return [true,"jcday_rem",msg];
+            if (days[day] == jcdays.jc_day) {
+                var css = (date >= today) ? "activeday":"pastday";
+                var find = $.inArray(cur_date,jcdays.booked);
+                var status = jcdays.status[find];
+                var clickable = (date >= today && status != 'none' && status != 'Booked out');
+                // If the date is booked
+                if (find > -1) {
+                    var type = jcdays.sessiontype[find];
+                    var rem = jcdays.max_nb_session-jcdays.nb[find]; // Number of presentations available that day
+                    var msg = type+": ("+rem+" presentation(s) available)";
+                    if (status == 'Free') {
+                        return [clickable,"jcday "+css,msg];
+                    } else if (status == 'Booked') {
+                        return [clickable,"jcday_rem "+css,msg];
                     } else {
-                        return [false,"bookedday","Booked out"];
+                        return [clickable,"bookedday "+css,type+": Booked out"];
                     }
                 } else {
-                    return [true,"jcday",max_nb_session+" presentation(s) available"];
+                    return [clickable,"jcday "+css,jcdays.max_nb_session+" presentation(s) available"];
                 }
-            } else {
+            } else if (days[day] !== jcdays.jc_day) {
                 return [false,"","Not a journal club day"];
             }
         }
@@ -284,6 +296,8 @@ var loadpageonclick = function(pagetoload,param) {
                     $(this).fadeIn('slow');
                 });
             tinymcesetup();
+            var callback = showplugins;
+            getPlugins(pagetoload, callback);
         }
     });
 };
@@ -341,6 +355,37 @@ var getParams = function() {
     return params;
 };
 
+function getpage() {
+    var params = getParams();
+    var page = (params.page == undefined) ? 'home':params.page;
+
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: {get_app_status: true},
+        type: 'POST',
+        async: true,
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            if (json === 'Off' && page !== 'admin_tool') {
+                console.log('Site status: '+json);
+                console.log('page: '+page);
+                $('#pagecontent')
+                    .html("<div id='content'><p id='warning'>Sorry, the website is currently under maintenance.</p></div>")
+                    .fadeIn(200);
+            } else {
+                if (page === undefined) {
+                    loadpageonclick('home',false);
+                } else {
+                    if (page !== false && page != 'install') {
+                        var urlparam = parseurl();
+                        loadpageonclick(page,''+urlparam);
+                    }
+                }
+            }
+        }
+    })
+}
+
 $( document ).ready(function() {
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -348,25 +393,7 @@ $( document ).ready(function() {
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
         .ready(function() {
-
-			// Automatically parse url and load the corresponding page
-            var params = getParams();
-            var page = params.page;
-
-            if (page === undefined) {
-                loadpageonclick('home',false);
-            } else {
-                if (page !== false && page == 'install') {
-                    if (params.step !== undefined) {
-                        loadpageonclick('install','step='+params.step);
-                    } else {
-                        loadpageonclick('install','step=1');
-                    }
-                } else if (page !== false && page != 'install') {
-                    var urlparam = parseurl();
-                    loadpageonclick(page,''+urlparam);
-                }
-            }
+            getpage();
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -437,7 +464,7 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('mouseover','input#datepicker',function(e) {
+        .on('mouseenter','.submission',function(e) {
             e.preventDefault();
             jQuery.ajax({
                 url: 'php/form.php',
@@ -447,7 +474,7 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     var selected_date = $('input#selected_date').val();
-                    inititdatepicker(result.jc_day,result.max_nb_session,selected_date,result.booked,result.nb,result.sessiontype);
+                    inititdatepicker(result,selected_date);
                 }
             });
         })
@@ -614,7 +641,7 @@ $( document ).ready(function() {
             var webproc = true;
 
             jQuery.ajax({
-                url: 'cronjobs/full_backup.php',
+                url: 'cronjobs/FullBackup.php',
                 type: 'GET',
                 async: true,
                 data: {webproc: webproc},
@@ -629,7 +656,7 @@ $( document ).ready(function() {
         .on('click','.dbbackup',function(){
             var webproc = true;
             jQuery.ajax({
-                url: 'cronjobs/db_backup.php',
+                url: 'cronjobs/DbBackup.php',
                 type: 'GET',
                 async: true,
                 data: {webproc: webproc},
@@ -891,6 +918,7 @@ $( document ).ready(function() {
         .on('change','.mod_chair',function(e) {
             var session = $(this).attr('data-session');
             var chair = $(this).val();
+            var chairID = $(this).attr('data-chair');
             var presid = $(this).attr('data-pres');
 
             jQuery.ajax({
@@ -901,6 +929,7 @@ $( document ).ready(function() {
                     mod_chair: true,
                     session: session,
                     chair: chair,
+                    chairID: chairID,
                     presid: presid},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -1041,8 +1070,9 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result === true) {
-                        $('.upl_info#'+uplname).remove();
-                        $('.upl_link #'+uplname).remove();
+                        console.log('Delete upload: '+uplname);
+                        $('.upl_info#upl_'+uplname).remove();
+                        $('.upl_link#upl_'+uplname).remove();
                     }
                 }
             });
@@ -1247,6 +1277,15 @@ $( document ).ready(function() {
             showmodal('submission_form');
             displaypub(id_pres,modalpubform);
             $(".header_title").text('Presentation');
+        })
+
+        // add a minute
+        .on('click','#addminute',function(e) {
+            e.preventDefault();
+            var date = $(this).attr('data-date');
+            showmodal('submission_form');
+            $(".header_title").text('Add a minute');
+            showpubform(modalpubform,false,'submit',date,'minute');
         })
 
         // Choose a wish

@@ -20,6 +20,135 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 // Includes required files (classes)
 require('../includes/boot.php');
 
+if (!empty($_POST['get_app_status'])) {
+    echo json_encode($AppConfig->status);
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Scheduled Tasks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['mod_cron'])) {
+    $cronName = $_POST['cron'];
+    $option = $_POST['option'];
+    $value = $_POST['value'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cronName);
+    if ($cron->isInstalled()) {
+        $cron->get();
+        $cron->$option = $value;
+        $cron->time = AppCron::parseTime($cron->dayNb, $cron->dayName, $cron->hour);
+        if ($cron->update()) {
+            $result = $cron->time;
+        } else {
+            $result = false;
+        }
+    } else {
+        $result = False;
+    }
+
+    echo json_encode($result);
+    exit;
+}
+
+// Install/uninstall cron jobs
+if (!empty($_POST['install_cron'])) {
+    $cronName = $_POST['cron'];
+    $op = $_POST['op'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cronName);
+    if ($op == 'install') {
+        $result = $cron->install();
+    } elseif ($op == 'uninstall') {
+        $result = $cron->delete();
+    } else {
+        $result = $cron->run();
+    }
+    echo json_encode($result);
+    exit;
+}
+
+// Run cron job
+if (!empty($_POST['run_cron'])) {
+    $cronName = $_POST['cron'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cronName);
+    $result = $cron->run();
+    echo json_encode($result);
+    exit;
+}
+
+// Modify cron status (on/off)
+if (!empty($_POST['cron_status'])) {
+    $cron = $_POST['cron'];
+    $status = $_POST['status'];
+    $CronJobs = new AppCron($db);
+    $cron = $CronJobs->instantiateCron($cron);
+    $cron->status = $status;
+    if ($cron->isInstalled()) {
+        $result = $cron->update();
+    } else {
+        $result = False;
+    }
+    echo json_encode($result);
+    exit;
+}
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Plugins
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['get_plugins'])) {
+    $page = $_POST['page'];
+    $Plugins = new AppPlugins($db);
+    $plugins = $Plugins->getPlugins($page);
+    echo json_encode($plugins);
+    exit;
+}
+
+if (!empty($_POST['mod_plugins'])) {
+    $plugin = $_POST['plugin'];
+    $option = $_POST['option'];
+    $value = $_POST['value'];
+    $Plugins = new AppPlugins($db);
+    $plugin = $Plugins->instantiatePlugin($plugin);
+    if ($plugin->installed) {
+        $plugin->get();
+        $plugin->options[$option] = $value;
+        $result = $plugin->update();
+    } else {
+        $result = False;
+    }
+
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['install_plugin'])) {
+    $plugin = $_POST['plugin'];
+    $op = $_POST['op'];
+    $Plugins = new AppPlugins($db);
+    $plugin = $Plugins->instantiatePlugin($plugin);
+    if ($op == 'install') {
+        $result = $plugin->install();
+    } else {
+        $result = $plugin->delete();
+    }
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['plugin_status'])) {
+    $plugin = $_POST['plugin'];
+    $status = $_POST['status'];
+    $Plugins = new AppPlugins($db);
+    $plugin = $Plugins->instantiatePlugin($plugin);
+    $plugin->status = $status;
+    if ($plugin->installed) {
+        $result = $plugin->update();
+    } else {
+        $result = False;
+    }
+    echo json_encode($result);
+    exit;
+}
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -32,12 +161,13 @@ if (!empty($_POST['get_calendar_param'])) {
 	$formatdate = array();
     $nb_pres = array();
     $type = array();
+    $status = array();
 	foreach($booked as $date) {
         // Count how many presentations there are for this day
         $session = new Session($db,$date);
         $nb_pres[] = $session->nbpres;
         $type[] = $session->type;
-
+        $status[] = $session->status;
         // Format date
 	    $fdate = explode("-",$date);
 	    $day = $fdate[2];
@@ -52,6 +182,7 @@ if (!empty($_POST['get_calendar_param'])) {
         "today"=>date('d-m-Y'),
         "booked"=>$formatdate,
         "nb"=>$nb_pres,
+        "status"=>$status,
         "sessiontype"=>$type);
 	echo json_encode($result);
     exit;
@@ -241,8 +372,10 @@ if (!empty($_POST['del_pub'])) {
 //  delete files
 if (!empty($_POST['del_upl'])) {
     $uplname = htmlspecialchars($_POST['uplname']);
-    $pub = new Presentation($db);
-    $result = $pub->delete_file($uplname);
+    $fileid = explode(".",$uplname);
+    $fileid = $fileid[0];
+    $up = new Media($db, $fileid);
+    $result = $up->delete();
     echo json_encode($result);
     exit;
 }
@@ -252,7 +385,7 @@ if (!empty($_POST['submit'])) {
     // check entries
     $user = new User($db,$_SESSION['username']);
     $date = $_POST['date'];
-    if ($Sessions->isbooked($date) == "Booked out") {
+    if ($Sessions->isbooked($date) == "Booked out" && $_POST['type'] !== 'minute') {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
@@ -295,7 +428,7 @@ if (!empty($_POST['update'])) {
     // check entries
     $user = new User($db,$_SESSION['username']);
     $date = $_POST['date'];
-    if ($Sessions->isbooked($date) === "Booked out") {
+    if ($Sessions->isbooked($date) === "Booked out" && $_POST['type'] !== 'minute') {
         $result = "<p id='warning'>This date is booked out</p>";
     } else {
         if ($_POST['type'] != "guest") {
@@ -304,13 +437,10 @@ if (!empty($_POST['update'])) {
 
         $created = $pub->update($_POST);
         if ($created !== false) {
-            // Pseudo randomly choose a chairman for this presentation
-            $chairs = $Sessions->getchair($date,$_POST['orator']);
             // Add to sessions table
             $postsession = array(
                 "date"=>$date,
                 "presid"=>$created,
-                "chairs"=>$chairs,
                 "speakers"=>$_POST['orator']
                 );
             $session = new Session($db);
@@ -351,10 +481,10 @@ if (isset($_POST['suggest'])) {
     exit;
 }
 
-// Display presentation (modal dialog)
+// Display submission form
 if (!empty($_POST['getpubform'])) {
+
     $id_Presentation = $_POST['getpubform'];
-    $type = $_POST['type'];
     if ($id_Presentation == "false") {
         $pub = false;
     } else {
@@ -363,26 +493,12 @@ if (!empty($_POST['getpubform'])) {
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
     }
-    $user = new User($db,$_SESSION['username']);
-    $result = displayform($user,$pub,$type);
-    echo json_encode($result);
-    exit;
-}
+    $date = (!empty($_POST['date']) && $_POST['date'] !== 'false') ? $_POST['date']:false;
+    $type = (!empty($_POST['type']) && $_POST['type'] !== 'false') ? $_POST['type']:false;
+    $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
 
-// Display presentation (modal dialog)
-if (!empty($_POST['getpubform'])) {
-    $id_press = $_POST['getpubform'];
-    $type = $_POST['type'];
-    if ($id_press == "false") {
-        $pub = false;
-    } else {
-        $pub = new Presentation($db,$id_press);
-    }
-    if (!isset($_SESSION['username'])) {
-        $_SESSION['username'] = false;
-    }
     $user = new User($db,$_SESSION['username']);
-    $result = displayform($user,$pub,$type);
+    $result = displayform($user,$pub,$type,$prestype,$date);
     echo json_encode($result);
     exit;
 }
@@ -396,6 +512,7 @@ if (!empty($_POST['show_pub'])) {
     if (!isset($_SESSION['username'])) {
         $_SESSION['username'] = false;
     }
+
     $user = new User($db,$_SESSION['username']);
     $pub = new Presentation($db,$id_Presentation);
     $form = displaypub($user,$pub);
@@ -575,22 +692,17 @@ if (!empty($_POST['add_type'])) {
     $class = $_POST['add_type'];
     $typename = $_POST['typename'];
     $varname = $class."_type";
-    $AppConfig->$varname .= ",$typename";
+    $divid = $class.'_'.$typename;
+    if ($class == "session") {
+        $AppConfig->session_type[$typename] = array();
+        $types = array_keys($AppConfig->$varname);
+    } else {
+        $AppConfig->$varname .= ",$typename";
+        $types = explode(',',$AppConfig->$varname);
+    }
     if ($AppConfig->update()) {
         //Get session types
-        $result = "";
-        $types = explode(',',$AppConfig->$varname);
-        $divid = $class.'_'.$typename;
-        foreach ($types as $type) {
-            $result .= "
-                <div class='type_div' id='$divid'>
-                    <div class='type_name'>$type</div>
-                    <div class='type_del' data-type='$type' data-class='$class'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
-                    </div>
-                </div>
-            ";
-        }
+        $result = showtypelist($types,$class,$divid);
     } else {
         $result = false;
     }
@@ -603,24 +715,19 @@ if (!empty($_POST['del_type'])) {
     $class = $_POST['del_type'];
     $typename = $_POST['typename'];
     $varname = $class."_type";
-    $AppConfig->$varname = explode(',',$AppConfig->$varname);
-    $AppConfig->$varname = array_diff($AppConfig->$varname,array($typename));
-    $AppConfig->$varname = implode(',',$AppConfig->$varname);
+    $divid = $class.'_'.$typename;
+    if ($class == "session") {
+        unset($AppConfig->session_type[$typename]);
+        $types = array_keys($AppConfig->$varname);
+    } else {
+        $AppConfig->$varname = explode(',',$AppConfig->$varname);
+        $types = array_values(array_diff($AppConfig->$varname,array($typename)));
+        $AppConfig->$varname = implode(',',$types);
+    }
+
     if ($AppConfig->update()) {
         //Get session types
-        $result = "";
-        $types = explode(',',$AppConfig->$varname);
-        $divid = $class.'_'.$typename;
-        foreach ($types as $type) {
-            $result .= "
-                <div class='type_div' id='$divid'>
-                    <div class='type_name'>$type</div>
-                    <div class='type_del' data-type='$type' data-class='$class'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
-                    </div>
-                </div>
-            ";
-        }
+        $result = showtypelist($types,$class,$divid);
     } else {
         $result = false;
     }
@@ -667,12 +774,17 @@ if (!empty($_POST['mod_chair'])) {
     $sessionid = $_POST['session'];
     $chair = $_POST['chair'];
     $presid = $_POST['presid'];
-    $session = new Session($db,$sessionid);
-    $sessionpost = array(
-        'date'=>$sessionid,
-        'chairs'=>$chair,
-        'presid'=>$presid);
-    $result = $session->update($sessionpost);
+    $chairID = $_POST['chairID'];
+
+    $Chairs = new Chairs($db);
+    $Chairs->get('id',$chairID);
+    $Chairs->chair = $chair;
+    $result = $Chairs->update();
+
+    $Presentation = new Presentation($db,$presid);
+    $Presentation->chair = $chair;
+    $result = $Presentation->update();
+
     echo json_encode($result);
     exit;
 }

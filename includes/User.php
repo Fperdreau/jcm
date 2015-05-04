@@ -22,16 +22,33 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Handle user-related methods (generate users list/ get organizers list)
  */
-class Users {
-    protected $db;
-    protected $tablename;
+class Users extends Table {
+
+    protected $table_data = array(
+        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
+        "date" => array("DATETIME", false),
+        "firstname" => array("CHAR(30)", false),
+        "lastname" => array("CHAR(30)", false),
+        "fullname" => array("CHAR(30)", false),
+        "username" => array("CHAR(30)", false),
+        "password" => array("CHAR(50)", false),
+        "position" => array("CHAR(10)", false),
+        "email" => array("CHAR(100)", false),
+        "notification" => array("INT(1)", 1),
+        "reminder" => array("INT(1)", 1),
+        "nbpres" => array("INT(3)", 0),
+        "status" => array("CHAR(10)", false),
+        "hash" => array("CHAR(32)", false),
+        "active" => array("INT(1)", 0),
+        "attempt" => array("INT(1)", 0),
+        "last_login" => array("DATETIME NOT NULL"),
+        "primary" => "id");
 
     /**
      * @param $db
      */
     function __construct($db) {
-        $this->db = $db;
-        $this->tablename = $this->db->tablesname["User"];
+        parent::__construct($db, 'User', $this->table_data);
     }
 
     /**
@@ -50,6 +67,20 @@ class Users {
             $user_info[]= $row;
         }
         return $user_info;
+    }
+
+    /**
+     * Get user list
+     * @return array
+     */
+    public function getUsers() {
+        $sql = "SELECT username FROM $this->tablename WHERE notification=1 and active=1";
+        $req = $this->db->send_query($sql);
+        $users = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $users[] = $row['username'];
+        }
+        return $users;
     }
 
     /**
@@ -185,7 +216,7 @@ class User extends Users{
     public $attempt = 0;
 
     /** @var  string */
-    private $last_login;
+    protected $last_login;
 
     /**
      * Constructor
@@ -235,20 +266,11 @@ class User extends Users{
 
 		// Parse variables and values to store in the table
 		$class_vars = get_class_vars("User");
-        $keys = array();
-		$values = array();
-        foreach ($class_vars as $key => $value) {
-            if (in_array($key,array("db","tablename"))) continue;
-            $escaped = $this->db->escape_query($this->$key);
-        	$values[] = "'$escaped'";
-            $keys[] = $key;
-        }
-		$values = implode(",", $values);
-        $variables = implode(",", $keys);
         if (self :: user_exist($this->username) == false
             && self :: mail_exist($this->email) == false) {
                 // Add to user table
-                $this->db->addcontent($this->tablename,$variables,$values);
+                $content = $this->parsenewdata($class_vars);
+                $this->db->addcontent($this->tablename,$content);
 
                 if ($this->status !=  "admin") {
 
@@ -321,14 +343,8 @@ class User extends Users{
      */
     function update($post) {
         $class_vars = get_class_vars("User");
-        $class_keys = array_keys($class_vars);
-        foreach ($post as $name => $value) {
-            if (in_array($name,array("db","tablename"))) continue;
-            $value = htmlspecialchars($value);
-            if (in_array($name,$class_keys)) {
-                $this->db->updatecontent($this->tablename,"$name","'$value'",array("username"),array("'$this->username'"));
-            }
-        }
+        $content = $this->parsenewdata($class_vars,$post);
+        $this->db->updatecontent($this->tablename,$content,array("username"=>$this->username));
         self::get($this->username);
         return true;
     }
@@ -386,7 +402,7 @@ class User extends Users{
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
-                    $this->db->updatecontent($this->tablename,array('active','attempt'),array(1,0),array("email"),array("'$this->email'"));
+                    $this->db->updatecontent($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
                     /** @var AppMail $mail */
                     $mail = new AppMail($this->db,$config);
                     $mail-> send_confirmation_mail($this->email,$this->username);
@@ -415,7 +431,7 @@ class User extends Users{
         } else {
             /** @var $this->db DbSet */
             $this->db = new DbSet();
-            $this->db->updatecontent($this->tablename,'active',0,array("email"),array("'$this->email'"));
+            $this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email));
             return "Account successfully deactivated";
         }
     }
@@ -442,7 +458,7 @@ class User extends Users{
             return false;
         }
         $this->last_login = date('Y-m-d H:i:s');
-        $this->db->updatecontent($this->tablename,array('attempt','last_login'),array($this->attempt,$this->last_login),array("username"),array("'$this->username'"));
+        $this->db->updatecontent($this->tablename,array('attempt'=>$this->attempt,'last_login'=>$this->last_login),array("username"=>$this->username));
         return $AppConfig->max_nb_attempt - $this->attempt;
     }
 
@@ -458,7 +474,7 @@ class User extends Users{
         if ($check == 1) {
             $this->attempt = 0;
             $this->last_login = date('Y-m-d H:i:s');
-            $this->db->updatecontent($this->tablename,array('attempt','last_login'),array($this->attempt,$this->last_login),array("username"),array("'$this->username'"));
+            $this->db->updatecontent($this->tablename,array('attempt'=>$this->attempt,'last_login'=>$this->last_login),array("username"=>$this->username));
             return true;
         } else {
             return false;
@@ -493,7 +509,7 @@ class User extends Users{
      * @return bool
      */
     function change_user_status($newstatus) {
-        return $this->db->updatecontent($this->tablename,'status',"'$newstatus'",array("username"),array("'$this->username'"));
+        return $this->db->updatecontent($this->tablename,array('status'=>$newstatus),array("username"=>$this->username));
     }
 
     /**
@@ -511,10 +527,9 @@ class User extends Users{
         $sql .= " ORDER BY date";
         $req = $this->db->send_query($sql);
         $content = "
-            <div class='list-container' id='pub_labels'>
-                <div style='text-align: center; font-weight: bold; width: 10%;'>Date</div>
+            <div class='list-container' id='pub_labels' style='font-size: 12px;'>
+                <div style='text-align: center; font-weight: bold; width: 15%;'>Date</div>
                 <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
-                <div style='text-align: center; font-weight: bold; width: 20%;'>Authors</div>
                 <div style='text-align: center; font-weight: bold; width: 10%;'></div>
             </div>
         ";
@@ -534,10 +549,9 @@ class User extends Users{
             }
             $content .= "
                 <div class='pub_container' id='$pub->id_pres'>
-                    <div class='list-container'>
-                        <div style='text-align: center; width: 10%;'>$date</div>
+                    <div class='list-container' style='font-size: 12px;'>
+                        <div style='text-align: center; width: 15%;'>$date</div>
                         <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->title</div>
-                        <div style='text-align: center; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->authors</div>
                         <div style='text-align: center; width: 10%; vertical-align: middle;'>
                             <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'>MORE</a>
                             </div>

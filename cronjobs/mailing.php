@@ -19,45 +19,135 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require('../includes/boot.php');
 
-// Execute cron job
-function mailing() {
-    global $AppMail, $AppConfig;
+class Mailing extends AppCron {
 
-	// Count number of users
-    $nusers = count($AppMail->get_mailinglist("notification"));
+    public $name='Mailing';
+    public $path;
+    public $status='Off';
+    public $installed=False;
+    public $time;
+    public $dayName='Monday';
+    public $dayNb=0;
+    public $hour=0;
+    public $options;
 
-	// today's day
-    $cur_date = strtolower(date("l"));
+    public function __construct(DbSet $db) {
+        parent::__construct($db);
+        $this->path = basename(__FILE__);
+        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
+    }
 
-    if ($cur_date == $AppConfig->notification) {
-        $content = $AppMail->advertise_mail();
+    public function install() {
+        // Register the plugin in the db
+        $class_vars = get_class_vars($this->name);
+        return $this->make($class_vars);
+    }
+
+    public function run() {
+        /**
+         * Run cron job
+         */
+        global $AppMail;
+
+        // Count number of users
+        $nusers = count($AppMail->get_mailinglist("notification"));
+
+        $content = $this->makeMail();
         $body = $AppMail -> formatmail($content['body']);
 
         $subject = $content['subject'];
         if ($AppMail->send_to_mailinglist($subject,$body,"notification")) {
-            $string = "[".date('Y-m-d H:i:s')."]: message sent successfully to $nusers users.\r\n";
+            $result = "message sent successfully to $nusers users.";
         } else {
-            $string = "[".date('Y-m-d H:i:s')."]: ERROR message not sent.\r\n";
+            $result = "ERROR message not sent.";
         }
 
-	    echo($string);
+        $this->logger("$this->name.txt",$result);
+        return($result);
+    }
 
-	    // Write log
-	    $cronlog = 'mailing_log.txt';
-	    if (!is_file($cronlog)) {
-	        $fp = fopen($cronlog,"w");
-	    } else {
-	        $fp = fopen($cronlog,"a+");
-	    }
-	    fwrite($fp,$string);
-	    fclose($fp);
-	} else {
-		echo "<p>notification day: $AppConfig->notification</p>";
-		echo "<p>Today: $cur_date</p>";
-	}
+    /**
+     * Make notification email
+     * (weekly digest including last news, information about the upcoming session, about future sessions, and the wish list)
+     * @return mixed
+     */
+    public function makeMail() {
+        // Get recent news
+        $Posts = new Posts($this->db);
+        $sessions = new Sessions($this->db);
+        $presentations = new Presentations($this->db);
 
+        $last = $Posts->getlastnews();
+        $last_news = new Posts($this->db,$last);
+        $today = date('Y-m-d');
+        if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
+            $last_news->content = "No recent news this week";
+        }
+
+        // Get future presentations
+        $pres_list = $sessions->showfuturesession(4,'mail');
+
+        // Get wishlist
+        $wish_list = $presentations->getwishlist(4,true);
+
+        // Get next session
+        $next_session = $sessions->shownextsession(true);
+
+        $content['body'] = "
+
+                <div style='width: 95%; margin: auto; font-size: 16px;'>
+                    <p>Hello,</p>
+                    <p>This is your Journal Club weekly digest.</p>
+                </div>
+
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
+                        Last News
+                    </div>
+
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
+                        $last_news->content
+                    </div>
+                </div>
+
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
+                        Upcoming session
+                    </div>
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
+                        $next_session
+                    </div>
+                </div>
+
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
+                        Future sessions
+                    </div>
+
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
+                        $pres_list
+                    </div>
+                </div>
+
+                <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                    <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
+                        Wish list
+                    </div>
+
+                    <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5); height: auto;'>
+                        $wish_list
+                    </div>
+                </div>
+
+                <div style='width: 95%; margin: auto; font-size: 16px;'>
+                    <p>Cheers,<br>
+                    The Journal Club Team</p>
+                </div>
+        ";
+
+        $content['subject'] = "Last News - ".date('d M Y');
+        return $content;
+    }
 }
 
-// Run cron job
-mailing();
 

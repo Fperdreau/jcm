@@ -63,7 +63,9 @@ $config = new AppConfig($db);
         <!-- Core section -->
         <div id="core">
         	<div id="loading"></div>
-        	<div id="pagecontent"></div>
+        	<div id="pagecontent">
+                <div id="plugins"></div>
+            </div>
         </div>
 
         <!-- Footer section -->
@@ -75,6 +77,8 @@ $config = new AppConfig($db);
 
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/plugins.js"></script>
+        <script type="text/javascript" src="js/cronjobs.js"></script>
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>

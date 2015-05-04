@@ -1,6 +1,6 @@
 # Journal club Manager
 ##Author:
-Florian Perdreau (Radboud University Nijmegen, Donders Centre for Cognition), www.florianperdreau.fr
+Florian Perdreau, www.florianperdreau.fr
 
 ##Description:
 *Journal Club Manager* is a web-application developed in order to help labs in managing their journal clubs or talks.
@@ -32,8 +32,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 ###External sources
 *Journal Club Manager* also depends on external free softwares:
 - PHPMailer, Copyright &copy; 2014 Marcus Bointon, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
-- html2text, Copyright &copy; 2010 Jevon Wright and others, licenced under ther [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
-- TinyMCE Copyright &copy; Moxiecode Systems AB, licenced under ther [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
+- html2text, Copyright &copy; 2010 Jevon Wright and others, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
+- TinyMCE Copyright &copy; Moxiecode Systems AB, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
 
 ##Requirements:
 - A web server running PHP 5.2 or later,
@@ -42,4 +42,4 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 - SMTP server (or a Google Mail account)
 
 
-**Instructions and a more detailed description of the Journal Club Manager can be found in "installation.pdf"**
+**Instructions and a more detailed description of the Journal Club Manager can be found in "manual.pdf"**

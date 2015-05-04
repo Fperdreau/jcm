@@ -27,15 +27,12 @@ if (isset($_SESSION['status']) and ($_SESSION['status'] == "admin" or $_SESSION[
 if (!empty($_SESSION['status']) && $_SESSION['status'] == "admin") {
     $configmenu = "
     <div class='addmenu-section' data-url='admin_tool' data-param='op=config'><span id='addmenu'>Configuration</span></div>
+    <div class='addmenu-section' data-url='admin_tool' data-param='op=plugins'><span id='addmenu'>Plugins</span></div>
+    <div class='addmenu-section' data-url='admin_tool' data-param='op=cronjobs'><span id='addmenu'>CronJobs</span></div>
     <div class='addmenu-section' data-url='admin_tool' data-param='op=tools'><span id='addmenu'>Tools</span></div>";
 } else {
     $configmenu = "";
 }
-$users_url = "index.php?page=admin_tool&op=users";
-$mail_url = "index.php?page=admin_tool&op=mail";
-$config_url = "index.php?page=admin_tool&op=config";
-$post_url = "index.php?page=admin_tool&op=post";
-$tools_url = "index.php?page=admin_tool&op=tools";
 
 echo "
 <div class='menu-container'>

@@ -32,6 +32,29 @@ function explodecontent($delimiter,$var) {
     return $newvar;
 }
 
+
+/**
+ * Show session/presentation types list (admin -> manage session)
+ * @param $types
+ * @param $class
+ * @param $divid
+ * @return string
+ */
+function showtypelist($types,$class,$divid) {
+    $result = "";
+    foreach ($types as $type) {
+        $result .= "
+                <div class='type_div' id='$divid'>
+                    <div class='type_name'>$type</div>
+                    <div class='type_del' data-type='$type' data-class='$class'>
+                    <img src='images/delete.png' style='width: 15px; height: auto;'>
+                    </div>
+                </div>
+            ";
+    }
+    return $result;
+}
+
 /**
  * Check if the user is logged in and has the required status to access the current page
  * @param null $status
@@ -61,29 +84,30 @@ function check_login($status=null) {
 /**
  * Generate submission form and automatically fill it up with data provided by Presentation object.
  * @param $user
- * @param $Presentation
+ * @param bool $Presentation
  * @param string $submit
+ * @param bool $type
+ * @param bool $date
  * @return string
  */
-function displayform($user,$Presentation=false,$submit="submit") {
+function displayform($user,$Presentation=false,$submit="submit", $type=false, $date=false) {
     $db = new DbSet();
     $config = new AppConfig($db);
     if ($Presentation == false) {
         $Presentation = new Presentation($db);
     }
-    $date = $Presentation->date;
+    $date = ($date != false) ? $date:$Presentation->date;
+    $type = ($type != false) ? $type:$Presentation->type;
 
     // Get files associated to this publication
     $filelist = "";
     if (!empty($Presentation->link)) {
-        $links = explode(',',$Presentation->link);
-        foreach ($links as $link) {
-            $name = explode('.',$link);
-            $name = $name[0];
+        $links = $Presentation->link;
+        foreach ($links as $fileid=>$info) {
             $filelist .=
-            "<div class='upl_info' id='$name'>
-                <div class='upl_name' id='$link'>$link</div>
-                <div class='del_upl' id='$link' data-upl='$name'>
+            "<div class='upl_info' id='upl_$fileid'>
+                <div class='upl_name' id='$fileid'>$fileid</div>
+                <div class='del_upl' id='$fileid' data-upl='$fileid'>
                     <img src='../images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
                 </div>
             </div>";
@@ -105,14 +129,19 @@ function displayform($user,$Presentation=false,$submit="submit") {
         $dateinput = "";
     }
 
+    $authors = ($type !== 'minute') ? "<div class='formcontrol' style='width: 50%;'>
+                <label>Authors </label>
+                <input type='text' id='authors' name='authors' value='$Presentation->authors'>
+            </div>":"";
+
     // Make submission's type selection list
     $typeoptions = "";
     $pres_type = explode(',',$config->pres_type);
-    foreach ($pres_type as $type) {
-        if ($type == $Presentation->type) {
-            $typeoptions .= "<option value='$type' selected>$type</option>";
+    foreach ($pres_type as $types) {
+        if ($types == $type) {
+            $typeoptions .= "<option value='$types' selected>$types</option>";
         } else {
-            $typeoptions .= "<option value='$type'>$type</option>";
+            $typeoptions .= "<option value='$types'>$types</option>";
         }
     }
 
@@ -151,10 +180,7 @@ function displayform($user,$Presentation=false,$submit="submit") {
                 <input type='text' id='title' name='title' value='$Presentation->title'/>
             </div>
 
-            <div class='formcontrol' style='width: 50%;'>
-                <label>Authors </label>
-                <input type='text' id='authors' name='authors' value='$Presentation->authors'>
-            </div>
+            $authors
 
             <div class='formcontrol' style='width: 80%;'>
                 <label>Abstract</label>
@@ -189,10 +215,14 @@ function displayform($user,$Presentation=false,$submit="submit") {
 function displaypub($user,$Presentation) {
     if (!(empty($Presentation->link))) {
         $download_button = "<div class='dl_btn' id='$Presentation->id_pres'>Download</div>";
-        $filelist = explode(',',$Presentation->link);
+        $filelist = $Presentation->link;
         $dlmenu = "<div class='dlmenu'>";
-        foreach ($filelist as $file) {
-            $dlmenu .= "<div class='dl_info'><div class='upl_name' id='$file'>$file</div></div>";
+        foreach ($filelist as $fileid=>$info) {
+            $dlmenu .= "
+                <div class='dl_info'>
+                    <div class='dl_type'>".strtoupper($info['type'])."</div>
+                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
+                </div>";
         }
         $dlmenu .= "</div>";
     } else {
@@ -287,22 +317,12 @@ function browse($dir, $dirsNotToSaveArray = array()) {
 function exportdbtoxls($tablename) {
     /***** EDIT BELOW LINES *****/
     $db = new DbSet();
-    $DB_Server = $db->host; // MySQL Server
-    $DB_Username = $db->username; // MySQL Username
-    $DB_Password = $db->password; // MySQL Password
-    $DB_DBName = $db->dbname; // MySQL Database Name
     $DB_TBLName = $db->dbprefix.$tablename; // MySQL Table Name
-    $xls_filename = 'backup/export_'.$tablename.date('Y-m-d').'.xls'; // Define Excel (.xls) file name
+    $xls_filename = 'backup/export_'.$tablename.date('Y-m-d_H-i-s').'.xls'; // Define Excel (.xls) file name
 	$out = "";
 
-    /***** DO NOT EDIT BELOW LINES *****/
-    // Create MySQL connection
-    $sql = "Select * from $DB_TBLName";
-    $Connect = @mysql_connect($DB_Server, $DB_Username, $DB_Password) or die("Failed to connect to MySQL:<br />" . mysql_error() . "<br />" . mysql_errno());
-    // Select database
-    $Db = @mysql_select_db($DB_DBName, $Connect) or die("Failed to select database:<br />" . mysql_error(). "<br />" . mysql_errno());
-    // Execute query
-    $result = @mysql_query($sql,$Connect) or die("Failed to execute query:<br />" . mysql_error(). "<br />" . mysql_errno());
+    $sql = "SELECT * FROM $DB_TBLName";
+    $result = $db->send_query($sql);
 
     // Header info settings
     header("Content-Type: application/xls");
@@ -322,8 +342,7 @@ function exportdbtoxls($tablename) {
     // End of printing column names
 
     // Start while loop to get data
-    while($row = mysql_fetch_row($result))
-    {
+    while($row = mysql_fetch_row($result)) {
         $schema_insert = "";
         for($j=0; $j<mysql_num_fields($result); $j++)
         {
@@ -357,7 +376,6 @@ function exportdbtoxls($tablename) {
         echo json_encode($result);
         exit;
     }
-    chmod($xls_filename,0644);
 
     return $xls_filename;
 }
@@ -381,35 +399,36 @@ function backup_db(){
 
     // Do backup
     /* Store All Table name in an Array */
-    $allTables = array();
-    $result = $db->send_query('SHOW TABLES');
-    while($row = mysqli_fetch_row($result)){
-        $allTables[] = $row[0];
-    }
+    $allTables = $db->getapptables();
 
     $return = "";
-    foreach($allTables as $table){
-        $result = $db->send_query("SELECT * FROM $table");
+    //cycle through
+	foreach($allTables as $table)
+    {
+        $result = $db->send_query('SELECT * FROM '.$table);
         $num_fields = mysqli_num_fields($result);
 
-        $return.= "DROP TABLE IF EXISTS $table";
-        $row2 = mysqli_fetch_row($db->send_query('SHOW CREATE TABLE '.$table));
+        $return.= 'DROP TABLE '.$table.';';
+        $row = $db->send_query('SHOW CREATE TABLE '.$table);
+        $row2 = mysqli_fetch_row($row);
         $return.= "\n\n".$row2[1].";\n\n";
 
-        for ($i = 0; $i < $num_fields; $i++) {
-            while($row = mysqli_fetch_row($result)){
-                $return.= "INSERT INTO $table VALUES(";
-                for($j=0; $j<$num_fields; $j++){
+        for ($i = 0; $i < $num_fields; $i++)
+        {
+            while($row = mysqli_fetch_row($result))
+            {
+                $return.= 'INSERT INTO '.$table.' VALUES(';
+                for($j=0; $j<$num_fields; $j++)
+                {
                     $row[$j] = addslashes($row[$j]);
-                    $row[$j] = str_replace("\n","\\n",$row[$j]);
-                    if (isset($row[$j])) { $return.= '"'.$row[$j].'"' ; }
-                    else { $return.= '""'; }
+                    $row[$j] = ereg_replace("\n","\\n",$row[$j]);
+                    if (isset($row[$j])) { $return.= '"'.$row[$j].'"' ; } else { $return.= '""'; }
                     if ($j<($num_fields-1)) { $return.= ','; }
                 }
                 $return.= ");\n";
             }
         }
-        $return.="\n\n";
+        $return.="\n\n\n";
     }
     $handle = fopen($mysqlSaveDir."/".$fileNamePrefix.".sql",'w+');
     fwrite($handle,$return);

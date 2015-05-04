@@ -19,50 +19,73 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require('../includes/boot.php');
 
-/**
- * Assign chairmen for the next n sessions
- * @return bool
- */
-function assignchairs() {
-    global $db, $AppConfig, $Sessions;
-    if ($AppConfig->chair_assign == "manual") {echo "<p>Chair assignment is set to Manual. We have nothing to do!</p>"; return false;}
+class AssignChairs extends AppCron {
+    /**
+     * Assign chairmen for the next n sessions
+     * @return bool
+     */
 
-    $AppConfig = new AppConfig($db);
-    $nbsessions = $AppConfig->nbsessiontoplan; // Number of sessions to plan in advance
+    public $name = 'AssignChairs';
+    public $path;
+    public $status = 'Off';
+    public $installed = False;
+    public $time;
+    public $dayName;
+    public $dayNb;
+    public $hour;
+    public $options;
 
-    $jc_days = $Sessions->getjcdates($nbsessions);
-    foreach ($jc_days as $day) {
-        $session = new Session($db, $day);
+    public function __construct(DbSet $db) {
+        parent::__construct($db);
+        $this->path = basename(__FILE__);
+        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
+    }
 
-        $chairs = explodecontent(',',$session->chairs);
-        $presids = explodecontent(',',$session->presid);
-        $speakers = explodecontent(',',$session->speakers);
-        $truechairs = array_values(array_diff($chairs,array("TBA")));
-        $chairstoplan = $AppConfig->max_nb_session - count($truechairs); // Number of chairs to plan for this session
-        if ($chairstoplan > 0 && $session->type !== "No group meeting") {
-            for ($p = 1; $p <= $AppConfig->max_nb_session; $p++) {
-                $presid = (!empty($presids[$p]) ? $presids[$p]:false);
-                $speaker = (!empty($speakers[$p]) ? $speakers[$p]:false);
+    public function install() {
+        // Register the plugin in the db
+        $class_vars = get_class_vars($this->name);
+        return $this->make($class_vars);
+    }
 
-                if (empty($chairs[$p]) || $chairs[$p]=="TBA") {
-                    $chair = $Sessions->getchair($day);
-                    $sessionpost = array(
-                        "chairs" => $chair,
-                        "date" => $day,
-                        "presid"=>$presid,
-                        "speakers" => $speaker
-                    );
-                    $session = new Session($db);
-                    $session->make($sessionpost);
+    /**
+     * Run scheduled task: assign chairmen
+     * @return bool|string
+     */
+    public function run() {
+        global $db, $AppConfig, $Sessions;
+        if ($AppConfig->chair_assign == "manual") {
+            echo "<p>Chair assignment is set to Manual. We have nothing to do!</p>";
+            return "Chair assignment is set to Manual. We have nothing to do!";
+        }
+
+        $AppConfig = new AppConfig($db);
+
+        $jc_days = $Sessions->getjcdates($AppConfig->nbsessiontoplan);
+        $created = 0;
+        $updated = 0;
+        foreach ($jc_days as $day) {
+            $session = new Session($db, $day);
+            $chair = new Chairs($this->db);
+
+            // Number of chairs to plan for this session
+            if ($session->type !== "none") {
+                for ($p = 0; $p < $AppConfig->max_nb_session; $p++) {
+                    $speaker = (!empty($session->speakers[$p]) ? $session->speakers[$p] : false);
+                    $presid = (!empty($session->presids[$p]) ? $session->presids[$p] : null);
+                    if ($session->chairs[$p]['chair'] == 'TBA'){
+                        $thisChair = new Chairs($this->db);
+                        $thisChair->get('id',$session->chairs[$p]['id']);
+                        $thisChair->presid = $presid;
+                        $thisChair->date = $session->date;
+                        $thisChair->chair = $chair->getChair($session->date, $speaker);
+                        $thisChair->update();
+                        $updated += 1;
+                    }
                 }
             }
-            echo "<p><b>$session->date</b> | Chairs: $session->chairs | Speakers : $session->speakers</p>";
-        } else {
-            echo "<p><b>$session->date</b> | Nothing to plan for this session</p>";
         }
+        $result = "$created chair(s) created<br>$updated chair(s) updated";
+        $this->logger("$this->name.txt",$result);
+        return $result;
     }
-    return true;
 }
-
-/** Run chair assignement */
-assignchairs();

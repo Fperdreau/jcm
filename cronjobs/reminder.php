@@ -19,53 +19,87 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 require('../includes/boot.php');
 
+class Reminder extends AppCron {
 
-/**
- * Send email notification
- */
-function mailing() {
-    // Declare classes
-    global $AppMail, $AppConfig, $Sessions;
+    public $name = 'Reminder';
+    public $path;
+    public $status = 'Off';
+    public $installed = False;
+    public $time;
+    public $dayName;
+    public $dayNb;
+    public $hour;
+    public $options;
 
-    $ids = $Sessions->getsessions(true);
-    $nextsession = new Session($ids[0]);
+    public function __construct(DbSet $db) {
+        parent::__construct($db);
+        $this->path = basename(__FILE__);
+        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
+    }
 
-	// Number of users
-    $nusers = count($AppMail->get_mailinglist("reminder"));
+    public function install() {
+        // Register the plugin in the db
+        $class_vars = get_class_vars($this->name);
+        return $this->make($class_vars);
+    }
 
-	// Compare date of the next presentation to today
-    $today   = new DateTime(date('Y-m-d'));
-    $reminder_day = new DateTime(date("Y-m-d",strtotime($nextsession->date." - $AppConfig->reminder days")));
-    $send = $today->format('Y-m-d') == $reminder_day->format('Y-m-d');
+    public function run() {
+        /**
+         * Run cron job
+         */
 
-    if ($send === true) {
-        $content = $AppMail->reminder_Mail();
-        $body = $AppMail -> formatmail($content['body']);
+        // Declare classes
+        global $AppMail;
+
+        // Number of users
+        $nusers = count($AppMail->get_mailinglist("reminder"));
+
+        $content = $this->makeMail();
+        $body = $AppMail->formatmail($content['body']);
         $subject = $content['subject'];
-        if ($AppMail->send_to_mailinglist($subject,$body,"reminder")) {
-            $string = "[".date('Y-m-d H:i:s')."]: message sent successfully to $nusers users.\r\n";
+        if ($AppMail->send_to_mailinglist($subject, $body, "reminder")) {
+            $result = "message sent successfully to $nusers users.";
         } else {
-            $string = "[".date('Y-m-d H:i:s')."]: ERROR message not sent.\r\n";
+            $result = "ERROR message not sent.";
         }
-		echo($string);
 
-	    // Write log
-	    $cronlog = 'reminder_log.txt';
-	    if (!is_file($cronlog)) {
-	        $fp = fopen($cronlog,"w");
-	    } else {
-	        $fp = fopen($cronlog,"a+");
-	    }
-	    fwrite($fp,$string);
-	    fclose($fp);
-    } else {
-        echo "Reminder day: ".$reminder_day->format('Y-m-d');
-        echo "nothing to send";
+        // Write log
+        $this->logger("$this->name.txt",$result);
+        return $result;
+
+    }
+
+    /**
+     * Make reminder notification email (including only information about the upcoming session)
+     * @return mixed
+     */
+    private function makeMail() {
+        $sessions = new Sessions($this->db);
+        $next_session = $sessions->getsessions(true);
+        $sessioncontent = $sessions->shownextsession();
+        $date = $next_session[0];
+
+        $content['body'] = "
+            <div style='width: 95%; margin: auto; font-size: 16px;'>
+                <p>Hello,<br>
+                This is a reminder for the next Journal Club session.</p>
+            </div>
+
+            <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
+                    Next session
+                </div>
+                <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
+                    $sessioncontent
+                </div>
+            </div>
+
+            <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
+                <p>Cheers,<br>
+                The Journal Club Team</p>
+            </div>
+        ";
+        $content['subject'] = "Next session: $date -reminder";
+        return $content;
     }
 }
-
-/**
- * Run cron job
- */
-mailing();
-

@@ -101,6 +101,12 @@ class DbSet {
     public $tablesname;
 
     /**
+     * Default charset
+     * @var string
+     */
+    public $charset = 'utf8';
+
+    /**
      * Constructor
      */
     function __construct() {
@@ -110,7 +116,11 @@ class DbSet {
             "AppConfig" => $this->dbprefix."_config",
             "User" => $this->dbprefix."_users",
             "Session" => $this->dbprefix."_session",
-            "Posts" => $this->dbprefix."_post"
+            "Posts" => $this->dbprefix."_post",
+            "Media" => $this->dbprefix."_media",
+            "Chairs" => $this->dbprefix."_chairs",
+            "Plugins" => $this->dbprefix."_plugins",
+            "Crons" => $this->dbprefix."_crons"
         );
     }
 
@@ -153,6 +163,11 @@ class DbSet {
         if (!mysqli_select_db($this->bdd,"$this->dbname")) {
             die(json_encode("<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>"));
         }
+
+        if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
+            die(json_encode("<p id='warning'>Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd)."</p>"));
+        }
+
         return $this->bdd;
 	}
 
@@ -178,6 +193,12 @@ class DbSet {
         return $result;
     }
 
+    /**
+     * @return mixed
+     */
+    function getCharSet() {
+        return $this->bdd->get_charset();
+    }
 
     /**
      * Get list of tables associated to the application
@@ -232,7 +253,9 @@ class DbSet {
      */
     public function send_query($sql,$silent=false) {
         self::bdd_connect();
-
+        if (!mysqli_set_charset($this->bdd,"utf8")) {
+            print('We could not load UTF8 charset');
+        }
         $req = mysqli_query($this->bdd,$sql);
         if (false === $req) {
             if ($silent == false) {
@@ -281,6 +304,10 @@ class DbSet {
         }
 	}
 
+    public function modifyCharSet() {
+
+    }
+
     /**
      * Drop a table
      * @param $table_name
@@ -290,6 +317,16 @@ class DbSet {
 		$sql = 'DROP TABLE '.$table_name;
         return self::send_query($sql);
 	}
+
+    /**
+     * Empty a table
+     * @param $table_name
+     * @return bool|mysqli_result
+     */
+    public function clearTable($table_name) {
+        $sql = "TRUNCATE TABLE $table_name";
+        return self::send_query($sql);
+    }
 
     /**
      * Add a column to the table
@@ -322,12 +359,19 @@ class DbSet {
     /**
      * Add content (row) to a table
      * @param $table_name
-     * @param $cols_name
-     * @param $values
+     * @param $content
      * @return bool|mysqli_result
+     * @internal param $cols_name
+     * @internal param $values
      */
-    public function addcontent($table_name,$cols_name,$values) {
-		$sql = 'INSERT INTO '.$table_name.'('.$cols_name.') VALUES('.$values.')';
+    public function addcontent($table_name,$content) {
+        $cols_name = array();
+        $values = array();
+        foreach ($content as $col=>$value) {
+            $cols_name[] = $col;
+            $values[] = "'".$this->escape_query($value)."'";
+        }
+		$sql = 'INSERT INTO '.$table_name.'('.implode(',',$cols_name).') VALUES('.implode(',',$values).')';
         return self::send_query($sql);
     }
 
@@ -362,7 +406,7 @@ class DbSet {
         foreach($data as $field=>$val) {
             if (!in_array($field,array('submit'))) {
                 $vas = "'".self::escape_query($val)."'";
-                self::updatecontent($table_name,$field,$vas,$refcol,$id);
+                self::updatecontent($table_name,array($field=>$vas),array($refcol=>$id));
             }
         }
     }
@@ -375,11 +419,14 @@ class DbSet {
      * @return bool
      */
     public function deletecontent($table_name,$refcol,$id) {
-		$nref = count($refcol);
+        $refcol = is_array($refcol) ? $refcol:array($refcol);
+        $id = is_array($id) ? $id:array($id);
+
+        $nref = count($refcol);
 		$cpt = 0;
         $cond = array();
 		foreach ($refcol as $ref) {
-			$cond[] = "$ref=".$id[$cpt];
+			$cond[] = "$ref='".$id[$cpt]."'";
 			$cpt++;
 		}
 
@@ -393,40 +440,33 @@ class DbSet {
     /**
      * Update a row
      * @param $table_name
-     * @param $cols_name
-     * @param $value
-     * @param $refcol
-     * @param $id
+     * @param $content
+     * @param array $reference
      * @return bool
+     * @internal param $cols_name
+     * @internal param $value
+     * @internal param $refcol
+     * @internal param $id
      */
-    public function updatecontent($table_name,$cols_name,$value,$refcol,$id) {
-		$nref = count($refcol);
-		$cpt = 0;
+    public function updatecontent($table_name,$content,$reference=array()) {
+
+        # Parse conditions
+        $nb_ref = count($reference);
         $cond = array();
-		foreach ($refcol as $ref) {
-			$cond[] = "$ref=".$id[$cpt];
-			$cpt++;
-		}
-
-		if ($nref > 1) {
-			$cond = implode(' AND ',$cond);
-		} else {
-			$cond = implode('',$cond);
-		}
-        if (is_array($cols_name)) {
-            $set = array();
-            $cpt = 0;
-            foreach ($cols_name as $cols) {
-                $val = $value[$cpt];
-                $set[]="$cols='$val'";
-                $cpt++;
-            }
-            $set = implode(',',$set);
-        } else {
-            $set = "$cols_name=$value";
+        foreach ($reference as $col=>$value) {
+            $cond[] = "$col='$value'";
         }
+        $cond = $nb_ref > 1 ? implode(' AND ',$cond):implode($cond);
 
-		$sql = "UPDATE $table_name SET $set WHERE ".$cond;
+        # Parse columns
+        $set = array();
+        foreach ($content as $col=>$value) {
+            $value = $this->escape_query($value);
+            $set[] = "$col='$value'";
+        }
+        $set = implode(',',$set);
+
+		$sql = "UPDATE $table_name SET $set WHERE $cond";
         if (self::send_query($sql)) {
             return true;
         } else {

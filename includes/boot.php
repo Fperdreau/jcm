@@ -42,16 +42,17 @@ if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
 /**
  * Includes required files (classes)
  */
-require_once('SessionInstance.php');
-require_once('DbSet.php');
-require_once('User.php');
-require_once('AppMail.php');
-require_once('Posts.php');
-require_once("Presentation.php");
-require_once("Session.php");
-require_once("AppConfig.php");
-include_once('functions.php');
-include_once('PasswordHash.php');
+include_once(PATH_TO_INCLUDES.'DbSet.php');
+include_once(PATH_TO_INCLUDES.'Table.php');
+$includeList = scandir(PATH_TO_INCLUDES);
+foreach ($includeList as $includeFile) {
+    if (!in_array($includeFile,array('.','..','boot.php'))) {
+        require_once($includeFile);
+    }
+}
+
+/** Load plugins */
+
 
 /**
  * Start session
@@ -64,6 +65,7 @@ SessionInstance::initsession();
  *
  */
 $db = new DbSet();
+$AppCore = new AppCore($db);
 $AppConfig = new AppConfig($db);
 $Presentations = new Presentations($db);
 $Users = new Users($db);

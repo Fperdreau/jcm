@@ -52,7 +52,7 @@ $(document).ready(function() {
           if (error === true) {
             var name = result.name;
             $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-            $('.upl_filelist').append("<div class='upl_info' id='"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
+            $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
           } else {
             $('.upl_container').find('.upl_errors').html(error).show();
           }
@@ -60,7 +60,7 @@ $(document).ready(function() {
 
       error: function(response){
           $('.upl_container').find('.upl_errors').html(response.statusText).show();
-      },
+      }
 
     });
   };
