@@ -199,7 +199,7 @@ class AppCron extends Table {
         $runnningjobs = array();
         foreach ($jobs as $thisJob=>$info) {
             $jobTime = strtotime($info['time']);
-            if ($info['installed'] && $info['status'] == 'On' && $jobTime >= $now && $jobTime<=($now+(59*60))) {
+            if ($info['installed'] && $info['status'] == 'On' && $now >= $jobTime && $now<=($jobTime+(59*60))) {
                 $runnningjobs[] = $thisJob;
             }
         }
