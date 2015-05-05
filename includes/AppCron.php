@@ -142,19 +142,25 @@ class AppCron extends Table {
         $month = date('m');
         $year = date('Y');
         $day = date('d');
-        $now = date('H:i:s');
+        $todayName = date('l');
+        $thisHour = date('H');
 
         $timestamp = mktime(0,0,0,$month,1,$year);
         $maxday = date("t",$timestamp); // Last day of the current month
         $dayNb = ($dayNb>$maxday) ? $maxday:$dayNb;
+
         if ($dayNb > 0) {
             $strday = ($dayNb<$day)
                 ? date('Y-m-d',strtotime("$year-$month-$dayNb + 1 month"))
                 :date('Y-m-d',strtotime("$year-$month-$dayNb"));
         } elseif ($dayName !=='All') {
-            $strday = date('Y-m-d',strtotime("next $dayName"));
+            if ($dayName == $todayName && $hour > $thisHour) {
+                $strday = $today;
+            } else {
+                $strday = date('Y-m-d',strtotime("next $dayName"));
+            }
         } elseif ($dayName == 'All') {
-            $strday = ($hour < $now) ? date('Y-m-d',strtotime("$today + 1 day")) : $today;
+            $strday = ($hour < $thisHour) ? date('Y-m-d',strtotime("$today + 1 day")) : $today;
         }
         $strtime = date('H:i:s',strtotime("$hour:00:00"));
         $time = $strday.' '.$strtime;
@@ -167,6 +173,7 @@ class AppCron extends Table {
      */
     function updateTime() {
         $newTime = $this->parseTime($this->dayNb,$this->dayName, $this->hour);
+        var_dump($newTime);
         return $this->update(array('time'=>$newTime));
     }
 

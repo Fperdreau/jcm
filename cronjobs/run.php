@@ -36,6 +36,7 @@ function run() {
         echo "<p>Running '$job'...</p>";
         try {
             $thisJob = $AppCron->instantiateCron($job);
+            $thisJob->get();
             $result = $thisJob->run();
             echo $result;
             echo "<p>...Done</p>";
