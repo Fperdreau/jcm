@@ -31,22 +31,26 @@ function run() {
     $nbJobs = count($runningCron);
     echo "There are $nbJobs task(s) to run.";
 
-    $logs = "There are $nbJobs task(s) to run.\n";
-    foreach ($runningCron as $job) {
-        echo "<p>Running '$job'...</p>";
-        try {
-            $thisJob = $AppCron->instantiateCron($job);
-            $thisJob->get();
-            $result = $thisJob->run();
-            echo $result;
-            echo "<p>...Done</p>";
-            $logs .= date('[Y-m-d H:i:s]')." $job: $result<br>";
-            $thisJob->updateTime();
-        } catch (Exception $e) {
-            $logs .= "Job $job encountered an error: $e->getMessage()";
+    if ($nbJobs > 0) {
+        $logs = "There are $nbJobs task(s) to run.\n";
+        foreach ($runningCron as $job) {
+            echo "<p>Running '$job'...</p>";
+            try {
+                $thisJob = $AppCron->instantiateCron($job);
+                $thisJob->get();
+                $result = $thisJob->run();
+                echo $result;
+                echo "<p>...Done</p>";
+                $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: $result</p>";
+                $thisJob->updateTime();
+            } catch (Exception $e) {
+                $logs .= "<p>Job $job encountered an error: $e->getMessage()</p>";
+            }
         }
+        return $logs;
+    } else {
+        return false;
     }
-    return $logs;
 }
 
 /**
@@ -62,7 +66,9 @@ function mailLogs($logs) {
     $content = "
             Hello, <br>
             <p>Please find below the logs of the scheduled tasks.</p>
+            <div>-------------------------------------------</div>
             <div>$logs</div>
+            <div>-------------------------------------------</div>
             ";
     $body = $AppMail -> formatmail($content);
     $subject = "Scheduled tasks logs";
@@ -77,5 +83,7 @@ function mailLogs($logs) {
 $logs = run();
 
 // Send logs to admins
-mailLogs($logs);
+if ($logs !== false) {
+    mailLogs($logs);
+}
 

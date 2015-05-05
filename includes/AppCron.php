@@ -183,10 +183,9 @@ class AppCron extends Table {
      * @param $string
      */
     static function logger($file, $string) {
-        // Write log
         $cronlog = PATH_TO_APP."/cronjobs/logs/$file";
         if (!is_file($cronlog)) {
-            $fp = fopen($cronlog,"w");
+            $fp = fopen($cronlog,"w+");
         } else {
             $fp = fopen($cronlog,"a+");
         }
