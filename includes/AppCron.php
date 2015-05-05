@@ -173,7 +173,6 @@ class AppCron extends Table {
      */
     function updateTime() {
         $newTime = $this->parseTime($this->dayNb,$this->dayName, $this->hour);
-        var_dump($newTime);
         return $this->update(array('time'=>$newTime));
     }
 
