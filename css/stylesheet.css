@@ -633,12 +633,11 @@ a:hover {
 }
 
 .dl_info:hover {
-    background-color: #666666;
+    background-color:rgba(207,81,81,1);
 }
 
 .dl_info:active {
-    background-color: #222222;
-    padding: 6px 10px 4px;
+    background-color: rgba(34,34,34,.5);
 }
 
 .upl_name.dl_name {
@@ -650,16 +649,14 @@ a:hover {
 }
 
 .upl_name.dl_name:hover {
-    background-color:rgba(207,81,81,1);
     color: #EEEEEE;
 }
 
 .dl_type {
     display: inline-block;
-    width: 20px;
+    width: auto;
     padding: 0 5px 0 5px;
     margin: 0;
-    left: 0;
     font-weight: bold;
     background-color: #555555;
     color: #EEEEEE;
