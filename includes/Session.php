@@ -50,8 +50,10 @@ class Sessions extends Table {
      */
     public function getsessions($opt=null) {
         $sql = "SELECT date FROM $this->tablename";
-        if ($opt !== null) {
+        if ($opt == true) {
             $sql .= " WHERE date>=CURDATE()";
+        } elseif ($opt !== null) {
+            $sql .= " WHERE date>=$opt";
         }
         $sql .= " ORDER BY date ASC";
         $req = $this->db->send_query($sql);

@@ -190,10 +190,12 @@ var inititdatepicker = function(jcdays,selected) {
             var cur_date = $.datepicker.formatDate('dd-mm-yy',date);
             var today = new Date();
             if (days[day] == jcdays.jc_day) {
-                var css = (date >= today) ? "activeday":"pastday";
+                //var css = (date >= today) ? "activeday":"pastday";
+                var css = "activeday";
                 var find = $.inArray(cur_date,jcdays.booked);
                 var status = jcdays.status[find];
-                var clickable = (date >= today && status != 'none' && status != 'Booked out');
+                //var clickable = (date >= today && status != 'none' && status != 'Booked out');
+                var clickable = (status != 'none');
                 // If the date is booked
                 if (find > -1) {
                     var type = jcdays.sessiontype[find];

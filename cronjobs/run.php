@@ -29,7 +29,7 @@ function run() {
     $AppCron = new AppCron($db);
     $runningCron = $AppCron->getRunningJobs();
     $nbJobs = count($runningCron);
-    echo "There are $nbJobs task(s) to run.";
+    echo "There are $nbJobs task(s) to run.\n";
 
     if ($nbJobs > 0) {
         $logs = "There are $nbJobs task(s) to run.\n";
