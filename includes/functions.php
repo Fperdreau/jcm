@@ -213,6 +213,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
  * @return string
  */
 function displaypub($user,$Presentation) {
+    global $db;
     if (!(empty($Presentation->link))) {
         $download_button = "<div class='dl_btn' id='$Presentation->id_pres'>Download</div>";
         $filelist = $Presentation->link;
@@ -231,13 +232,14 @@ function displaypub($user,$Presentation) {
     }
 
     // Add a delete link (only for admin and organizers or the authors)
-    if ($user->status != 'member' || $Presentation->orator == $user->fullname) {
+    if ($user->status != 'member' || $Presentation->orator == $user->username) {
         $delete_button = "<div class='pub_btn'><a href='#' data-id='$Presentation->id_pres' class='delete_ref'>Delete</a></div>";
         $modify_button = "<div class='pub_btn'><a href='#' data-id='$Presentation->id_pres' class='modify_ref'>Modify</a></div>";
     } else {
         $delete_button = "<div style='width: 100px'></div>";
         $modify_button = "<div style='width: 100px'></div>";
     }
+    $orator = new User($db, $Presentation->orator);
     $type = ucfirst($Presentation->type);
     $result = "
         <div class='pub_caps'>
@@ -245,7 +247,7 @@ function displaypub($user,$Presentation) {
                 $type
             </div>
             <div id='pub_title'>$Presentation->title</div>
-            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$Presentation->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$Presentation->orator</div>
+            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$Presentation->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
             <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$Presentation->authors</div>
         </div>
 
