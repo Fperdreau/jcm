@@ -493,7 +493,7 @@ class Session extends Sessions {
             $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
             $chair['chair'] = (isset($this->chairs[$i])) ? $this->chairs[$i]['chair']:'';
             $pub = new Presentation($this->db,$presid);
-            $content .= $pub->showinsession($chair,$mail);
+            $content .= $pub->showinsession($chair,$mail,$this->date);
         }
         return $content;
     }

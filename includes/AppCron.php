@@ -162,6 +162,15 @@ class AppCron extends Table {
     }
 
     /**
+     * Update scheduled time
+     * @return bool
+     */
+    function updateTime() {
+        $newTime = $this->parseTime($this->dayNb,$this->dayName, $this->hour);
+        return $this->update(array('time'=>$newTime));
+    }
+
+    /**
      * Write logs into file
      * @param $file
      * @param $string

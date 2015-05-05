@@ -26,9 +26,11 @@ $user = new User($db,$_SESSION['username']);
 // Get options
 $op = htmlspecialchars($_GET['op']);
 $result = "Oops";
+$date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
+
 // Submit a new presentation
 if ($op == 'new') {
-    $submit_form = displayform($user);
+    $submit_form = displayform($user,false,'submit',false,$date);
     $result = "
     <div id='content'>
         <div id='pagename'>Submit a presentation</div>

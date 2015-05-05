@@ -495,7 +495,8 @@ class Presentation extends Presentations {
      * @param $mail
      * @return string
      */
-    public function showinsession($chair,$mail) {
+    public function showinsession($chair,$mail,$date) {
+
         if ($chair['chair'] !== 'TBA') {
             $chair = new User($this->db, $chair['chair']);
             $chair = $chair->fullname;
@@ -505,7 +506,7 @@ class Presentation extends Presentations {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='index.php?page=submission&op=new&date=$this->date'>Free</a>";
+            $show_but = "<a href='index.php?page=submission&op=new&date=$date'>Free</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */

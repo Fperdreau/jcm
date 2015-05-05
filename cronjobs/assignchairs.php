@@ -55,7 +55,7 @@ class AssignChairs extends AppCron {
         global $db, $AppConfig, $Sessions;
         if ($AppConfig->chair_assign == "manual") {
             echo "<p>Chair assignment is set to Manual. We have nothing to do!</p>";
-            return false;
+            return "Chair assignment is set to Manual. We have nothing to do!";
         }
 
         $AppConfig = new AppConfig($db);
