@@ -31,20 +31,21 @@ function run() {
     $nbJobs = count($runningCron);
     echo "There are $nbJobs task(s) to run.";
 
-    if ($nbJobs == 0) {
-        return false;
-    } else {
-        $logs = '';
-        foreach ($runningCron as $job) {
-            echo "<p>Running '$job'...</p>";
+    $logs = "There are $nbJobs task(s) to run.\n";
+    foreach ($runningCron as $job) {
+        echo "<p>Running '$job'...</p>";
+        try {
             $thisJob = $AppCron->instantiateCron($job);
             $result = $thisJob->run();
             echo $result;
             echo "<p>...Done</p>";
-            $logs .= "$job: $result<br>";
+            $logs .= date('[Y-m-d H:i:s]')." $job: $result<br>";
+            $thisJob->updateTime();
+        } catch (Exception $e) {
+            $logs .= "Job $job encountered an error: $e->getMessage()";
         }
-        return $logs;
     }
+    return $logs;
 }
 
 /**
@@ -55,9 +56,8 @@ function run() {
 function mailLogs($logs) {
     global $db, $AppMail;
 
-    // Send an email to the admins
-    $admin = new User($db);
-    $admin->get('admin');
+    // Get admins email
+    $adminMails = $db->getinfo($db->tablesname['User'],'email',array('status'),array("'admin'"));
     $content = "
             Hello, <br>
             <p>Please find below the logs of the scheduled tasks.</p>
@@ -65,7 +65,7 @@ function mailLogs($logs) {
             ";
     $body = $AppMail -> formatmail($content);
     $subject = "Scheduled tasks logs";
-    if ($AppMail->send_mail($admin->email,$subject,$body)) {
+    if ($AppMail->send_mail($adminMails,$subject,$body)) {
         return true;
     } else {
         return false;
@@ -76,6 +76,5 @@ function mailLogs($logs) {
 $logs = run();
 
 // Send logs to admins
-if ($logs !== false) {
-    mailLogs($logs);
-}
+mailLogs($logs);
+
