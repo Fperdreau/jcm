@@ -40,7 +40,7 @@ uploads/*.pdf
 
 # Dev #
 #############
-dev/*.php
+dev/*
 
 # Project #
 #############

@@ -110,6 +110,7 @@
 }
 
 .cal_day {
+    visibility: hidden;
     position: relative;
     margin: 15px auto 5px auto;
     width: 250px;
