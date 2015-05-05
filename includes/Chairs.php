@@ -148,19 +148,9 @@ class Chairs extends Table{
             }
             $sessionChair = $exclude;
 
-            /** Get list of previous chairmen*/
-            $prevchairs = $AppConfig->session_type[$session->type];
-
-
-            /** Get list of organizers */
+            /** Get list of users */
             $Users = new Users($this->db);
-            $organizers = $Users->getadmin();
-            $chairs = array();
-            if (!empty($organizers)) {
-                foreach ($organizers as $organizer) {
-                    $chairs[] = $organizer['username'];
-                }
-            }
+            $chairs = $Users->getUsers();
 
             $prevchairs = $this->getPrevious($chairs,$session->type);
             foreach ($prevchairs as $prev) {

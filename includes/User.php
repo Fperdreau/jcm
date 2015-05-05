@@ -74,7 +74,7 @@ class Users extends Table {
      * @return array
      */
     public function getUsers() {
-        $sql = "SELECT username FROM $this->tablename WHERE notification=1 and active=1";
+        $sql = "SELECT username FROM $this->tablename WHERE notification=1 and active=1 and status!='admin'";
         $req = $this->db->send_query($sql);
         $users = array();
         while ($row = mysqli_fetch_assoc($req)) {
