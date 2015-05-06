@@ -101,19 +101,9 @@ class Notification extends AppCron {
             $list = "";
             foreach ($presentationList as $presid) {
                 $pres = new Presentation($this->db, $presid);
-                $orator = new User($this->db, $pres->orator);
-                $list .=
-                    "<div style='display: block; height: 40px; margin-bottom: 5px;'>
-                        <div style='display: inline-block; width: auto; padding: 0 15px 0 10px; height: 30px; vertical-align: middle; font-size: 13px; color: rgba(34,34,34,.9);'>$pres->date</div>
-                        <div style='display: inline-block; width: 80%;'>
-                            <div style='display: block; font-size: 14px; font-weight: bold; color: rgba(34,34,34,1);'>$pres->title</div>
-                            <div style='display: block; margin-top: 2px; font-size: 13px; font-weight: bolder; color: rgba(34,34,34,.7);'>$orator->fullname</div>
-                        </div>
-                    </div>";
+                $list .= $pres->showDetails(true);
             }
-
             $date = date('Y-m-d');
-
             $content['body'] = "
             <div style='width: 95%; margin: auto;'>
                 <p>Hello,<br>
@@ -126,7 +116,6 @@ class Notification extends AppCron {
                 </div>
                 <div style='font-size: 14px; background-color: rgba(255,255,255,.5);'>
                     $list
-                    $list
                 </div>
             </div>
 
@@ -136,7 +125,6 @@ class Notification extends AppCron {
             </div>
         ";
         $content['subject'] = "Last submissions: $date";
-
         return $content;
     }
 }

@@ -503,6 +503,7 @@ class Session extends Sessions {
     /**
      * Show session details
      * @param bool $show
+     * @param bool $prestoshow
      * @return string
      */
     public function showsessiondetails($show=true,$prestoshow=false) {
@@ -524,53 +525,7 @@ class Session extends Sessions {
             if ($prestoshow != false && $presid != $prestoshow) continue;
 
             $pres = new Presentation($this->db,$presid);
-            $orator = new User($this->db,$pres->orator);
-            $chair = (isset($this->chairs[$i])) ? $this->chairs[$i]['chair']:'TBA';
-            if ($chair !== 'TBA') {
-                $chair = new User($this->db,$chair);
-                $chair = $chair->fullname;
-            }
-           // Get file list
-            $filediv = "";
-            if ($show && !empty($pres->link)) {
-                $filecontent = "";
-                foreach ($pres->link as $fileid=>$info) {
-                    $urllink = $AppConfig->site_url."uploads/".$info['filename'];
-                    $filecontent .= "
-                        <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
-                                    margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
-                            <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
-                        </div>";
-                }
-                $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto;
-                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
-            }
-            $type = ucfirst($pres->type);
-            $content .= "
-            <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
-                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; height: 20px; line-height: 20px; width: 100%;'>
-                    <div style='display: inline-block; margin: 0; text-align: center; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                        $type
-                    </div>
-                    <div style='display: inline-block; width: auto; padding: 5px; margin-left: 30px;'>
-                        <div style='font-weight: bold; font-size: 16px;'>$pres->title</div>
-                    </div>
-                </div>
-                <div style='width: 95%; text-align: justify; margin: auto; padding: 5px 10px 0 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid rgba(207,81,81,.5);'>
-                    <div style='display: inline-block; margin-left: 0; font-size: 15px; font-weight: 300; width: 50%;'>
-                        <b>Authors:</b> $pres->authors
-                    </div>
-                    <div style='display: inline-block; width: 45%; margin: 0 auto 0 0; text-align: right;'>
-                        <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $orator->fullname</div>
-                        <div style='display: inline-block; margin-left: 30px; font-size: 15px; font-weight: 300;'><b>Chair:</b> $chair</div>
-                    </div>
-                </div>
-                <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
-                    <span style='font-style: italic; font-size: 13px;'>$pres->summary</span>
-                </div>
-                $filediv
-            </div>
-            ";
+            $content .= $pres->showDetails($show);
             $i++;
         }
         return $content;
