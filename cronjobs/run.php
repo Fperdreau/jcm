@@ -35,17 +35,27 @@ function run() {
         $logs = "There are $nbJobs task(s) to run.\n";
         foreach ($runningCron as $job) {
             echo "<p>Running '$job'...</p>";
+
+            // Instantiate job object
+            $thisJob = $AppCron->instantiateCron($job);
+            $thisJob->get();
+
+            // Run job
             try {
-                $thisJob = $AppCron->instantiateCron($job);
-                $thisJob->get();
                 $result = $thisJob->run();
                 echo $result;
-                echo "<p>...Done</p>";
                 $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: $result</p>";
-                $thisJob->updateTime();
             } catch (Exception $e) {
                 $logs .= "<p>Job $job encountered an error: $e->getMessage()</p>";
             }
+
+            // Update new running time
+            if ($thisJob->updateTime()) {
+                $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Next running time: $thisJob->time</p>";
+            } else {
+                $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Could not update the next running time</p>";
+            }
+            echo "<p>...Done</p>";
         }
         return $logs;
     } else {

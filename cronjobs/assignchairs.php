@@ -69,6 +69,7 @@ class AssignChairs extends AppCron {
 
             // Number of chairs to plan for this session
             if ($session->type !== "none") {
+                echo "<p><b>Session: $session->date | $session->type</b></p>";
                 for ($p = 0; $p < $session->max_nb_session; $p++) {
                     $speaker = (!empty($session->speakers[$p]) ? $session->speakers[$p] : false);
                     $presid = (!empty($session->presids[$p]) ? $session->presids[$p] : null);
@@ -78,7 +79,8 @@ class AssignChairs extends AppCron {
                         $thisChair->presid = $presid;
                         $thisChair->date = $session->date;
                         $thisChair->chair = $chair->getChair($session->date, $speaker);
-                        $thisChair->update();
+                        echo "<p>Chair: $thisChair->chair</p>";
+                        //$thisChair->update();
                         $updated += 1;
                     }
                 }

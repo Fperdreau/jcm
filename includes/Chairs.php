@@ -188,9 +188,6 @@ class Chairs extends Table{
         }
         // Update the previous chairmen list
         $prevchairs[] = $chair;
-        $AppConfig->session_type[$session->type] = $prevchairs;
-        $AppConfig->update();
-
         return $chair;
     }
 
