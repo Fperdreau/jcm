@@ -29,7 +29,7 @@ if (!ini_get('display_errors')) {
 /**
  * Define paths
  */
-if(!defined('APP_NAME')) define('APP_NAME', basename(__DIR__));
+if(!defined('APP_NAME')) define('APP_NAME', basename(dirname(__DIR__)));
 if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(dirname(__FILE__).'/'));
 if(!defined('PATH_TO_IMG')) define('PATH_TO_IMG', PATH_TO_APP.'/images/');
 if(!defined('PATH_TO_INCLUDES')) define('PATH_TO_INCLUDES', PATH_TO_APP.'/includes/');
@@ -47,7 +47,7 @@ include_once(PATH_TO_INCLUDES.'Table.php');
 $includeList = scandir(PATH_TO_INCLUDES);
 foreach ($includeList as $includeFile) {
     if (!in_array($includeFile,array('.','..','boot.php'))) {
-        require_once($includeFile);
+        require_once(PATH_TO_INCLUDES.$includeFile);
     }
 }
 

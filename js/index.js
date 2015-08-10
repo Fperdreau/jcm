@@ -777,7 +777,7 @@ $( document ).ready(function() {
             });
         })
 
-		// Add a news to the homepage
+        // Add a news to the homepage
         .on('click','.post_add,.post_mod',function(e) {
             e.preventDefault();
             var op = $(this).attr('name');
@@ -826,7 +826,7 @@ $( document ).ready(function() {
             return false;
         })
 
-		// Configuration of the application
+        // Configuration of the application
         .on('click','.config_form_site',function(e) {
             e.preventDefault();
             processform("config_form_site","feedback_site");

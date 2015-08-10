@@ -150,7 +150,7 @@ class AppCron extends Table {
         $dayNb = ($dayNb>$maxday) ? $maxday:$dayNb;
 
         if ($dayNb > 0) {
-            $strday = ($dayNb<$day)
+            $strday = ($dayNb < $day)
                 ? date('Y-m-d',strtotime("$year-$month-$dayNb + 1 month"))
                 :date('Y-m-d',strtotime("$year-$month-$dayNb"));
         } elseif ($dayName !=='All') {
@@ -160,7 +160,7 @@ class AppCron extends Table {
                 $strday = date('Y-m-d',strtotime("next $dayName"));
             }
         } elseif ($dayName == 'All') {
-            $strday = ($hour < $thisHour) ? date('Y-m-d',strtotime("$today + 1 day")) : $today;
+            $strday = ($thisHour < $hour) ? $today : date('Y-m-d',strtotime("$today + 1 day"));
         }
         $strtime = date('H:i:s',strtotime("$hour:00:00"));
         $time = $strday.' '.$strtime;
@@ -172,8 +172,9 @@ class AppCron extends Table {
      * @return bool
      */
     function updateTime() {
-        $newTime = $this->parseTime($this->dayNb,$this->dayName, $this->hour);
-        return $this->update(array('time'=>$newTime));
+        $newTime = self::parseTime($this->dayNb,$this->dayName, $this->hour);
+        //return $this->update(array('time'=>$newTime));
+        return $newTime;
     }
 
     /**

@@ -262,6 +262,7 @@ class User extends Users{
 		}
 
         /** @var AppMail $mail */
+        require('AppMail.php');
         $mail = new AppMail($this->db,$config);
 
 		// Parse variables and values to store in the table
@@ -382,7 +383,7 @@ class User extends Users{
      *
      * @return string
      */
-    function create_hash() {
+    public function create_hash() {
         $hash = md5( rand(0,1000) );
         return $hash;
     }
@@ -488,6 +489,7 @@ class User extends Users{
      * @return string
      */
     function crypt_pwd($password) {
+        require("PasswordHash.php");
         $hash = create_hash($password);
         return $hash;
     }
