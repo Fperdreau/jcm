@@ -1,0 +1,7 @@
+/.idea/
+*.txt
+/uploads/*.pdf
+*.sql
+*.zip
+/config/config.php
+/dev/
