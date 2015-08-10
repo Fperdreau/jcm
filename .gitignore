@@ -1,7 +1,16 @@
+#ignore PhpStorm folder
 /.idea/
+
+#ignore logs files
 *.txt
-/uploads/*.pdf
+
+#ignore uploaded files
+/uploads/
 *.sql
 *.zip
+
+#ignore local configuration file
 /config/config.php
+
+#ignore development folder
 /dev/
