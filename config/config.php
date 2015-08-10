@@ -1,0 +1,1 @@
+<?php $config = array("version" => "v1.3.1","host" => "localhost","username" => "root","passw" => "","dbname" => "test","dbprefix" => "pjc"); ?>

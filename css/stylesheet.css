@@ -1,0 +1,1453 @@
+/*
+Copyright © 2014, Florian Perdreau
+This file is part of Journal Club Manager.
+
+Journal Club Manager is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Journal Club Manager is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* Forms & Input field styles */
+form {
+    position: relative;
+    margin: auto;
+    text-align: left;
+}
+
+.valid_input{
+    border: 1px solid #3CB371;
+    box-shadow: 0 0 10px #3CB371;
+}
+
+.wrong_input{
+    border: 1px solid #3CB371;
+    box-shadow: 0 0 10px #3CB371;
+}
+
+input[type="text"], input[type="email"], input[type="password"] {
+    display: inline-block;
+    width:200px;
+    padding: 10px;
+    border:1px solid rgba(207, 81, 81, .3);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    margin: 10px auto;
+
+    /* Styles */
+    background: #f9f9f9;
+    color: #777;
+}
+
+input.input_opt {
+    display: inline-block;
+    padding: 5px 2px 5px 2px;
+    min-width: 100px;
+    width: auto;
+    border:1px solid rgba(207, 81, 81, .3);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    margin: 0 auto;
+}
+
+select.select_opt {
+    min-width: 30px;
+    width: auto;
+    border: 1px solid rgba(207, 81, 81, .3);
+    padding: 5px 4px;
+    color: #555;
+}
+
+input[type="checkbox"] {
+    float:left;
+    margin-right:5px;
+}
+
+input[type="checkbox"]+label {float:left;}
+
+textarea {
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+    margin: 10px auto;
+    font-size: 13px;
+    font-weight: 400;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+    resize: none;
+
+    /* Size and position */
+    width: 90%;
+    height: 200px;
+    padding: 10px 18px 10px 45px;
+
+    /* Styles */
+    border:1px solid rgba(207, 81, 81, .3);
+    background: #f9f9f9;
+    color: #555;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 5px #CF5151;
+    border: 1px solid #CF5151;
+}
+
+select {
+    min-width: 50px;
+    width: auto;
+    border:1px solid rgba(207, 81, 81, .3);
+    padding: 7px 6px;
+    color: #555;
+}
+
+select:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(207, 81, 81, 1);
+    border: 1px solid rgba(207, 81, 81, .8);
+}
+
+select#select_wish {
+    width: 400px;
+}
+
+input[type="submit"], input[type="button"] {
+    background: #F9F9F9; /* Set button background */
+    border: 1px solid rgba(207, 81, 81, 1); /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+input[type="submit"]:hover, input[type="button"]:hover {
+    color: #FFF;
+    background: rgba(207, 81, 81, 1); /* Set button background */
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+input[type="submit"]:active, input[type="button"]:active {
+    color: #FFF;
+    background: rgba(207, 81, 81, .5); /* Set button background */
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+input.field {
+    padding: 10px;
+    display: inline-block;
+    width: 300px;
+}
+
+label.label {
+    display: inline-block;
+    min-width: 150px;
+    text-align: right;
+    padding: 10px 0 10px 10px;
+    margin: 0px 0 5px 5px;
+}
+
+.formcontrol {
+    vertical-align: top;
+    position: relative;
+    display: inline-block;
+    margin: 10px;
+    height: auto;
+}
+
+.formcontrol>div {
+    display: block;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 7px 6px;
+    font-size: 12px;
+    font-weight: 300;
+    border:1px solid rgba(207, 81, 81, .3);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+
+    /* Styles */
+    background: #f9f9f9;
+    color: #777;
+}
+
+.formcontrol label{
+    display: inline-block;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    background-color: rgba(207,81,81,.8);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 300;
+    color: #EEE;
+    padding: 5px;
+}
+
+.formcontrol input, .formcontrol select, .formcontrol textarea {
+    width: 90%;
+    display: block;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 7px 6px;
+    font-size: 12px;
+    font-weight: 300;
+}
+
+.formcontrol input[type='radio'] {
+    display: inline-block;
+    width: 10%;
+}
+
+.submit_btns {
+    margin: 0 auto 0 0;
+    float: right;
+    text-align: right;
+}
+
+/* *********************************************************************/
+/* Body
+/* *********************************************************************/
+html { height: 100%; }
+
+body {
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+    font-weight: 300;
+    font-size: 13px;
+    line-height: 1.2;
+	width: 100%;
+    margin: auto;
+	background-color: #cccccc;
+    -webkit-font-smoothing: antialiased;
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+
+a {
+	text-decoration: none;
+    color: #CF5151;
+}
+
+a:hover {
+    color: #cccccc;
+}
+
+/* *********************************************************************/
+/* Header
+/* *********************************************************************/
+#mainheader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    z-index: 10;
+    background-color: #555555;
+    text-align: justify;
+    padding: 0;
+}
+
+.header {
+    width: 100%;
+    background-color: #888888;
+	height: 60px;
+	text-align: justify;
+    margin: 0;
+    padding: 0;
+}
+
+.header_container {
+    position: relative;
+    background-color: #555555;
+    clear: both;
+    width: 1024px;
+    height: 60px;
+    margin: auto;
+}
+
+#title {
+    text-align: left;
+}
+
+#welcome {
+    width: auto;
+    text-align: center;
+    background-color: #222222;
+    border: 1px double #999999;
+    padding: 5px;
+
+}
+
+/* *********************************************************************/
+/* Menu
+/* *********************************************************************/
+.menu {
+    position: relative;
+    clear: both;
+    width: 1024px;
+    margin: auto;
+    height: 30px;
+    background-color: #cccccc;
+}
+
+.menu-container {
+    position: relative;
+    clear: both;
+    width: 100%;
+    height: 30px;
+    background-color: #333333;
+    box-shadow: 0 2px 2px #555;
+    z-index: 10;
+    text-align: center;
+    margin: auto;
+    padding: 0;
+}
+
+.menu-container > div {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.menu-section {
+    width: 15%; /* Declare your value. Can be in relative units. */
+    height: 100%;
+    text-align: center;
+    font-size: 20px;
+    color: #CF5151;
+}
+
+.menu-section-defaut {
+    background-color: #333333;
+}
+
+.menu-section:hover {
+    cursor: pointer;
+    font-size: 22px;
+    color: #cccccc;
+}
+
+.menu-section-active {
+    background-color: #222222;
+    font-size: 22px;
+    color: #cccccc;
+}
+
+.activepage {
+    font-size: 22px;
+    color: #cccccc;
+}
+
+/* additional menu */
+.addmenu-pres, .addmenu-admin {
+    display: none;
+    position: relative;
+    clear: both;
+    width: auto;
+    min-height: 30px;
+    background-color: rgba(34,34,34,.9);
+    box-shadow: 0 2px 2px #555;
+    z-index: 10;
+    text-align: center;
+    margin: auto;
+    padding: 0;
+}
+
+.addmenu-pres > div, .addmenu-admin >div {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.addmenu-section {
+    cursor: pointer;
+    width: 160px; /* Declare your value. Can be in relative units. */
+    height: 100%;
+    text-align: center;
+    font-size: 18px;
+}
+
+#addmenu {
+    text-decoration: none;
+    color: #aaaaaa;
+}
+
+#addmenu:hover {
+    color: #eeeeee;
+}
+
+/* *********************************************************************/
+/* HTML Structure
+/* *********************************************************************/
+#core {
+    position: relative;
+    z-index: 3;
+    width: 1024px;
+    box-shadow: 0px 0px 12px #555;
+    padding: 0;
+    margin: 0 auto 0 auto;
+    background-color: #eeeeee;
+    min-height: 768px;
+    height: auto !important;
+    height: 100%;
+}
+
+#footer {
+    position: relative;
+    z-index: 0;
+    width: 500px;
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+    padding-top: 5px;
+    padding-bottom: 10px;
+	height: 15px;
+	text-align: center;
+	vertical-align: middle;
+    margin: auto;
+	background-color: rgba(50,50,50,1);
+}
+
+/* *********************************************************************/
+/* Page Content
+/* *********************************************************************/
+#pagecontent {
+    display: none;
+}
+
+#content {
+    position: relative;
+    padding: 100px 20px;
+    width: 95%;
+    margin: 0 auto;
+    vertical-align: middle;
+}
+
+#loading {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    width:      100%;
+    height: 100%;
+    background: rgba( 0, 0, 0, .7)
+                url('../images/spinner.gif')
+                50% 50%
+                no-repeat;
+}
+
+.plugins {
+    display: block;
+    margin: 50px 0 50px 0;
+}
+
+.page_description {
+    text-align: justify;
+    margin: 10px auto 10px auto;
+    width: 80%;
+    color: #222222;
+    font-style: italic;
+    font-size: 14px; /* Set message font size  */
+    padding: 10px; /* Some padding to make some more space for our text  */
+    background: rgba(207,81,81,.1); /* Add a background color to our status message   */
+    border: 1px solid rgba(207,81,81,.2); /* Add a border arround our status message   */
+}
+
+.section_page {
+    display: none;
+}
+
+.section_header {
+    display: block;
+    position: relative;
+    background-color: rgba(187,81,81,1);
+    color: #eeeeee;
+    width: 200px;
+    height: 20px;
+    line-height: 20px;
+    padding: 5px;
+    margin: 20px auto -10px auto;
+    text-align: center;
+    font-weight: 300;
+    font-size: 16px;
+    z-index: 11;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+}
+
+.section_content {
+    display: block;
+    font-size: 16px;
+    margin: auto;
+    text-align: justify;
+    padding: 20px;
+    background-color: rgba(200,200,200,.1);
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+}
+
+.section_page {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.half_section {
+    vertical-align: top;
+    width: 60%;
+    display: inline-block;
+}
+
+.half_section>div{
+    vertical-align: top;
+}
+
+.section_left {
+}
+
+.section_right {
+    width: 30%;
+    margin-left: 20px;
+}
+
+.section_sub {
+    display: block;
+    font-size: 16px;
+    margin: 20px 0 5px auto;
+    padding: 0;
+    width: 100%;
+    border-top: 1px solid #999999;
+    color: #999999;
+    height: 20px;
+    line-height: 20px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.pub_section_content {
+    line-height: 130%;
+    font-size: 16px;
+    margin: auto 50px auto auto;
+    clear: left;
+    width: 100%;
+    text-align: justify;
+    padding: 10px;
+    background-color: rgba(127,127,127,.1);
+}
+
+/* *********************************************************************/
+/* Home Page
+/* *********************************************************************/
+#welcome_msg {
+    width: 60%;
+    padding: 20px;
+    margin: auto;
+    background: rgba(127,127,127,.1);
+    text-align: justify;
+    -webkit-box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
+    -moz-box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
+    box-shadow: inset 0px 0px 5px 1px rgba(127,127,127,1);
+}
+
+.news {
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+/* *********************************************************************/
+/* Buttons
+/* *********************************************************************/
+.operation_button {
+    width: 150px;
+    padding: 5px;
+    text-align: center;
+    background-color: rgba(207,81,81,.8);
+    border: 1px solid rgba(207,81,81,1);
+    margin-top: 10px;
+}
+
+.operation_button>a {
+    color: #EEEEEE;
+}
+
+.operation_button:hover{
+    background-color: rgba(207,81,81,1);
+}
+
+.link {
+    background-color: #333333;
+    float: right;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: right;
+    font-weight: bolder;
+}
+
+#author_name {
+    color: #CF5151;
+}
+
+/* *********************************************************************/
+/* Downloads
+/* *********************************************************************/
+.dl_btn {
+    padding: 10px 10px;
+    height: 20px;
+    background: #E4E4E2;
+    width: 100px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.dl_btn:hover {
+    color:#EEE;
+    background: #CF5151;
+}
+
+.dlmenu {
+    display: none;
+    width: 130px;
+    position: relative;
+    z-index: 1100;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.dl_info {
+    display: block;
+    width: auto;
+    font-size: 12px;
+    height: 30px;
+    line-height: 30px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    background-color: rgba(200,200,200,.5);
+    border-bottom: 1px solid #CF5151;
+}
+
+.dl_info:hover {
+    background-color:rgba(207,81,81,1);
+}
+
+.dl_info:active {
+    background-color: rgba(34,34,34,.5);
+}
+
+.upl_name.dl_name {
+    display: inline-block;
+    line-height: 30px;
+    width: 80px;
+    white-space: pre-wrap;
+    font-weight: bold;
+}
+
+.upl_name.dl_name:hover {
+    color: #EEEEEE;
+}
+
+.dl_type {
+    display: inline-block;
+    width: auto;
+    padding: 0 5px 0 5px;
+    margin: 0;
+    font-weight: bold;
+    background-color: #555555;
+    color: #EEEEEE;
+}
+
+/* *********************************************************************/
+/* Uploads
+/* *********************************************************************/
+.upl_container {
+    display: block;
+    width: 500px;
+    height: auto;
+    padding: 10px;
+    margin: 20px auto 10px auto;
+    background-color: #222222;
+    border: 1px solid #000000;
+    text-align: center;
+    -webkit-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+    -moz-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+    box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+}
+
+.dragging {
+    background-color: #444444;
+}
+
+.upl_form {
+    width: 400px;
+    text-align: center;
+    margin: auto;
+    clear: both;
+}
+
+.upl_btn {
+    display: block;
+    margin: 0 auto 0 auto;
+    width: 200px;
+    height: auto;
+    line-height: 30px;
+    background-color: #444444;
+    color: #CF5151;
+    border: 1px solid #999;
+    padding: 0px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 18px;
+    text-align: center;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+}
+
+.upl_btn:hover {
+    background-color: #666666;
+}
+
+.upl_btn:active {
+    background-color: #222222;
+    padding: 6px 10px 4px;
+}
+
+.upl_errors {
+    display: none;
+    width: 100%;
+    color: #990000;
+    font-size: 13px; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(255,255,255,.9); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+.upl_filetypes {
+    display: block;
+    margin: 0 auto;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.upl_filelist {
+    width: 95%;
+    height: auto;
+    padding: 10px;
+    margin: 0;
+}
+
+.upl_info {
+    display: inline-block;
+    width: 190px;
+    font-size: 12px;
+    height: 30px;
+    line-height: 30px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #bbbbbb;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+}
+
+.upl_info>div {
+    display: table-cell;
+    height: 30px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.upl_name {
+    line-height: 30px;
+    white-space: pre-wrap;
+    width: 160px;
+    font-weight: bold;
+}
+
+.upl_name:hover {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
+}
+
+.upl_type {
+    display: inline-block;
+    padding: 0 5px 0 5px;
+    margin-left: 0;
+    font-weight: bold;
+    background-color: #555555;
+    color: #EEEEEE;
+}
+
+.del_upl {
+    background-color: #666666;
+    line-height: 30px;
+    border-left: 1px solid #999999;
+    width: 30px;
+    padding-left: 5px;
+}
+
+.del_upl:hover {
+    background-color: rgba(207,81,81,.8);
+}
+
+.del_upl:active {
+    background-color: #444444;
+}
+
+/* Archives */
+.current {
+    background: rgba(127,127,127,.3);
+}
+
+.pub_container {
+    background: rgba(200,200,200,.5);
+    width: 100%;
+    padding: 0;
+    margin: 0 0 5px 0;
+    cursor: pointer;
+    height: 30px;
+    line-height: 30px;
+}
+
+.pub_container:hover {
+    background: rgba(127,127,127,.5);
+    color: #eeeeee;
+}
+
+#pub_labels {
+    width: 100%;
+    margin: auto;
+    font-size: 14px;
+    border-bottom: 1px solid #222222;
+}
+
+.show_btn {
+    cursor: pointer;
+    background-color: #BE4141;
+    padding: 2px;
+    margin: 0;
+    width: 50px;
+    height: 22px;
+    text-align: center;
+    color: #FFFFFF;
+    line-height: 22px;
+}
+
+.show_btn>a {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.show_btn:hover {
+    background-color: #CF5252;
+    color: #FFFFFF;
+}
+
+.show_pres>a {
+    text-decoration: none;
+}
+
+.show_pres:hover {
+    cursor: pointer;
+}
+
+/* *********************************************************************/
+/* Archives
+/* *********************************************************************/
+.list-container {
+    display: inline-block;
+    font-size: 9pt;
+    vertical-align: baseline;
+    text-align: justify;
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+}
+
+.list-container > div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.list-container:after {
+    content: "";
+    width: 100%;
+    display: inline-block;
+}
+
+.list-heading {
+    font-size: 11pt;
+    font-weight: bold;
+    text-align: left;
+}
+
+.list-section {
+    text-align: left;
+}
+
+/* *********************************************************************/
+/* Admin - Plugins
+/* *********************************************************************/
+
+.install_btn {
+    padding: 5px 5px;
+    height: 20px;
+    background: #CF5151;
+    color: #EEE;
+    width: 50px;
+    text-align: center;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.install_btn:hover {
+    color:#222222;
+    background: #E4E4E2;
+}
+
+/* *********************************************************************/
+/* Admin - session/presentation management
+/* *********************************************************************/
+.type_list {
+    width: 95%;
+    height: auto;
+    padding: 5px;
+    margin: auto;
+    background-color: rgba(200,200,200,.5);
+    border: 1px dashed #555555;
+}
+
+.type_div {
+    display: inline-block;
+    width: 190px;
+    font-size: 12px;
+    height: 30px;
+    line-height: 30px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #bbbbbb;
+}
+
+.type_div>div {
+    display: table-cell;
+    height: 30px;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.type_name {
+    line-height: 30px;
+    white-space: pre-wrap;
+    width: 160px;
+    font-weight: bold;
+}
+
+.type_name:hover {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
+}
+
+.type_del {
+    background-color: #666666;
+    height: 30px;
+    line-height: 30px;
+    border-left: 1px solid #999999;
+    width: 30px;
+    padding-left: 5px;
+}
+
+.type_del:hover {
+    background-color: rgba(207,81,81,.8);
+}
+
+.type_del:active {
+    background-color: #444444;
+}
+
+.session_div {
+    display: block;
+    width: 95%;
+    height: auto;
+    margin: 10px auto 10px auto;
+    padding: 0 10px 10px 10px;
+    border-top: 1px solid #555;
+    background-color: rgba(255,255,255,.5);
+}
+
+.session_header {
+    top: 0;
+    left: 0;
+    margin: 0 0 5px 0;
+    display: block;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 300;
+    height: 30px;
+    line-height: 30px;
+    border: 0;
+    padding: 0;
+}
+
+.session_header>div {
+    display: inline-block;
+    vertical-align: top;
+    width: 100px;
+    height: 20px;
+    line-height: 20px;
+    padding: 5px;
+}
+
+.session_date {
+    background-color: #555555;
+    text-align: center;
+    color: #FFF;
+}
+
+.session_status {
+    text-align: center;
+    background-color: rgba(207,81,81,.8);
+    color: #FFF;
+}
+
+.session_core {
+    width: 100%;
+    vertical-align: top;
+    text-align: left;
+    display: block;
+    margin: 5px 0;
+}
+
+.session_core>div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.session_presentations {
+    margin: 0 auto 0 0;
+    vertical-align: top;
+    width: 55%;
+    text-align: right;
+}
+
+/* *********************************************************************/
+/* Text/Messages
+/* *********************************************************************/
+#sitetitle {
+    display: inline-block;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    border: none;
+    color: rgba(48,48,48,1);
+    text-align: left;
+    text-transform: normal;
+    -o-text-overflow: clip;
+    text-overflow: clip;
+    white-space: pre;
+    text-shadow: 1px 1px 0 rgba(140,140,140,0.6) , -1px -1px 1px rgba(0,0,0,0.67) ;
+
+    margin-left: 30px;
+    font-size: 50px;
+}
+
+#pagename {
+    display: block;
+    margin-left: -10px;
+    color: #555555;
+    font-size: 35px;
+}
+
+#sign {
+    text-align: right;
+    color: #cccccc;
+    font-size: 14px;
+}
+
+/* Alerts */
+.feedback {
+    content: "";
+    min-width: 200px;
+    width: auto;
+    min-height: 30px;
+    height: auto;
+}
+
+#warning {
+    color: #990000;
+    font-size: 13px; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(127,0,0,.2); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+#status {
+	width: 100%;
+    color: #000099;
+    font-size: 13px; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(0,0,127,.2); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+#success {
+    color: #009900;
+    font-size: 13px; /* Set message font size  */
+    padding: 3px; /* Some padding to make some more space for our text  */
+    background-color: rgba(0,127,0,.2); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+/* *********************************************************************/
+/* Modal dialog box
+/* *********************************************************************/
+#lean_overlay {
+    position: fixed;
+    z-index:100;
+    top: 0;
+    left: 0;
+    height:100%;
+    width:100%;
+    background: #000;
+    display: none;
+}
+
+
+.action_btns {
+    display: inline-block;
+    width: 100%;
+    margin: 20px 0 10px;
+    clear: both;
+    text-decoration: none;
+    color:#ED6347;
+}
+
+#modal_trigger {
+    margin: 100px auto;
+    width: 100px;
+    display: block;
+}
+
+.error {
+    display: none;
+}
+
+.btn {padding:10px 20px; background: #F4F4F2;}
+.btn_red {background: #CF5151; color: #FFF;}
+
+.btn:hover {background: #E4E4E2;}
+.btn_red:hover {background: #BE4141;}
+
+a.btn {color:#666; text-align: center; text-decoration: none;}
+a.btn_red {color: #FFF;}
+
+.one_half {width:50%; display: block; float:left;}
+.one_half.last {width:45%; margin-left:5%; text-align: right;}
+
+/* Popup Styles*/
+.popupHeader {font-size:16px; font-weight: 300; text-transform: uppercase; color: #EEE;}
+.popupHeader {background: rgba(207,81,81,.8); position: relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
+.popupHeader .modal_close {position: absolute; right: 0; top:0; padding:10px 15px; background: url('../images/delete.png') no-repeat; background-position: center center; background-size: 50% auto; cursor: pointer; color:#aaa; font-size:16px;}
+
+.popupBody {
+    max-height: 500px;
+    padding:20px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+}
+
+
+/* Publication modal window */
+.popupContainer{
+    position:absolute;
+    width:400px;
+    height: auto;
+    left:400px;
+    top:30px;
+    background: #FFF;
+}
+
+.popupContainer .modal_section {
+    display: none;
+}
+
+.forgot_password {
+    display:block;
+    margin: 20px 0 10px;
+    clear: both;
+    text-align: center;
+    text-decoration: none;
+    color:#ED6347;}
+
+/* Publication modal window*/
+.pub_popupContainer{
+    position:absolute;
+    width:800px;
+    height: auto;
+    left:45%;
+    top:80px;
+    background: #FFF;
+}
+
+input.dateinput {
+    cursor: pointer;
+    display: inline-block;
+    width: auto;
+}
+
+.pub_caps {
+    display: block;
+    background-color: #dddddd;
+    padding: 10px;
+}
+
+#pub_date {
+    width:20%;
+    display: inline;
+}
+
+#pub_title {
+    width: 100%;
+    font-size: 18px;
+    margin-bottom: 10px;
+    display: block;
+    font-weight: bold;
+}
+
+#pub_orator {
+    margin-right: 5px;
+    text-align: right;
+    width: 50%;
+    display: inline;
+}
+
+.pub_abstract {
+    display: block;
+    padding: 10px;
+    margin-top: 10px;
+    text-align: justify;
+    background-color: #eeeeee;
+}
+
+.pub_action_btn {
+    width: 100%;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: 0;
+    text-align: justify;
+}
+
+.pub_action_btn>div {
+    vertical-align: top;
+    display: inline-block;
+}
+
+.pub_one_half {width:50%; display: block; float:left; margin-bottom: 10px;}
+.pub_one_half.last {width:45%; margin-left:5%; margin-bottom: 10px; text-align: right;}
+
+.pub_one_half.last>div {
+    vertical-align: top;
+    display: inline-block;
+}
+
+.pub_btn {
+    padding: 10px 10px;
+    height: 20px;
+    background: #E4E4E2;
+    width: 100px;
+    text-align: center;
+}
+
+.pub_btn a {
+    color:#666;
+    text-align: center;
+    text-decoration: none;
+}
+
+.pub_btn:hover>a {
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;
+}
+
+.pub_btn:hover {
+    color:#EEE;
+    background: #CF5151;
+}
+
+.pub_delete {
+    display: none;
+}
+
+/* *********************************************************************/
+/* JQuery DatePicker custom style
+/* *********************************************************************/
+.ui-datepicker {
+    background: url('img/darkdenim3.png') repeat 0 0 #000;
+    background-color: #555555;
+    width: auto;
+    height: auto;
+    margin: 5px auto 0;
+    font: 9pt 'Lato', Calibri, Arial, sans-serif;
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+    -moz-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+}
+
+.ui-datepicker a {
+    text-decoration: none;
+}
+/* DatePicker Table */
+.ui-datepicker table {
+    width: 100%;
+}
+.ui-datepicker-header {
+    /*background: url('img/dark_leather.png') repeat 0 0 #000;*/
+    background-color: #222222;
+    color: #e0e0e0;
+    font-weight: bold;
+    -webkit-box-shadow: inset 0px 1px 1px 0px rgba(250, 250, 250, 2);
+    -moz-box-shadow: inset 0px 1px 1px 0px rgba(250, 250, 250, .2);
+    box-shadow: inset 0px 1px 1px 0px rgba(250, 250, 250, .2);
+    text-shadow: 1px -1px 0px #000;
+    filter: dropshadow(color=#000, offx=1, offy=-1);
+    line-height: 30px;
+    border-width: 1px 0 0 0;
+    border-style: solid;
+    border-color: #111;
+}
+.ui-datepicker-title {
+    text-align: center;
+}
+.ui-datepicker-prev, .ui-datepicker-next {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: url('img/arrowsoff.png') no-repeat;
+    line-height: 600%;
+    overflow: hidden;
+}
+
+.ui-datepicker-prev-hover, .ui-datepicker-next-hover {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: url('img/arrowson.png') no-repeat;
+    line-height: 600%;
+    overflow: hidden;
+}
+
+.ui-datepicker-prev {
+    float: left;
+    background-position: center -30px;
+}
+.ui-datepicker-next {
+    float: right;
+    background-position: center 0px;
+}
+
+.ui-datepicker thead {
+    background-color: #f7f7f7;
+    background-image: -moz-linear-gradient(top,  #f7f7f7 0%, #f1f1f1 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f7f7f7), color-stop(100%,#f1f1f1));
+    background-image: -webkit-linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    background-image: -o-linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    background-image: -ms-linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    background-image: linear-gradient(top,  #f7f7f7 0%,#f1f1f1 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f7f7f7', endColorstr='#f1f1f1',GradientType=0 );
+    border-bottom: 1px solid #bbb;
+}
+.ui-datepicker th {
+    text-transform: uppercase;
+    font-size: 8pt;
+    padding: 5px 0;
+    /*color: #666666;*/
+    color: #CF5151;
+    text-shadow: 1px 0px 0px #fff;
+}
+.ui-datepicker tbody td {
+    padding: 0;
+}
+.ui-datepicker tbody td:last-child {
+    border-right: 0px;
+}
+.ui-datepicker tbody tr {
+    border-bottom: 1px solid #bbb;
+}
+.ui-datepicker tbody tr:last-child {
+    border-bottom: 0px;
+}
+
+.ui-datepicker td span, .ui-datepicker td a {
+    display: inline-block;
+    font-weight: bold;
+    text-align: center;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    color: #222222;
+}
+
+.ui-datepicker-calendar .ui-state-default {
+    background: #dddddd;
+}
+
+.ui-datepicker-calendar .ui-state-hover {
+    background: #F5D3D3;
+}
+
+.ui-datepicker-unselectable .ui-state-default {
+    background: #f4f4f4;
+    color: #b4b3b3;
+}
+
+.jcday .ui-state-default {
+    color: #3399FF;
+    font-weight:bold;
+    font-size: 11pt;
+}
+
+.jcday_rem .ui-state-default{
+    color: #FC7830;
+    font-weight:bold;
+    font-size: 11pt;
+}
+
+.bookedday .ui-state-default{
+    color: #b43d3d;
+}
+
+.activeday .ui-state-default{
+}
+
+.pastday .ui-state-default{
+    opacity: 0.5;
+    background: #f4f4f4;
+}
+
+.ui-datepicker-calendar td:first-child .ui-state-active {
+    width: 29px;
+    margin-left: 0;
+}
+.ui-datepicker-calendar td:last-child .ui-state-active {
+    width: 29px;
+    margin-right: 0;
+}
+.ui-datepicker-calendar tr:last-child .ui-state-active {
+    height: 29px;
+    margin-bottom: 0;
+}
