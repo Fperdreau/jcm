@@ -68,9 +68,6 @@ class DbBackup extends AppCron {
         $result = "Backup successfully done";
         $this->logger("$this->name.txt",$result);
         $this->time = AppCron::parseTime($this->dayNb,$this->dayName, $this->hour);
-
-        var_dump($this->time);
-
         return $filelink;
     }
 }
