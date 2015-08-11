@@ -312,31 +312,28 @@ nav li:hover {
 
 /* additional menu */
 .addmenu-pres, .addmenu-admin {
-    display: block;
-    visibility: hidden;
+    display: none;
     position: absolute;
-    width: auto;
-    min-height: 30px;
     background-color: rgba(34,34,34,.9);
     box-shadow: 0 2px 2px #555;
     z-index: 10;
-    text-align: center;
-    margin: auto;
+    margin: 0;
     padding: 0;
 }
 
-.addmenu-pres > nav, .addmenu-admin >div {
+.addmenu-pres li, .addmenu-admin li {
     vertical-align: bottom;
     list-style: none;
     display: block;
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(255,255,255,.5);
 }
 
 .addmenu-section {
-    cursor: pointer;
-    width: 160px; /* Declare your value. Can be in relative units. */
-    height: 100%;
     text-align: center;
     font-size: 18px;
+    margin: 0;
+    padding: 0;
 }
 
 #addmenu {
@@ -355,13 +352,11 @@ nav li:hover {
     position: relative;
     z-index: 3;
     width: 1024px;
-    box-shadow: 0px 0px 12px #555;
+    box-shadow: 0 0 12px #555;
     padding: 0;
     margin: 0 auto 0 auto;
     background-color: #eeeeee;
     min-height: 768px;
-    height: auto !important;
-    height: 100%;
 }
 
 #footer {
@@ -402,7 +397,7 @@ nav li:hover {
 
 #content {
     position: relative;
-    padding: 100px 20px;
+    padding: 50px 20px;
     width: 95%;
     margin: 0 auto;
     vertical-align: middle;

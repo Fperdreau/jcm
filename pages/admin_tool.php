@@ -189,45 +189,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 // Plugins
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'plugins') {
     $plugins = new AppPlugins($db);
-    $pluginsList = $plugins->getPlugins();
-    $plugin_list = "
-        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
-            <div style='text-align: center; font-weight: bold; width: 5%;'>Version</div>
-            <div style='text-align: center; font-weight: bold; width: 20%;'>Page</div>
-            <div style='text-align: center; font-weight: bold; width: 30%;'>Options</div>
-            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
-            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-        </div>";
-    foreach ($pluginsList as $pluginName => $info) {
-        $installed = $info['installed'];
-        if ($installed) {
-            $install_btn = "<div class='install_plugin install_btn' data-op='uninstall' data-plugin='$pluginName'>Uninstall</div>";
-        } else {
-            $install_btn = "<div class='install_plugin install_btn' data-op='install' data-plugin='$pluginName'>Install</div>";
-        }
-        $status = $info['status'];
-        $option_list = '';
-        foreach ($info['options'] as $option => $settings) {
-            $option_list .= "<label>$option</label><input type='text' value='$settings' class='input_opt plugin_setting' data-plugin='$pluginName' data-option='$option'/><br>";
-        }
-        $plugin_list .= "
-        <div class='list-container' style='font-size: 12px;' id='plugin_$pluginName'>
-            <div style='width: 10%'><b>$pluginName</b></div>
-            <div style='width: 5%'>" . $info['version'] . "</div>
-            <div style='width: 20%'>" . $info['page'] . "</div>
-            <div style='width: 30%; vertical-align: top;'>$option_list</div>
-            <div style='width: 5%'>
-                <select class='select_opt plugin_status' data-plugin='$pluginName'>
-                <option value='$status' selected>$status</option>
-                <option value='On'>On</option>
-                <option value='Off'>Off</option>
-                </select>
-            </div>
-            <div style='width: 10%'>$install_btn</div>
-        </div>
-        ";
-    }
+    $plugin_list = $plugins->showPlugins();
     $content = "
         <span id='pagename'>Plugins</span>
         <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
@@ -241,85 +203,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
 // Cronjobs settings
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'cronjobs') {
-    $CronJobs = new AppCron($db);
-    $jobsList = $CronJobs->getJobs();
-    $cronList = "
-        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
-            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
-            <div style='text-align: center; font-weight: bold; width: 40%;'>Time</div>
-            <div style='text-align: center; font-weight: bold; width: 20%;'>Next run</div>
-            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-        </div>";
-    foreach ($jobsList as $cronName => $info) {
-        $installed = $info['installed'];
-        if ($installed) {
-            $install_btn = "<div class='install_cron install_btn' data-op='uninstall' data-cron='$cronName'>Uninstall</div>";
-        } else {
-            $install_btn = "<div class='install_cron install_btn' data-op='install' data-cron='$cronName'>Install</div>";
-        }
-
-        $runBtn = "<div class='run_cron install_btn' data-cron='$cronName'>Run</div>";
-        $status = $info['status'];
-        $time = $info['time'];
-
-        $dayName_list = "";
-        foreach ($CronJobs->daysNames as $day) {
-            if ($day == $info['dayName']) {
-                $dayName_list .= "<option value='$day' selected>$day</option>";
-            } else {
-                $dayName_list .= "<option value='$day'>$day</option>";
-            }
-        }
-
-        $dayNb_list = "";
-        foreach ($CronJobs->daysNbs as $i) {
-            if ($i == $info['dayNb']) {
-                $dayNb_list .= "<option value='$i' selected>$i</option>";
-            } else {
-                $dayNb_list .= "<option value='$i'>$i</option>";
-            }
-        }
-
-        $hours_list = "";
-        foreach ($CronJobs->hours as $i) {
-            if ($i == $info['hour']) {
-                $hours_list .= "<option value='$i' selected>$i:00</option>";
-            } else {
-                $hours_list .= "<option value='$i'>$i:00</option>";
-            }
-        }
-
-        $cronList .= "
-        <div class='list-container' id='cron_$cronName'>
-            <div style='width: 10%;'><b>$cronName</b></div>
-            <div style='width: 5%; text-align: center;'>
-                <select class='select_opt cron_status' data-cron='$cronName'>
-                <option value='$status' selected>$status</option>
-                <option value='On'>On</option>
-                <option value='Off'>Off</option>
-                </select></div>
-            <div style='width: 40%; text-align: center;'>
-                <label>Day</label>
-                    <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayName'>
-                        $dayName_list
-                    </select>
-                <label>Date</label>
-                    <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayNb'>
-                        $dayNb_list
-                    </select>
-               <label>Time</label>
-                    <select class='select_opt cron_setting' data-cron='$cronName' data-setting='hour'>
-                        $hours_list
-                    </select>
-            </div>
-            <div style='width: 20%; text-align: center;' id='cron_time_$cronName'>$time</div>
-            <div style='width: 10%; text-align: center;'>$install_btn</div>
-            <div style='width: 10%; text-align: center;'>$runBtn</div>
-        </div>
-        ";
-    }
+    $AppCron = new AppCron($db);
+    $cronOpt = $AppCron->showCrons();
     $content = "
         <span id='pagename'>Scheduled tasks</span>
         <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
@@ -328,7 +213,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
         <div class='feedback'></div>
         <div class='section_header'>Tasks list</div>
         <div class='section_content'>
-            $cronList
+            $cronOpt
         </div>
     ";
 

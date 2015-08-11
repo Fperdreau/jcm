@@ -158,5 +158,57 @@ $(document).ready(function() {
                     }
                 }
             });
+        })
+
+        // Show job options
+        .on('click','.optCron',function(e) {
+            e.preventDefault();
+            var cron = $(this).attr('data-cron');
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                data: {
+                    getCronOpt: cron
+                },
+                async: true,
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    $(".jobOpt#"+cron)
+                        .html(json)
+                        .toggle();
+                }
+            });
+        })
+
+        .on('click','.modCronOpt',function(e) {
+            e.preventDefault();
+            var cron = $(this).parent('.jobOpt').attr('id');
+
+            // Parse options
+            var option = {};
+            $(".jobOpt#"+cron).find('input').each(function() {
+                if ($(this).attr('type') != "submit") {
+                    option[$(this).attr('name')] = $(this).val();
+                }
+            });
+
+            jQuery.ajax({
+                url: "php/form.php",
+                async: true,
+                type: 'POST',
+                data: {modCronOpt: cron, data:option},
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    if (json === true) {
+                        showfeedback("<p id='success'>"+cron+"'s settings successfully updated!</p>");
+                    } else {
+                        showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
+                    }
+                }
+            });
+
+
         });
+
+
 });

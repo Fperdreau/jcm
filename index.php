@@ -45,7 +45,7 @@ require_once('includes/boot.php');
         <?php require(PATH_TO_PAGES.'modal.php'); ?>
 
         <!-- Header section -->
-        <header>
+        <header class="header">
             <div id="title">
                 <?php echo $AppConfig->sitetitle;?>
             </div>
@@ -70,7 +70,6 @@ require_once('includes/boot.php');
                 echo $showlogin;
                 ?>
             </div>
-
         </header>
 
         <!-- Core section -->

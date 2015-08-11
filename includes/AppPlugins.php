@@ -163,4 +163,51 @@ class AppPlugins extends Table {
         return $plugins;
     }
 
+    /**
+     * Show plugins list
+     * @return string
+     */
+    public function showPlugins() {
+        $pluginsList = $this->getPlugins();
+        $plugin_list = "
+        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
+            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
+            <div style='text-align: center; font-weight: bold; width: 5%;'>Version</div>
+            <div style='text-align: center; font-weight: bold; width: 20%;'>Page</div>
+            <div style='text-align: center; font-weight: bold; width: 30%;'>Options</div>
+            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
+            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+        </div>";
+        foreach ($pluginsList as $pluginName => $info) {
+            $installed = $info['installed'];
+            if ($installed) {
+                $install_btn = "<div class='install_plugin install_btn' data-op='uninstall' data-plugin='$pluginName'>Uninstall</div>";
+            } else {
+                $install_btn = "<div class='install_plugin install_btn' data-op='install' data-plugin='$pluginName'>Install</div>";
+            }
+            $status = $info['status'];
+            $option_list = '';
+            foreach ($info['options'] as $option => $settings) {
+                $option_list .= "<label>$option</label><input type='text' value='$settings' class='input_opt plugin_setting' data-plugin='$pluginName' data-option='$option'/><br>";
+            }
+            $plugin_list .= "
+        <div class='list-container' style='font-size: 12px;' id='plugin_$pluginName'>
+            <div style='width: 10%'><b>$pluginName</b></div>
+            <div style='width: 5%'>" . $info['version'] . "</div>
+            <div style='width: 20%'>" . $info['page'] . "</div>
+            <div style='width: 30%; vertical-align: top;'>$option_list</div>
+            <div style='width: 5%'>
+                <select class='select_opt plugin_status' data-plugin='$pluginName'>
+                <option value='$status' selected>$status</option>
+                <option value='On'>On</option>
+                <option value='Off'>Off</option>
+                </select>
+            </div>
+            <div style='width: 10%'>$install_btn</div>
+        </div>
+        ";
+        }
+        return $plugin_list;
+    }
+
 }

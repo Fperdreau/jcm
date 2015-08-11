@@ -50,7 +50,7 @@ class AppCron extends Table {
     public $path;
     public $status;
     public $installed;
-    public $options;
+    public $options=array();
 
 
     /**
@@ -86,8 +86,11 @@ class AppCron extends Table {
         $sql = "SELECT * FROM $this->tablename WHERE name='$this->name'";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_assoc($req);
-        foreach ($data as $prop=>$value) {
-            $this->$prop = $value;
+        if (!empty($data)) {
+            foreach ($data as $prop=>$value) {
+                $value = ($prop == "options") ? json_decode($value):$value;
+                $this->$prop = $value;
+            }
         }
     }
 
@@ -240,6 +243,123 @@ class AppCron extends Table {
             }
         }
         return $jobs;
+    }
+
+    /**
+     * Display job's settings
+     * @return string
+     */
+    public function displayOpt() {
+        $opt = "";
+        if (!empty($this->options)) {
+            foreach ($this->options as $optName => $settings) {
+                if (count($settings) > 1) {
+                    $optProp = "";
+                    foreach ($settings as $prop) {
+                        $optProp .= "<option value='$prop'>$prop</option>";
+                    }
+                    $optProp = "<select name='$optName'>$optProp</select>";
+                } else {
+                    $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
+                }
+                $opt .= "
+                <label for='$optName'>$optName</label>
+                $optProp";
+            }
+            $opt .= "<input type='submit' class='modCronOpt' value='Modify'>";
+        } else {
+            $opt = "No settings are available for this job.";
+        }
+        return $opt;
+    }
+
+    /**
+     * Display jobs list
+     * @return string
+     */
+    public function showCrons() {
+        $jobsList = $this->getJobs();
+        $cronList = "
+        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
+            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
+            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
+            <div style='text-align: center; font-weight: bold; width: 40%;'>Time</div>
+            <div style='text-align: center; font-weight: bold; width: 20%;'>Next run</div>
+            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+        </div>";
+        foreach ($jobsList as $cronName => $info) {
+            $installed = $info['installed'];
+            if ($installed) {
+                $install_btn = "<div class='install_cron install_btn' data-op='uninstall' data-cron='$cronName'>Uninstall</div>";
+            } else {
+                $install_btn = "<div class='install_cron install_btn' data-op='install' data-cron='$cronName'>Install</div>";
+            }
+
+            $runBtn = "<div class='run_cron install_btn' data-cron='$cronName'>Run</div>";
+            $status = $info['status'];
+            $time = $info['time'];
+
+            $dayName_list = "";
+            foreach ($this->daysNames as $day) {
+                if ($day == $info['dayName']) {
+                    $dayName_list .= "<option value='$day' selected>$day</option>";
+                } else {
+                    $dayName_list .= "<option value='$day'>$day</option>";
+                }
+            }
+
+            $dayNb_list = "";
+            foreach ($this->daysNbs as $i) {
+                if ($i == $info['dayNb']) {
+                    $dayNb_list .= "<option value='$i' selected>$i</option>";
+                } else {
+                    $dayNb_list .= "<option value='$i'>$i</option>";
+                }
+            }
+
+            $hours_list = "";
+            foreach ($this->hours as $i) {
+                if ($i == $info['hour']) {
+                    $hours_list .= "<option value='$i' selected>$i:00</option>";
+                } else {
+                    $hours_list .= "<option value='$i'>$i:00</option>";
+                }
+            }
+
+            $cronList .= "
+            <div class='list-container' id='cron_$cronName'>
+                <div style='width: 10%; text-align: center'><b>$cronName</b></div>
+                <div style='width: auto; text-align: left;'>
+                    <select class='select_opt cron_status' data-cron='$cronName'>
+                    <option value='$status' selected>$status</option>
+                    <option value='On'>On</option>
+                    <option value='Off'>Off</option>
+                    </select></div>
+                <div style='width: auto; text-align: center;'>
+                    <label>Day</label>
+                        <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayName'>
+                            $dayName_list
+                        </select>
+                    <label>Date</label>
+                        <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayNb'>
+                            $dayNb_list
+                        </select>
+                   <label>Time</label>
+                        <select class='select_opt cron_setting' data-cron='$cronName' data-setting='hour'>
+                            $hours_list
+                        </select>
+                </div>
+                <div style='width: auto; text-align: center;' id='cron_time_$cronName'>$time</div>
+                <div style='width: 5%; text-align: center;'><div class='optCron install_btn' data-cron='$cronName'>Options</div></div>
+                <div style='width: 5%; text-align: center;'>$install_btn</div>
+                <div style='width: 5%; text-align: center;'>$runBtn</div>
+            </div>
+            <div class='jobOpt' id='$cronName' style='font-size: 0.8em; padding: 5px; margin: 0 auto 10px auto; background: rgba(200,200,200,.5); display: none; width: 95%;'></div>
+            ";
+        }
+
+        return $cronList;
     }
 
 }

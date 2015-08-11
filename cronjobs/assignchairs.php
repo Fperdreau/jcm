@@ -33,35 +33,39 @@ class AssignChairs extends AppCron {
     public $dayName;
     public $dayNb;
     public $hour;
-    public $options;
+    public $options=array('nbsessiontoplan'=>10);
 
+    /**
+     * Constructor
+     * @param DbSet $db
+     */
     public function __construct(DbSet $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
         $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
+    /**
+     * Register the plugin into the database
+     * @return bool|mysqli_result
+     */
     public function install() {
-        // Register the plugin in the db
         $class_vars = get_class_vars($this->name);
+        var_dump($class_vars);
         return $this->make($class_vars);
     }
 
     /**
-     * Run scheduled task: assign chairmen
+     * Run scheduled task: assign speaker to the next sessions
      * @return bool|string
      */
     public function run() {
-        global $db, $AppConfig, $Sessions;
-        if ($AppConfig->speakerAssign == "manual") {
-            echo "<p>Chair assignment is set to Manual. We have nothing to do!</p>";
-            return "Chair assignment is set to Manual. We have nothing to do!";
-        }
+        global $db, $Sessions;
 
         // Get sessions dates
         $Presentation = new Presentation($this->db);
 
-        $jc_days = $Sessions->getjcdates($AppConfig->nbsessiontoplan);
+        $jc_days = $Sessions->getjcdates($this->options['nbsessiontoplan']);
         $created = 0;
         $updated = 0;
         foreach ($jc_days as $day) {

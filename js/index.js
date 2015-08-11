@@ -345,17 +345,20 @@ $( document ).ready(function() {
 
 		// Show presentation sub-menu
         .on('click','#menu_pres',function() {
-            $('.addmenu-pres').slideToggle(200);
+            var position = $(this).position();
+            var headerHeight = $('.header').outerHeight();
+            $('.addmenu-pres')
+                .css({'left':position.left,'top':headerHeight})
+                .slideToggle(200);
         })
 
 		// Show admin sub-menu
         .on('click','#menu_admin',function() {
-            $('.addmenu-admin').slideToggle(200);
-        })
-
-		// Log out
-        .on('click',"#logout",function(){
-            logout();
+            var position = $(this).position();
+            var headerHeight = $('.header').outerHeight();
+            $('.addmenu-admin')
+                .css({'left':position.left,'top':headerHeight})
+                .slideToggle(200);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1149,6 +1152,12 @@ $( document ).ready(function() {
             e.preventDefault();
             showmodal('user_register');
             $(".header_title").text('Sign up');
+        })
+
+        // Log out
+        .on('click',"#logout",function(e){
+            e.preventDefault();
+            logout();
         })
 
         // Delete user account dialog box

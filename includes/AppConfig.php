@@ -35,7 +35,7 @@ class AppConfig extends Table {
      */
     public $status = 'On';
     public $app_name = "Journal Club Manager";
-    public $version = "v1.3.1";
+    public $version = "v1.3.5";
     public $author = "Florian Perdreau";
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
@@ -58,7 +58,6 @@ class AppConfig extends Table {
      *
      */
     public $nbsessiontoplan = 10;
-    public $speakerAssign = "manual";
     public $session_type = array(
         "Journal Club"=>array('TBA'),
         'Business Meeting'=>array('TBA'),

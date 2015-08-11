@@ -27,6 +27,28 @@ if (!empty($_POST['get_app_status'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Scheduled Tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Get cron job settings
+if (!empty($_POST['getCronOpt'])) {
+    $cronName = htmlspecialchars($_POST['getCronOpt']);
+    $AppCron = new AppCron($db);
+    $cron = $AppCron->instantiateCron($cronName);
+    $result = $cron->displayOpt();
+    echo json_encode($result);
+    exit;
+}
+
+// Modify cron job settings
+if (!empty($_POST['modCronOpt'])) {
+    $cronName = htmlspecialchars($_POST['modCronOpt']);
+    $data = $_POST['data'];
+    $AppCron = new AppCron($db);
+    $cron = $AppCron->instantiateCron($cronName);
+    $result = $cron->update(array('options'=>$data));
+    echo json_encode($result);
+    exit;
+}
+
+// Modify cron job
 if (!empty($_POST['mod_cron'])) {
     $cronName = $_POST['cron'];
     $option = $_POST['option'];
@@ -92,6 +114,7 @@ if (!empty($_POST['cron_status'])) {
     echo json_encode($result);
     exit;
 }
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Plugins
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
