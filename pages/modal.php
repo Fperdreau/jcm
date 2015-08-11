@@ -100,7 +100,9 @@ echo "
         </div>
 
         <div class='modal_section' id='user_changepw'>
+            <div class='formcontrol' style='width: 100%;'>
             <label for='ch_email'>Email</label><input type='text' id='ch_email' name='ch_email' value=''/></br>
+            </div>
             <div class='action_btns'>
                 <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
                 <div class='one_half last'><a href='' class='btn btn_red' id='modal_change_pwd'>Change</a></div>
