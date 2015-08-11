@@ -882,38 +882,38 @@ nav li:hover {
 /* Admin - session/presentation management
 /* *********************************************************************/
 .type_list {
-    width: 95%;
     height: auto;
     padding: 5px;
     margin: auto;
     background-color: rgba(200,200,200,.5);
     border: 1px dashed #555555;
+    box-sizing: border-box;
 }
 
 .type_div {
+    background: #222222;
+    position: relative;
     display: inline-block;
-    width: 190px;
-    font-size: 12px;
-    height: 30px;
-    line-height: 30px;
-    margin: 5px;
     cursor: pointer;
-    background-color: #bbbbbb;
+    padding: 0;
+    margin: 5px;
 }
 
 .type_div>div {
-    display: table-cell;
-    height: 30px;
-    text-align: center;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
     margin: 0;
-    padding: 0;
+    height: 30px;
+    line-height: 30px;
 }
 
 .type_name {
-    line-height: 30px;
-    white-space: pre-wrap;
-    width: 160px;
-    font-weight: bold;
+    padding: 0 5px;
+    background-color: #bbbbbb;
+    text-align: center;
+    min-width: 100px;
+    font-weight: 500;
 }
 
 .type_name:hover {
@@ -922,12 +922,10 @@ nav li:hover {
 }
 
 .type_del {
-    background-color: #666666;
-    height: 30px;
-    line-height: 30px;
-    border-left: 1px solid #999999;
+    position: relative;
     width: 30px;
-    padding-left: 5px;
+    height: 30px;
+    background: #666666 url('../images/delete.png') no-repeat;
 }
 
 .type_del:hover {

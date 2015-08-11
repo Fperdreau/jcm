@@ -34,9 +34,8 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     foreach ($AppConfig->session_type as $type=>$chairs) {
         $Sessionstype .= "
             <div class='type_div' id='session_$type'>
-                <div class='type_name'>$type</div>
+                <div class='type_name'>".ucfirst($type)."</div>
                 <div class='type_del' data-type='$type' data-class='session'>
-                <img src='images/delete.png' style='width: 15px; height: auto;'>
                 </div>
             </div>
         ";
@@ -53,16 +52,12 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     foreach ($prestypes as $type) {
         $prestype .= "
             <div class='type_div' id='pres_$type'>
-                <div class='type_name'>$type</div>
+                <div class='type_name'>".ucfirst($type)."</div>
                 <div class='type_del' data-type='$type' data-class='pres'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
                 </div>
             </div>
         ";
     }
-
-    $chair_assignopt = array('auto'=>'In advance', 'manual'=>'On submission');
-    $chair_assignsel = "<option value='$AppConfig->chair_assign' selected>".$chair_assignopt[$AppConfig->chair_assign]."</option>";
 
     $content = "
     <span id='pagename'>Manage Sessions</span>
@@ -105,18 +100,6 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
             <div class='formcontrol' style='width: 30%;'>
                 <label>Presentations/Session</label>
                 <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
-            </div>
-            <div class='formcontrol' style='width: 30%;'>
-                <label>Chair assignment</label>
-                <select name='chair_assign'>
-                    $chair_assignsel
-                    <option value='auto'>In advance</option>
-                    <option value='manual'>On submission</option>
-                </select>
-            </div>
-            <div class='formcontrol' style='width: 30%;'>
-                <label>Sessions to plan in advance</label>
-                <input type='text' size='3' name='nbsessiontoplan' value='$AppConfig->nbsessiontoplan'/>
             </div>
             <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_session'/></p>
         </form>
