@@ -42,19 +42,14 @@ if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
 /**
  * Includes required files (classes)
  */
-require_once(PATH_TO_INCLUDES.'SessionInstance.php');
-require_once(PATH_TO_INCLUDES.'DbSet.php');
-require_once(PATH_TO_INCLUDES.'Table.php');
-require_once(PATH_TO_INCLUDES.'User.php');
-require_once(PATH_TO_INCLUDES."Presentation.php");
-require_once(PATH_TO_INCLUDES."Session.php");
-require_once(PATH_TO_INCLUDES."AppConfig.php");
-include_once(PATH_TO_INCLUDES.'functions.php');
-require_once(PATH_TO_INCLUDES."Posts.php");
-require_once(PATH_TO_INCLUDES."Chairs.php");
-require_once(PATH_TO_INCLUDES."Media.php");
-require_once(PATH_TO_INCLUDES."AppPlugins.php");
-require_once(PATH_TO_INCLUDES."AppCron.php");
+include_once(PATH_TO_INCLUDES.'DbSet.php');
+include_once(PATH_TO_INCLUDES.'Table.php');
+$includeList = scandir(PATH_TO_INCLUDES);
+foreach ($includeList as $includeFile) {
+    if (!in_array($includeFile,array('.','..','boot.php'))) {
+        require_once(PATH_TO_INCLUDES.$includeFile);
+    }
+}
 
 
 /**
@@ -332,10 +327,6 @@ if (!empty($_POST['operation'])) {
             }
             $pub->update();
         }
-
-        // Create Chairs Table
-        $Chairs = new Chairs($db);
-        $Chairs->setup($op);
 
         // Create Session table
         $Sessions = new Sessions($db);

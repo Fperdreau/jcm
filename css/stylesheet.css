@@ -92,8 +92,8 @@ textarea {
 
 input:focus, textarea:focus {
     outline: none;
-    box-shadow: 0 0 5px #CF5151;
-    border: 1px solid #CF5151;
+    box-shadow: 0 0 5px rgba(207,81,81,1);
+    border: 1px solid rgba(207,81,81,1);
 }
 
 select {
@@ -231,7 +231,7 @@ body {
 
 a {
 	text-decoration: none;
-    color: #CF5151;
+    color: rgba(207,81,81,1);
 }
 
 a:hover {
@@ -300,7 +300,7 @@ nav li {
     cursor: pointer;
     text-align: center;
     font-size: 1.5em;
-    color: #CF5151;
+    color: rgba(207,81,81,1);
     margin-left: 15px;
 }
 
@@ -555,7 +555,7 @@ nav li:hover {
 }
 
 #author_name {
-    color: #CF5151;
+    color: rgba(207,81,81,1);
 }
 
 /* *********************************************************************/
@@ -572,7 +572,7 @@ nav li:hover {
 
 .dl_btn:hover {
     color:#EEE;
-    background: #CF5151;
+    background: rgba(207,81,81,1);
 }
 
 .dlmenu {
@@ -595,7 +595,7 @@ nav li:hover {
     padding: 0;
     cursor: pointer;
     background-color: rgba(200,200,200,.5);
-    border-bottom: 1px solid #CF5151;
+    border-bottom: 1px solid rgba(207,81,81,1);
 }
 
 .dl_info:hover {
@@ -663,7 +663,7 @@ nav li:hover {
     height: auto;
     line-height: 30px;
     background-color: #444444;
-    color: #CF5151;
+    color: rgba(207,81,81,1);
     border: 1px solid #999;
     padding: 0px;
     cursor: pointer;
@@ -865,7 +865,7 @@ nav li:hover {
 .install_btn {
     padding: 5px 5px;
     height: 20px;
-    background: #CF5151;
+    background: rgba(207,81,81,1);
     color: #EEE;
     width: 50px;
     text-align: center;
@@ -1100,7 +1100,7 @@ nav li:hover {
 }
 
 .btn {padding:10px 20px; background: #F4F4F2;}
-.btn_red {background: #CF5151; color: #FFF;}
+.btn_red {background: rgba(207,81,81,1); color: #FFF;}
 
 .btn:hover {background: #E4E4E2;}
 .btn_red:hover {background: #BE4141;}
@@ -1242,7 +1242,7 @@ input.dateinput {
 
 .pub_btn:hover {
     color:#EEE;
-    background: #CF5151;
+    background: rgba(207,81,81,1);
 }
 
 .pub_delete {
@@ -1336,7 +1336,7 @@ input.dateinput {
     font-size: 8pt;
     padding: 5px 0;
     /*color: #666666;*/
-    color: #CF5151;
+    color: rgba(207,81,81,1);
     text-shadow: 1px 0px 0px #fff;
 }
 .ui-datepicker tbody td {

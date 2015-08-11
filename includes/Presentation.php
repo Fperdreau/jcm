@@ -149,90 +149,6 @@ class Presentations extends Table {
     }
 
     /**
-     * Get previous chairs
-     * @param $organizers
-     * @param $type
-     * @return array
-     */
-    public function getPreviousSpeakers($organizers, $type) {
-        $sql = "SELECT speakers,date FROM $this->tablename";
-        $req = $this->db->send_query($sql);
-        $list = array();
-        $session = new Session($this->db);
-
-        while ($row=mysqli_fetch_assoc($req)) {
-            $chair = $row['speakers'];
-            $session->get($row['date']);
-            if ($session->type == $type) {
-                if (!in_array($chair, $list) && $chair != "TBA") {
-                    $list[] = $chair;
-                }
-                $diff = array_values(array_diff($organizers,$list));
-                if (empty($diff)) {
-                    $list = array();
-                }
-            }
-        }
-        return $list;
-    }
-
-    /**
-     * Pseudo randomly choose a chairman
-     * @param $sessionid
-     * @return string
-     */
-    public function getSpeakers($sessionid) {
-        /** @var Session $session */
-        $session = new Session($this->db,$sessionid);
-
-        // Get speakers planned for this session
-        $speakers = $session->speakers;
-        $exclude = $speakers;
-
-        // Get list of users
-        $Users = new Users($this->db);
-        $usersList = $Users->getUsers();
-
-        // get previous speakers
-        $prevSpeakers = $this->getPreviousSpeakers($usersList,$session->type);
-
-        // Update exclusion list
-        $exclude = array_push($exclude,$prevSpeakers);
-
-        if (empty($usersList)) {
-            /** If no users have the organizer status, the chairman is to be announced.*/
-            /** To Be Announced as a default */
-            $chair = 'TBA';
-            /** We start a new list of previous chairmen*/
-            $prevSpeakers = array();
-        } else {
-            /** We randomly pick a chairman among organizers who have not chaired a session yet,
-             * apart from the other chairmen of this session.
-             */
-            $possiblechairs = array_values(array_diff($usersList, $exclude));
-            if (!empty($possiblechairs)) {
-                $ind = rand(0, count($possiblechairs) - 1);
-                $chair = $possiblechairs[$ind];
-            } else {
-                /** Otherwise, if all organizers have already been speaker once,
-                 * we randomly pick one among all the organizers,
-                 * apart from the other speakers of this session
-                 */
-                $possiblechairs = array_values(array_diff($usersList, $speakers));
-                $ind = rand(0, count($possiblechairs) - 1);
-                $chair = $possiblechairs[$ind];
-
-                /** We start a new list of previous chairmen */
-                $prevSpeakers = array();
-            }
-        }
-
-        // Update the previous chairmen list
-        $prevSpeakers[] = $chair;
-        return $chair;
-    }
-
-    /**
      * Get wish list
      * @param null $number
      * @param bool $mail
@@ -351,7 +267,7 @@ class Presentation extends Presentations {
     function make($post){
         $class_vars = get_class_vars("Presentation");
 
-        if ($this->pres_exist($post['title']) == false) {
+        if ($post['title'] == "TBA" || $this->pres_exist($post['title']) == false) {
 
             // Create an unique ID
             $this->id_pres = self::create_presID();
@@ -579,8 +495,6 @@ class Presentation extends Presentations {
      * @internal param $chair
      */
     public function showinsessionmanager() {
-
-
         /** Get list of organizers */
         $Users = new Users($this->db);
         $organizers = $Users->getadmin('admin');
@@ -631,15 +545,6 @@ class Presentation extends Presentations {
         $AppConfig = new AppConfig($this->db);
         $orator = new User($this->db,$this->orator);
 
-        // Get chair
-        $chair = new Chairs($this->db);
-        if ($chair->get('presid',$this->id_pres)) {
-            $chairID = new User($this->db,$chair->chair);
-            $chairID = $chairID->fullname;
-        } else {
-            $chairID = 'TBA';
-        }
-
         // Get file list
         $filediv = "";
         if ($show && !empty($this->link)) {
@@ -676,7 +581,6 @@ class Presentation extends Presentations {
                 </div>
                 <div style='display: inline-block; width: 45%; margin: 0 auto 0 0; text-align: right;'>
                     <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $orator->fullname</div>
-                    <div style='display: inline-block; margin-left: 30px; font-size: 15px; font-weight: 300;'><b>Chair:</b> $chairID</div>
                 </div>
             </div>
             <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>

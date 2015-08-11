@@ -239,7 +239,8 @@ class AppCron extends Table {
                     'time'=>$thisPlugin->time,
                     'dayName'=>$thisPlugin->dayName,
                     'dayNb'=>$thisPlugin->dayNb,
-                    'hour'=>$thisPlugin->hour);
+                    'hour'=>$thisPlugin->hour,
+                    'options'=>$thisPlugin->options);
             }
         }
         return $jobs;

@@ -122,7 +122,7 @@ class Sessions extends Table {
      * @param $date
      * @return bool
      */
-    protected function dateexists($date) {
+    public function dateexists($date) {
         $dates = $this->getsessions();
         if ($dates === false) {$dates = array();}
         return in_array($date,$dates);
@@ -341,14 +341,15 @@ class Session extends Sessions {
      * @return bool
      */
     public function make($post=array()) {
-        if (!$this::dateexists($post['date'])) {
+        $this->date = (!empty($post['date'])) ? $post['date']:$this->date;
+        if (!$this::dateexists($this->date)) {
             $class_vars = get_class_vars("Session");
-            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers','chairs'));
+            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers'));
 
             // Add session to the database
             return $this->db->addcontent($this->tablename,$content);
         } else {
-            self::get($post['date']);
+            self::get($this->date);
             return self::update($post);
         }
     }
