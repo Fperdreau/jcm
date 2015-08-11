@@ -40,7 +40,6 @@ class AppConfig extends Table {
     public $repository = "https://github.com/Fperdreau/jcm";
     public $sitetitle = "Journal Club";
     public $site_url = "(e.g. http://www.mydomain.com/Pjc/)";
-    public $clean_day = 10;
     public $max_nb_attempt = 5; // Maximum nb of login attempt
 
     /**
@@ -57,7 +56,6 @@ class AppConfig extends Table {
      * Session info
      *
      */
-    public $nbsessiontoplan = 10;
     public $session_type = array(
         "Journal Club"=>array('TBA'),
         'Business Meeting'=>array('TBA'),

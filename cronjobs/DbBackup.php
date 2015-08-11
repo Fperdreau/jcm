@@ -33,7 +33,7 @@ class DbBackup extends AppCron {
     public $dayName;
     public $dayNb;
     public $hour;
-    public $options;
+    public $options=array("nb_version"=>10);
 
     /**
      * Constructor

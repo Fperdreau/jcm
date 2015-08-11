@@ -33,7 +33,7 @@ class FullBackup extends AppCron {
     public $dayName;
     public $dayNb;
     public $hour;
-    public $options;
+    public $options=array("nb_version"=>10);
 
     public function __construct(DbSet $db) {
         parent::__construct($db);
