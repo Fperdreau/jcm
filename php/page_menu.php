@@ -35,7 +35,7 @@ if (!empty($_SESSION['status']) && $_SESSION['status'] == "admin") {
 }
 
 echo "
-<nav class='menu-container'>
+<nav>
     <ul>
         <li class='menu-section' data-url='home'>HOME</li>
         <li class='menu-section' id='menu_pres'>SUBMIT</li>

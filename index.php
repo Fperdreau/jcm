@@ -34,6 +34,7 @@ require_once('includes/boot.php');
 
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+        <script type="text/javascript" src="js/loading.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
         <script type="text/javascript" src="js/Myupload.js"></script>
@@ -44,13 +45,13 @@ require_once('includes/boot.php');
         <?php require(PATH_TO_PAGES.'modal.php'); ?>
 
         <!-- Header section -->
-        <header id="mainheader">
+        <header>
             <div id="title">
-                <span id='sitetitle'><?php echo $AppConfig->sitetitle;?></span>
+                <?php echo $AppConfig->sitetitle;?>
             </div>
 
             <!-- Menu section -->
-            <div style="display: inline-block;">
+            <div id="menu">
                 <?php require(PATH_TO_PHP.'page_menu.php'); ?>
             </div>
 
@@ -58,13 +59,13 @@ require_once('includes/boot.php');
             <div id='login_box'>
                 <?php
                 if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
-                    $showlogin = "<span style='font-size: 16px; color: #FFFFFF;'>
+                    $showlogin = "
                     <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Log in</a>
                      | <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign up</a>
-                     </span>";
+                     ";
                 } else {
-                    $showlogin = "<span style='font-size: 16px;' class='menu-section' data-url='profile'>My profile</span>
-                    | <span style='font-size: 16px;' class='menu-section' id='logout'>Log out</span>";
+                    $showlogin = "<span class='menu-section' data-url='profile'>My profile</span>
+                    | <span class='menu-section' id='logout'>Log out</span>";
                 }
                 echo $showlogin;
                 ?>
@@ -82,9 +83,9 @@ require_once('includes/boot.php');
 
         <!-- Footer section -->
         <footer id="footer">
-            <span id="sign"><?php echo "<a href='$config->repository' target='_blank'>$config->app_name $config->version</a>
+            <span id="sign"><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a>
              | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
-             | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $config->author</a>" ?></span>
+             | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></span>
         </footer>
 
         <!-- Bunch of jQuery functions -->

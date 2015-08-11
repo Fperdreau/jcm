@@ -191,6 +191,14 @@ if (!empty($_POST['get_calendar_param'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Logout
+if (!empty($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    echo json_encode(true);
+    exit;
+}
+
 // Check login
 if (!empty($_POST['login'])) {
     $user = new User($db);

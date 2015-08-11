@@ -241,51 +241,52 @@ a:hover {
 /* *********************************************************************/
 /* Header
 /* *********************************************************************/
-#mainheader {
+header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 30px;
+    height: auto;
     z-index: 10;
     background-color: #555555;
-    text-align: justify;
-    padding: 0;
-}
-
-.header {
-    width: 100%;
-    background-color: #888888;
-	height: 30px;
-	text-align: justify;
+    padding: 5px;
     margin: 0;
-    padding: 0;
+    box-sizing: border-box;
+    text-align: justify;
 }
 
-.header_container {
-    position: relative;
-    background-color: #555555;
-    margin: auto;
+header >div{
+    display: inline-block;
+    height: 30px;
+    vertical-align: bottom;
 }
 
 #title {
     display: inline-block;
+    color: rgba(255,255,255,1);
     text-align: left;
+    font-size: 2em;
+    font-weight: 300;
+}
+
+#menu {
+    width: auto;
+    height: auto;
 }
 
 #login_box {
-    display: inline-block;
-    width: auto;
-    text-align: center;
+    vertical-align: bottom;
+    height: auto;
+    padding: 5px 10px;
     background-color: #222222;
-    border: 1px double #999999;
-    padding: 5px;
+    cursor: pointer;
 }
 
 /* *********************************************************************/
 /* Menu
 /* *********************************************************************/
 nav ul {
+    list-style-type: none;
     margin: auto;
     padding: 0;
 }
@@ -294,47 +295,13 @@ nav li {
     list-style: none;
     display: inline-block;
     cursor: pointer;
-}
-
-.menu {
-    margin: 0;
-    height: 30px;
-    background-color: #cccccc;
-}
-
-.menu-container {
-    height: 30px;
-    background-color: #333333;
     text-align: center;
-    margin: 0;
-    padding: 0;
-}
-
-.menu-container > div {
-    display: inline-block;
-}
-
-.menu-section {
-    width: 15%; /* Declare your value. Can be in relative units. */
-    height: 100%;
-    text-align: center;
-    font-size: 20px;
+    font-size: 1.5em;
     color: #CF5151;
+    margin-left: 10px;
 }
 
-.menu-section-defaut {
-    background-color: #333333;
-}
-
-.menu-section:hover {
-    cursor: pointer;
-    font-size: 22px;
-    color: #cccccc;
-}
-
-.menu-section-active {
-    background-color: #222222;
-    font-size: 22px;
+nav li:hover {
     color: #cccccc;
 }
 
@@ -345,9 +312,9 @@ nav li {
 
 /* additional menu */
 .addmenu-pres, .addmenu-admin {
-    display: none;
-    position: relative;
-    clear: both;
+    display: block;
+    visibility: hidden;
+    position: absolute;
     width: auto;
     min-height: 30px;
     background-color: rgba(34,34,34,.9);
@@ -358,9 +325,10 @@ nav li {
     padding: 0;
 }
 
-.addmenu-pres > div, .addmenu-admin >div {
-    display: inline-block;
+.addmenu-pres > nav, .addmenu-admin >div {
     vertical-align: bottom;
+    list-style: none;
+    display: block;
 }
 
 .addmenu-section {
@@ -414,8 +382,22 @@ nav li {
 /* *********************************************************************/
 /* Page Content
 /* *********************************************************************/
+.loadingDiv {
+    position:   absolute;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    width:      100%;
+    height: 100%;
+    background: rgba( 255, 255, 255, .7)
+    url('../images/spinner.gif')
+    50% 50%
+    no-repeat;
+}
+
 #pagecontent {
     display: none;
+    position: relative;
 }
 
 #content {
@@ -424,20 +406,6 @@ nav li {
     width: 95%;
     margin: 0 auto;
     vertical-align: middle;
-}
-
-#loading {
-    display:    none;
-    position:   fixed;
-    z-index:    1000;
-    top:        0;
-    left:       0;
-    width:      100%;
-    height: 100%;
-    background: rgba( 0, 0, 0, .7)
-                url('../images/spinner.gif')
-                50% 50%
-                no-repeat;
 }
 
 .plugins {
@@ -1041,14 +1009,6 @@ nav li {
 /* *********************************************************************/
 /* Text/Messages
 /* *********************************************************************/
-#sitetitle {
-    color: rgba(255,255,255,1);
-    text-align: left;
-    margin-left: 30px;
-    font-size: 2em;
-    font-weight: 300;
-}
-
 #pagename {
     display: block;
     margin-left: -10px;
@@ -1063,6 +1023,20 @@ nav li {
 }
 
 /* Alerts */
+
+.warningmsg {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    width: 100%;
+    height: auto;
+    background-color: rgba(164, 33, 27, 1); /* Add a background color to our status message   */
+    color: #FFF;
+    padding: 10px;
+}
+
 .feedback {
     content: "";
     min-width: 200px;

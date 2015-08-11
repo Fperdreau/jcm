@@ -218,92 +218,7 @@ var inititdatepicker = function(jcdays,selected) {
     });
 };
 
-// Set up tinyMCE (rich-text textarea)
-var tinymcesetup = function() {
-    tinymce.init({
-        mode: "textareas",
-        selector: ".tinymce",
-        width: "90%",
-        height: 300,
-        plugins: [
-            "advlist autolink lists charmap print preview hr spellchecker",
-            "searchreplace wordcount visualblocks visualchars code fullscreen",
-            "save contextmenu directionality template paste textcolor"
-        ],
-        content_css: "js/tinymce/skins/lightgray/content.min.css",
-        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | l      ink image | print preview media fullpage | forecolor backcolor emoticons",
-        style_formats: [
-            {title: 'Bold text', inline: 'b'},
-            {title: 'Red text', inline: 'span', styles: {color: '#ff0000'}},
-            {title: 'Red header', block: 'h1', styles: {color: '#ff0000'}},
-            {title: 'Example 1', inline: 'span', classes: 'example1'},
-            {title: 'Example 2', inline: 'span', classes: 'example2'},
-            {title: 'Table styles'},
-            {title: 'Table row 1', selector: 'tr', classes: 'tablerow1'}
-        ]
-    });
-
-};
-
-// Load sections
-var index = 0, section_pages = $('.section_page');
-var loadsections = function(pagetoload) {
-    var section;
-
-    if (index <= section_pages.length) {
-        section = $(section_pages[index]);
-        ++index;
-        section.load(loadsections(pagetoload));
-    }
-};
-
-// Load page by clicking on menu sections
-var loadpageonclick = function(pagetoload,param) {
-    param = (typeof param !== 'undefined') ? param : false;
-    var stateObj = { page: pagetoload };
-    var url = (param === false) ? "index.php?page="+pagetoload:"index.php?page="+pagetoload+"&"+param;
-
-    /*$('#pagecontent')
-        .fadeOut(200)
-        .empty()
-        .html('<div id="content"></div>')
-        .show();
-    $('#content')
-        .empty()
-        .load('pages/'+pagetoload+'.php .section_page')
-        .fadeIn(200);
-    history.pushState(stateObj, pagetoload, url);*/
-
-    jQuery.ajax({
-        url: 'pages/'+pagetoload+'.php',
-        type: 'GET',
-        async: true,
-        data: param,
-        beforeSend: function() {
-            $('#pagecontent').fadeOut(200);
-            $('#loading').show();
-        },
-        complete: function () {
-            $('#loading').hide();
-        },
-        success: function(data){
-            var json = jQuery.parseJSON(data);
-            history.pushState(stateObj, pagetoload, url);
-
-            $('#pagecontent')
-                .empty()
-                .html(json)
-                .fadeIn(200)
-                .find(".section_page").each(function() {
-                    $(this).fadeIn('slow');
-                });
-            tinymcesetup();
-            var callback = showplugins;
-            getPlugins(pagetoload, callback);
-        }
-    });
-};
-
+// Show post form
 var showpostform = function(postid) {
     jQuery.ajax({
         url: 'php/form.php',
@@ -332,61 +247,52 @@ var showpostform = function(postid) {
     });
 };
 
-// Parse URL
-var parseurl = function() {
-    var query = window.location.search.substring(1);
-    var vars = query.split("&");
-    vars = vars.slice(1,vars.length);
-    vars = vars.join("&");
-    return vars;
-};
 
-// Get url params ($_GET)
-var getParams = function() {
-    var url = window.location.href;
-    var splitted = url.split("?");
-    if(splitted.length === 1) {
-        return {};
-    }
-    var paramList = decodeURIComponent(splitted[1]).split("&");
-    var params = {};
-    for(var i = 0; i < paramList.length; i++) {
-        var paramTuple = paramList[i].split("=");
-        params[paramTuple[0]] = paramTuple[1];
-    }
-    return params;
-};
-
-function getpage() {
-    var params = getParams();
-    var page = (params.page == undefined) ? 'home':params.page;
-
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Logout
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+var logout = function() {
+    $('.warningmsg').remove();
     jQuery.ajax({
         url: 'php/form.php',
-        data: {get_app_status: true},
         type: 'POST',
-        async: true,
-        success: function(data) {
-            var json = jQuery.parseJSON(data);
-            if (json === 'Off' && page !== 'admin_tool') {
-                console.log('Site status: '+json);
-                console.log('page: '+page);
-                $('#pagecontent')
-                    .html("<div id='content'><p id='warning'>Sorry, the website is currently under maintenance.</p></div>")
-                    .fadeIn(200);
-            } else {
-                if (page === undefined) {
-                    loadpageonclick('home',false);
-                } else {
-                    if (page !== false && page != 'install') {
-                        var urlparam = parseurl();
-                        loadpageonclick(page,''+urlparam);
-                    }
-                }
-            }
+        data: {logout: true},
+        success: function() {
+            $('.mainbody').append("<div class='warningmsg'>You have been logged out!</div>");
+            $('.warningmsg').fadeIn(200);
+            setTimeout(function() {
+                $('.warningmsg')
+                    .fadeOut(200)
+                    .empty()
+                    .hide();
+                location.reload();
+            },3000);
         }
-    })
-}
+    });
+};
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Modal windows
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Close modal window
+var close_modal = function(modal_id) {
+    $("#lean_overlay").fadeOut(200);
+    $(modal_id).css({"display":"none"});
+    $('#submission_form').empty();
+};
+
+// Show the targeted modal section and hide the others
+var showmodal = function(sectionid) {
+    $('.modal_section').each(function() {
+        var thisid = $(this).attr('id');
+        if (thisid === sectionid) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+};
+
 
 $( document ).ready(function() {
 
@@ -394,9 +300,6 @@ $( document ).ready(function() {
      Main body
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
-        .ready(function() {
-            getpage();
-        })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Header menu/Sub-menu
@@ -430,12 +333,12 @@ $( document ).ready(function() {
         .on('click',function(event) {
             if(!$(event.target).closest('#menu_admin').length) {
                 if($('.addmenu-admin').is(":visible")) {
-                    $('.addmenu-admin').hide();
+                    $('.addmenu-admin').slideToggle();
                 }
             }
             if(!$(event.target).closest('#menu_pres').length) {
                 if($('.addmenu-pres').is(":visible")) {
-                    $('.addmenu-pres').hide();
+                    $('.addmenu-pres').slideToggle();
                 }
             }
         })
@@ -452,15 +355,7 @@ $( document ).ready(function() {
 
 		// Log out
         .on('click',"#logout",function(){
-            jQuery.ajax({
-                url: 'pages/logout.php',
-                type: 'POST',
-                async: true,
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    window.location = "index.php";
-                }
-            });
+            logout();
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

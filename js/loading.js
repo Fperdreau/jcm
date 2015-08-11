@@ -112,6 +112,8 @@ var loadpageonclick = function(pagetoload,param) {
                     $(this).fadeIn(200);
                 });
             tinymcesetup();
+            var callback = showplugins;
+            getPlugins(pagetoload, callback);
         }
     });
 };
