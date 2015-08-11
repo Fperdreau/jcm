@@ -21,11 +21,6 @@ if (empty($_SESSION['logok'])) { $_SESSION['logok'] = false;}
 
 // Includes required files (classes)
 require_once('includes/boot.php');
-
-// Get application settings
-$db = new DbSet();
-$config = new AppConfig($db);
-
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -42,23 +37,40 @@ $config = new AppConfig($db);
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
         <script type="text/javascript" src="js/Myupload.js"></script>
-        <title><?php echo $config->sitetitle; ?></title>
+        <title><?php echo $AppConfig->sitetitle; ?></title>
     </head>
 
     <body class="mainbody">
         <?php require(PATH_TO_PAGES.'modal.php'); ?>
 
-        <div id="mainheader">
-            <!-- Header section -->
-            <div class="header">
-                <?php require(PATH_TO_PHP.'page_header.php'); ?>
+        <!-- Header section -->
+        <header id="mainheader">
+            <div id="title">
+                <span id='sitetitle'><?php echo $AppConfig->sitetitle;?></span>
             </div>
 
             <!-- Menu section -->
-            <div class='menu'>
+            <div style="display: inline-block;">
                 <?php require(PATH_TO_PHP.'page_menu.php'); ?>
             </div>
-        </div>
+
+            <!-- Login box -->
+            <div id='login_box'>
+                <?php
+                if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
+                    $showlogin = "<span style='font-size: 16px; color: #FFFFFF;'>
+                    <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Log in</a>
+                     | <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign up</a>
+                     </span>";
+                } else {
+                    $showlogin = "<span style='font-size: 16px;' class='menu-section' data-url='profile'>My profile</span>
+                    | <span style='font-size: 16px;' class='menu-section' id='logout'>Log out</span>";
+                }
+                echo $showlogin;
+                ?>
+            </div>
+
+        </header>
 
         <!-- Core section -->
         <div id="core">
@@ -69,11 +81,11 @@ $config = new AppConfig($db);
         </div>
 
         <!-- Footer section -->
-        <div id="footer">
+        <footer id="footer">
             <span id="sign"><?php echo "<a href='$config->repository' target='_blank'>$config->app_name $config->version</a>
              | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
              | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $config->author</a>" ?></span>
-        </div>
+        </footer>
 
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.js"></script>

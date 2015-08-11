@@ -221,6 +221,7 @@ body {
     font-size: 13px;
     line-height: 1.2;
 	width: 100%;
+    box-sizing: border-box;
     margin: auto;
 	background-color: #cccccc;
     -webkit-font-smoothing: antialiased;
@@ -245,7 +246,7 @@ a:hover {
     top: 0;
     left: 0;
     width: 100%;
-    height: 60px;
+    height: 30px;
     z-index: 10;
     background-color: #555555;
     text-align: justify;
@@ -255,7 +256,7 @@ a:hover {
 .header {
     width: 100%;
     background-color: #888888;
-	height: 60px;
+	height: 30px;
 	text-align: justify;
     margin: 0;
     padding: 0;
@@ -264,53 +265,53 @@ a:hover {
 .header_container {
     position: relative;
     background-color: #555555;
-    clear: both;
-    width: 1024px;
-    height: 60px;
     margin: auto;
 }
 
 #title {
+    display: inline-block;
     text-align: left;
 }
 
-#welcome {
+#login_box {
+    display: inline-block;
     width: auto;
     text-align: center;
     background-color: #222222;
     border: 1px double #999999;
     padding: 5px;
-
 }
 
 /* *********************************************************************/
 /* Menu
 /* *********************************************************************/
-.menu {
-    position: relative;
-    clear: both;
-    width: 1024px;
+nav ul {
     margin: auto;
+    padding: 0;
+}
+
+nav li {
+    list-style: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.menu {
+    margin: 0;
     height: 30px;
     background-color: #cccccc;
 }
 
 .menu-container {
-    position: relative;
-    clear: both;
-    width: 100%;
     height: 30px;
     background-color: #333333;
-    box-shadow: 0 2px 2px #555;
-    z-index: 10;
     text-align: center;
-    margin: auto;
+    margin: 0;
     padding: 0;
 }
 
 .menu-container > div {
     display: inline-block;
-    vertical-align: bottom;
 }
 
 .menu-section {
@@ -1041,21 +1042,11 @@ a:hover {
 /* Text/Messages
 /* *********************************************************************/
 #sitetitle {
-    display: inline-block;
-    -webkit-box-sizing: content-box;
-    -moz-box-sizing: content-box;
-    box-sizing: content-box;
-    border: none;
-    color: rgba(48,48,48,1);
+    color: rgba(255,255,255,1);
     text-align: left;
-    text-transform: normal;
-    -o-text-overflow: clip;
-    text-overflow: clip;
-    white-space: pre;
-    text-shadow: 1px 1px 0 rgba(140,140,140,0.6) , -1px -1px 1px rgba(0,0,0,0.67) ;
-
     margin-left: 30px;
-    font-size: 50px;
+    font-size: 2em;
+    font-weight: 300;
 }
 
 #pagename {
