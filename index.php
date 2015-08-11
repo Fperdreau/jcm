@@ -35,9 +35,7 @@ require_once('includes/boot.php');
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/loading.js"></script>
-        <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
-        <script type="text/javascript" src="js/Myupload.js"></script>
         <title><?php echo $AppConfig->sitetitle; ?></title>
     </head>
 
@@ -65,8 +63,8 @@ require_once('includes/boot.php');
                      | <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign up</a>
                      ";
                 } else {
-                    $showlogin = "<span class='menu-section' data-url='profile'>My profile</span>
-                    | <span class='menu-section' id='logout'>Log out</span>";
+                    $showlogin = "<a href='#' class='menu-section' data-url='profile'>My profile</a>
+                    | <a href='#' class='menu-section' id='logout'>Log out</a>";
                 }
                 echo $showlogin;
                 ?>
@@ -92,6 +90,8 @@ require_once('includes/boot.php');
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/plugins.js"></script>
         <script type="text/javascript" src="js/cronjobs.js"></script>
+        <script type="text/javascript" src="js/Myupload.js"></script>
+        <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>
