@@ -28,8 +28,7 @@ if (!empty($_SESSION['status']) && $_SESSION['status'] == "admin") {
     $configmenu = "
     <li class='addmenu-section' data-url='admin_tool' data-param='op=config'><span id='addmenu'>Configuration</span></li>
     <li class='addmenu-section' data-url='admin_tool' data-param='op=plugins'><span id='addmenu'>Plugins</span></li>
-    <li class='addmenu-section' data-url='admin_tool' data-param='op=cronjobs'><span id='addmenu'>CronJobs</span></li>
-    <li class='addmenu-section' data-url='admin_tool' data-param='op=tools'><span id='addmenu'>Tools</span></li>";
+    <li class='addmenu-section' data-url='admin_tool' data-param='op=cronjobs'><span id='addmenu'>CronJobs</span></li>";
 } else {
     $configmenu = "";
 }

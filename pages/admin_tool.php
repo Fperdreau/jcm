@@ -415,27 +415,6 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
             </div>
         </div>
         ";
-
-// Admin tools page
-} elseif  (!empty($_GET['op']) && $_GET['op'] == 'tools') {
-    $content = "
-		<span id='pagename'>Admin tools</span>
-		<div class='section_page'>
-            <div class='section_header'>Tools</div>
-            <div class='section_content'>
-                <div id='db_backup' style='display: inline-block;'>
-                <label for='backup'>Backup database</label>
-                <input type='button' name='backup' value='Proceed' id='submit' class='dbbackup'/>
-                </div>
-                <div class='feedback' id='db_backup' style='display: inline-block;'></div><br>
-
-                <div id='full_backup' style='display: inline-block;'>
-                <label for='full_backup'>Full backup (database + files)</label>
-                <input type='button' name='full_backup' value='Proceed' id='submit' class='fullbackup'/>
-                </div>
-                <div class='feedback' id='full_backup' style='display: inline-block;'></div>
-            </div>
-        </div>";
 }
 
 $result = "

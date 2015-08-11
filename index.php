@@ -46,6 +46,7 @@ require_once('includes/boot.php');
 
         <!-- Header section -->
         <header class="header">
+            <div id="dropdown_menu"></div>
             <div id="title">
                 <?php echo $AppConfig->sitetitle;?>
             </div>

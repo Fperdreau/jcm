@@ -262,7 +262,6 @@ header >div{
 }
 
 #title {
-    display: inline-block;
     color: rgba(255,255,255,1);
     text-align: left;
     font-size: 2em;
@@ -275,8 +274,8 @@ header >div{
 }
 
 #login_box {
-    vertical-align: bottom;
     height: auto;
+    width: auto;
     padding: 5px 10px;
     background-color: #222222;
     cursor: pointer;
