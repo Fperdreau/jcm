@@ -32,31 +32,9 @@ $futurepres = $sessions->showfuturesession(4);
 /** @var $wishlist Sessions */
 $wishlist = $presentations->getwishlist();
 
-if ( !(isset($_SESSION['logok']) && $_SESSION['logok'])) {
-    $welcome_msg = "
-    <div id='welcome_msg'>
-        <p>Welcome to the Journal Club Manager &copy;!</p>
-        <p>By <a href='#modal' rel='leanModal' id='modal_trigger_register' class='modal_trigger'>signing up</a> to our website, you will get access to the following
-        features:</p>
-        <ul>
-        <li>Receive information about upcoming events by mail</li>
-        <li>Book future sessions for your presentation</li>
-        <li>Suggest papers that others could present (the wishlist)</li>
-        <li>Manage (edit/delete) your presentation from your personal profile</li>
-        <li>Access to the journal club archives</li>
-        </ul>
-        <p>Enjoy!</p>
-        <p>The Journal Club Team</p>
-        </div>
-    ";
-} else {
-    $welcome_msg = "";
-}
-
 $result = "
     <div id='content'>
         <span id='pagename'>Home</span>
-        $welcome_msg
         <div class='section_page'>
         <div class='section_header'>News</div>
         <div class='section_content news'>

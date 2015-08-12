@@ -22,6 +22,7 @@ echo "
 <div id='modal' class='modalContainer' style='display:none;'>
     <section class='popupBody' style='display:inline-block'>
         <div class='header_title'></div>
+
         <!-- Sign in section -->
         <div class='modal_section' id='user_login' style='width: 400px;'>
             <form id='login_form'>

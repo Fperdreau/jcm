@@ -272,8 +272,28 @@ var showmodal = function(sectionid) {
     });
 };
 
+// show Login on start
+function showLogin() {
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        data: {isLogged: true},
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            if (json === false) {
+                $('#modal_trigger_login')
+                    .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
+                    .click();
+            }
+        }
+    });
+}
 
 $( document ).ready(function() {
+
+    $('body').ready(function() {
+        showLogin();
+    });
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Main body

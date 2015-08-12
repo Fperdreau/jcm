@@ -73,7 +73,6 @@ require_once('includes/boot.php');
 
         <!-- Core section -->
         <div id="core">
-        	<div id="loading"></div>
         	<div id="pagecontent">
                 <div id="plugins"></div>
             </div>
