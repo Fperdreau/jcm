@@ -435,7 +435,7 @@ class Presentation extends Presentations {
                 <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title</div>
                 <div style='text-align: center; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->authors</div>
                 <div style='text-align: center; width: 10%; vertical-align: middle;'>
-                    <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>MORE</a>
+                    <div class='show_btn'><a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>MORE</a>
                     </div>
                 </div>
             </div>
@@ -450,16 +450,6 @@ class Presentation extends Presentations {
      * @return string
      */
     public function showinsession($opt=false,$date) {
-        /** Get list of organizers */
-        $Users = new Users($this->db);
-        $organizers = $Users->getadmin('admin');
-        $speakerOpt = "<option value='TBA' selected>TBA</option>";
-        foreach ($organizers as $key=>$organizer) {
-            $orguser = $organizer['username'];
-            $orgfull = $organizer['fullname'];
-            $selectOpt = ($orgfull === $this->orator) ? 'selected':"";
-            $speakerOpt .= "<option value='$orguser' $selectOpt>$orgfull</option>";
-        }
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
@@ -473,13 +463,30 @@ class Presentation extends Presentations {
             if ($opt == 'mail') {
                 $show_but = "$this->title";
             } else {
-                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title</a>";
+                $show_but = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>$this->title</a>";
             }
             $type = ucfirst($this->type);
         }
 
         // Either simply show speaker's name or option list of users (admin interface)
-        $speaker = ($opt == 'admin' && $opt != 'mail') ? "<select class='modSpeaker'>$speakerOpt</select>":"$speaker";
+        if ($opt == 'admin' && $opt != 'mail') {
+            /** Get list of organizers */
+            $Users = new Users($this->db);
+            $organizers = $Users->getUsers();
+            $organizers[] = 'TBA';
+
+            $speakerOpt = "";
+            foreach ($organizers as $organizer) {
+                if ($speaker == 'TBA') {
+                    $speakerOpt .= "<option value='TBA' selected>TBA</option>";
+                } else {
+                    $orga = new User($this->db,$organizer);
+                    $selectOpt = ($orga->fullname == $speaker) ? 'selected':"";
+                    $speakerOpt .= "<option value='$orga->username' $selectOpt>$orga->fullname</option>";
+                }
+            }
+            $speaker = "<select class='modSpeaker'>$speakerOpt</select>";
+        }
 
         return "
         <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
@@ -489,9 +496,9 @@ class Presentation extends Presentations {
                     $show_but
                 </div>
             </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
+            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 40%; margin: 0;'>
                 <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
+                <div style='display: block; position: relative; border: 0; z-index: 1;background-color: #dddddd; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
                 </div>
             </div>
         </div>";
@@ -566,7 +573,7 @@ class Presentation extends Presentations {
 
         // Make a show button (modal trigger) if not in email. Otherwise, a simple href.
         if ($show == true) {
-            $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$this->id_pres'><b>Make it true!</b></a>";
+            $pick_url = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-id='$this->id_pres'><b>Make it true!</b></a>";
         } else {
             $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
         }

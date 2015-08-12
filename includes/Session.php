@@ -159,8 +159,9 @@ class Sessions extends Table {
             $timeto = $time[1];
 
             // Get presentations
+            $nbPres = max($AppConfig->max_nb_session,count($session->presids));
             $presentations = "";
-            for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
+            for ($i=0;$i<$nbPres;$i++) {
                 $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
                 $pres = new Presentation($this->db,$presid);
                 $presentations .= $pres->showinsession('admin',$date);

@@ -19,15 +19,11 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 echo "
 
-<div id='modal' class='popupContainer' style='display:none;'>
- <header class='popupHeader'>
- <span class='header_title'>Login</span>
- <span class='modal_close'><i class='fa fa-times'></i></span>
- </header>
-
-    <section class='popupBody'>
-
-        <div class='modal_section' id='user_login'>
+<div id='modal' class='modalContainer' style='display:none;'>
+    <section class='popupBody' style='display:inline-block'>
+        <div class='header_title'></div>
+        <!-- Sign in section -->
+        <div class='modal_section' id='user_login' style='width: 400px;'>
             <form id='login_form'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='log_username'>Username</label>
@@ -49,7 +45,8 @@ echo "
             <div class='forgot_password'><a href='' class='modal_trigger_changepw'>I forgot my password</a></div>
         </div>
 
-        <div class='modal_section' id='user_register'>
+        <!-- Sign up section -->
+        <div class='modal_section' id='user_register' style='width: 80%'>
             <form id='register_form'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='firstname'>First Name</label>
@@ -85,12 +82,13 @@ echo "
                         </select>
                 </div>
                 <div class='action_btns'>
-                    <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
+                    <div class='one_half'><input type='submit' class='back_btn' value='Back'> <i class='fa fa-angle-double-left'></i> </div>
                     <div class='one_half last'><input type='submit' class='register' id='submit' value='Sign up'></div>
                 </div>
             </form>
         </div>
 
+        <!-- Delete account section -->
         <div class='modal_section' id='user_delete'>
             <label for='del_username'>Username</label><input type='text' id='del_username' name='del_username' value=''/></br>
             <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
@@ -99,6 +97,7 @@ echo "
             </div>
         </div>
 
+        <!-- Change password section -->
         <div class='modal_section' id='user_changepw'>
             <div class='formcontrol' style='width: 100%;'>
             <label for='ch_email'>Email</label><input type='text' id='ch_email' name='ch_email' value=''/></br>
@@ -108,21 +107,11 @@ echo "
                 <div class='one_half last'><a href='' class='btn btn_red' id='modal_change_pwd'>Change</a></div>
             </div>
         </div>
-        <div class='feedback'></div>
-    </section>
-</div>
 
-<div id='pub_modal' class='pub_popupContainer' style='display:none;'>
- <header class='popupHeader'>
- <span class='header_title'>Presentation</span>
- <span class='modal_close'><i class='fa fa-times'></i></span>
- </header>
+        <!-- Submission form section -->
+        <div class='modal_section' id='submission_form'></div>
 
-    <section class='popupBody'>
-
-        <div class='modal_section' id='submission_form'>
-        </div>
-
+        <!-- Delete submission (confirmation) section -->
         <div class='modal_section' id='pub_delete'>
             <div>Do you want to delete this presentation?</div>
             <div class='action_btns'>
@@ -132,5 +121,9 @@ echo "
             <div class='feedback'></div>
         </div>
 
+        <div class='feedback'></div>
+
     </section>
+    <div class='modal_close'></div>
+
 </div>";

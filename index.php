@@ -45,7 +45,7 @@ require_once('includes/boot.php');
         <!-- Header section -->
         <header class="header">
             <div id="dropdown_menu"></div>
-            <div id="title">
+            <div id="sitetitle">
                 <?php echo $AppConfig->sitetitle;?>
             </div>
 
@@ -59,7 +59,7 @@ require_once('includes/boot.php');
                 <?php
                 if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
                     $showlogin = "
-                    <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Log in</a>
+                    <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Sign in</a>
                      | <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign up</a>
                      ";
                 } else {

@@ -148,7 +148,7 @@ class AssignSpeakers extends AppCron {
         $this->get();
 
         // Get sessions dates
-        $jc_days = $Sessions->getjcdates(intval($this->options['nbsessiontoplan']),true);
+        $jc_days = $Sessions->getjcdates(intval($this->options['nbsessiontoplan']));
         $created = 0;
         $updated = 0;
         foreach ($jc_days as $day) {
@@ -171,7 +171,7 @@ class AssignSpeakers extends AppCron {
                     $post = array(
                         'title'=>'TBA',
                         'date'=>$day,
-                        'type'=>'research',
+                        'type'=>'paper',
                         'username'=>$speaker->username,
                         'orator'=>$speaker->fullname);
 
