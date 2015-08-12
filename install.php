@@ -744,7 +744,7 @@ if (!empty($_POST['getpagecontent'])) {
             }
             return data;
         }
-        
+
         // Get url params ($_GET)
         var getParams = function() {
             var url = window.location.href;
