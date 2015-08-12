@@ -436,23 +436,23 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
 				<input type='hidden' name='db_info' value='true' />
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
     				<label for='host'>Host Name</label>
     				<input name='host' type='text' value='$host'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
     				<label for='username'>Username</label>
     				<input name='username' type='text' value='$username'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
 				    <label for='passw'>Password</label>
 				    <input name='passw' type='password' value='$passw'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
 				    <label for='dbname'>DB Name</label>
 				    <input name='dbname' type='text' value='$dbname'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
 				    <label for='dbprefix'>DB Prefix</label>
 				    <input name='dbprefix' type='text' value='$dbprefix'>
                 </div>
@@ -473,29 +473,29 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='install_db' value='true' />
 
                 <div class='section_sub'>Journal Club Manager - Website</div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='sitetitle'>Site title</label>
                     <input name='sitetitle' type='text' value='$AppConfig->sitetitle'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='site_url'>Web path to root</label>
                     <input name='site_url' type='text' value='$AppConfig->site_url' size='30'>
                 </div>
 
                 <div class='section_sub'>Journal Club Manager - Mailing service</div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='mail_from'>Sender Email address</label>
                     <input name='mail_from' type='text' value='$AppConfig->mail_from'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='mail_from_name'>Sender name</label>
                     <input name='mail_from_name' type='text' value='$AppConfig->mail_from_name'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='mail_host'>Email host</label>
                     <input name='mail_host' type='text' value='$AppConfig->mail_host'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='SMTP_secure'>SMTP access</label>
                     <select name='SMTP_secure'>
                         <option value='$AppConfig->SMTP_secure' selected='selected'>$AppConfig->SMTP_secure</option>
@@ -504,15 +504,15 @@ if (!empty($_POST['getpagecontent'])) {
                         <option value='none'>none</option>
                      </select>
                  </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='mail_port'>Email port</label>
                     <input name='mail_port' type='text' value='$AppConfig->mail_port'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='mail_username'>Email username</label>
                     <input name='mail_username' type='text' value='$AppConfig->mail_username'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
                     <label for='mail_password'>Email password</label>
                     <input name='mail_password' type='password' value='$AppConfig->mail_password'>
                 </div>
@@ -526,19 +526,19 @@ if (!empty($_POST['getpagecontent'])) {
         $operation = "
             <div class='feedback'></div>
 			<form method='post' id='admin_creation'>
-			    <div class='formcontrol' style='width: 30%'>
+			    <div class='formcontrol''>
 				    <label for='admin_username'>UserName : </label>
 				    <input id='admin_username' type='text' name='username'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
 				    <label for='admin_password'>Password : </label>
 				    <input id='admin_password' type='password' name='password'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
 				    <label for='admin_confpassword'>Confirm password: </label>
 				    <input id='admin_confpassword' type='password' name='admin_confpassword'>
                 </div>
-                <div class='formcontrol' style='width: 30%'>
+                <div class='formcontrol''>
 				    <label for='admin_email'>Email: </label>
 				    <input type='text' name='email' id='admin_email'>
                 </div>
@@ -579,13 +579,33 @@ if (!empty($_POST['getpagecontent'])) {
     <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
     <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
 
+    <style type="text/css">
+        .box {
+            background: #FFFFFF;
+            width: 60%;
+            padding: 20px;
+            margin: 2% auto;
+            border: 1px solid #eeeeee;
+        }
+    </style>
+
     <!-- JQuery -->
     <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
 
     <!-- Bunch of jQuery functions -->
     <script type="text/javascript">
-        // Spin animation when a page is loading
-        var $loading = $('#loading').hide();
+        // Show loading animation
+        function loadingDiv(divId) {
+            $(""+divId)
+                .fadeOut(200)
+                .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
+                .show();
+        }
+
+        // Remove loading animation
+        function removeLoading(divId) {
+            $(''+divId).children('.loadingDiv').hide();
+        }
 
         // Check email validity
         function checkemail(email) {
@@ -606,6 +626,8 @@ if (!empty($_POST['getpagecontent'])) {
 
         // Get page content
         var getpagecontent = function(step,op) {
+            var stateObj = { page: 'install' };
+
             jQuery.ajax({
                 url: 'install.php',
                 type: 'POST',
@@ -614,17 +636,18 @@ if (!empty($_POST['getpagecontent'])) {
                     getpagecontent: step,
                     op: op},
                 beforeSend: function() {
-                    $('#loading').show();
+                    loadingDiv('#pagecontent');
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    removeLoading('#pagecontent');
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    $('#loading').hide();
+                    history.pushState(stateObj, 'install', 'install.php?step='+step+'&op='+op);
                     $('#pagecontent')
+                        .fadeOut(100)
                         .html('<div>'+result+'</div>')
-                        .fadeIn('slow');
+                        .fadeIn(200);
                 }
             });
         };
@@ -639,10 +662,10 @@ if (!empty($_POST['getpagecontent'])) {
                 async: false,
                 data: data,
                 beforeSend: function() {
-                    $('#loading').show();
+                    loadingDiv('#pagecontent');
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    removeLoading('#pagecontent');
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -667,10 +690,10 @@ if (!empty($_POST['getpagecontent'])) {
                 async: true,
                 data: {operation: "backup"},
                 beforeSend: function() {
-                    $('#loading').show();
+                    loadingDiv('#pagecontent');
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    removeLoading('#pagecontent');
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -694,10 +717,10 @@ if (!empty($_POST['getpagecontent'])) {
                 async: true,
                 data: {operation: "checkdb"},
                 beforeSend: function() {
-                    $('#loading').show();
+                    loadingDiv('#pagecontent');
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    removeLoading('#pagecontent');
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -721,12 +744,31 @@ if (!empty($_POST['getpagecontent'])) {
             }
             return data;
         }
+        
+        // Get url params ($_GET)
+        var getParams = function() {
+            var url = window.location.href;
+            var splitted = url.split("?");
+            if(splitted.length === 1) {
+                return {};
+            }
+            var paramList = decodeURIComponent(splitted[1]).split("&");
+            var params = {};
+            for(var i = 0; i < paramList.length; i++) {
+                var paramTuple = paramList[i].split("=");
+                params[paramTuple[0]] = paramTuple[1];
+            }
+            return params;
+        };
 
         $(document).ready(function () {
             $('.mainbody')
                 .ready(function() {
                     // Get step
-                    getpagecontent(1,false);
+                    var params = getParams();
+                    var step = (params.step == undefined) ? 1:params.step;
+                    var op = (params.op == undefined) ? false:params.op;
+                    getpagecontent(step, op);
                 })
 
                 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -803,10 +845,10 @@ if (!empty($_POST['getpagecontent'])) {
                         async: true,
                         data: formdata,
                         beforeSend: function() {
-                            $('#loading').show();
+                            loadingDiv('#pagecontent');
                         },
                         complete: function() {
-                            $('#loading').hide();
+                            removeLoading('#pagecontent');
                         },
                         success: function(data){
                             var result = jQuery.parseJSON(data);
@@ -883,10 +925,10 @@ if (!empty($_POST['getpagecontent'])) {
                             email: email,
                             conf_password: conf_password},
                         beforeSend: function() {
-                            $('#loading').show();
+                            loadingDiv('#pagecontent');
                         },
                         complete: function() {
-                            $('#loading').hide();
+                            removeLoading('#pagecontent');
                         },
                         success: function(data){
                             var result = jQuery.parseJSON(data);
@@ -900,36 +942,27 @@ if (!empty($_POST['getpagecontent'])) {
     <title>Journal Club Manager - Installation</title>
 </head>
 
-<body class="mainbody">
-<!-- Header section -->
-<div id="mainheader">
+<body class="mainbody" style="background: #FdFdFd;">
+
+<div id="bodytable">
     <!-- Header section -->
-    <div class="header">
-        <div class='header_container'>
-            <div id='title'>
-                <span id='sitetitle'>Journal Club Manager</span>
-            </div>
-        </div>
+    <div class="box" style='text-align: center; font-size: 1.7em; color: #336699; font-weight: 300;'>
+        FPvision - Installation
     </div>
 
-    <!-- Menu section -->
-    <div class='menu'>
-        <div class='menu-container'>
-        </div>
+    <!-- Core section -->
+    <div class="box">
+        <div id="pagecontent"></div>
     </div>
-</div>
 
-<!-- Core section -->
-<div id="core">
-    <div id="loading"></div>
-    <div id="pagecontent"></div>
-</div>
-
-<!-- Footer section -->
-<div id="footer">
-            <span id="sign"><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a>
+    <!-- Footer section -->
+    <div class="box" style="text-align: center">
+        <span id="sign"><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a>
              | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
              | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></span>
+    </div>
 </div>
+
 </body>
+
 </html>

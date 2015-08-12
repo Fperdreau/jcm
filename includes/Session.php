@@ -76,44 +76,14 @@ class Sessions extends Table {
         /** @var AppConfig $AppConfig */
         $AppConfig = new AppConfig($this->db);
 
-        // Get next journal club days
-        if ($from === false) {
-            $startdate = strtotime("now");
-            $year = date('Y'); // Current year
-            $month = date('F'); // Current month;
-        } else {
-            $startdate = $from;
-            $exploded = explode('-',$from);
-            if (count($exploded) == 3) {
-                $monthNb = $exploded[1];
-                $month = date('F', mktime(0, 0, 0, $monthNb, 10)); // March
-                $year = $exploded[0];
-            } else {
-                $month = $exploded[0];
-                $year = $exploded[1];
-            }
-        }
-        if ($from === false) {
-            $first = strtotime("first " . $AppConfig->jc_day . " of $month $year"); // First journal club of the year
-            $lastday = mktime(0, 0, 0, 12, 31, $year); // Last day of the year
-        } else {
-            $first = strtotime($from);
-            $lastday = strtotime("$from + $nsession weeks");
-
-        }
-
-        $day = $first;
+        $startdate = ($from == false) ? strtotime('now'):strtotime($from);
         $jc_days = array();
-        $cpt = 0;
-        $curdate = date('Y-m-d',$day);
-        while ($day < $lastday) {
-            if ($day >= $startdate || $from == false) {
-                $jc_days[] = $curdate;
-                $cpt++;
-            }
-            if($cpt>=$nsession) { break; }
-            $curdate = date('Y-m-d',$day += 7 * 86400);
+        for ($s=0; $s<$nsession; $s++) {
+            $what = ($s == 0) ? 'this':'next';
+            $startdate = strtotime("$what $AppConfig->jc_day",$startdate);
+            $jc_days[] = date('Y-m-d',$startdate);
         }
+
         return $jc_days;
     }
 
@@ -162,12 +132,7 @@ class Sessions extends Table {
 
         $session_type = array_keys($AppConfig->session_type);
 
-        // TODO: start from today. Improve getjcdates methods
-        $dates = $this->getsessions(); // Get planned sessions
-        $dates = ($dates == false) ? false: $dates[0];
-        $today = date('Y-m-d');
-        $sessions = self::getjcdates($nbsession,$dates); // Get dates
-
+        $sessions = self::getjcdates($nbsession); // Get dates
         $content = "";
         foreach ($sessions as $date) {
             if (self::dateexists($date)) {
@@ -194,8 +159,9 @@ class Sessions extends Table {
             $timeto = $time[1];
 
             // Get presentations
+            $nbPres = max($AppConfig->max_nb_session,count($session->presids));
             $presentations = "";
-            for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
+            for ($i=0;$i<$nbPres;$i++) {
                 $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
                 $pres = new Presentation($this->db,$presid);
                 $presentations .= $pres->showinsession('admin',$date);

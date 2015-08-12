@@ -17,33 +17,100 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /* Forms & Input field styles */
-form {
-    position: relative;
-    margin: auto;
-    text-align: left;
-}
 
-.valid_input{
-    border: 1px solid #3CB371;
-    box-shadow: 0 0 10px #3CB371;
-}
-
-.wrong_input{
-    border: 1px solid #3CB371;
-    box-shadow: 0 0 10px #3CB371;
-}
-
-input[type="text"], input[type="email"], input[type="password"] {
+.formcontrol {
+    vertical-align: top;
     display: inline-block;
-    width:200px;
-    padding: 10px;
-    border:1px solid rgba(207, 81, 81, .3);
-    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
-    margin: 10px auto;
+    margin: 5px;
+    font-size: 0;
+}
 
-    /* Styles */
-    background: #f9f9f9;
+label{
+    display: inline-block;
+    vertical-align: top;
+    background-color: rgba(207,81,81,1);
+    border: 1px solid rgba(207,81,81,1);
+    text-align: center;
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: #EEE;
+    padding: 4px 1px;
+
+    min-width: 110px;
+    height: 20px;
+    line-height: 20px;
+}
+
+input[type='text'], input[type='email'], input[type='password'], select, textarea {
+    display: inline-block;
+    vertical-align: top;
+    margin: 0;
+    padding: 4px 1px;
+
+    font-size: 12px;
+    font-weight: 300;
+
+    line-height: 20px;
+    min-height: 20px;
+    min-width: 250px;
+    max-width: 100%;
+
+    border: 1px solid rgba(207, 81, 81, .3);
     color: #777;
+}
+
+select {
+    -webkit-appearance: menulist-button;
+    height: 30px;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-bottom: 1px solid rgba(207,81,81,1);
+}
+
+input[type='radio'] {
+    display: inline-block;
+    width: 10%;
+}
+
+textarea {
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+    font-weight: 400;
+    resize: none;
+
+    /* Size and position */
+    min-width: 250px;
+    min-height: 150px;
+    max-width: 100%;
+}
+
+input[type="submit"], input[type="button"] {
+    cursor: pointer;
+    background: #F9F9F9; /* Set button background */
+    border: 1px solid rgba(207, 81, 81, 1); /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+    transition: all 0.3s ease 0s;
+
+}
+
+input[type="submit"]:hover, input[type="button"]:hover {
+    color: #FFF;
+    background: rgba(207, 81, 81, 1); /* Set button background */
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+input[type="submit"]:active, input[type="button"]:active {
+    color: #FFF;
+    background: rgba(207, 81, 81, .5); /* Set button background */
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+    padding: 8px; /* Add some more space around our button text */
+}
+
+select#select_wish {
+    width: 400px;
 }
 
 input.input_opt {
@@ -64,150 +131,12 @@ select.select_opt {
     color: #555;
 }
 
-input[type="checkbox"] {
-    float:left;
-    margin-right:5px;
-}
-
-input[type="checkbox"]+label {float:left;}
-
-textarea {
-    font-family: 'Lato', Calibri, Arial, sans-serif;
-    margin: 10px auto;
-    font-size: 13px;
-    font-weight: 400;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
-    resize: none;
-
-    /* Size and position */
-    width: 90%;
-    height: 200px;
-    padding: 10px 18px 10px 45px;
-
-    /* Styles */
-    border:1px solid rgba(207, 81, 81, .3);
-    background: #f9f9f9;
-    color: #555;
-}
-
-input:focus, textarea:focus {
-    outline: none;
-    box-shadow: 0 0 5px rgba(207,81,81,1);
-    border: 1px solid rgba(207,81,81,1);
-}
-
-select {
-    min-width: 50px;
-    width: auto;
-    border:1px solid rgba(207, 81, 81, .3);
-    padding: 7px 6px;
-    color: #555;
-}
-
-select:focus {
-    outline: none;
-    box-shadow: 0 0 5px rgba(207, 81, 81, 1);
-    border: 1px solid rgba(207, 81, 81, .8);
-}
-
-select#select_wish {
-    width: 400px;
-}
-
-input[type="submit"], input[type="button"] {
-    background: #F9F9F9; /* Set button background */
-    border: 1px solid rgba(207, 81, 81, 1); /* Small border around our submit button */
-    padding: 8px; /* Add some more space around our button text */
-}
-
-input[type="submit"]:hover, input[type="button"]:hover {
-    color: #FFF;
-    background: rgba(207, 81, 81, 1); /* Set button background */
-    border: 1px solid #DFDFDF; /* Small border around our submit button */
-    padding: 8px; /* Add some more space around our button text */
-}
-
-input[type="submit"]:active, input[type="button"]:active {
-    color: #FFF;
-    background: rgba(207, 81, 81, .5); /* Set button background */
-    border: 1px solid #DFDFDF; /* Small border around our submit button */
-    padding: 8px; /* Add some more space around our button text */
-}
-
-input.field {
-    padding: 10px;
-    display: inline-block;
-    width: 300px;
-}
-
-label.label {
-    display: inline-block;
-    min-width: 150px;
-    text-align: right;
-    padding: 10px 0 10px 10px;
-    margin: 0px 0 5px 5px;
-}
-
-.formcontrol {
-    vertical-align: top;
-    position: relative;
-    display: inline-block;
-    margin: 10px;
-    height: auto;
-}
-
-.formcontrol>div {
-    display: block;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    margin: 0;
-    padding: 7px 6px;
-    font-size: 12px;
-    font-weight: 300;
-    border:1px solid rgba(207, 81, 81, .3);
-    text-shadow: 0 1px 0 rgba(255,255,255,0.8);
-
-    /* Styles */
-    background: #f9f9f9;
-    color: #777;
-}
-
-.formcontrol label{
-    display: inline-block;
-    top: 0;
-    left: 0;
-    bottom: 0;
-
-    background-color: rgba(207,81,81,.8);
-    text-align: center;
-    font-size: 12px;
-    font-weight: 300;
-    color: #EEE;
-    padding: 5px;
-}
-
-.formcontrol input, .formcontrol select, .formcontrol textarea {
-    width: 90%;
-    display: block;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    margin: 0;
-    padding: 7px 6px;
-    font-size: 12px;
-    font-weight: 300;
-}
-
-.formcontrol input[type='radio'] {
-    display: inline-block;
-    width: 10%;
-}
 
 .submit_btns {
     margin: 0 auto 0 0;
     float: right;
     text-align: right;
+    width: 50px;
 }
 
 /* *********************************************************************/
@@ -223,7 +152,7 @@ body {
 	width: 100%;
     box-sizing: border-box;
     margin: auto;
-	background-color: #cccccc;
+	background-color: #fefefe;
     -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
     overflow-x: scroll;
@@ -261,7 +190,7 @@ header >div{
     vertical-align: bottom;
 }
 
-#title {
+#sitetitle {
     color: rgba(255,255,255,1);
     text-align: left;
     font-size: 2em;
@@ -982,11 +911,8 @@ nav li:hover {
 }
 
 .session_core {
-    width: 100%;
     vertical-align: top;
     text-align: left;
-    display: block;
-    margin: 5px 0;
 }
 
 .session_core>div {
@@ -997,8 +923,7 @@ nav li:hover {
 .session_presentations {
     margin: 0 auto 0 0;
     vertical-align: top;
-    width: 55%;
-    text-align: right;
+    width: 40%;
 }
 
 /* *********************************************************************/
@@ -1079,24 +1004,69 @@ nav li:hover {
     display: none;
 }
 
+/* Publication modal window */
+.modalContainer {
+    position:relative;
+    top:auto;
+    bottom:auto;
+    margin: auto;
+
+    max-height: 90%;
+    text-align: left;
+}
+
+.modalContainer .modal_section {
+    display: none;
+    margin: auto;
+    width: auto;
+}
+
+.popupBody {
+    min-width: 500px;
+    max-width: 500px;
+    max-height: 500px;
+    padding: 10px;
+    overflow: auto;
+    background: #FFF;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+}
+
+/* Popup Styles*/
+.popupHeader {background: #FFF; font-size:16px; font-weight: 300; text-transform: uppercase; color: #222;}
+.popupHeader {position: relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
+.popupHeader .modal_close {position: absolute; right: 0; top:5px; padding:10px 15px; background: url('../images/delete.png') no-repeat; background-position: center center; background-size: 50% auto; cursor: pointer; color:#aaa; font-size:16px;}
+.modal_close {
+    vertical-align: top;
+    display: inline-block;
+    position: relative;
+    right: 0;
+    top:0;
+    padding:10px 15px;
+    background: url('../images/delete.png') no-repeat;
+    background-position: center center;
+    background-size: 50% auto;
+    cursor: pointer;
+    color:#aaa;
+    font-size:16px;
+}
+
+.header_title {
+    font-size:1.2em;
+    font-weight: 500;
+    text-transform: uppercase;
+    border-bottom:1px solid #DDD;
+    margin-bottom: 10px;
+}
 
 .action_btns {
-    display: inline-block;
     width: 100%;
+    display: inline-block;
     margin: 20px 0 10px;
     clear: both;
     text-decoration: none;
     color:#ED6347;
-}
-
-#modal_trigger {
-    margin: 100px auto;
-    width: 100px;
-    display: block;
-}
-
-.error {
-    display: none;
 }
 
 .btn {padding:10px 20px; background: #F4F4F2;}
@@ -1111,52 +1081,11 @@ a.btn_red {color: #FFF;}
 .one_half {width:50%; display: block; float:left;}
 .one_half.last {width:45%; margin-left:5%; text-align: right;}
 
-/* Popup Styles*/
-.popupHeader {font-size:16px; font-weight: 300; text-transform: uppercase; color: #EEE;}
-.popupHeader {background: rgba(207,81,81,.8); position: relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
-.popupHeader .modal_close {position: absolute; right: 0; top:0; padding:10px 15px; background: url('../images/delete.png') no-repeat; background-position: center center; background-size: 50% auto; cursor: pointer; color:#aaa; font-size:16px;}
-
-.popupBody {
-    max-height: 500px;
-    padding:20px;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
-    -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
-    box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
-}
-
-
-/* Publication modal window */
-.popupContainer{
-    position:absolute;
-    width:400px;
-    height: auto;
-    left:400px;
-    top:30px;
-    background: #FFF;
-}
-
-.popupContainer .modal_section {
-    display: none;
-}
-
 .forgot_password {
-    display:block;
-    margin: 20px 0 10px;
-    clear: both;
+    margin: 10px auto 10px auto;
     text-align: center;
     text-decoration: none;
-    color:#ED6347;}
-
-/* Publication modal window*/
-.pub_popupContainer{
-    position:absolute;
-    width:800px;
-    height: auto;
-    left:45%;
-    top:80px;
-    background: #FFF;
+    color:#ED6347;
 }
 
 input.dateinput {
@@ -1201,9 +1130,7 @@ input.dateinput {
 
 .pub_action_btn {
     width: 100%;
-    margin-top: 20px;
-    margin-left: auto;
-    margin-right: 0;
+    margin: 10px 0 auto 0;
     text-align: justify;
 }
 
@@ -1221,11 +1148,10 @@ input.dateinput {
 }
 
 .pub_btn {
-    padding: 10px 10px;
-    height: 20px;
+    padding: 5px 10px;
     background: #E4E4E2;
-    width: 100px;
     text-align: center;
+    text-transform: uppercase;
 }
 
 .pub_btn a {

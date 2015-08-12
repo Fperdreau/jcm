@@ -43,8 +43,9 @@ if (!empty($_POST['modCronOpt'])) {
     $cronName = htmlspecialchars($_POST['modCronOpt']);
     $data = $_POST['data'];
     $AppCron = new AppCron($db,$cronName);
-    //$cron = $AppCron->instantiateCron($cronName);
-    $result = $AppCron->update(array('options'=>$data));
+    $cron = $AppCron->instantiateCron($cronName);
+    $cron->get();
+    $result = $cron->update(array('options'=>$data));
     echo json_encode($result);
     exit;
 }

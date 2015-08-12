@@ -19,8 +19,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  General functions
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-var modalpubform = $('.modal_section#submission_form');
-
 // Show publication form
 var showpubform = function(formel,idpress,type,date,prestype) {
     if (idpress === undefined) {idpress = false;}
@@ -42,7 +40,6 @@ var showpubform = function(formel,idpress,type,date,prestype) {
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
-            console.log(result);
             formel
                 .hide()
                 .html(result)
@@ -82,10 +79,10 @@ var processform = function(formid,feedbackid) {
         async: true,
         data: data,
         beforeSend: function() {
-            $("#loading").show();
+            loadingDiv("#"+formid);
         },
         complete: function() {
-            $("#loading").hide();
+            removeLoading("#"+formid);
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
@@ -116,13 +113,6 @@ var checkform = function(formid) {
     return valid;
 };
 
-// Close modal window
-var close_modal = function(modal_id) {
-    $("#lean_overlay").fadeOut(200);
-    $(modal_id).css({"display":"none"});
-    $('#submission_form').empty();
-};
-
 // Check email validity
 var checkemail = function(email) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
@@ -141,18 +131,6 @@ var showfeedback = function(message,selector) {
            .empty();
     },3000);
     return false;
-};
-
-// Show the targeted modal section and hide the others
-var showmodal = function(sectionid) {
-    $('.modal_section').each(function() {
-        var thisid = $(this).attr('id');
-        if (thisid === sectionid) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-    });
 };
 
 // send verification email after signing up
@@ -247,7 +225,6 @@ var showpostform = function(postid) {
     });
 };
 
-
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Logout
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -274,11 +251,13 @@ var logout = function() {
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Modal windows
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+var modalpubform = $('.modal_section#submission_form');
+
 // Close modal window
 var close_modal = function(modal_id) {
     $("#lean_overlay").fadeOut(200);
     $(modal_id).css({"display":"none"});
-    $('#submission_form').empty();
+    $("modal_section#submission_form").empty();
 };
 
 // Show the targeted modal section and hide the others
@@ -314,6 +293,7 @@ $( document ).ready(function() {
                 loadpageonclick(pagetoload,false);
             }
         })
+
         // Sub-menu sections
         .on('click',".addmenu-section",function(){
             $(".addmenu-section").removeClass("activepage");
@@ -750,7 +730,6 @@ $( document ).ready(function() {
             processform("config_form_session","feedback_jcsession");
         })
 
-
         // Add a session/presentation type
         .on('click','.type_add',function(e) {
             var classname = $(this).attr('data-class');
@@ -1133,7 +1112,6 @@ $( document ).ready(function() {
             return false;
         })
 
-
 		// Trigger modal dialog box for log in/sign up
         .on('mouseover',"a[rel*=leanModal]",function(e) {
             e.preventDefault();
@@ -1144,7 +1122,7 @@ $( document ).ready(function() {
         .on('click',"#modal_trigger_login",function(e){
             e.preventDefault();
             showmodal('user_login');
-            $(".header_title").text('Log in');
+            $(".header_title").text('Sign in');
         })
 
         // Dialog sign up
@@ -1170,12 +1148,6 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           Publication modal
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        // Trigger modal dialog box for publications (show/modify/delete forms)
-        .on('mouseover',"a[rel*=pub_leanModal]",function(e) {
-            e.preventDefault();
-            $(this).leanModal({top : 50, width : 500, overlay : 0.6, closeButton: ".modal_close" });
-        })
-
         // Show publication information on click
         .on('click','#modal_trigger_pubcontainer',function(e){
             e.preventDefault();
@@ -1183,15 +1155,6 @@ $( document ).ready(function() {
             showmodal('submission_form');
             displaypub(id_pres,modalpubform);
             $(".header_title").text('Presentation');
-        })
-
-        // add a minute
-        .on('click','#addminute',function(e) {
-            e.preventDefault();
-            var date = $(this).attr('data-date');
-            showmodal('submission_form');
-            $(".header_title").text('Add a minute');
-            showpubform(modalpubform,false,'submit',date,'minute');
         })
 
         // Choose a wish
@@ -1204,7 +1167,7 @@ $( document ).ready(function() {
         });
 
 	// Process events happening on the publication modal dialog box
-    $('.pub_popupContainer')
+    $('.modalContainer')
 		// Show publication modification form
         .on('click','.modify_ref',function(e) {
             e.preventDefault();
@@ -1247,14 +1210,12 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     showfeedback('<p id="success">Publication deleted</p>');
-                    close_modal('.pub_popupContainer');
+                    close_modal('.modalContainer');
                     $('#'+id_pres).remove();
                 }
             });
-        });
+        })
 
-	// Process events happening on the login/sign up modal dialog box
-    $(".popupContainer")
         // Dialog change password
         .on('click',".modal_trigger_changepw",function(e){
             e.preventDefault();
@@ -1265,7 +1226,7 @@ $( document ).ready(function() {
         // Going back to Login Forms
         .on('click',".back_btn",function(){
             showmodal('user_login');
-            $(".header_title").text('Login');
+            $(".header_title").text('Sign in');
             return false;
         })
 
@@ -1400,7 +1361,7 @@ $( document ).ready(function() {
                             .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
                             .fadeIn(200);
                         setTimeout(function() {
-                            close_modal(".popupContainer");
+                            close_modal(".modalContainer");
                         }, 5000);
                     } else if (result === "exist") {
                         showfeedback('<p id="warning">This username/email address already exist in our database</p>');

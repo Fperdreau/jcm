@@ -73,7 +73,7 @@ function check_login($status=null) {
         $result = "
 		    <div id='content'>
 		        <p id='warning'>You must be logged in order to access this page</br>
-		        <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Log in</a> or <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign Up</a></p>
+		        <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Sign in</a> or <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign Up</a></p>
 		    </div>
 		    ";
 		echo json_encode($result);
@@ -159,14 +159,14 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
             <input type='hidden' name='username' value='$user->username'/>
             $idPresentation
 
-            <div class='formcontrol' style='width: 15%;'>
+            <div class='formcontrol'>
                 <label>Type</label>
                 <select name='type' id='type'>
                     $typeoptions
                 </select>
             </div>
 
-            <div class='formcontrol' style='width: 10%;'>
+            <div class='formcontrol' style='width: auto;'>
                 $dateinput
             </div>
 
