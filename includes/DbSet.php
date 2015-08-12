@@ -118,7 +118,6 @@ class DbSet {
             "Session" => $this->dbprefix."_session",
             "Posts" => $this->dbprefix."_post",
             "Media" => $this->dbprefix."_media",
-            "Chairs" => $this->dbprefix."_chairs",
             "Plugins" => $this->dbprefix."_plugins",
             "Crons" => $this->dbprefix."_crons"
         );
