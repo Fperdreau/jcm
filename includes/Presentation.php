@@ -445,11 +445,21 @@ class Presentation extends Presentations {
 
     /**
      * Show publication details in session list
-     * @param $mail
+     * @param bool $opt
      * @param $date
      * @return string
      */
-    public function showinsession($mail,$date) {
+    public function showinsession($opt=false,$date) {
+        /** Get list of organizers */
+        $Users = new Users($this->db);
+        $organizers = $Users->getadmin('admin');
+        $speakerOpt = "<option value='TBA' selected>TBA</option>";
+        foreach ($organizers as $key=>$organizer) {
+            $orguser = $organizer['username'];
+            $orgfull = $organizer['fullname'];
+            $selectOpt = ($orgfull === $this->orator) ? 'selected':"";
+            $speakerOpt .= "<option value='$orguser' $selectOpt>$orgfull</option>";
+        }
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
@@ -457,20 +467,19 @@ class Presentation extends Presentations {
             $type = "TBA";
         } else {
             /** @var User $speaker */
-            $speaker = new User($this->db,$this->orator);
-            $speaker = $speaker->fullname;
+            $speaker = $this->orator;
+
             // Make "Show" button
-            if (null != $mail) {
-                $show_but = "$this->title ($this->authors)";
+            if ($opt == 'mail') {
+                $show_but = "$this->title";
             } else {
-                $authors = ($this->type !== 'minute') ? "($this->authors)" : "";
-                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title $authors</a>";
+                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title</a>";
             }
             $type = ucfirst($this->type);
         }
 
-        $chairDiv = ($this->type !== 'minute') ? "<div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
-            </div>" : "";
+        // Either simply show speaker's name or option list of users (admin interface)
+        $speaker = ($opt == 'admin' && $opt != 'mail') ? "<select class='modSpeaker'>$speakerOpt</select>":"$speaker";
 
         return "
         <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
@@ -485,55 +494,7 @@ class Presentation extends Presentations {
                 <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
                 </div>
             </div>
-            $chairDiv
         </div>";
-    }
-
-    /**
-     * Show details about this presentation
-     * @return string
-     * @internal param $chair
-     */
-    public function showinsessionmanager() {
-        /** Get list of organizers */
-        $Users = new Users($this->db);
-        $organizers = $Users->getadmin('admin');
-        $speakerOpt = "<option value='TBA' selected>TBA</option>";
-        foreach ($organizers as $key=>$organizer) {
-            $orguser = $organizer['username'];
-            $orgfull = $organizer['fullname'];
-            $selectOpt = ($orgfull === $this->orator) ? 'selected':"";
-            $speakerOpt .= "<option value='$orguser' $selectOpt>$orgfull</option>";
-        }
-
-        /** title link */
-        if ($this->id_pres !== "") {
-            /** @var User $speaker */
-            $type = $this->type;
-            $titlelink = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>";
-        } else {
-            $type = "TBA";
-            $titlelink = "TBA";
-        }
-
-        return "
-        <div id='$this->id_pres' style='display: block; width: 100%; margin: 0; font-size: 11px; font-weight: 300;'>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 40%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>$type</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #cccccc;padding: 5px;'>
-                    $titlelink
-                </div>
-            </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>
-                    <select class='modSpeaker'>
-                    $speakerOpt
-                    </select>
-                </div>
-            </div>
-        </div>
-        ";
     }
 
     /**

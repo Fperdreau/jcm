@@ -162,9 +162,11 @@ class Sessions extends Table {
 
         $session_type = array_keys($AppConfig->session_type);
 
-        $dates = $this->getsessions(1);
+        // TODO: start from today. Improve getjcdates methods
+        $dates = $this->getsessions(); // Get planned sessions
         $dates = ($dates == false) ? false: $dates[0];
-        $sessions = self::getjcdates($nbsession,$dates);
+        $today = date('Y-m-d');
+        $sessions = self::getjcdates($nbsession,$dates); // Get dates
 
         $content = "";
         foreach ($sessions as $date) {
@@ -196,7 +198,7 @@ class Sessions extends Table {
             for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
                 $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
                 $pres = new Presentation($this->db,$presid);
-                $presentations .= $pres->showinsessionmanager($session->date);
+                $presentations .= $pres->showinsession('admin',$date);
             }
 
             $content .= "
@@ -293,9 +295,6 @@ class Sessions extends Table {
                 </div>
                 <div style='padding: 10px 20px 10px 10px; background-color: #eee; margin: 0; border: 1px solid rgba(175,175,175,.8);'>
                     $sessioncontent
-                    <div style='text-align: right; width: 100%;'>
-                        <div class='show_btn' style='width: 80px; vertical-align: middle; padding: 5px 7px 5px 7px;'><a href='#pub_modal' class='modal_trigger' id='addminute' rel='pub_leanModal' data-date='$session->date'>Add a minute</a></div>
-                    </div>
                 </div>
 
             </div>";

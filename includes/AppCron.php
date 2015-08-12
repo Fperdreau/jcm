@@ -88,7 +88,7 @@ class AppCron extends Table {
         $data = mysqli_fetch_assoc($req);
         if (!empty($data)) {
             foreach ($data as $prop=>$value) {
-                $value = ($prop == "options") ? json_decode($value):$value;
+                $value = ($prop == "options") ? json_decode($value,true):$value;
                 $this->$prop = $value;
             }
         }

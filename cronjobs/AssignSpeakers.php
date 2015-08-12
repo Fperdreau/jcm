@@ -145,8 +145,8 @@ class AssignSpeakers extends AppCron {
      */
     public function run() {
         global $db, $Sessions;
+        $this->get();
 
-        var_dump($this->options['nbsessiontoplan']);exit;
         // Get sessions dates
         $jc_days = $Sessions->getjcdates($this->options['nbsessiontoplan']);
         $created = 0;
@@ -161,7 +161,7 @@ class AssignSpeakers extends AppCron {
 
             if ($session->type !== "none") {
                 // If a session is planned for this day, we assign X speakers (1 speaker by presentation)
-                for ($p = $session->nbpres; $p < $session->max_nb_session; $p++) {
+                for ($p = $session->nbpres; $p <= $session->max_nb_session; $p++) {
                     // Get speaker
                     $Newspeaker = $this->getSpeakers($day);
                     $speaker = new User($this->db,$Newspeaker);

@@ -32,6 +32,7 @@ if (!empty($_POST['getCronOpt'])) {
     $cronName = htmlspecialchars($_POST['getCronOpt']);
     $AppCron = new AppCron($db);
     $cron = $AppCron->instantiateCron($cronName);
+    $cron->get();
     $result = $cron->displayOpt();
     echo json_encode($result);
     exit;
@@ -41,9 +42,9 @@ if (!empty($_POST['getCronOpt'])) {
 if (!empty($_POST['modCronOpt'])) {
     $cronName = htmlspecialchars($_POST['modCronOpt']);
     $data = $_POST['data'];
-    $AppCron = new AppCron($db);
-    $cron = $AppCron->instantiateCron($cronName);
-    $result = $cron->update(array('options'=>$data));
+    $AppCron = new AppCron($db,$cronName);
+    //$cron = $AppCron->instantiateCron($cronName);
+    $result = $AppCron->update(array('options'=>$data));
     echo json_encode($result);
     exit;
 }
