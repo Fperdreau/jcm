@@ -55,23 +55,23 @@ $result = "
                         <input type='submit' name='user_modify' value='Modify' class='profile_persoinfo_form' id='submit'/>
                     </div>
                     <input type='hidden' name='username' value='$user->username'/>
-                    <div class='formcontrol' style='width: 35%;'>
+                    <div class='formcontrol'>
                         <label for='firstname'>First Name</label>
                         <input type='text' name='firstname' value='$user->firstname'/>
                     </div>
-                    <div class='formcontrol' style='width: 35%;'>
+                    <div class='formcontrol'>
                         <label for='lastname'>Last Name</label>
                         <input type='text' name='lastname' value='$user->lastname'/>
                     </div><br>
-                    <div class='formcontrol' style='width: 35%;'>
+                    <div class='formcontrol'>
                         <label for='status'>Status: </label>
                         <div>$user->status</div>
                     </div>
-                    <div class='formcontrol' style='width: 35%;'>
+                    <div class='formcontrol'>
                         <label for='password'>Password</label>
                         <div><a href='' class='change_pwd' id='$user->email'>Change my password</a></div>
                     </div>
-                    <div class='formcontrol' style='width: 35%;'>
+                    <div class='formcontrol'>
                         <label for='position'>Position</label>
                         <select name='position'>
                         <option value='$user->position' selected='selected'>$user->position</option>
@@ -81,7 +81,7 @@ $result = "
                         <option value='master'>Master</option>
                         </select>
                     </div>
-                    <div class='formcontrol' style='width: 35%;'>
+                    <div class='formcontrol'>
                         <label>Presentations: </label>
                         <div>$user->nbpres submission(s)</div>
                     </div>

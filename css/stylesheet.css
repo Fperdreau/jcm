@@ -42,11 +42,11 @@ label{
     line-height: 20px;
 }
 
-input[type='text'], input[type='email'], input[type='password'], select, textarea {
+input[type='text'], input[type='email'], input[type='password'], .formcontrol>div, select, textarea {
     display: inline-block;
     vertical-align: top;
     margin: 0;
-    padding: 4px 1px;
+    padding: 4px 2px 4px 10px;
 
     font-size: 12px;
     font-weight: 300;
