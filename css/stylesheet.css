@@ -150,6 +150,7 @@ body {
     font-size: 13px;
     line-height: 1.2;
 	width: 100%;
+    min-width: 320px;
     box-sizing: border-box;
     margin: auto;
 	background-color: #efefef;
@@ -175,12 +176,13 @@ header {
     top: 0;
     left: 0;
     width: 100%;
+    min-width: 320px;
     height: auto;
     z-index: 10;
     background-color: #555555;
-    padding: 5px;
+    padding: 0;
     margin: 0;
-    box-sizing: border-box;
+    box-sizing: content-box;
     text-align: justify;
 }
 
@@ -191,10 +193,16 @@ header >div{
 }
 
 #sitetitle {
+    background: rgba(150,150,150,.5);
     color: rgba(255,255,255,1);
     text-align: left;
     font-size: 2em;
     font-weight: 300;
+    margin: 0 0 0 0px;
+    padding: 5px 10px;
+    position: relative;
+    border-left: 5px solid rgba(207,81,81,1);
+    left: 0;
 }
 
 #menu {
@@ -203,7 +211,7 @@ header >div{
 }
 
 #login_box {
-    margin: 2px 5px 0 0;
+    margin: 5px 5px 0 0;
     height: auto;
     width: auto;
     float: right;
@@ -260,6 +268,18 @@ nav li:hover {
     border-bottom: 1px solid rgba(255,255,255,.5);
 }
 
+.addmenu-pres li:hover, .addmenu-admin li:hover {
+    vertical-align: bottom;
+    list-style: none;
+    display: block;
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(34,34,34,.5);
+    background: rgba(255,255,255,.5);
+    color: #222222;
+}
+
+
+
 .addmenu-section {
     text-align: center;
     font-size: 18px;
@@ -282,7 +302,8 @@ nav li:hover {
 #core {
     position: relative;
     z-index: 3;
-    width: 1024px;
+    width: 70%;
+    min-width: 320px;
     border: 1px solid #dddddd;
     padding: 0;
     margin: 0 auto 0 auto;
@@ -451,7 +472,7 @@ nav li:hover {
 
 .news {
     max-height: 400px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 /* *********************************************************************/
