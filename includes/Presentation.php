@@ -487,7 +487,7 @@ class Presentation extends Presentations {
             }
             $speaker = "<select class='modSpeaker'>$speakerOpt</select>";
         }
-
+/*
         return "
         <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
             <div style='display: inline-block; vertical-align: middle; text-align: left; width: 55%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
@@ -500,6 +500,15 @@ class Presentation extends Presentations {
                 <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
                 <div style='display: block; position: relative; border: 0; z-index: 1;background-color: #dddddd; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
                 </div>
+            </div>
+        </div>";
+        */
+        return "
+        <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block; min-width: 60px;font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
+            <div style='display: inline-block; margin-left: 20px;'>
+                <div>$show_but</div>
+                <div style='font-style: italic;'>Presented by $speaker</div>
             </div>
         </div>";
     }
