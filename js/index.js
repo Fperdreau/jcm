@@ -21,6 +21,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Show publication form
 var showpubform = function(formel,idpress,type,date,prestype) {
+    console.log(idpress);
     if (idpress == undefined) {idpress = false;}
     if (type == undefined) {type = "submit";}
     if (date == undefined) {date = false;}
@@ -887,7 +888,7 @@ $( document ).ready(function() {
         .on('change','#select_wish',function(e) {
             var presid = $(this).val();
             var form = $('.wishform');
-            showpubform(form,presid,'update');
+            showpubform(form,presid,'submit');
          })
 
         // Show download list
@@ -1118,7 +1119,7 @@ $( document ).ready(function() {
             var id_pres = $(this).attr('data-id');
             var date = $(this).attr('data-date');
             showmodal('submission_form');
-            showpubform(modalpubform,id_pres,'update',date);
+            showpubform(modalpubform,id_pres,'submit',date);
         });
 
 	// Process events happening on the publication modal dialog box
@@ -1128,8 +1129,7 @@ $( document ).ready(function() {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
             showmodal('submission_form');
-            showpubform(modalpubform,id_pres,'update');
-            $(".header_title").text('Modify');
+            showpubform(modalpubform,id_pres,'submit');
         })
 
 		// Show publication deletion confirmation

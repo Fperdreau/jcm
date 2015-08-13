@@ -116,10 +116,9 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
         $filelist .= "";
     }
 
-    $idPresentation = "";
-    if ($submit == "update") {
-        $idPresentation = "<input type='hidden' name='id_pres' value='$Presentation->id_pres'/>";
-    }
+    // Presentation ID
+    $idPres = (!empty($Presentation->id_pres)) ? $Presentation->id_pres:false;
+    $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
 
     // Show date input only for submissions and updates
     if ($submit != "suggest") {

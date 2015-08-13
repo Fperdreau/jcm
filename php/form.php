@@ -432,6 +432,7 @@ if (!empty($_POST['del_upl'])) {
 // Submit a new presentation
 if (!empty($_POST['submit'])) {
     // check entries
+    $presid = htmlspecialchars($_POST['id_pres']);
     $user = new User($db,$_SESSION['username']);
     $date = $_POST['date'];
 
@@ -439,15 +440,18 @@ if (!empty($_POST['submit'])) {
         $_POST['orator'] = $user->username;
     }
 
-    $pub = new Presentation($db);
-    $created = $pub -> make($_POST);
+    // Create or update the presentation
+    if ($presid !== "false") {
+        $pub = new Presentation($db,$presid);
+        $created = $pub->update($_POST);
+    } else {
+        $pub = new Presentation($db);
+        $created = $pub->make($_POST);
+    }
+
     if ($created !== false && $created !== 'exists') {
         // Add to sessions table
-        $postsession = array(
-            "date"=>$date,
-            "presid"=>$created,
-            "speakers"=>$_POST['orator']
-            );
+        $postsession = array("date"=>$date);
         $session = new Session($db);
         if ($session->make($postsession)) {
             $result['status'] = true;
@@ -455,48 +459,11 @@ if (!empty($_POST['submit'])) {
          } else {
             $pub->delete_pres($created);
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'>We could not create/update the session</p>";
+            $result['msg'] = "<p id='warning'>Sorry, we could not create/update the session</p>";
          }
     } elseif ($created == "exists") {
         $result['status'] = false;
         $result['msg'] = "<p id='warning'>This presentation already exist in our database.</p>";
-    } else {
-        $result['status'] = false;
-        $result['msg'] = "<p id='warning'>Oops, something has gone wrong.</p>";
-    }
-
-    echo json_encode($result);
-    exit;
-}
-
-// Update/modify a presentation
-if (!empty($_POST['update'])) {
-    $pub = new Presentation($db,$_POST['id_pres']);
-    // check entries
-    $user = new User($db,$_SESSION['username']);
-    $date = $_POST['date'];
-
-    if ($_POST['type'] != "guest") {
-        $_POST['orator'] = $user->username;
-    }
-
-    $created = $pub->update($_POST);
-    if ($created !== false) {
-        // Add to sessions table
-        $postsession = array(
-            "date"=>$date,
-            "presid"=>$created,
-            "speakers"=>$_POST['orator']
-            );
-        $session = new Session($db);
-        if ($session->make($postsession)) {
-            $result['status'] = true;
-            $result['msg'] = "<p id='success'>Your presentation has been submitted.</p>";
-         } else {
-            $pub->delete_pres($created);
-            $result['status'] = false;
-            $result['msg'] = "<p id='warning'>We could not create/update the session</p>";
-         }
     } else {
         $result['status'] = false;
         $result['msg'] = "<p id='warning'>Oops, something has gone wrong.</p>";

@@ -71,7 +71,7 @@ if ($op == 'new') {
 
     $selectopt = $Presentations->generate_selectwishlist();
     if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
-        $submit_form = displayform($user,$Presentation,'update');
+        $submit_form = displayform($user,$Presentation,'submit');
     } else {
         $submit_form = "";
     }
@@ -94,7 +94,7 @@ if ($op == 'new') {
 
 // Modify a presentation
 } elseif ($op == 'mod_pub') {
-    $submit_form = displayform($user,$Presentation,'update');
+    $submit_form = displayform($user,$Presentation,'submit');
     $result = "
     <div id='content'>
         <div id='pagename'>Modify a presentation</div>

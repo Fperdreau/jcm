@@ -269,7 +269,8 @@ class Presentation extends Presentations {
         if ($post['title'] == "TBA" || $this->pres_exist($post['title']) == false) {
 
             // Create an unique ID
-            $this->id_pres = self::create_presID();
+            $post['id_pres'] = self::create_presID();
+            $this->id_pres = $post['id_pres'];
 
             // Associates this presentation to an uploaded file if there is one
             if (!empty($post['link'])) {
@@ -578,7 +579,7 @@ class Presentation extends Presentations {
         return "
         <div style='display: block; padding: 5px; text-align: justify; background-color: #eeeeee;'>
             <div style='display: block; border-bottom: 1px solid #bbbbbb;'>
-                <div style='display: inline-block; padding: 0; width: 90%; max-width: 90%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title ($this->authors) suggested by <span style='color: #CF5151;'>$uploader->fullname</span>
+                <div style='display: inline-block; padding: 0; width: 90%; max-width: 90%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title suggested by <span style='color: #CF5151;'>$uploader->fullname</span>
                 </div>
                 <div style='display: inline-block; text-align: right;'>
                     $pick_url
