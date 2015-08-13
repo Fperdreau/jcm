@@ -530,9 +530,8 @@ class User extends Users{
         $req = $this->db->send_query($sql);
         $content = "
             <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-                <div style='text-align: center; font-weight: bold; width: 15%;'>Date</div>
-                <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
-                <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+                <div style='text-align: center; font-weight: bold; width: 20%;'>Date</div>
+                <div style='text-align: center; font-weight: bold; width: 70%;'>Title</div>
             </div>
         ";
 
@@ -540,27 +539,7 @@ class User extends Users{
             $pubid = $row['id_pres'];
             /** @var Presentation $pub */
             $pub = new Presentation($this->db,$pubid);
-            if ($pub->date == "0000-00-00") {
-                if ($pub->type == "wishlist") {
-                    $date = "WISH";
-                } else {
-                    $date = "";
-                }
-            } else {
-                $date = $pub->date;
-            }
-            $content .= "
-                <div class='pub_container' id='$pub->id_pres'>
-                    <div class='list-container' style='font-size: 12px;'>
-                        <div style='text-align: center; width: 15%;'>$date</div>
-                        <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->title</div>
-                        <div style='text-align: center; width: 10%; vertical-align: middle;'>
-                            <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'>MORE</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ";
+            $content .= $pub->show(true);
         }
         return $content;
     }
