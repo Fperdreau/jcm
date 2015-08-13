@@ -173,7 +173,7 @@ class AssignSpeakers extends AppCron {
                         'date'=>$day,
                         'type'=>'paper',
                         'username'=>$speaker->username,
-                        'orator'=>$speaker->fullname);
+                        'orator'=>$speaker->username);
 
                     // Create presentation
                     $Presentation->make($post);
