@@ -128,14 +128,13 @@ class Media extends Uploads {
      * Create Media object
      * @param $file
      * @return bool|mixed|mysqli_result|string
-     * @internal param $presid
      */
     public function make($file) {
 
         // First check the file
-        $valid = $this->checkupload($file);
-        if ($valid !== true) {
-            return $valid;
+        $result['error'] = $this->checkupload($file);
+        if ($result['error'] != true) {
+            return $result;
         }
 
         // Second: Proceed to upload
