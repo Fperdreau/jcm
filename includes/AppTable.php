@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class Table {
+class AppTable {
 
     protected $db;
     protected $tablename;

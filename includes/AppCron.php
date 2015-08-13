@@ -24,7 +24,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  * - run
  * Class AppCron
  */
-class AppCron extends Table {
+class AppCron extends AppTable {
 
     protected $table_data = array(
         "id"=>array('INT NOT NULL AUTO_INCREMENT',false),
@@ -127,7 +127,7 @@ class AppCron extends Table {
      * @param: class name (must be the same as the file name)
      * @return: object
      */
-    public function instantiateCron($pluginName) {
+    public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/cronjobs/';
         include_once($folder . $pluginName .'.php');
         return new $pluginName($this->db);
@@ -228,7 +228,7 @@ class AppCron extends Table {
             if (!empty($cronFile) && !in_array($cronFile,array('.','..','run.php','logs'))) {
                 $name = explode('.',$cronFile);
                 $name = $name[0];
-                $thisPlugin = $this->instantiateCron($name);
+                $thisPlugin = $this->instantiate($name);
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
                 }
@@ -251,7 +251,7 @@ class AppCron extends Table {
      * @return string
      */
     public function displayOpt() {
-        $opt = "";
+        $opt = "<div style='font-weight: 600;'>Options</div>";
         if (!empty($this->options)) {
             foreach ($this->options as $optName => $settings) {
                 if (count($settings) > 1) {
@@ -264,10 +264,12 @@ class AppCron extends Table {
                     $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
                 }
                 $opt .= "
-                <label for='$optName'>$optName</label>
-                $optProp";
+                <div class='formcontrol'>
+                    <label for='$optName'>$optName</label>
+                    $optProp
+                </div>";
             }
-            $opt .= "<input type='submit' class='modCronOpt' value='Modify'>";
+            $opt .= "<input type='submit' class='modOpt' data-op='cron' value='Modify'>";
         } else {
             $opt = "No settings are available for this job.";
         }
@@ -278,15 +280,15 @@ class AppCron extends Table {
      * Display jobs list
      * @return string
      */
-    public function showCrons() {
+    public function show() {
         $jobsList = $this->getJobs();
         $cronList = "";
         foreach ($jobsList as $cronName => $info) {
             $installed = $info['installed'];
             if ($installed) {
-                $install_btn = "<div class='install_cron workBtn uninstallBtn' data-op='uninstall' data-cron='$cronName'></div>";
+                $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='cron' data-op='uninstall' data-name='$cronName'></div>";
             } else {
-                $install_btn = "<div class='install_cron workBtn installBtn' data-op='install' data-cron='$cronName'></div>";
+                $install_btn = "<div class='installDep workBtn installBtn' data-type='cron' data-op='install' data-name='$cronName'></div>";
             }
 
             $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
@@ -326,7 +328,7 @@ class AppCron extends Table {
                     <div class='plugName'>$cronName</div>
                     <div class='plugTime' id='cron_time_$cronName'>$time</div>
                     <div class='optbar'>
-                        <div class='plugOptShow workBtn settingsBtn' data-cron='$cronName'></div>
+                        <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
                         $install_btn
                         $runBtn
                     </div>
@@ -336,7 +338,7 @@ class AppCron extends Table {
                     <div class='optbar'>
                         <div class='formcontrol'>
                             <label>Status</label>
-                            <select class='select_opt cron_status' data-cron='$cronName'>
+                            <select class='select_opt modSettings' data-op='cron' data-option='status' data-name='$cronName'>
                             <option value='$status' selected>$status</option>
                             <option value='On'>On</option>
                             <option value='Off'>Off</option>
@@ -347,19 +349,19 @@ class AppCron extends Table {
                     <div class='settings'>
                         <div class='formcontrol'>
                             <label>Day</label>
-                            <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayName'>
+                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayName'>
                                 $dayName_list
                             </select>
                         </div>
                         <div class='formcontrol'>
                             <label>Date</label>
-                            <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayNb'>
+                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayNb'>
                                 $dayNb_list
                             </select>
                         </div>
                         <div class='formcontrol'>
                            <label>Time</label>
-                            <select class='select_opt cron_setting' data-cron='$cronName' data-setting='hour'>
+                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='hour'>
                                 $hours_list
                             </select>
                         </div>

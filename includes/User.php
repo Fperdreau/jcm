@@ -22,7 +22,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Handle user-related methods (generate users list/ get organizers list)
  */
-class Users extends Table {
+class Users extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),

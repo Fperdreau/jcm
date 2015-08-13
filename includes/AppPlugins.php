@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class AppPlugins extends Table {
+class AppPlugins extends AppTable {
 
     protected $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
@@ -114,7 +114,7 @@ class AppPlugins extends Table {
      * @param $pluginName
      * @return mixed
      */
-    public function instantiatePlugin($pluginName) {
+    public function instantiate($pluginName) {
         /**
          * Instantiate a class from class name
          * @param: class name (must be the same as the file name)
@@ -145,7 +145,7 @@ class AppPlugins extends Table {
         $plugins = array();
         foreach ($pluginList as $pluginfile) {
             if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
-                $thisPlugin = $this->instantiatePlugin($pluginfile);
+                $thisPlugin = $this->instantiate($pluginfile);
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
                 }
@@ -164,48 +164,86 @@ class AppPlugins extends Table {
     }
 
     /**
+     * Display job's settings
+     * @return string
+     */
+    public function displayOpt() {
+        $opt = "<div style='font-weight: 600;'>Options</div>";
+        if (!empty($this->options)) {
+            foreach ($this->options as $optName => $settings) {
+                if (count($settings) > 1) {
+                    $optProp = "";
+                    foreach ($settings as $prop) {
+                        $optProp .= "<option value='$prop'>$prop</option>";
+                    }
+                    $optProp = "<select name='$optName'>$optProp</select>";
+                } else {
+                    $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
+                }
+                $opt .= "
+                <div class='formcontrol'>
+                    <label for='$optName'>$optName</label>
+                    $optProp
+                </div>";
+            }
+            $opt .= "<input type='submit' class='modOpt' data-op='plugin' value='Modify'>";
+        } else {
+            $opt = "No settings are available for this job.";
+        }
+        return $opt;
+    }
+
+    /**
      * Show plugins list
      * @return string
      */
-    public function showPlugins() {
+    public function show() {
         $pluginsList = $this->getPlugins();
-        $plugin_list = "
-        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
-            <div style='text-align: center; font-weight: bold; width: 5%;'>Version</div>
-            <div style='text-align: center; font-weight: bold; width: 20%;'>Page</div>
-            <div style='text-align: center; font-weight: bold; width: 30%;'>Options</div>
-            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
-            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-        </div>";
+        $plugin_list = "";
         foreach ($pluginsList as $pluginName => $info) {
             $installed = $info['installed'];
             if ($installed) {
-                $install_btn = "<div class='install_plugin install_btn' data-op='uninstall' data-plugin='$pluginName'>Uninstall</div>";
+                $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='plugin' data-op='uninstall' data-name='$pluginName'></div>";
             } else {
-                $install_btn = "<div class='install_plugin install_btn' data-op='install' data-plugin='$pluginName'>Install</div>";
+                $install_btn = "<div class='installDep workBtn installBtn' data-type='plugin' data-op='install' data-name='$pluginName'></div>";
             }
             $status = $info['status'];
-            $option_list = '';
-            foreach ($info['options'] as $option => $settings) {
-                $option_list .= "<label>$option</label><input type='text' value='$settings' class='input_opt plugin_setting' data-plugin='$pluginName' data-option='$option'/><br>";
-            }
+
             $plugin_list .= "
-        <div class='list-container' style='font-size: 12px;' id='plugin_$pluginName'>
-            <div style='width: 10%'><b>$pluginName</b></div>
-            <div style='width: 5%'>" . $info['version'] . "</div>
-            <div style='width: 20%'>" . $info['page'] . "</div>
-            <div style='width: 30%; vertical-align: top;'>$option_list</div>
-            <div style='width: 5%'>
-                <select class='select_opt plugin_status' data-plugin='$pluginName'>
-                <option value='$status' selected>$status</option>
-                <option value='On'>On</option>
-                <option value='Off'>Off</option>
-                </select>
+            <div class='plugDiv' id='plugin_$pluginName'>
+                <div class='plugLeft'>
+                    <div class='plugName'>$pluginName</div>
+                    <div class='plugTime'>" . $info['version'] . "</div>
+                    <div class='optbar'>
+                        <div class='optShow workBtn settingsBtn' data-op='plugin' data-name='$pluginName'></div>
+                        $install_btn
+                    </div>
+                </div>
+
+                <div class='plugSettings'>
+                    <div class='optbar'>
+                        <div class='formcontrol'>
+                            <label>Status</label>
+                            <select class='select_opt modSettings' data-op='plugin' data-option='status' data-name='$pluginName'>
+                            <option value='$status' selected>$status</option>
+                            <option value='On'>On</option>
+                            <option value='Off'>Off</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='settings'>
+                        <div class='formcontrol'>
+                            <label>Page</label>
+                            <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "' style='width: 20%'/>
+                        </div>
+                    </div>
+
+                    <div class='plugOpt' id='$pluginName'></div>
+
+                </div>
             </div>
-            <div style='width: 10%'>$install_btn</div>
-        </div>
-        ";
+            ";
         }
         return $plugin_list;
     }

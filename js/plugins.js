@@ -16,6 +16,11 @@
  along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Get plugins list associated to the current page
+ * @param page: current page
+ * @param callback: callback function
+ */
 function getPlugins(page, callback) {
     jQuery.ajax({
         url: 'php/form.php',
@@ -32,12 +37,16 @@ function getPlugins(page, callback) {
     });
 }
 
-function showplugins(page, result) {
+/**
+ * Show plugins within the page
+ * @param page: current page
+ * @param result: array providing plugins list
+ */
+function showPlugins(page, result) {
     var key;
     for (key in result) {
         var plugin = result[key];
         if (plugin.page == page) {
-            console.log(plugin.display);
             $(".plugins")
                 .fadeOut(200)
                 .append(plugin.display)
@@ -47,37 +56,51 @@ function showplugins(page, result) {
 }
 
 $(document).ready(function() {
+    $("<style>")
+        .prop("type", "text/css")
+        .html("\
+            .valid_input {\
+                background: rgba(0, 200, 0, .5);\
+            }\
+            .wrong_input {\
+                background: rgba(200, 0, 0, .5);\
+            }")
+        .appendTo("head");
 
     $('.mainbody')
 
-        .on('blur','.plugin_setting', function(e){
+    /**
+     * Modify plugin/scheduled task settings
+     */
+        .on('input','.modSettings', function(e){
             e.preventDefault();
             var input = $(this);
             var option = $(this).attr('data-option');
-            var plugin = $(this).attr('data-plugin');
+            var name = $(this).attr('data-name');
+            var op = $(this).attr('data-op');
             var value = $(this).val();
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
                 data: {
-                    mod_plugins: true,
-                    plugin: plugin,
+                    modSettings: name,
                     option: option,
+                    op: op,
                     value: value
                 },
                 async: true,
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
-                    if (json === true) {
-                        console.log(json);
-                        input
-                            .addClass('valid_input');
+                    if (json === true || json !== false) {
+                        if (op == 'cron') {
+                            $('#cron_time_'+name).html(json);
+                        }
+                        input.addClass('valid_input');
                         setTimeout(function(){
                             input.removeClass('valid_input');
                         }, 500)
                     } else {
-                        input
-                            .addClass('wrong_input');
+                        input.addClass('wrong_input');
                         setTimeout(function(){
                             input.removeClass('wrong_input');
                         }, 500)
@@ -86,72 +109,131 @@ $(document).ready(function() {
             });
         })
 
-        .on('change','.plugin_status',function(e) {
-            e.preventDefault();
-            var input = $(this);
-            var plugin = $(this).attr('data-plugin');
-            var value = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                data: {
-                    plugin_status: true,
-                    plugin: plugin,
-                    status: value
-                },
-                async: true,
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    if (json === true) {
-                        input
-                            .addClass('valid_input');
-                        setTimeout(function(){
-                            input.removeClass('valid_input');
-                        }, 500)
-                    } else {
-                        input
-                            .addClass('wrong_input');
-                        setTimeout(function(){
-                            input.removeClass('wrong_input');
-                        }, 500)
-                    }
-                }
-            });
-        })
-
-        .on('click','.install_plugin',function(e) {
+    /**
+     * Launch installation of plugin/scheduled task
+     */
+        .on('click','.installDep',function(e) {
             e.preventDefault();
             var el = $(this);
-            var plugin = $(this).attr('data-plugin');
+            var name = $(this).attr('data-name');
             var op = $(this).attr('data-op');
+            var type = $(this).attr('data-type');
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
                 data: {
-                    install_plugin: true,
-                    plugin: plugin,
+                    installDep: name,
+                    type: type,
                     op: op
                 },
                 async: true,
                 beforeSend: function() {
-                    $(el).html('<div style="text-align: center; padding: 0; margin: 0;"><img src="images/36.gif" width="70%"></div>');
+                    if (op == 'install') {
+                        $(el.removeClass('installBtn'));
+                    } else {
+                        $(el.removeClass('uninstallBtn'));
+                    }
+                    $(el).addClass('loadBtn');
                 },
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
                     var result = (op=='install') ? 'installed':'uninstalled';
                     if (json === true) {
-                        var newcontent = (op=='install') ? 'Uninstall':'Install';
+                        var newClass = (op=='install') ? 'uninstallBtn':'installBtn';
                         var newattr = (op=='install') ? 'uninstall':'install';
                         $(el)
                             .attr('data-op',newattr)
-                            .html(newcontent);
-                        showfeedback("<p id='success'>"+plugin+" successfully "+result+"</p>");
+                            .addClass(newClass);
+                        showfeedback("<p id='success'>"+name+" successfully "+result+"</p>");
                     } else {
                         showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
-
                     }
                 }
 
+            });
+        })
+
+    /**
+     * Display plugin/scheduled task options
+     */
+        .on('click','.optShow',function(e) {
+            e.preventDefault();
+            var name = $(this).attr('data-name');
+            var op = $(this).attr('data-op');
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                data: {
+                    getOpt: name,
+                    op: op
+                },
+                async: true,
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    $(".plugOpt#"+name)
+                        .html(json)
+                        .toggle();
+                }
+            });
+        })
+
+    /**
+     * Modify plugin/scheduled task options
+     */
+        .on('click','.modOpt',function(e) {
+            e.preventDefault();
+            var name = $(this).parent('.plugOpt').attr('id');
+            var op = $(this).attr('data-op');
+
+            // Parse options
+            var option = {};
+            $(".plugOpt#"+name).find('input').each(function() {
+                if ($(this).attr('type') != "submit") {
+                    option[$(this).attr('name')] = $(this).val();
+                }
+            });
+
+            jQuery.ajax({
+                url: "php/form.php",
+                async: true,
+                type: 'POST',
+                data: {modOpt: name,
+                    op: op,
+                    data:option},
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    if (json == true) {
+                        showfeedback("<p id='success'>"+name+"'s settings successfully updated!</p>");
+                    } else {
+                        showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
+                    }
+                }
+            });
+        })
+
+    /**
+     * Run a scheduled task manually
+     */
+        .on('click','.run_cron',function(e) {
+            e.preventDefault();
+            var el = $(this);
+            var cron = $(this).attr('data-cron');
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                data: {
+                    run_cron: true,
+                    cron: cron
+                },
+                async: true,
+                beforeSend: function() {
+                    $(el).toggleClass('runBtn loadBtn');
+                },
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    $(el).toggleClass('runBtn loadBtn');
+                    showfeedback("<p id='status'>"+json+"</p>");
+                }
             });
         });
 });

@@ -172,7 +172,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 // Plugins
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'plugins') {
     $plugins = new AppPlugins($db);
-    $plugin_list = $plugins->showPlugins();
+    $plugin_list = $plugins->show();
     $content = "
         <span id='pagename'>Plugins</span>
         <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
@@ -187,12 +187,12 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 // Cronjobs settings
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'cronjobs') {
     $AppCron = new AppCron($db);
-    $cronOpt = $AppCron->showCrons();
+    $cronOpt = $AppCron->show();
     $content = "
         <span id='pagename'>Scheduled tasks</span>
         <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
         Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
-        either via a Cron Table (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
+        either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
         <div class='feedback'></div>
         <div class='section_header'>Tasks list</div>
         <div class='section_content'>

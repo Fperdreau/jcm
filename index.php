@@ -87,7 +87,6 @@ require_once('includes/boot.php');
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/plugins.js"></script>
-        <script type="text/javascript" src="js/cronjobs.js"></script>
         <script type="text/javascript" src="js/Myupload.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
 

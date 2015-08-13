@@ -850,9 +850,9 @@ nav li:hover {
 
 .plugOpt {
     font-size: 0.8em;
-    padding: 5px;
+    padding: 10px;
     margin: 10px auto 10px auto;
-    background: rgba(200,200,200,.5);
+    border: 2px dashed #ddd;
     display: none;
     width: 100%;
 }
@@ -1296,7 +1296,7 @@ input.dateinput {
 .ui-datepicker a {
     text-decoration: none;
 }
-/* DatePicker Table */
+/* DatePicker AppTable */
 .ui-datepicker table {
     width: 100%;
 }

@@ -319,7 +319,7 @@ function browse($dir, $dirsNotToSaveArray = array()) {
 function exportdbtoxls($tablename) {
     /***** EDIT BELOW LINES *****/
     $db = new DbSet();
-    $DB_TBLName = $db->dbprefix.$tablename; // MySQL Table Name
+    $DB_TBLName = $db->dbprefix.$tablename; // MySQL AppTable Name
     $xls_filename = 'backup/export_'.$tablename.date('Y-m-d_H-i-s').'.xls'; // Define Excel (.xls) file name
 	$out = "";
 
@@ -400,7 +400,7 @@ function backup_db(){
     }
 
     // Do backup
-    /* Store All Table name in an Array */
+    /* Store All AppTable name in an Array */
     $allTables = $db->getapptables();
 
     $return = "";

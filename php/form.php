@@ -32,38 +32,107 @@ if (!empty($_POST['isLogged'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Common to Plugins/Scheduled tasks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Install/uninstall cron jobs
+if (!empty($_POST['installDep'])) {
+    $name = $_POST['installDep'];
+    $op = $_POST['op'];
+    $type = $_POST['type'];
+    $App = ($type == 'plugin') ? new AppPlugins($db):new AppCron($db);
+    $thisApp = $App->instantiate($name);
+    if ($op == 'install') {
+        $result = $thisApp->install();
+    } elseif ($op == 'uninstall') {
+        $result = $thisApp->delete();
+    } else {
+        $result = $thisApp->run();
+    }
+    echo json_encode($result);
+    exit;
+}
+
+// Get settings
+if (!empty($_POST['getOpt'])) {
+    $name = htmlspecialchars($_POST['getOpt']);
+    $op = htmlspecialchars($_POST['op']);
+    $App = ($op == 'plugin') ? new AppPlugins($db):new AppCron($db);
+    $thisApp = $App->instantiate($name);
+    $thisApp->get();
+    $result = $thisApp->displayOpt();
+    echo json_encode($result);
+    exit;
+}
+
+// Modify settings
+if (!empty($_POST['modOpt'])) {
+    $name = htmlspecialchars($_POST['modOpt']);
+    $op = htmlspecialchars($_POST['op']);
+    $data = $_POST['data'];
+    $App = ($op == 'plugin') ? new AppPlugins($db): new AppCron($db);
+    $thisApp = $App->instantiate($name);
+    $thisApp->get();
+    $result = $thisApp->update(array('options'=>$data));
+    echo json_encode($result);
+    exit;
+}
+
+// Modify status
+if (!empty($_POST['modStatus'])) {
+    $name = htmlspecialchars($_POST['modStatus']);
+    $status = htmlspecialchars($_POST['status']);
+    $op = htmlspecialchars($_POST['op']);
+    $App = ($op == 'plugin') ? new AppPlugins($db): new AppCron($db);
+    $thisApp = $App->instantiate($name);
+    $thisApp->get();
+    $thisApp->status = $status;
+    if ($thisApp->isInstalled()) {
+        $result = $thisApp->update();
+    } else {
+        $result = False;
+    }
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['modSettings'])) {
+    $name = htmlspecialchars($_POST['modSettings']);
+    $option = htmlspecialchars($_POST['option']);
+    $value = htmlspecialchars($_POST['value']);
+    $op = htmlspecialchars($_POST['op']);
+
+    $App = ($op == 'plugin') ? new AppPlugins($db): new AppCron($db);
+    $thisApp = $App->instantiate($name);
+    if ($thisApp->isInstalled()) {
+        $thisApp->get();
+        $thisApp->$option = $value;
+        if ($op == 'plugin') {
+            $result = $thisApp->update();
+        } else {
+            $thisApp->time = $App::parseTime($thisApp->dayNb, $thisApp->dayName, $thisApp->hour);
+            if ($thisApp->update()) {
+                $result = $thisApp->time;
+            } else {
+                $result = false;
+            }
+        }
+    } else {
+        $result = False;
+    }
+    echo json_encode($result);
+    exit;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Scheduled Tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Get cron job settings
-if (!empty($_POST['getCronOpt'])) {
-    $cronName = htmlspecialchars($_POST['getCronOpt']);
-    $AppCron = new AppCron($db);
-    $cron = $AppCron->instantiateCron($cronName);
-    $cron->get();
-    $result = $cron->displayOpt();
-    echo json_encode($result);
-    exit;
-}
-
-// Modify cron job settings
-if (!empty($_POST['modCronOpt'])) {
-    $cronName = htmlspecialchars($_POST['modCronOpt']);
-    $data = $_POST['data'];
-    $AppCron = new AppCron($db,$cronName);
-    $cron = $AppCron->instantiateCron($cronName);
-    $cron->get();
-    $result = $cron->update(array('options'=>$data));
-    echo json_encode($result);
-    exit;
-}
-
 // Modify cron job
 if (!empty($_POST['mod_cron'])) {
     $cronName = $_POST['cron'];
     $option = $_POST['option'];
     $value = $_POST['value'];
     $CronJobs = new AppCron($db);
-    $cron = $CronJobs->instantiateCron($cronName);
+    $cron = $CronJobs->instantiate($cronName);
     if ($cron->isInstalled()) {
         $cron->get();
         $cron->$option = $value;
@@ -81,48 +150,16 @@ if (!empty($_POST['mod_cron'])) {
     exit;
 }
 
-// Install/uninstall cron jobs
-if (!empty($_POST['install_cron'])) {
-    $cronName = $_POST['cron'];
-    $op = $_POST['op'];
-    $CronJobs = new AppCron($db);
-    $cron = $CronJobs->instantiateCron($cronName);
-    if ($op == 'install') {
-        $result = $cron->install();
-    } elseif ($op == 'uninstall') {
-        $result = $cron->delete();
-    } else {
-        $result = $cron->run();
-    }
-    echo json_encode($result);
-    exit;
-}
-
 // Run cron job
 if (!empty($_POST['run_cron'])) {
     $cronName = $_POST['cron'];
     $CronJobs = new AppCron($db);
-    $cron = $CronJobs->instantiateCron($cronName);
+    $cron = $CronJobs->instantiate($cronName);
     $result = $cron->run();
     echo json_encode($result);
     exit;
 }
 
-// Modify cron status (on/off)
-if (!empty($_POST['cron_status'])) {
-    $cron = $_POST['cron'];
-    $status = $_POST['status'];
-    $CronJobs = new AppCron($db);
-    $cron = $CronJobs->instantiateCron($cron);
-    $cron->status = $status;
-    if ($cron->isInstalled()) {
-        $result = $cron->update();
-    } else {
-        $result = False;
-    }
-    echo json_encode($result);
-    exit;
-}
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Plugins
@@ -140,7 +177,7 @@ if (!empty($_POST['mod_plugins'])) {
     $option = $_POST['option'];
     $value = $_POST['value'];
     $Plugins = new AppPlugins($db);
-    $plugin = $Plugins->instantiatePlugin($plugin);
+    $plugin = $Plugins->instantiate($plugin);
     if ($plugin->installed) {
         $plugin->get();
         $plugin->options[$option] = $value;
@@ -153,34 +190,6 @@ if (!empty($_POST['mod_plugins'])) {
     exit;
 }
 
-if (!empty($_POST['install_plugin'])) {
-    $plugin = $_POST['plugin'];
-    $op = $_POST['op'];
-    $Plugins = new AppPlugins($db);
-    $plugin = $Plugins->instantiatePlugin($plugin);
-    if ($op == 'install') {
-        $result = $plugin->install();
-    } else {
-        $result = $plugin->delete();
-    }
-    echo json_encode($result);
-    exit;
-}
-
-if (!empty($_POST['plugin_status'])) {
-    $plugin = $_POST['plugin'];
-    $status = $_POST['status'];
-    $Plugins = new AppPlugins($db);
-    $plugin = $Plugins->instantiatePlugin($plugin);
-    $plugin->status = $status;
-    if ($plugin->installed) {
-        $result = $plugin->update();
-    } else {
-        $result = False;
-    }
-    echo json_encode($result);
-    exit;
-}
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/

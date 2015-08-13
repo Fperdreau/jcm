@@ -20,7 +20,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Class Sessions
  */
-class Sessions extends Table {
+class Sessions extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),

@@ -22,7 +22,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Handles application configuration information and routines (updates, get).
  */
-class AppConfig extends Table {
+class AppConfig extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),

@@ -22,8 +22,8 @@ var tinymcesetup = function() {
             {title: 'Red header', block: 'h1', styles: {color: '#ff0000'}},
             {title: 'Example 1', inline: 'span', classes: 'example1'},
             {title: 'Example 2', inline: 'span', classes: 'example2'},
-            {title: 'Table styles'},
-            {title: 'Table row 1', selector: 'tr', classes: 'tablerow1'}
+            {title: 'AppTable styles'},
+            {title: 'AppTable row 1', selector: 'tr', classes: 'tablerow1'}
         ]
     });
 
@@ -112,7 +112,7 @@ var loadpageonclick = function(pagetoload,param) {
                     $(this).fadeIn(200);
                 });
             tinymcesetup();
-            var callback = showplugins;
+            var callback = showPlugins;
             getPlugins(pagetoload, callback);
         }
     });
