@@ -58,8 +58,8 @@ require_once('includes/boot.php');
                 <?php
                 if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
                     $showlogin = "
-                    <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Sign in</a>
-                     | <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign up</a>
+                    <a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'>Sign in</a>
+                     | <a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'>Sign up</a>
                      ";
                 } else {
                     $showlogin = "<a href='#' class='menu-section' data-url='profile'>My profile</a>

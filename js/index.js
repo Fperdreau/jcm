@@ -21,10 +21,10 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Show publication form
 var showpubform = function(formel,idpress,type,date,prestype) {
-    if (idpress === undefined) {idpress = false;}
-    if (type === undefined) {type = "submit";}
-    if (date === undefined) {date = false;}
-    if (prestype === undefined) {prestype = false;}
+    if (idpress == undefined) {idpress = false;}
+    if (type == undefined) {type = "submit";}
+    if (date == undefined) {date = false;}
+    if (prestype == undefined) {prestype = false;}
 
     // First we remove any existing submission form
     $('.submission').remove();
@@ -50,7 +50,7 @@ var showpubform = function(formel,idpress,type,date,prestype) {
 
 // Display presentation information in a modal window
 var displaypub = function(idpress,formel) {
-
+    idpress = (idpress == undefined) ? false:idpress;
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -262,6 +262,8 @@ var close_modal = function(modal_id) {
 
 // Show the targeted modal section and hide the others
 var showmodal = function(sectionid) {
+    var title = $(".modal_section#"+sectionid).attr('data-title');
+    $(".header_title").text(title);
     $('.modal_section').each(function() {
         var thisid = $(this).attr('id');
         if (thisid === sectionid) {
@@ -281,7 +283,7 @@ function showLogin() {
         success: function(data) {
             var json = jQuery.parseJSON(data);
             if (json === false) {
-                $('#modal_trigger_login')
+                $('.modal_trigger#user_login')
                     .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
                     .click();
             }
@@ -944,7 +946,7 @@ $( document ).ready(function() {
             if (operation !== "suggest") {
                 var date = $("input#datepicker").val();
                 if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
-                    showfeedback('<p id="warning">This field is required</p>');
+                    showfeedback('<p id="warning">You must choose a date!</p>');
                     $("input#datepicker").focus();
                     return false;
                 }
@@ -1000,10 +1002,10 @@ $( document ).ready(function() {
                 async: true,
                 data: data,
                 beforeSend: function() {
-                    $("#loading").show();
+                    loadingDiv('.submission');
                 },
                 complete: function() {
-                    $("#loading").hide();
+                    removeLoading('.submission');
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -1077,6 +1079,9 @@ $( document ).ready(function() {
             return false;
         })
 
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Modal triggers
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Trigger modal dialog box for log in/sign up
         .on('mouseover',"a[rel*=leanModal]",function(e) {
             e.preventDefault();
@@ -1084,30 +1089,16 @@ $( document ).ready(function() {
         })
 
         // Dialog log in
-        .on('click',"#modal_trigger_login",function(e){
+        .on('click',".modal_trigger",function(e){
             e.preventDefault();
-            showmodal('user_login');
-            $(".header_title").text('Sign in');
-        })
-
-        // Dialog sign up
-        .on('click',"#modal_trigger_register",function(e){
-            e.preventDefault();
-            showmodal('user_register');
-            $(".header_title").text('Sign up');
+            var section  = $(this).attr('id');
+            showmodal(section);
         })
 
         // Log out
         .on('click',"#logout",function(e){
             e.preventDefault();
             logout();
-        })
-
-        // Delete user account dialog box
-        .on('click',"#modal_trigger_delete",function(e){
-            e.preventDefault();
-            showmodal('user_delete');
-            $(".header_title").text('Delete confirmation');
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1119,16 +1110,15 @@ $( document ).ready(function() {
             var id_pres = $(this).attr('data-id');
             showmodal('submission_form');
             displaypub(id_pres,modalpubform);
-            $(".header_title").text('Presentation');
         })
 
         // Choose a wish
         .on('click','#modal_trigger_pubmod',function(e){
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
+            var date = $(this).attr('data-date');
             showmodal('submission_form');
-            showpubform(modalpubform,id_pres,'update');
-            $(".header_title").text('Make it true');
+            showpubform(modalpubform,id_pres,'update',date);
         });
 
 	// Process events happening on the publication modal dialog box

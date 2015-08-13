@@ -73,7 +73,7 @@ function check_login($status=null) {
         $result = "
 		    <div id='content'>
 		        <p id='warning'>You must be logged in order to access this page</br>
-		        <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Sign in</a> or <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign Up</a></p>
+		        <a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'>Sign in</a> or <a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'>Sign Up</a></p>
 		    </div>
 		    ";
 		echo json_encode($result);
@@ -129,7 +129,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
         $dateinput = "";
     }
 
-    $authors = ($type !== 'minute') ? "<div class='formcontrol' style='width: 50%;'>
+    $authors = ($type !== 'minute') ? "<div class='formcontrol'>
                 <label>Authors </label>
                 <input type='text' id='authors' name='authors' value='$Presentation->authors'>
             </div>":"";
@@ -166,16 +166,16 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
                 </select>
             </div>
 
-            <div class='formcontrol' style='width: auto;'>
+            <div class='formcontrol'>
                 $dateinput
             </div>
 
-            <div class='formcontrol' id='guest' style='width: 30%; display: none;'>
+            <div class='formcontrol' id='guest' style='display: none;'>
                 <label>Speaker</label>
                 <input type='text' id='orator' name='orator'>
             </div>
 
-            <br><div class='formcontrol' style='width: 50%;'>
+            <br><div class='formcontrol'>
                 <label>Title </label>
                 <input type='text' id='title' name='title' value='$Presentation->title'/>
             </div>

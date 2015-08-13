@@ -24,7 +24,7 @@ echo "
         <div class='header_title'></div>
 
         <!-- Sign in section -->
-        <div class='modal_section' id='user_login' style='width: 400px;'>
+        <div class='modal_section' id='user_login' data-title='Sign In' style='width: 400px;'>
             <form id='login_form'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='log_username'>Username</label>
@@ -47,7 +47,7 @@ echo "
         </div>
 
         <!-- Sign up section -->
-        <div class='modal_section' id='user_register' style='width: 80%'>
+        <div class='modal_section' id='user_register' data-title='Sign Up' style='width: 80%'>
             <form id='register_form'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='firstname'>First Name</label>
@@ -90,16 +90,23 @@ echo "
         </div>
 
         <!-- Delete account section -->
-        <div class='modal_section' id='user_delete'>
-            <label for='del_username'>Username</label><input type='text' id='del_username' name='del_username' value=''/></br>
-            <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
+        <div class='modal_section' id='user_delete' data-title='Delete Profile'>
+            <div>Please, confirm your identity</div>
+            <div class='formcontrol'>
+                <label for='del_username'>Username</label>
+                <input type='text' id='del_username' name='del_username' value=''/></br>
+            </div>
+            <div class='formcontrol'>
+                <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
+            </div>
             <div class='action_btns'>
                 <div class='one_half last'><a href='' class='btn btn_red' id='confirmdeleteuser'>Delete</a></div>
             </div>
         </div>
 
         <!-- Change password section -->
-        <div class='modal_section' id='user_changepw'>
+        <div class='modal_section' id='user_changepw' data-title='Change Password'>
+            <div>We will send an email to the provided address with further instructions in order to change your password.</div>
             <div class='formcontrol' style='width: 100%;'>
             <label for='ch_email'>Email</label><input type='text' id='ch_email' name='ch_email' value=''/></br>
             </div>
@@ -110,16 +117,15 @@ echo "
         </div>
 
         <!-- Submission form section -->
-        <div class='modal_section' id='submission_form'></div>
+        <div class='modal_section' id='submission_form' data-title='Submit a Presentation'></div>
 
         <!-- Delete submission (confirmation) section -->
-        <div class='modal_section' id='pub_delete'>
+        <div class='modal_section' id='pub_delete' data-title='Delete Presentation'>
             <div>Do you want to delete this presentation?</div>
             <div class='action_btns'>
                 <div class='one_half'><a href='' class='pub_btn pub_back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
                 <div class='one_half last'><a href='' class='btn btn_red' id='confirm_pubdel'>Delete</a></div>
             </div>
-            <div class='feedback'></div>
         </div>
 
         <div class='feedback'></div>

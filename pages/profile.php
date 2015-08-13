@@ -44,7 +44,7 @@ if ($user->reminder == 0) {
 $result = "
 <div id='content'>
     <span id='pagename'>Hello $user->fullname!</span>
-    <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='modal_trigger_delete'>Delete my account</a></div>
+    <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='user_delete'>Delete my account</a></div>
 
     <div class='section_page'>
         <div class='half_section section_left'>

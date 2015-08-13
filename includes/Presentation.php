@@ -91,7 +91,7 @@ class Presentations extends AppTable {
      * @return array
      */
     function getyearspub($filter = NULL,$user = NULL) {
-        $sql = "SELECT YEAR(date),id_pres FROM $this->tablename WHERE ";
+        $sql = "SELECT YEAR(date),id_pres FROM $this->tablename WHERE title!='TBA' and ";
         $cond = array();
         if (null != $user) {
             $cond[] = "username='$user'";
@@ -137,10 +137,9 @@ class Presentations extends AppTable {
             <div class='section_header'>$year</div>
             <div class='section_content'>
                 <div class='list-container' id='pub_labels'>
-                    <div style='text-align: center; font-weight: bold; width: 10%;'>Date</div>
-                    <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
-                    <div style='text-align: center; font-weight: bold; width: 20%;'>Authors</div>
-                    <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+                    <div style='text-align: center; font-weight: bold; width: 5%;'>Date</div>
+                    <div style='text-align: center; font-weight: bold; width: 60%;'>Title</div>
+                    <div style='text-align: center; font-weight: bold; width: 25%;'>Authors</div>
                 </div>
                 $yearcontent
             </div>";
@@ -401,16 +400,8 @@ class Presentation extends Presentations {
         $uploads = new Uploads($this->db);
         $uploads->delete_files($this->id_pres);
 
-        // Delete corresponding entry in the Chairs table
-        $this->db->updatecontent($this->db->tablesname['Chairs'],array('presid'=>0),array('presid'=>$this->id_pres));
-
         // Delete corresponding entry in the publication table
-        if ($this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id))) {
-            $Chairs = new Chairs($this->db);
-            return $Chairs->delete('presid',$this->id_pres);
-        } else {
-            return false;
-        }
+        return $this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id));
     }
 
     /**
@@ -425,20 +416,29 @@ class Presentation extends Presentations {
 
     /**
      * Show this presentation (in archives)
+     * @param bool $user: adapt the display for the profile page
      * @return string
      */
-    public function show() {
+    public function show($user=false) {
+        if (!$user) {
+            $speaker = new User($this->db,$this->orator);
+            $speakerDiv = "<div style='text-align: center; width: 25%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$speaker->fullname</div>";
+            $datewidth = "10%";
+            $titlewidth = "60%";
+        } else {
+            $datewidth = "20%";
+            $titlewidth = "70%";
+            $speakerDiv = "";
+        }
         return "
         <div class='pub_container' id='$this->id_pres'>
+        <a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>
             <div class='list-container'>
-                <div style='text-align: center; width: 10%;'>$this->date</div>
-                <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title</div>
-                <div style='text-align: center; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->authors</div>
-                <div style='text-align: center; width: 10%; vertical-align: middle;'>
-                    <div class='show_btn'><a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>MORE</a>
-                    </div>
-                </div>
+                <div style='text-align: center; width: $datewidth;'>$this->date</div>
+                <div style='text-align: left; width: $titlewidth; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title</div>
+                $speakerDiv
             </div>
+        </a>
         </div>
         ";
     }
@@ -453,11 +453,12 @@ class Presentation extends Presentations {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='index.php?page=submission&op=new&date=$date'>Free</a>";
+            $show_but = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-date='$date'>FREE</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
-            $speaker = $this->orator;
+            $speaker = new User($this->db,$this->orator);
+            $speaker = $speaker->fullname;
 
             // Make "Show" button
             if ($opt == 'mail') {
