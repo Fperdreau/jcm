@@ -152,7 +152,7 @@ body {
 	width: 100%;
     box-sizing: border-box;
     margin: auto;
-	background-color: #fefefe;
+	background-color: #efefef;
     -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
     overflow-x: scroll;
@@ -283,10 +283,10 @@ nav li:hover {
     position: relative;
     z-index: 3;
     width: 1024px;
-    box-shadow: 0 0 12px #555;
+    border: 1px solid #dddddd;
     padding: 0;
     margin: 0 auto 0 auto;
-    background-color: #eeeeee;
+    background-color: #ffffff;
     min-height: 768px;
 }
 
