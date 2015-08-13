@@ -63,6 +63,7 @@ input[type='text'], input[type='email'], input[type='password'], .formcontrol>di
 select {
     -webkit-appearance: menulist-button;
     height: 30px;
+    text-transform: capitalize;
 }
 
 input:focus, textarea:focus, select:focus {
@@ -92,7 +93,6 @@ input[type="submit"], input[type="button"] {
     border: 1px solid rgba(207, 81, 81, 1); /* Small border around our submit button */
     padding: 8px; /* Add some more space around our button text */
     transition: all 0.3s ease 0s;
-
 }
 
 input[type="submit"]:hover, input[type="button"]:hover {
@@ -130,7 +130,6 @@ select.select_opt {
     padding: 5px 4px;
     color: #555;
 }
-
 
 .submit_btns {
     margin: 0 auto 0 0;
@@ -811,23 +810,106 @@ nav li:hover {
 /* *********************************************************************/
 /* Admin - Plugins
 /* *********************************************************************/
+.plugDiv {
+    border-bottom: 1px dashed #ddd;
+    margin-bottom: 10px;
+}
 
-.install_btn {
-    padding: 5px 5px;
-    height: 20px;
-    background: rgba(207,81,81,1);
-    color: #EEE;
-    width: 50px;
-    text-align: center;
+.plugDiv .formcontrol {
+    margin: 5px 5px 0 0;
+}
+
+.plugLeft {
+    display: inline-block;
+    vertical-align: top;
+    width: 150px;
+}
+
+.plugName {
+    font-weight: 600;
+    color: #222;
+    vertical-align: top;
+    margin-bottom: 5px;
+}
+
+.plugTime {
+    font-size: 0.8em;
+    margin-bottom: 10px;
+}
+
+.optBar {
+    margin-top: 20px;
+    display: block;
+    vertical-align: bottom;
+}
+
+.plugSettings {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.plugOpt {
+    font-size: 0.8em;
+    padding: 5px;
+    margin: 10px auto 10px auto;
+    background: rgba(200,200,200,.5);
+    display: none;
+    width: 100%;
+}
+
+.workBtn {
+    display:inline-block;
     cursor: pointer;
-    line-height: 20px;
+    width: 20px;
+    height: 20px;
+    padding: 2px;
+    background-color: rgba( 255, 255, 255, 1);
+    border: 2px solid rgba(207,81,81,1);
 }
 
-.install_btn:hover {
-    color:#222222;
-    background: #E4E4E2;
+.workBtn:hover{
+    border: 2px solid rgba(34, 34, 34, 1);
+    background-color: rgba(207,81,81,1);
 }
 
+.loadBtn {
+    background: rgba( 255, 255, 255, 1)
+    url('../images/small_loader.gif')
+    50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+}
+
+.installBtn {
+    background: rgba( 255, 255, 255, 1)
+    url('../images/install_btn.png')
+    50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+}
+
+.uninstallBtn {
+    background: rgba( 255, 255, 255, 1)
+    url('../images/delete.png')
+    50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+}
+
+.runBtn {
+    background: url('../images/run.png') 50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+
+}
+
+.settingsBtn {
+    background: rgba( 255, 255, 255, .7)
+    url('../images/settings.png')
+    50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+}
 /* *********************************************************************/
 /* Admin - session/presentation management
 /* *********************************************************************/
@@ -875,7 +957,7 @@ nav li:hover {
     position: relative;
     width: 30px;
     height: 30px;
-    background: #666666 url('../images/delete.png') no-repeat;
+    background: #666666 url('../images/close.png') no-repeat;
 }
 
 .type_del:hover {
@@ -1065,7 +1147,7 @@ nav li:hover {
     right: 0;
     top:0;
     padding:10px 15px;
-    background: url('../images/delete.png') no-repeat;
+    background: url('../images/close.png') no-repeat;
     background-position: center center;
     background-size: 50% auto;
     cursor: pointer;

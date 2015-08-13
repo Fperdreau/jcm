@@ -184,7 +184,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
             <div class='formcontrol' style='width: 80%;'>
                 <label>Abstract</label>
-                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)'>$Presentation->summary</textarea>
+                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;'>$Presentation->summary</textarea>
             </div>
         </form>
 

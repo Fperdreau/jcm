@@ -536,61 +536,6 @@ $( document ).ready(function() {
             });
         })
 
-		// Do a full backup (database + files) if asked
-        .on('click','.fullbackup',function(){
-            var webproc = true;
-
-            jQuery.ajax({
-                url: 'cronjobs/FullBackup.php',
-                type: 'GET',
-                async: true,
-                data: {webproc: webproc},
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    $('.feedback#full_backup').html('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
-                }
-            });
-        })
-
-		// Backup the database if asked
-        .on('click','.dbbackup',function(){
-            var webproc = true;
-            jQuery.ajax({
-                url: 'cronjobs/DbBackup.php',
-                type: 'GET',
-                async: true,
-                data: {webproc: webproc},
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    $('.feedback#db_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
-                }
-            });
-        })
-
-        // Export mailing list to xls
-        .on('click','.exportdb',function(){
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    export: true,
-                    tablename: "mailinglist"},
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    $('#exportdb').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download XLS file</a></div>');
-                }
-            });
-        })
-
-		// Show link to created backup
-        .on('click','.file_link', function(){
-            var link = $(this).attr('data-url');
-            $(this)
-                .html('<p id="success">Downloaded</p>')
-                .fadeOut(5000);
-        })
-
 		// Send an email to the mailing list
         .on('click','.mailing_send',function(e) {
             e.preventDefault();
@@ -618,10 +563,10 @@ $( document ).ready(function() {
                     spec_head: spec_head,
                     spec_msg: spec_msg},
                 beforeSend: function() {
-                    $('#loading').show();
+                    loadingDiv($(this));
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    removeLoading($(this));
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);

@@ -140,17 +140,22 @@ $(document).ready(function() {
                 },
                 async: true,
                 beforeSend: function() {
-                    $(el).html('<div style="text-align: center; padding: 0; margin: 0;"><img src="images/36.gif" width="70%"></div>');
+                    if (op == 'install') {
+                        $(el.removeClass('installBtn'));
+                    } else {
+                        $(el.removeClass('uninstallBtn'));
+                    }
+                    $(el).addClass('loadBtn');
                 },
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
                     var result = (op=='install') ? 'installed':'uninstalled';
                     if (json === true) {
-                        var newcontent = (op=='install') ? 'Uninstall':'Install';
+                        var newClass = (op=='install') ? 'uninstallBtn':'installBtn';
                         var newattr = (op=='install') ? 'uninstall':'install';
                         $(el)
                             .attr('data-op',newattr)
-                            .html(newcontent);
+                            .addClass(newClass);
                         showfeedback("<p id='success'>"+cron+" successfully "+result+"</p>");
                     } else {
                         showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
@@ -161,7 +166,7 @@ $(document).ready(function() {
         })
 
         // Show job options
-        .on('click','.optCron',function(e) {
+        .on('click','.plugOptShow',function(e) {
             e.preventDefault();
             var cron = $(this).attr('data-cron');
             jQuery.ajax({
@@ -173,7 +178,7 @@ $(document).ready(function() {
                 async: true,
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
-                    $(".jobOpt#"+cron)
+                    $(".plugOpt#"+cron)
                         .html(json)
                         .toggle();
                 }

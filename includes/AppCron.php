@@ -280,24 +280,16 @@ class AppCron extends Table {
      */
     public function showCrons() {
         $jobsList = $this->getJobs();
-        $cronList = "
-        <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-            <div style='text-align: center; font-weight: bold; width: 10%;'>Name</div>
-            <div style='text-align: center; font-weight: bold; width: 5%;'>Status</div>
-            <div style='text-align: center; font-weight: bold; width: 40%;'>Time</div>
-            <div style='text-align: center; font-weight: bold; width: 20%;'>Next run</div>
-            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-            <div style='text-align: center; font-weight: bold; width: 10%;'></div>
-        </div>";
+        $cronList = "";
         foreach ($jobsList as $cronName => $info) {
             $installed = $info['installed'];
             if ($installed) {
-                $install_btn = "<div class='install_cron install_btn' data-op='uninstall' data-cron='$cronName'>Uninstall</div>";
+                $install_btn = "<div class='install_cron workBtn uninstallBtn' data-op='uninstall' data-cron='$cronName'></div>";
             } else {
-                $install_btn = "<div class='install_cron install_btn' data-op='install' data-cron='$cronName'>Install</div>";
+                $install_btn = "<div class='install_cron workBtn installBtn' data-op='install' data-cron='$cronName'></div>";
             }
 
-            $runBtn = "<div class='run_cron install_btn' data-cron='$cronName'>Run</div>";
+            $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
             $status = $info['status'];
             $time = $info['time'];
 
@@ -329,34 +321,54 @@ class AppCron extends Table {
             }
 
             $cronList .= "
-            <div class='list-container' id='cron_$cronName'>
-                <div style='width: 10%; text-align: center'><b>$cronName</b></div>
-                <div style='width: auto; text-align: left;'>
-                    <select class='select_opt cron_status' data-cron='$cronName'>
-                    <option value='$status' selected>$status</option>
-                    <option value='On'>On</option>
-                    <option value='Off'>Off</option>
-                    </select></div>
-                <div style='width: auto; text-align: center;'>
-                    <label>Day</label>
-                        <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayName'>
-                            $dayName_list
-                        </select>
-                    <label>Date</label>
-                        <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayNb'>
-                            $dayNb_list
-                        </select>
-                   <label>Time</label>
-                        <select class='select_opt cron_setting' data-cron='$cronName' data-setting='hour'>
-                            $hours_list
-                        </select>
+            <div class='plugDiv' id='cron_$cronName'>
+                <div class='plugLeft'>
+                    <div class='plugName'>$cronName</div>
+                    <div class='plugTime' id='cron_time_$cronName'>$time</div>
+                    <div class='optbar'>
+                        <div class='plugOptShow workBtn settingsBtn' data-cron='$cronName'></div>
+                        $install_btn
+                        $runBtn
+                    </div>
                 </div>
-                <div style='width: auto; text-align: center;' id='cron_time_$cronName'>$time</div>
-                <div style='width: 5%; text-align: center;'><div class='optCron install_btn' data-cron='$cronName'>Options</div></div>
-                <div style='width: 5%; text-align: center;'>$install_btn</div>
-                <div style='width: 5%; text-align: center;'>$runBtn</div>
+
+                <div class='plugSettings'>
+                    <div class='optbar'>
+                        <div class='formcontrol'>
+                            <label>Status</label>
+                            <select class='select_opt cron_status' data-cron='$cronName'>
+                            <option value='$status' selected>$status</option>
+                            <option value='On'>On</option>
+                            <option value='Off'>Off</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='settings'>
+                        <div class='formcontrol'>
+                            <label>Day</label>
+                            <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayName'>
+                                $dayName_list
+                            </select>
+                        </div>
+                        <div class='formcontrol'>
+                            <label>Date</label>
+                            <select class='select_opt cron_setting' data-cron='$cronName' data-setting='dayNb'>
+                                $dayNb_list
+                            </select>
+                        </div>
+                        <div class='formcontrol'>
+                           <label>Time</label>
+                            <select class='select_opt cron_setting' data-cron='$cronName' data-setting='hour'>
+                                $hours_list
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='plugOpt' id='$cronName'></div>
+
+                </div>
             </div>
-            <div class='jobOpt' id='$cronName' style='font-size: 0.8em; padding: 5px; margin: 0 auto 10px auto; background: rgba(200,200,200,.5); display: none; width: 95%;'></div>
             ";
         }
 
