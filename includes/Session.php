@@ -47,7 +47,6 @@ class Sessions extends AppTable {
      *  Get all sessions
      * @param null $opt
      * @return array|bool
-     * @internal param null $next
      */
     public function getsessions($opt=null) {
         $sql = "SELECT date FROM $this->tablename";
