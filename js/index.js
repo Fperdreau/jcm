@@ -930,9 +930,9 @@ $( document ).ready(function() {
             e.preventDefault();
             var type = $(this).val();
             if (type == "guest") {
-                $('.submission#guest').fadeIn();
+                $('.submission #guest').fadeIn();
             } else {
-                $('.submission#guest').hide();
+                $('.submission #guest').hide();
             }
          })
 
