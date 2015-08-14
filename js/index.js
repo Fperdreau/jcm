@@ -927,10 +927,12 @@ $( document ).ready(function() {
 
          // Select submission type
          .on('change','select#type',function(e) {
+            e.preventDefault();
             var type = $(this).val();
-            $('#guest').hide();
             if (type == "guest") {
-                $('#guest').fadeIn();
+                $('.submission#guest').fadeIn();
+            } else {
+                $('.submission#guest').hide();
             }
          })
 

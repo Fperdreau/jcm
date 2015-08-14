@@ -68,11 +68,11 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         <form method='post' action='' class='form' id='config_form_session'>
             <div class='feedback' id='feedback_jcsession'></div>
             <input type='hidden' name='config_modify' value='true'>
-            <div class='formcontrol' style='width: 100px;'>
+            <div class='formcontrol'>
                 <label>Room</label>
                 <input type='text' name='room' value='$AppConfig->room'>
             </div>
-            <div class='formcontrol' style='width: 20%;'>
+            <div class='formcontrol'>
                 <label for='jc_day'>Day</label>
                 <select name='jc_day'>
                     <option value='$AppConfig->jc_day' selected>$AppConfig->jc_day</option>
@@ -83,21 +83,21 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
                     <option value='friday'>Friday</option>
                 </select>
             </div>
-            <div class='formcontrol' style='width: 10%;'>
+            <div class='formcontrol'>
                 <label>From</label>
                 <select name='jc_time_from'>
                     <option value='$AppConfig->jc_time_from' selected>$AppConfig->jc_time_from</option>
                     $timeopt;
                 </select>
             </div>
-            <div class='formcontrol' style='width: 10%;'>
+            <div class='formcontrol'>
                 <label>To</label>
                 <select name='jc_time_to'>
                     <option value='$AppConfig->jc_time_to' selected>$AppConfig->jc_time_to</option>
                     $timeopt;
                 </select>
             </div>
-            <div class='formcontrol' style='width: 30%;'>
+            <div class='formcontrol'>
                 <label>Presentations/Session</label>
                 <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
             </div>
@@ -108,7 +108,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     <div class='section_header'>Session/Presentation</div>
     <div class='section_content'>
         <div class='section_sub'>Sessions</div>
-        <div class='formcontrol' style='width: 30%;'>
+        <div class='formcontrol'>
             <label>Default session type </label>
             <select class='session_type_default'>
                 $opttypedflt
@@ -127,7 +127,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
 
     <div class='section_header'>Manage Sessions</div>
     <div class='section_content'>
-        <div class='formcontrol' style='width: 30%;'>
+        <div class='formcontrol'>
         <label>Number of sessions to show</label>
             <select class='show_sessions'>
                 <option value='1'>1</option>
@@ -248,23 +248,23 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Site title</label>
-                    <input type='text' size='30' name='sitetitle' value='$AppConfig->sitetitle'>
+                    <input type='text' name='sitetitle' value='$AppConfig->sitetitle'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Site url</label>
-                    <input type='text' size='30' name='site_url' value='$AppConfig->site_url'>
+                    <input type='text' name='site_url' value='$AppConfig->site_url'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Oldest DB backups to keep (in days)</label>
-                    <input type='text' size='30' name='clean_day' value='$AppConfig->clean_day'>
+                    <input type='text' name='clean_day' value='$AppConfig->clean_day'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Allowed file types (upload)</label>
-                    <input type='text' size='30' name='upl_types' value='$AppConfig->upl_types'>
+                    <input type='text' name='upl_types' value='$AppConfig->upl_types'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label>Maximum file size (in Kb)</label>
-                    <input type='text' size='30' name='upl_maxsize' value='$AppConfig->upl_maxsize'>
+                    <input type='text' name='upl_maxsize' value='$AppConfig->upl_maxsize'>
                 </div>
                 <div class='feedback' id='feedback_site'></div>
             </form>
@@ -279,27 +279,27 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='hidden' name='config_modify' value='true'/>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_name'>Name</label>
-                    <input type='text' size='50' name='lab_name' value='$AppConfig->lab_name'>
+                    <input type='text' name='lab_name' value='$AppConfig->lab_name'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_street'>Street</label>
-                    <input type='text' size='30' name='lab_street' value='$AppConfig->lab_street'>
+                    <input type='text' name='lab_street' value='$AppConfig->lab_street'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_postcode'>Post Code</label>
-                    <input type='text' size='30' name='lab_postcode' value='$AppConfig->lab_postcode'>
+                    <input type='text' name='lab_postcode' value='$AppConfig->lab_postcode'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_city'>City</label>
-                    <input type='text' size='30' name='lab_city' value='$AppConfig->lab_city'>
+                    <input type='text' name='lab_city' value='$AppConfig->lab_city'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_country'>Country</label>
-                    <input type='text' size='30' name='lab_country' value='$AppConfig->lab_country'>
+                    <input type='text' name='lab_country' value='$AppConfig->lab_country'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
                     <label for='lab_mapurl'>Google Map's URL</label>
-                    <input type='text' size='30' name='lab_mapurl' value='$AppConfig->lab_mapurl'>
+                    <input type='text' name='lab_mapurl' value='$AppConfig->lab_mapurl'>
                 </div>
                 <div class='feedback' id='feedback_lab'></div>
             </form>

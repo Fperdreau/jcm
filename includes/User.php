@@ -144,7 +144,7 @@ class Users extends AppTable {
                 <div class='list-section' style='width: 5%'>$nbpres</div>
 
                 <div class='list-section' style='width: 10%'>
-                    <select name='status' id='status' data-user='$user->username' class='modify_status'>
+                    <select name='status' id='status' data-user='$user->username' class='modify_status' style='min-width: 50px;'>
                         <option value='$user->status' selected='selected'>$user->status</option>
                         <option value='member'>Member</option>
                         <option value='admin'>Admin</option>
