@@ -117,7 +117,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
     }
 
     // Presentation ID
-    $idPres = (!empty($Presentation->id_pres)) ? $Presentation->id_pres:false;
+    $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres:'false';
     $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
 
     // Show date input only for submissions and updates

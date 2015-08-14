@@ -27,8 +27,8 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $valid = $user -> check_account_activation($hash,$email,$result);
     $result = "
     <div id='content'>
-        <div class='section_header'>Activation</div>
-        <div class='section_content'>
+        <h2>Activation</h2>
+        <section>
 			<span id='warning'>$valid</span>
     	</div>
     </div>";

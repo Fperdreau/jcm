@@ -176,33 +176,40 @@ class Sessions extends AppTable {
                     </div>
                 </div>
                 <div class='session_core'>
-                    <div class='session_type'>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label>Type</label>
-                            <select class='set_sessiontype' id='$session->date'>
-                            $typeoptions
-                            </select>
+                    <div class='session_settings'>
+                        <h3>Settings</h3>
+                        <div class='session_type'>
+                            <div class='formcontrol' style='width: 100%;'>
+                                <label>Type</label>
+                                <select class='set_sessiontype' id='$session->date'>
+                                $typeoptions
+                                </select>
+                            </div>
+                        </div>
+                        <div class='session_time'>
+                            <div class='formcontrol' style='width: 100%;'>
+                                <label>From</label>
+                                <select class='set_sessiontime' id='timefrom_$session->date' data-session='$session->date'>
+                                    <option value='$timefrom' selected>$timefrom</option>
+                                    $timeopt
+                                </select>
+                            </div>
+                        </div>
+                        <div class='session_time'>
+                            <div class='formcontrol' style='width: 100%;'>
+                                <label>To</label>
+                                <select class='set_sessiontime' id='timeto_$session->date' data-session='$session->date'>
+                                    <option value='$timeto' selected>$timeto</option>
+                                    $timeopt
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class='session_time'>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label>From</label>
-                            <select class='set_sessiontime' id='timefrom_$session->date' data-session='$session->date'>
-                                <option value='$timefrom' selected>$timefrom</option>
-                                $timeopt
-                            </select>
-                        </div>
+
+                    <div class='session_presentations'>
+                        <h3>Presentations</h3>
+                        $presentations
                     </div>
-                    <div class='session_time'>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label>To</label>
-                            <select class='set_sessiontime' id='timeto_$session->date' data-session='$session->date'>
-                                <option value='$timeto' selected>$timeto</option>
-                                $timeopt
-                            </select>
-                        </div>
-                    </div>
-                    <div class='session_presentations'>$presentations</div>
                 </div>
             </div>
             ";

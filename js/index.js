@@ -21,7 +21,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Show publication form
 var showpubform = function(formel,idpress,type,date,prestype) {
-    console.log(idpress);
     if (idpress == undefined) {idpress = false;}
     if (type == undefined) {type = "submit";}
     if (date == undefined) {date = false;}
@@ -917,7 +916,6 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result === true) {
-                        console.log('Delete upload: '+uplname);
                         $('.upl_info#upl_'+uplname).remove();
                         $('.upl_link#upl_'+uplname).remove();
                     }

@@ -60,11 +60,11 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     }
 
     $content = "
-    <span id='pagename'>Manage Sessions</span>
+    <h1>Manage Sessions</h1>
     <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
 
-    <div class='section_header'>Sessions settings</div>
-    <div class='section_content'>
+    <h2>Sessions settings</h2>
+    <section>
         <form method='post' action='' class='form' id='config_form_session'>
             <div class='feedback' id='feedback_jcsession'></div>
             <input type='hidden' name='config_modify' value='true'>
@@ -103,11 +103,11 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
             </div>
             <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='config_form_session'/></p>
         </form>
-    </div>
+    </section>
 
-    <div class='section_header'>Session/Presentation</div>
-    <div class='section_content'>
-        <div class='section_sub'>Sessions</div>
+    <h2>Session/Presentation</h2>
+    <section>
+        <h3>Sessions</h3>
         <div class='formcontrol'>
             <label>Default session type </label>
             <select class='session_type_default'>
@@ -118,15 +118,15 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         <input id='new_session_type' type='text' placeholder='New Category'/>
         <div class='feedback' id='feedback_session'></div>
         <div class='type_list' id='session'>$Sessionstype</div>
-        <div class='section_sub'>Presentations</div>
+        <h3>Presentations</h3>
         <input type='button' id='submit' class='type_add'  data-class='pres' value='Add a category'/>
         <input id='new_pres_type' type='text' placeholder='New Category'/>
         <div class='feedback' id='feedback_pres'></div>
         <div class='type_list' id='pres'>$prestype</div>
-    </div>
+    </section>
 
-    <div class='section_header'>Manage Sessions</div>
-    <div class='section_content'>
+    <h2>Manage Sessions</h2>
+    <section>
         <div class='formcontrol'>
         <label>Number of sessions to show</label>
             <select class='show_sessions'>
@@ -139,7 +139,7 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         <div id='sessionlist'>
         $Sessionslist
         </div>
-    </div>";
+    </section>";
 }
 
 // Manage users
@@ -147,10 +147,10 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $userlist = $Users->generateuserslist();
 
     $content = "
-    <span id='pagename'>Manage Users</span>
+    <h1>Manage Users</h1>
     <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
-    <div class='section_header'>Manage users</div>
-    <div class='section_content'>
+    <h2>Manage users</h2>
+    <section>
         <div class='formcontrol' style='width: 100px;'>
             <label for='order'>Sort by</label>
             <select name='order' class='user_select'>
@@ -167,21 +167,21 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
         <div id='user_list'>
         $userlist
         </div>
-    </div>";
+    </section>";
 
 // Plugins
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'plugins') {
     $plugins = new AppPlugins($db);
     $plugin_list = $plugins->show();
     $content = "
-        <span id='pagename'>Plugins</span>
+        <h1>Plugins</h1>
         <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
         Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
         <div class='feedback'></div>
-        <div class='section_header'>Plugins list</div>
-        <div class='section_content'>
+        <h2>Plugins list</h2>
+        <section>
             $plugin_list
-        </div>
+        </section>
     ";
 
 // Cronjobs settings
@@ -189,26 +189,26 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $AppCron = new AppCron($db);
     $cronOpt = $AppCron->show();
     $content = "
-        <span id='pagename'>Scheduled tasks</span>
+        <h1>Scheduled tasks</h1>
         <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
         Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
         either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
         <div class='feedback'></div>
-        <div class='section_header'>Tasks list</div>
-        <div class='section_content'>
+        <h2>Tasks list</h2>
+        <section>
             $cronOpt
-        </div>
+        </section>
     ";
 
 
 // Send mail
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'mail') {
     $content = "
-		<span id='pagename'>Mailing list</span>
+		<h1>Mailing list</h1>
         <p class='page_description'>Here you can send an email to users who subscribed to the newsletter.</p>
         <div class='feedback'></div>
-        <div class='section_header'>Send an email</div>
-        <div class='section_content'>
+        <h2>Send an email</h2>
+        <section>
             <form method='post' action=''>
                 <div class='submit_btns'>
                     <input type='submit' name='send' value='Send' id='submit' class='mailing_send'>
@@ -222,7 +222,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <textarea name='spec_msg' id='spec_msg' cols='70' rows='15' class='tinymce'></textarea>
                 </div>
             </form>
-        </div>";
+        </section>";
 
 // Configuration
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'config') {
@@ -230,9 +230,9 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $timeopt = maketimeopt();
 
     $content = "
-		<span id='pagename'>Configuration</span>
-        <div class='section_header'>Site parameters</div>
-        <div class='section_content'>
+		<h1>Configuration</h1>
+        <h2>Site parameters</h2>
+        <section>
             <form method='post' action='' class='form' id='config_form_site'>
                 <div class='submit_btns'>
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_site'>
@@ -268,10 +268,10 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 </div>
                 <div class='feedback' id='feedback_site'></div>
             </form>
-        </div>
+        </section>
 
-        <div class='section_header'>Lab information</div>
-        <div class='section_content'>
+        <h2>Lab information</h2>
+        <section>
             <form method='post' action='' class='form' id='config_form_lab'>
                 <div class='submit_btns'>
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_lab'>
@@ -303,10 +303,10 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 </div>
                 <div class='feedback' id='feedback_lab'></div>
             </form>
-        </div>
+        </section>
 
-        <div class='section_header'>Email host information</div>
-        <div class='section_content'>
+        <h2>Email host information</h2>
+        <section>
             <form method='post' action='' class='form' id='config_form_mail'>
                 <div class='submit_btns'>
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_mail'>
@@ -351,7 +351,7 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 </div>
                 <div class='feedback' id='feedback_mail'></div>
             </form>
-        </div>";
+        </section>";
 
 // Add a post
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'post') {
@@ -382,8 +382,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $options .= "</select>";
 
     $content = "
-		<span id='pagename'>News</span>
-         <p class='page_description'>Here you can add a post on the homepage.</p>
+		<h1>News</h1>
+        <p class='page_description'>Here you can add a post on the homepage.</p>
         <div style='display: block; width: 100%;'>
             <div style='display: inline-block'>$options</div>
             <div style='display: inline-block'>or</div>
@@ -391,12 +391,12 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='button' id='submit' class='post_new' value='Add a new post'/>
             </div>
         </div>
-        <div class='section_header'>New post</div>
-        <div class='section_content'>
+        <h2>New post</h2>
+        <section>
             <div class='feedback'></div>
             <div class='postcontent'>
             </div>
-        </div>
+        </section>
         ";
 }
 

@@ -33,15 +33,15 @@ if ($op == 'new') {
     $submit_form = displayform($user,false,'submit',false,$date);
     $result = "
     <div id='content'>
-        <div id='pagename'>Submit a presentation</div>
         <p class='page_description'>Book a Journal Club session to present a paper, your research, or a
         methodology topic. <br>
         Fill up the form below, select a date (only available dates are selectable) and it's all done!
         Your submission will be automatically added to our database.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='section_content' id='submission_form'>
+        <h2>Submit a presentation</h2>
+        <section id='submission_form'>
         $submit_form
-        </div>
+        </section>
     </div>
     ";
 
@@ -50,13 +50,13 @@ if ($op == 'new') {
     $submit_form = displayform($user,false,"suggest");
     $result = "
     <div id='content'>
-        <div id='pagename'>Suggest a wish</div>
         <p class='page_description'>Here you can suggest a paper that somebody else could present at a Journal Club session.
          Fill up the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='section_content' id='submission_form'>
+        <h2>Suggest a wish</h2>
+        <section id='submission_form'>
         $submit_form
-        </div>
+        </section>
     </div>
     ";
 
@@ -78,17 +78,17 @@ if ($op == 'new') {
 
     $result = "
     <div id='content'>
-        <div id='pagename'>Select a wish</div>
         <p class='page_description'>Here you can choose a suggested paper from the wishlist that you would like to present.<br>
             The form below will be automatically filled up with the data provided by the user who suggested the selected paper.
             Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
             If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <div class='section_content'>
+        <h2>Select a wish</h2>
+        <section>
             $selectopt
             <div id='submission_form' class='wishform'>
             $submit_form
             </div>
-        </div>
+        </section>
     </div>
     ";
 
@@ -97,11 +97,11 @@ if ($op == 'new') {
     $submit_form = displayform($user,$Presentation,'submit');
     $result = "
     <div id='content'>
-        <div id='pagename'>Modify a presentation</div>
         <p class='page_description'>Here you can modify your submission. Please, check on the information before submitting your presentation</p>
-        <div class='section_content' id='submission_form'>
+        <h2>Modify a presentation</h2>
+        <section id='submission_form'>
             $submit_form
-        </div>
+        </section>
     </div>
     ";
 }

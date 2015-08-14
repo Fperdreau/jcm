@@ -23,6 +23,8 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
     display: inline-block;
     margin: 5px;
     font-size: 0;
+    min-width: 60%;
+    max-width: 100%;
 }
 
 label{
@@ -44,6 +46,7 @@ label{
 
 input[type='text'], input[type='email'], input[type='password'], .formcontrol>div, select, textarea {
     display: inline-block;
+    position: relative;
     vertical-align: top;
     margin: 0;
     padding: 4px 2px 4px 10px;
@@ -53,9 +56,8 @@ input[type='text'], input[type='email'], input[type='password'], .formcontrol>di
 
     line-height: 20px;
     min-height: 20px;
-    min-width: 250px;
-    max-width: 100%;
 
+    min-width: 40%;
     border: 1px solid rgba(207, 81, 81, .3);
     color: #777;
 }
@@ -148,8 +150,8 @@ html { height: 100%; }
 body {
     font-family: 'Lato', Calibri, Arial, sans-serif;
     font-weight: 300;
-    font-size: 13px;
-    line-height: 1.2;
+    font-size: 1em;
+    line-height: 1.1;
 	width: 100%;
     min-width: 320px;
     box-sizing: border-box;
@@ -365,51 +367,26 @@ nav li:hover {
     text-align: justify;
     margin: 10px auto 10px auto;
     width: 80%;
-    color: #222222;
+    color: #444444;
     font-style: italic;
     font-size: 14px; /* Set message font size  */
     padding: 10px; /* Some padding to make some more space for our text  */
-    background: rgba(207,81,81,.1); /* Add a background color to our status message   */
-    border: 1px solid rgba(207,81,81,.2); /* Add a border arround our status message   */
+    border: 2px dashed rgba(207,81,81,.5); /* Add a border arround our status message   */
 }
 
-.section_page {
-    display: none;
-}
-
-.section_header {
-    display: block;
+section {
     position: relative;
-    background-color: rgba(187,81,81,1);
-    color: #eeeeee;
-    width: 200px;
-    height: 20px;
-    line-height: 20px;
-    padding: 5px;
-    margin: 20px auto -10px auto;
-    text-align: center;
-    font-weight: 300;
-    font-size: 16px;
-    z-index: 11;
-    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-}
-
-.section_content {
+    box-sizing: border-box;
     text-align: left;
     display: block;
     font-size: 16px;
     margin: auto;
-    padding: 20px;
+    padding: 10px;
     background-color: rgba(200,200,200,.1);
-    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    border: 1px solid #ddd;
 }
 
 .section_page {
-    display: block;
     width: 100%;
     text-align: center;
 }
@@ -432,7 +409,35 @@ nav li:hover {
     margin-left: 20px;
 }
 
-.section_sub {
+h1 {
+    display: block;
+    margin-left: -10px;
+    color: #555555;
+    font-size: 1.5em;
+    text-transform: uppercase;
+}
+
+h2 {
+    display: block;
+    position: relative;
+    background-color: rgba(187,81,81,1);
+    color: #eeeeee;
+    max-width: 40%;
+    height: 20px;
+    line-height: 20px;
+    padding: 5px;
+    margin: 20px auto -10px auto;
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 300;
+    font-size: 1.2em;
+    z-index: 11;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+    box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
+}
+
+h3 {
     display: block;
     font-size: 16px;
     margin: 20px 0 5px auto;
@@ -983,17 +988,13 @@ nav li:hover {
     height: auto;
     margin: 10px auto 10px auto;
     padding: 0 10px 10px 10px;
-    border-top: 1px solid #555;
+    border: 3px dashed #ddd;
     background-color: rgba(255,255,255,.5);
 }
 
 .session_header {
-    top: 0;
-    left: 0;
-    margin: 0 0 5px 0;
-    display: block;
+    margin: 0;
     text-align: left;
-    font-size: 12px;
     font-weight: 300;
     height: 30px;
     line-height: 30px;
@@ -1029,25 +1030,21 @@ nav li:hover {
 
 .session_core>div {
     display: inline-block;
-    vertical-align: middle;
+    vertical-align: top;
+}
+
+.session_settings {
+    max-width: 40%;
 }
 
 .session_presentations {
-    margin: 0 auto 0 0;
+    margin: 0 auto 0 5%;
     vertical-align: top;
-    width: 40%;
 }
 
 /* *********************************************************************/
 /* Text/Messages
 /* *********************************************************************/
-#pagename {
-    display: block;
-    margin-left: -10px;
-    color: #555555;
-    font-size: 35px;
-}
-
 #sign {
     text-align: right;
     color: #cccccc;

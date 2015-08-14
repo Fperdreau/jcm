@@ -37,34 +37,32 @@ $jc_day = ucfirst($AppConfig->jc_day);
 
 $result = "
     <div id='content'>
-        <span id='pagename'>Contact information</span>
-
         <div style='vertical-align: top; display: inline-block; width: 45%;'>
-            <div class='section_header'>Access</div>
-            <div class='section_content' style='width: 90%;'>
+            <h2>Where</h2>
+            <section style='width: 90%;'>
                 $AppConfig->lab_name</br>
                 $AppConfig->lab_street</br>
                 $AppConfig->lab_postcode, $AppConfig->lab_city</br>
                 $AppConfig->lab_country
-            </div>
+            </section>
 
-            <div class='section_header'>Journal Club information</div>
-            <div class='section_content' style='width: 90%;'>
+            <h2>When</h2>
+            <section style='width: 90%;'>
                 <b>Day:</b> $jc_day<br>
                 <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
                 <b>Room:</b> $AppConfig->room
-            </div>
+            </section>
 
-            <div class='section_header'>Map</div>
-            <div class='section_content' style='width: 90%;'>
+            <h2>Map</h2>
+            <section style='width: 90%;'>
                 <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
                 </iframe>
-            </div>
+            </section>
         </div>
 
         <div style='vertical-align: top; display: inline-block; width: 50%; text-align: right; margin-left: 30px;'>
-            <div class='section_header'>Send Email to organizers</div>
-            <div class='section_content'>
+            <h2>Contact us</h2>
+            <section>
                 <div class='feedback'></div>
                 <form method='post' action='' class='form' id='contact_form'>
                     <div class='submit_btns'>
@@ -90,7 +88,7 @@ $result = "
                         <textarea id='message' name='message' placeholder='Your message'></textarea>
                     </div>
                 </form>
-            </div>
+            </section>
         </div>
     </div>
 ";

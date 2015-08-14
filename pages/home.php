@@ -34,26 +34,25 @@ $wishlist = $presentations->getwishlist();
 
 $result = "
     <div id='content'>
-        <span id='pagename'>Home</span>
         <div class='section_page'>
-        <div class='section_header'>News</div>
-        <div class='section_content news'>
+        <h2>News</h2>
+        <section class='news'>
             $news
-        </div>
+        </section>
         </div>
 
 		<div class='section_page'>
-        <div class='section_header'>Next Sessions</div>
-        <div class='section_content' style='font-size: 13px;'>
+        <h2>Next Sessions</h2>
+        <section style='font-size: 13px;'>
         	$futurepres
-		</div>
+		</section>
 		</div>
 
 		<div class='section_page'>
-        <div class='section_header'>Wish list</div>
-        <div class='section_content' style='font-size: 13px;'>
+        <h2>Wish list</h2>
+        <section style='font-size: 13px;'>
         	$wishlist
-        </div>
+        </section>
         </div>
     </div>
 ";

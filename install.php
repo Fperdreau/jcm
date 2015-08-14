@@ -472,7 +472,7 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='install_db' value='true' />
 
-                <div class='section_sub'>Journal Club Manager - Website</div>
+                <h3>Journal Club Manager - Website</h3>
                 <div class='formcontrol''>
                     <label for='sitetitle'>Site title</label>
                     <input name='sitetitle' type='text' value='$AppConfig->sitetitle'>
@@ -482,7 +482,7 @@ if (!empty($_POST['getpagecontent'])) {
                     <input name='site_url' type='text' value='$AppConfig->site_url' size='30'>
                 </div>
 
-                <div class='section_sub'>Journal Club Manager - Mailing service</div>
+                <h3>Journal Club Manager - Mailing service</h3>
                 <div class='formcontrol''>
                     <label for='mail_from'>Sender Email address</label>
                     <input name='mail_from' type='text' value='$AppConfig->mail_from'>
@@ -556,9 +556,9 @@ if (!empty($_POST['getpagecontent'])) {
 
     $result = "
 	<div id='content'>
-		<span id='pagename'>Installation</span>
-		<div class='section_header' style='width: 300px'>$title</div>
-		<div class='section_content'>
+		<h1>Installation</h1>
+		<h2 style='width: 300px'>$title</h2>
+		<section>
 		    <div class='feedback'></div>
 			<div id='operation'>$operation</div>
 		</div>

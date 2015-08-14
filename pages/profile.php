@@ -43,13 +43,13 @@ if ($user->reminder == 0) {
 
 $result = "
 <div id='content'>
-    <span id='pagename'>Hello $user->fullname!</span>
+    <h1>Hello $user->fullname!</h1>
     <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='user_delete'>Delete my account</a></div>
 
     <div class='section_page'>
         <div class='half_section section_left'>
-            <div class='section_header'>Personal information</div>
-            <div class='section_content'>
+            <h2>Personal information</h2>
+            <section>
                 <form method='post' action='' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='profile_persoinfo_form' id='submit'/>
@@ -88,28 +88,28 @@ $result = "
                     <input type='hidden' name='user_modify' value='true' />
                     <div class='feedback' id='feedback_perso'></div>
                 </form>
-            </div>
+            </section>
         </div>
 
         <div class='half_section section_right'>
-            <div class='section_header'>Contact information</div>
-            <div class='section_content'>
+            <h2>Contact information</h2>
+            <section>
                 <form method='post' action='' class='form' id='profile_emailinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='profile_emailinfo_form' id='submit'/>
                     </div>
-                    <div class='formcontrol' style='width: 90%;'>
+                    <div class='formcontrol'>
                         <label for='email'>Email</label>
-                        <input size='40' type='text' name='email' value='$user->email'/>
+                        <input type='text' name='email' value='$user->email'/>
                     </div><br>
-                    <div class='formcontrol' style='width: 90%;'>
+                    <div class='formcontrol'>
                         <label for='notification'>I wish to receive email notifications</label>
                         <div>
                         <input type='radio' name='notification' value='1' $notif_yes_status>Yes</input>
                         <input type='radio' name='notification' value='0' $notif_no_status>No</input>
                         </div>
                     </div><br>
-                    <div class='formcontrol' style='width: 90%;'>
+                    <div class='formcontrol'>
                         <label for='reminder'>I wish to receive reminders</label>
                         <div>
                         <input type='radio' name='reminder' value='1' $rem_yes_status>Yes</input>
@@ -120,14 +120,14 @@ $result = "
                     <input type='hidden' name='username' value='$user->username'/>
                     <div class='feedback' id='feedback_mail'></div>
                 </form>
-            </div>
+            </section>
         </div>
     </div>
 
     <div class='section_page'>
         <div class='half_section section_left'>
-            <div class='section_header'>My submissions</div>
-            <div class='section_content'>$publication_list</div>
+            <h2>My submissions</h2>
+            <section>$publication_list</section>
         </div>
         <div class='half_section section_right'>
             <div class='plugins'></div>

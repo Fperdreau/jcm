@@ -134,12 +134,12 @@ class Presentations extends AppTable {
             }
 
             $content.= "
-            <div class='section_header'>$year</div>
-            <div class='section_content'>
+            <h2 class='section_header'>$year</h2>
+            <section>
                 <div class='list-container' id='pub_labels'>
                     <div style='text-align: center; font-weight: bold; width: 5%;'>Date</div>
                     <div style='text-align: center; font-weight: bold; width: 60%;'>Title</div>
-                    <div style='text-align: center; font-weight: bold; width: 25%;'>Authors</div>
+                    <div style='text-align: center; font-weight: bold; width: 25%;'>Speakers</div>
                 </div>
                 $yearcontent
             </div>";

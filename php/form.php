@@ -405,7 +405,18 @@ if (!empty($_POST['getfiles'])) {
     exit;
 }
 
-//  delete publication
+//  delete files
+if (!empty($_POST['del_upl'])) {
+    $uplname = htmlspecialchars($_POST['uplname']);
+    $fileid = explode(".",$uplname);
+    $fileid = $fileid[0];
+    $up = new Media($db, $fileid);
+    $result = $up->delete();
+    echo json_encode($result);
+    exit;
+}
+
+//  delete presentation
 if (!empty($_POST['del_pub'])) {
     $Presentation = new Presentation($db);
     $id_Presentation = htmlspecialchars($_POST['del_pub']);
@@ -414,17 +425,6 @@ if (!empty($_POST['del_pub'])) {
     } else {
         $result = 'failed';
     }
-    echo json_encode($result);
-    exit;
-}
-
-//  delete files
-if (!empty($_POST['del_upl'])) {
-    $uplname = htmlspecialchars($_POST['uplname']);
-    $fileid = explode(".",$uplname);
-    $fileid = $fileid[0];
-    $up = new Media($db, $fileid);
-    $result = $up->delete();
     echo json_encode($result);
     exit;
 }
@@ -439,7 +439,6 @@ if (!empty($_POST['submit'])) {
     if ($_POST['type'] != "guest") {
         $_POST['orator'] = $user->username;
     }
-
     // Create or update the presentation
     if ($presid !== "false") {
         $pub = new Presentation($db,$presid);

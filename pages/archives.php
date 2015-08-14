@@ -32,7 +32,6 @@ $publist = $Presentations->getpublicationlist();
 
 $result = "
 <div id='content'>
-    <span id='pagename'>Archives</span>
     <div class='section_page'>
         <div class='feedback'></div>
             <select name='year' class='archive_select'>

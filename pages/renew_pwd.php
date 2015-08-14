@@ -28,29 +28,22 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     $username = $db ->getinfo($db->tablesname['User'],'username',array("email"),array("'$email'"));
     $user->get($username);
     if ($user->hash == $hash) {
-        $result = "
-            <div id='content'>
-                <div class='section_header'>Change password</div>
-                <div class='section_content'>
-                    <input type='hidden' name='username' value='$username' id='ch_username'/>
-                    <label for='password'>Password</label><input id='ch_password' type='password' name='password' value=''/></br>
-                    <label for='conf_password'>Confirm password</label><input id='ch_conf_password' type='password' name='conf_password' value=''/></br>
-                    <p style='text-align: right'><input type='submit' name='login' value='Submit' class='conf_changepw' id='submit'/></p>
-                    <div class='error' id='missfield'>This field is required</div>
-                </div>
-                <div class='feedback'></div>
-            </div>
-    ";
+        $content = "
+            <input type='hidden' name='username' value='$username' id='ch_username'/>
+            <label for='password'>Password</label><input id='ch_password' type='password' name='password' value=''/></br>
+            <label for='conf_password'>Confirm password</label><input id='ch_conf_password' type='password' name='conf_password' value=''/></br>
+            <p style='text-align: right'><input type='submit' name='login' value='Submit' class='conf_changepw' id='submit'/></p>
+            <div class='feedback'></div>";
     } else {
-        $result = "
-            <div id='content'>
-                <div class='section_header'>Change password</div>
-                <div class='section_content'>
-                    <p id='warning'>Incorrect email or hash id.</p>
-                </div>
-            </div>
-    ";
+        $content = "<p id='warning'>Incorrect email or hash id.</p>";
     }
+    $result = "
+            <div id='content'>
+                <h2>Change password</h2>
+                <section>
+                    $content
+                </section>
+            </div>";
     echo json_encode($result);
 }
 
