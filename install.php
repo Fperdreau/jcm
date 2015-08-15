@@ -477,10 +477,6 @@ if (!empty($_POST['getpagecontent'])) {
                     <label for='sitetitle'>Site title</label>
                     <input name='sitetitle' type='text' value='$AppConfig->sitetitle'>
                 </div>
-                <div class='formcontrol''>
-                    <label for='site_url'>Web path to root</label>
-                    <input name='site_url' type='text' value='$AppConfig->site_url' size='30'>
-                </div>
 
                 <h3>Journal Club Manager - Mailing service</h3>
                 <div class='formcontrol''>
