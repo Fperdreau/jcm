@@ -191,7 +191,6 @@ header {
 
 header >div{
     display: inline-block;
-    height: 30px;
     vertical-align: bottom;
 }
 
@@ -202,7 +201,7 @@ header >div{
     font-size: 2em;
     font-weight: 300;
     margin: 0 0 0 0px;
-    padding: 5px 10px;
+    padding: 5px 10px 5px 10px;
     position: relative;
     border-left: 5px solid rgba(207,81,81,1);
     left: 0;
@@ -210,14 +209,14 @@ header >div{
 
 #menu {
     width: auto;
-    height: auto;
 }
 
 #login_box {
-    margin: 5px 5px 0 0;
+    margin: 10px 5px 0 0;
     height: auto;
     width: auto;
     float: right;
+    vertical-align: middle;
     padding: 5px 10px;
     background-color: #222222;
     border: 1px solid #FFF;
@@ -241,15 +240,16 @@ nav li {
     text-align: center;
     font-size: 1.5em;
     color: rgba(207,81,81,1);
-    margin-left: 15px;
+    margin-left: 20px;
+    padding-bottom: 5px;
 }
 
 nav li:hover {
-    color: #cccccc;
+    color: #ffffff;
 }
 
 .activepage {
-    color: #cccccc;
+    color: #ffffff;
 }
 
 /* additional menu */
@@ -280,8 +280,6 @@ nav li:hover {
     background: rgba(255,255,255,.5);
     color: #222222;
 }
-
-
 
 .addmenu-section {
     text-align: center;
@@ -479,6 +477,7 @@ h3 {
 .news {
     max-height: 400px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* *********************************************************************/

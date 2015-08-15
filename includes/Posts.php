@@ -169,9 +169,9 @@ class Posts extends AppTable {
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
                 $news .= "
-                <div style='width: 100%; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
-                    <div style='width: 60%; height: 20px; line-height: 20px; margin: 5px 10px auto; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
-                    <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
+                <div style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                    <div style='width: 60%; height: 20px; line-height: 20px; margin: 0; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
+                    <div style='text-align: justify; margin: auto; background-color: rgba(220,220,220,.2); padding: 10px;'>
                         $post->content
                     </div>
                     <div style='width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
