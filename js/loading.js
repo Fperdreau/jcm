@@ -41,6 +41,7 @@ function getPage(page, urlparam) {
         data: {get_app_status: true},
         type: 'POST',
         async: true,
+
         success: function(data) {
             var json = jQuery.parseJSON(data);
             if (json === 'Off' && page != 'admin') {
@@ -72,21 +73,6 @@ var loadpageonclick = function(pagetoload,param) {
     param = (param === undefined || param === "") ? false: param;
     var stateObj = { page: pagetoload };
     var url = (param === false) ? "index.php?page="+pagetoload:"index.php?page="+pagetoload+"&"+param;
-
-    // Update page title and meta content
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {getPage: pagetoload},
-        success: function(data) {
-            var json = jQuery.parseJSON(data);
-            $('meta[name=keywords]').attr('content', json.keywords);
-            $('meta[name=title]').attr('content', json.title);
-            $('title').text(json.title);
-            $('meta[name=description]').attr('content', json.description);
-        }
-    });
 
     jQuery.ajax({
         url: 'pages/'+pagetoload+'.php',
@@ -153,7 +139,9 @@ function loadingDiv(divId) {
 
 // Remove loading animation
 function removeLoading(divId) {
-    $(''+divId).children('.loadingDiv').hide();
+    $(""+divId).children('.loadingDiv')
+        .fadeOut('slow')
+        .remove();
 }
 
 // Responsive design part
@@ -169,6 +157,9 @@ function adapt() {
             .css('display','inline-block')
             .show();
     }
+
+    var height = $(window).height();
+    $('#core').css('min-height',height+"px");
 }
 
 $( document ).ready(function() {

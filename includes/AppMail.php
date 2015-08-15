@@ -242,20 +242,22 @@ class AppMail {
      * @param $content
      * @return string
      */
+
     function formatmail($content) {
         $profile_url = $this->config->site_url.'index.php?page=profile';
         $sitetitle = $this->config->sitetitle;
         $body = "
-            <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; background-color: #cccccc; color: #222222; font-weight: 300; font-size: 12px; min-width: 600px; margin: auto;'>
-                <div style='line-height: 1.2; width: 100%; color: #000000;'>
-                    <div style='font-size: 30px; color: #cccccc; line-height: 40px; height: 40px; text-align: center; background-color: #555555;'>$sitetitle
+            <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 1em; width: 100%; height: auto; margin: 0;'>
+                <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; font-size: 2em; line-height: 40px; height: 40px; text-align: center;'>
+                        $sitetitle
                     </div>
 
-                    <div style='padding: 10px; margin: auto; text-align: justify; background-color: rgba(255,255,255,.5);'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; text-align: justify;'>
                         $content
                     </div>
 
-                    <div style='color: #EEEEEE; width: 100%; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #555555;'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
                         This email has been sent automatically. You can choose to no longer receive notification emails from your
                         <a href='$profile_url' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
                     </div>

@@ -518,17 +518,14 @@ h3 {
 /* Downloads
 /* *********************************************************************/
 .dl_btn {
-    padding: 10px 10px;
-    height: 20px;
-    background: #E4E4E2;
     width: 100px;
     text-align: center;
     cursor: pointer;
+    color:#444;
 }
 
 .dl_btn:hover {
     color:#EEE;
-    background: rgba(207,81,81,1);
 }
 
 .dlmenu {
@@ -730,7 +727,7 @@ h3 {
 }
 
 .pub_container {
-    background: rgba(200,200,200,.5);
+    background: rgba(240,240,240,.5);
     width: 100%;
     padding: 0;
     margin: 0 0 5px 0;
@@ -741,15 +738,15 @@ h3 {
 
 .pub_container>a {
     text-decoration: none;
-    color: #222222;
+    color: #444444;
 }
 
 .pub_container:hover {
-    background: rgba(127,127,127,.5);
+    background: rgba(220,220,220,.5);
 }
 
 .pub_container>a:hover {
-    color: #eeeeee;
+    color: #222222;
 
 }
 
@@ -1257,14 +1254,15 @@ input.dateinput {
 }
 
 .pub_btn {
-    padding: 5px 10px;
+    padding: 10px 10px;
     background: #E4E4E2;
     text-align: center;
     text-transform: uppercase;
+    transition: all 0.3s ease 0s;
 }
 
 .pub_btn a {
-    color:#666;
+    color:#444;
     text-align: center;
     text-decoration: none;
 }

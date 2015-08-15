@@ -590,4 +590,88 @@ class Presentation extends Presentations {
             </div>
         </div>";
     }
+
+    /**
+     * Generate submission form and automatically fill it up with data provided by Presentation object.
+     * @param $user
+     * @param bool $show
+     * @return string
+     */
+    public function displaypub($user=false, $show=false) {
+        $user = ($user == false) ? new User($this->db):$user;
+        $AppConfig = new AppConfig($this->db);
+        $download_button = "";
+        $dlmenu = "";
+        $filediv = "";
+        if (!(empty($this->link))) {
+            if ($show) {
+                // Show files list as a dropdown menu
+                $download_button = "<div class='dl_btn pub_btn' id='$this->id_pres'><a href='#'>Download</a></div>";
+                $filelist = $this->link;
+                $dlmenu = "<div class='dlmenu'>";
+                foreach ($filelist as $fileid=>$info) {
+                    $dlmenu .= "
+                <div class='dl_info'>
+                    <div class='dl_type'>".strtoupper($info['type'])."</div>
+                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
+                </div>";
+                }
+                $dlmenu .= "</div>";
+            } else {
+                // Show files list as links
+                $filecontent = "";
+                foreach ($this->link as $fileid=>$info) {
+                    $urllink = $AppConfig->site_url."uploads/".$info['filename'];
+                    $filecontent .= "
+                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
+                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                        <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                    </div>";
+                }
+                $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto;
+            margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
+            }
+        } else {
+            $download_button = "<div style='width: 100px'></div>";
+            $dlmenu = "";
+        }
+
+        // Add a delete link (only for admin and organizers or the authors)
+        if ($user->status != 'member' || $this->orator == $user->username) {
+            $delete_button = "<div class='pub_btn'><a href='#' data-id='$this->id_pres' class='delete_ref'>Delete</a></div>";
+            $modify_button = "<div class='pub_btn'><a href='#' data-id='$this->id_pres' class='modify_ref'>Modify</a></div>";
+        } else {
+            $delete_button = "<div style='width: 100px'></div>";
+            $modify_button = "<div style='width: 100px'></div>";
+        }
+        $orator = new User($this->db, $this->orator);
+        $type = ucfirst($this->type);
+        $result = "
+        <div class='pub_caps'>
+            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
+                $type
+            </div>
+            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;'>$this->title</div>
+            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
+            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
+        </div>
+
+        <div class='pub_abstract'>
+            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$this->summary
+        </div>
+
+        <div class='pub_action_btn'>
+            <div class='pub_one_half'>
+                $download_button
+                $dlmenu
+            </div>
+            <div class='pub_one_half last'>
+                $delete_button
+                $modify_button
+            </div>
+        </div>
+        $filediv
+        ";
+        return $result;
+    }
 }

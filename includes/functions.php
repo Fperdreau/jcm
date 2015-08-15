@@ -205,68 +205,6 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 	";
 }
 
-/**
- * Generate submission form and automatically fill it up with data provided by Presentation object.
- * @param $user
- * @param $Presentation
- * @return string
- */
-function displaypub($user,$Presentation) {
-    global $db;
-    if (!(empty($Presentation->link))) {
-        $download_button = "<div class='dl_btn' id='$Presentation->id_pres'>Download</div>";
-        $filelist = $Presentation->link;
-        $dlmenu = "<div class='dlmenu'>";
-        foreach ($filelist as $fileid=>$info) {
-            $dlmenu .= "
-                <div class='dl_info'>
-                    <div class='dl_type'>".strtoupper($info['type'])."</div>
-                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
-                </div>";
-        }
-        $dlmenu .= "</div>";
-    } else {
-        $download_button = "<div style='width: 100px'></div>";
-        $dlmenu = "";
-    }
-
-    // Add a delete link (only for admin and organizers or the authors)
-    if ($user->status != 'member' || $Presentation->orator == $user->username) {
-        $delete_button = "<div class='pub_btn'><a href='#' data-id='$Presentation->id_pres' class='delete_ref'>Delete</a></div>";
-        $modify_button = "<div class='pub_btn'><a href='#' data-id='$Presentation->id_pres' class='modify_ref'>Modify</a></div>";
-    } else {
-        $delete_button = "<div style='width: 100px'></div>";
-        $modify_button = "<div style='width: 100px'></div>";
-    }
-    $orator = new User($db, $Presentation->orator);
-    $type = ucfirst($Presentation->type);
-    $result = "
-        <div class='pub_caps'>
-            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                $type
-            </div>
-            <div id='pub_title'>$Presentation->title</div>
-            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$Presentation->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
-            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$Presentation->authors</div>
-        </div>
-
-        <div class='pub_abstract'>
-            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$Presentation->summary
-        </div>
-
-        <div class='pub_action_btn'>
-            <div class='pub_one_half'>
-                $download_button
-                $dlmenu
-            </div>
-            <div class='pub_one_half last'>
-                $delete_button
-                $modify_button
-            </div>
-        </div>
-        ";
-    return $result;
-}
 
 /**
  * Make hours options list

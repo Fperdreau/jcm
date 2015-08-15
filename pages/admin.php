@@ -251,14 +251,6 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                     <input type='text' name='sitetitle' value='$AppConfig->sitetitle'>
                 </div>
                 <div class='formcontrol' style='width: 30%;'>
-                    <label>Site url</label>
-                    <input type='text' name='site_url' value='$AppConfig->site_url'>
-                </div>
-                <div class='formcontrol' style='width: 30%;'>
-                    <label>Oldest DB backups to keep (in days)</label>
-                    <input type='text' name='clean_day' value='$AppConfig->clean_day'>
-                </div>
-                <div class='formcontrol' style='width: 30%;'>
                     <label>Allowed file types (upload)</label>
                     <input type='text' name='upl_types' value='$AppConfig->upl_types'>
                 </div>

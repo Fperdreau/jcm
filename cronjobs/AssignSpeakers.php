@@ -68,11 +68,11 @@ class AssignSpeakers extends AppCron {
         $session = new Session($this->db);
 
         while ($row=mysqli_fetch_assoc($req)) {
-            $chair = $row['orator'];
+            $speaker = $row['orator'];
             $session->get($row['date']);
             if ($session->type == $type) {
-                if (!in_array($chair, $list) && $chair != "TBA") {
-                    $list[] = $chair;
+                if (!in_array($speaker, $list) && $speaker != "TBA") {
+                    $list[] = $speaker;
                 }
                 $diff = array_values(array_diff($organizers,$list));
                 if (empty($diff)) {
@@ -99,7 +99,7 @@ class AssignSpeakers extends AppCron {
         // Get list of users
         $Users = new Users($this->db);
         $usersList = $Users->getUsers();
-
+        var_dump($usersList);
         // get previous speakers
         $prevSpeakers = $this->getPreviousSpeakers($usersList,$session->type);
 

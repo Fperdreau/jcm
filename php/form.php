@@ -527,7 +527,7 @@ if (!empty($_POST['show_pub'])) {
 
     $user = new User($db,$_SESSION['username']);
     $pub = new Presentation($db,$id_Presentation);
-    $form = displaypub($user,$pub);
+    $form = $pub->displaypub($user,true);
     echo json_encode($form);
     exit;
 }

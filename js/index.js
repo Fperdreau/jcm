@@ -70,19 +70,19 @@ var displaypub = function(idpress,formel) {
 
 // Process submitted form
 var processform = function(formid,feedbackid) {
-    var feedbackdiv = (typeof feedbackid === "undefined") ? feedbackdiv = "feedback": feedbackdiv=feedbackid;
+    var feedbackdiv = (typeof feedbackid === "undefined") ? "feedback": feedbackid;
 
-    var data = $("#"+formid).serialize();
+    var data = $("form#"+formid).serialize();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: true,
         data: data,
         beforeSend: function() {
-            loadingDiv("#"+formid);
+            loadingDiv("form#"+formid);
         },
         complete: function() {
-            removeLoading("#"+formid);
+            removeLoading("form#"+formid);
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
