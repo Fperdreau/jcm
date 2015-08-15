@@ -230,7 +230,6 @@ class Groups extends AppPlugins {
                 $AppMail = new AppMail($db,$AppConfig);
                 $body = $AppMail -> formatmail($content);
                 $subject = "Your group assignment - $session->date";
-                print($body);exit;
                 if ($AppMail->send_mail($user->email,$subject,$body)) {
                     $nsent += 1;
                 } else {
