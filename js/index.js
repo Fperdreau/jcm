@@ -21,6 +21,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Show publication form
 var showpubform = function(formel,idpress,type,date,prestype) {
+    console.log(formel);
     if (idpress == undefined) {idpress = false;}
     if (type == undefined) {type = "submit";}
     if (date == undefined) {date = false;}
@@ -43,7 +44,7 @@ var showpubform = function(formel,idpress,type,date,prestype) {
             formel
                 .hide()
                 .html(result)
-                .show();
+                .fadeIn(200);
         }
     });
 };
@@ -70,42 +71,85 @@ var displaypub = function(idpress,formel) {
 
 // Process submitted form
 var processform = function(formid,feedbackid) {
-    var feedbackdiv = (typeof feedbackid === "undefined") ? "feedback": feedbackid;
+    var el = "form#"+formid;
+    if (!checkform(el)) { return false;}
 
-    var data = $("form#"+formid).serialize();
+    var data = $(el).serialize();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: true,
         data: data,
         beforeSend: function() {
-            loadingDiv("form#"+formid);
+            loadingDiv(el);
         },
         complete: function() {
-            removeLoading("form#"+formid);
+           removeLoading(el);
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
-            showfeedback(result,feedbackdiv);
+            validsubmitform(el,result);
         }
     });
 };
 
 // Show feedback message and replace the submitted form by an empty form
-var validsubmitform = function(form,text) {
-    $(form)
-        .hide()
+var validsubmitform = function(form,text,callback) {
+    callback = (callback === undefined) ? false: callback;
+
+    var el = $(form);
+    var css = {
+        'position': 'absolute',
+        'z-index': 1000,
+        'top':0,
+        'left':0,
+        'display':'inline-block',
+        'text-align': 'center',
+        'min-width': "100%",
+        'min-height': "100%",
+        'background':'rgba(255,255,255,.9)',
+        'margin':'auto'};
+
+    $(el).append("<div class='feedbackForm'></div>");
+
+    $('.feedbackForm')
+        .css(css)
         .html(text)
         .fadeIn(200);
+
+    setTimeout(function() {
+        $('.feedbackForm')
+            .fadeOut(200)
+            .remove();
+        $(form).show();
+        if (callback !== false) {
+            callback();
+        }
+    },3000);
+
 };
 
 // Check for empty input fields
-var checkform = function(formid) {
+var checkform = function(formid,feedbackDiv) {
     var valid = true;
-    $('#'+formid+' input,select').each(function () {
-        if ($.trim($(this).val()).length === 0){
-            $(this).focus();
-            showfeedback('<p id="warning">This field is required</p>');
+    $('#'+formid+' input,select,textarea').each(function () {
+        $(this).removeClass('wrongField');
+        // Check if required fields have been filled in
+        if ($(this).prop('required') && $.trim($(this).val()).length === 0){
+            $(this)
+                .addClass('wrongField')
+                .focus();
+            showfeedback('<p id="warning">This field is required</p>',feedbackDiv);
+            valid = false;
+            return false;
+        }
+
+        // Check if provided email is valid
+        if ($(this).attr('type') == 'email' && !checkemail($(this).val())) {
+            showfeedback('<p id="warning">Invalid email!</p>',feedbackDiv);
+            $(this)
+                .addClass('wrongField')
+                .focus();
             valid = false;
             return false;
         }
@@ -517,27 +561,6 @@ $( document ).ready(function() {
             return false;
         })
 
-        // Check db integrity (matching session/presentation table)
-        .on('click','.db_check',function(e){
-            e.preventDefault();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {db_check: true},
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                complete: function () {
-                    $('#loading').hide();
-                },
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    showfeedback('<p id="success">OK</p>','db_check');
-                }
-            });
-        })
-
 		// Send an email to the mailing list
         .on('click','.mailing_send',function(e) {
             e.preventDefault();
@@ -573,9 +596,9 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result === "sent") {
-                        showfeedback('<p id="success">Your message has been sent!</p>');
+                        showfeedback('<div id="success">Your message has been sent!</div>');
                     } else if (result === "not_sent") {
-                        showfeedback('<p id="warning">Oops, something went wrong!</p>');
+                        showfeedback('<div id="warning">Oops, something went wrong!</div>');
                     }
                 }
             });
@@ -855,10 +878,10 @@ $( document ).ready(function() {
                     select_year: year
                     },
                 beforeSend: function() {
-                    $('#loading').show();
+                    loadingDiv('#archives_list');
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    removeLoading('#archives_list');
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
@@ -926,11 +949,18 @@ $( document ).ready(function() {
          // Select submission type
          .on('change','select#type',function(e) {
             e.preventDefault();
+            var guestField = $('.submission #guest');
             var type = $(this).val();
+            guestField.prop('required',false);
+
             if (type == "guest") {
-                $('.submission #guest').fadeIn();
+                guestField
+                    .prop('required',true)
+                    .fadeIn();
             } else {
-                $('.submission #guest').hide();
+                guestField
+                    .prop('required',false)
+                    .hide();
             }
          })
 
@@ -938,11 +968,10 @@ $( document ).ready(function() {
         .on('click','.submit_pres',function(e) {
             e.preventDefault();
             var operation = $(this).attr('name');
-            var form = $(this).closest('#submission_form');
+            var form = $(this).closest('#submit_form');
             var type = $("select#type").val();
-            var title = $("input#title").val();
-            var authors = $("input#authors").val();
-            var summary = $("textarea#summary").val();
+
+            if (!checkform('submit_form')) { return false;}
 
             if (operation !== "suggest") {
                 var date = $("input#datepicker").val();
@@ -960,43 +989,10 @@ $( document ).ready(function() {
                     links.push(link);
                 });
                 links = links.join(',');
-                $('#submit_form').append("<input type='hidden' name='link' value='"+links+"'>");
+                form.append("<input type='hidden' name='link' value='"+links+"'>");
             }
 
-            if (title === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#title").focus();
-                return false;
-            }
-
-            if (authors === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#authors").focus();
-                return false;
-            }
-
-            if (type === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("select#type").focus();
-                return false;
-            }
-
-            if (type === "guest") {
-                var orator = $("input#orator").val();
-                if (orator === "") {
-                    showfeedback('<p id="warning">This field is required</p>');
-                    $("input#orator").focus();
-                    return false;
-                }
-            }
-
-            if (summary === "") {
-                showfeedback('<p id="warning">Please provide a short description of your presentation (e.g. abstract)</p>');
-                $("textarea#summary").focus();
-                return false;
-            }
-
-            var data = $("#submit_form").serialize();
+            var data = form.serialize();
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -1010,13 +1006,13 @@ $( document ).ready(function() {
                 },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
+                    var subform = $('section#submission_form');
+
                     if (result.status == true) {
-                        validsubmitform(form,result.msg);
-                        setTimeout(function() {
-                            showpubform(form,false);
-                        },2000);
+                        var callback = showpubform(subform,false);
+                        validsubmitform('.submission',result.msg,callback);
                     } else {
-                        showfeedback(result.msg);
+                        validsubmitform('.submission',result.msg);
                     }
                 }
             });
@@ -1243,25 +1239,25 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result.status == true) {
-                        $('#login_form')
-                            .hide()
-                            .html('<p id="success">Welcome back!</p>')
-                            .fadeIn(200);
-                        setTimeout(function() {
-                            location.reload();
-                        },2000);
+                        var  text = '<p id="success">Welcome back!</p>';
+                        var callback = location.reload();
+                        validsubmitform('#login_form',text,callback);
                     } else if (result.msg == "wrong_username") {
-                        showfeedback('<p id="warning">Wrong username</p>');
+                        var text = '<p id="warning">Wrong username</p>';
+                        validsubmitform('#login_form',text);
                     } else if (result.msg == "wrong_password") {
-                        showfeedback('<p id="warning">Wrong password. ' + result.status + ' login attempts remaining</p>');
+                        var text = '<p id="warning">Wrong password. ' + result.status + ' login attempts remaining</p>';
+                        validsubmitform('#login_form',text);
                     } else if (result.msg == "blocked_account") {
-                        showfeedback('<p id="warning">Wrong password. You have exceeded the maximum number ' +
+                        var text = '<p id="warning">Wrong password. You have exceeded the maximum number ' +
                         'of possible attempts, hence your account has been deactivated for security reasons. ' +
-                        'We have sent an email to your address including an activation link.</p>');
+                        'We have sent an email to your address including an activation link.</p>';
+                        validsubmitform('#login_form',text);
                     } else if (result.msg == "not_activated") {
-                        showfeedback('<p id="warning">Sorry, your account is not activated yet. ' +
+                        var text = '<p id="warning">Sorry, your account is not activated yet. ' +
                             '<br> You will receive an email as soon as your registration is confirmed by an admin.<br> ' +
-                            'Please <a href="index.php?page=contact">contact us</a> if you have any question.</p>');
+                            'Please <a href="index.php?page=contact">contact us</a> if you have any question.</p>';
+                        validsubmitform('#login_form',text);
                     }
                 }
             });
@@ -1288,12 +1284,6 @@ $( document ).ready(function() {
                 return false;
             }
 
-            if (!checkemail(email)) {
-                showfeedback('<p id="warning">Invalid email!</p>');
-                $("input#email").focus();
-                return false;
-            }
-
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -1311,19 +1301,18 @@ $( document ).ready(function() {
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == true) {
-                        $('#user_register')
-                            .hide()
-                            .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
-                            .fadeIn(200);
-                        setTimeout(function() {
-                            close_modal(".modalContainer");
-                        }, 5000);
+                        var text = '<p id="success">Your account has been created. You will receive an email after its ' +
+                            'validation by our admins.</p>';
+                        var callback = close_modal(".modalContainer");
+                        validsubmitform('#user_register',text,callback);
                     } else if (result === "exist") {
-                        showfeedback('<p id="warning">This username/email address already exist in our database</p>');
+                        var text = '<p id="warning">This username/email address already exist in our database</p>';
+                        validsubmitform('#user_register',text);
                     } else if (result === "mail_pb") {
-                        showfeedback('<p id="warning">Sorry, we have not been able to send a verification email to the organizers. Your registration cannot be validated for the moment. Please try again later.</p>');
+                        var text = '<p id="warning">Sorry, we have not been able to send a verification email to the organizers.' +
+                            ' Your registration cannot be validated for the moment. Please try again later.</p>';
+                        validsubmitform('#user_register',text);
                     }
-
                 }
             });
             return false;

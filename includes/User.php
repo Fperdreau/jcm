@@ -255,14 +255,13 @@ class User extends Users{
         $this -> position = $position;
         $this -> email = $email;
         $this -> status = $status;
-        $this -> hash = $this -> create_hash($this);
+        $this -> hash = $this->make_hash();
         $this -> password = self::crypt_pwd($password);
         if ($this->status == "admin") {
         	$this->active = 1;
 		}
 
         /** @var AppMail $mail */
-        require('AppMail.php');
         $mail = new AppMail($this->db,$config);
 
 		// Parse variables and values to store in the table
@@ -383,7 +382,7 @@ class User extends Users{
      *
      * @return string
      */
-    public function create_hash() {
+    public function make_hash() {
         $hash = md5( rand(0,1000) );
         return $hash;
     }
@@ -489,7 +488,6 @@ class User extends Users{
      * @return string
      */
     function crypt_pwd($password) {
-        require("PasswordHash.php");
         $hash = create_hash($password);
         return $hash;
     }
@@ -500,8 +498,9 @@ class User extends Users{
      *
      * @return bool
      */
-    function delete_user() {
-        return $this->db -> deletecontent($this->tablename,array("username"),array("'$this->username'"));
+    function delete_user($username=null) {
+        $username = ($username == null) ? $this->username:$username;
+        return $this->db -> deletecontent($this->tablename,array("username"),array("$username"));
     }
 
     /**

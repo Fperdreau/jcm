@@ -276,25 +276,6 @@ if (!empty($_POST['login'])) {
 // Registration
 if (!empty($_POST['register'])) {
     $user = new User($db);
-    $result = "none";
-    foreach($_POST as $key => $value) {
-        if(!empty($value)) {
-            $$key = htmlspecialchars($value);
-            $user->$key = $$key;
-            switch ($key) {
-                case 'password':
-                    if (empty($_POST['conf_password']) or ($_POST['conf_password'] != $$key)) {
-                        $result = "mismatch";
-                    }
-                    break;
-                case 'email':
-                    if (!filter_var($$key, FILTER_VALIDATE_EMAIL)) {
-                        $result = "wrong_email";
-                    }
-                    break;
-            }
-        }
-    }
     $result = $user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email);
     echo json_encode($result);
     exit;
@@ -380,9 +361,9 @@ if (!empty($_POST['conf_changepw'])) {
 if (!empty($_POST['user_modify'])) {
     $user = new User($db,$_POST['username']);
     if ($user -> update($_POST)) {
-        $result = "<p id='success'>The modification has been made!</p>";
+        $result = "<div id='success'>The modification has been made!</div>";
     } else {
-        $result = "<p id='warning'>Something went wrong!</p>";
+        $result = "<div id='warning'>Something went wrong!</div>";
     }
     echo json_encode($result);
     exit;
@@ -454,18 +435,18 @@ if (!empty($_POST['submit'])) {
         $session = new Session($db);
         if ($session->make($postsession)) {
             $result['status'] = true;
-            $result['msg'] = "<p id='success'>Thank you for your submission!</p>";
+            $result['msg'] = "<div id='success'>Thank you for your submission!</div>";
          } else {
             $pub->delete_pres($created);
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'>Sorry, we could not create/update the session</p>";
+            $result['msg'] = "<div id='warning'>Sorry, we could not create/update the session</div>";
          }
     } elseif ($created == "exists") {
         $result['status'] = false;
-        $result['msg'] = "<p id='warning'>This presentation already exist in our database.</p>";
+        $result['msg'] = "<div id='warning'>This presentation already exist in our database.</div>";
     } else {
         $result['status'] = false;
-        $result['msg'] = "<p id='warning'>Oops, something has gone wrong.</p>";
+        $result['msg'] = "<div id='warning'>Oops, something has gone wrong.</div>";
     }
 
     echo json_encode($result);
@@ -480,13 +461,13 @@ if (isset($_POST['suggest'])) {
     $created = $pres->make($_POST);
     if ($created !== false && $created !== "exist") {
         $result['status'] = true;
-        $result['msg'] = "<p id='success'>Your presentation has been submitted.</p>";
+        $result['msg'] = "<div id='success'>Your presentation has been submitted.</div>";
     } elseif ($created == "exist") {
         $result['status'] = false;
-        $result['msg'] = "<p id='warning'>This presentation already exist in our database.</p>";
+        $result['msg'] = "<div id='warning'>This presentation already exist in our database.</div>";
     } else {
         $result['status'] = false;
-        $result['msg'] = "<p id='warning'>Oops, something went wrong</p>";
+        $result['msg'] = "<div id='warning'>Oops, something went wrong</div>";
     }
     echo json_encode($result);
     exit;
@@ -659,7 +640,7 @@ if (!empty($_POST['modify_status'])) {
 // Udpate application settings
 if (!empty($_POST['config_modify'])) {
     $AppConfig->update($_POST);
-    $result = "<p id='success'>Modifications have been made!</p>";
+    $result = "<div id='success'>Modifications have been made!</div>";
     echo json_encode($result);
     exit;
 }

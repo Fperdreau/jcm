@@ -130,7 +130,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
     $authors = ($type !== 'minute') ? "<div class='formcontrol'>
                 <label>Authors </label>
-                <input type='text' id='authors' name='authors' value='$Presentation->authors'>
+                <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
             </div>":"";
 
     // Make submission's type selection list
@@ -160,7 +160,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
             <div class='formcontrol'>
                 <label>Type</label>
-                <select name='type' id='type'>
+                <select name='type' id='type' required>
                     $typeoptions
                 </select>
             </div>
@@ -176,14 +176,14 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
             <br><div class='formcontrol'>
                 <label>Title </label>
-                <input type='text' id='title' name='title' value='$Presentation->title'/>
+                <input type='text' id='title' name='title' value='$Presentation->title' required/>
             </div>
 
             $authors
 
             <div class='formcontrol' style='width: 80%;'>
                 <label>Abstract</label>
-                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;'>$Presentation->summary</textarea>
+                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
             </div>
         </form>
 

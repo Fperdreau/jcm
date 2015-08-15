@@ -28,11 +28,11 @@ echo "
             <form id='login_form'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='log_username'>Username</label>
-                    <input type='text' id='log_username' name='username'>
+                    <input type='text' id='log_username' name='username' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='log_password'>Password</label>
-                    <input type='password' id='log_password' name='password'>
+                    <input type='password' id='log_password' name='password' required>
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'>
@@ -51,31 +51,31 @@ echo "
             <form id='register_form'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='firstname'>First Name</label>
-                    <input id='firstname' type='text' name='firstname'>
+                    <input id='firstname' type='text' name='firstname' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='lastname'>Last Name</label>
-                    <input id='lastname' type='text' name='lastname'>
+                    <input id='lastname' type='text' name='lastname' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='username'>Username</label>
-                    <input id='username' type='text' name='username'>
+                    <input id='username' type='text' name='username' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='password'>Password</label>
-                    <input id='password' type='password' name='password'>
+                    <input id='password' type='password' name='password' required>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='conf_password'>Confirm password</label>
-                    <input id='conf_password' type='password' name='conf_password'>
+                    <input id='conf_password' type='password' name='conf_password' required>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='email'>Email</label>
-                    <input id='email' size='30' type='text' name='email'>
+                    <input id='email' size='30' type='email' name='email' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='position'>Position</label>
-                        <select name='position' id='position'>
+                        <select name='position' id='position' required>
                             <option value='researcher'>Researcher</option>
                             <option value='post-doc'>Post-doc</option>
                             <option value='phdstudent'>PhD student</option>

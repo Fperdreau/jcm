@@ -139,9 +139,11 @@ function loadingDiv(divId) {
 
 // Remove loading animation
 function removeLoading(divId) {
-    $(""+divId).children('.loadingDiv')
+    var el = $(""+divId);
+    el.children('.loadingDiv')
         .fadeOut('slow')
         .remove();
+    el.fadeIn(200);
 }
 
 // Responsive design part
