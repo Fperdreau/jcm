@@ -79,4 +79,17 @@ class AppTable {
         return $result;
     }
 
+    /**
+     * Sanitize $_POST content
+     * @param $post
+     */
+    public function sanitize($post) {
+        foreach ($post as $key=>$value) {
+            if (!is_array($value)) {
+                $post[$key] = htmlspecialchars($value);
+            }
+        }
+        return $post;
+    }
+
 }

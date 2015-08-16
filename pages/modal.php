@@ -49,29 +49,31 @@ echo "
         <!-- Sign up section -->
         <div class='modal_section' id='user_register' data-title='Sign Up' style='width: 80%'>
             <form id='register_form'>
+                <input type='hidden' name='register' value='true'>
+                <input type='hidden' name='status' value='member'>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='firstname'>First Name</label>
-                    <input id='firstname' type='text' name='firstname' required autocomplete='on'>
+                    <input type='text' name='firstname' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='lastname'>Last Name</label>
-                    <input id='lastname' type='text' name='lastname' required autocomplete='on'>
+                    <input type='text' name='lastname' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='username'>Username</label>
-                    <input id='username' type='text' name='username' required autocomplete='on'>
+                    <input type='text' name='username' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='password'>Password</label>
-                    <input id='password' type='password' name='password' required>
+                    <input type='password' name='password' required>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='conf_password'>Confirm password</label>
-                    <input id='conf_password' type='password' name='conf_password' required>
+                    <input type='password' name='conf_password' required>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='email'>Email</label>
-                    <input id='email' size='30' type='email' name='email' required autocomplete='on'>
+                    <input type='email' name='email' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='position'>Position</label>

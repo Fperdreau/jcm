@@ -17,7 +17,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- General functions
+ FORMS
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Show publication form
 var showpubform = function(formel,idpress,type,date,prestype) {
@@ -49,22 +49,31 @@ var showpubform = function(formel,idpress,type,date,prestype) {
     });
 };
 
-// Display presentation information in a modal window
-var displaypub = function(idpress,formel) {
-    idpress = (idpress == undefined) ? false:idpress;
+// Show post form
+var showpostform = function(postid) {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
-        async: false,
+        async: true,
         data: {
-            show_pub: idpress
-        },
+            post_show: true,
+            postid: postid},
         success: function(data){
             var result = jQuery.parseJSON(data);
-            formel
-                .hide()
-                .html(result)
-                .fadeIn(200);
+            var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
+            setTimeout(function() {
+                $('.postcontent')
+                    .empty()
+                    .html(result.form)
+                    .fadeIn(200);
+                $('.post_txtarea')
+                    .html(txtarea)
+                    .show();
+                tinyMCE.remove();
+                window.tinymce.dom.Event.domLoaded = true;
+                tinymcesetup();
+            }, 1000);
+
         }
     });
 };
@@ -94,30 +103,19 @@ var processform = function(formid,feedbackid) {
 };
 
 // Show feedback message and replace the submitted form by an empty form
-var validsubmitform = function(form,text,callback) {
+var validsubmitform = function(form,text,callback,timing) {
     callback = (callback === undefined) ? false: callback;
+    timing = (timing === undefined) ? false: 3000;
 
     var el = $(form);
-    var css = {
-        'position': 'absolute',
-        'z-index': 1000,
-        'top':0,
-        'left':0,
-        'display':'inline-block',
-        'text-align': 'center',
-        'min-width': "100%",
-        'min-height': "100%",
-        'background':'rgba(255,255,255,.9)',
-        'margin':'auto'};
 
     $(el).append("<div class='feedbackForm'></div>");
 
     $('.feedbackForm')
-        .css(css)
         .html(text)
         .fadeIn(200);
 
-    setTimeout(function() {
+   setTimeout(function() {
         $('.feedbackForm')
             .fadeOut(200)
             .remove();
@@ -189,9 +187,9 @@ var send_verifmail = function(email) {
         success: function(data){
             var result = jQuery.parseJSON(data);
             if (result === "sent") {
-                showfeedback('<p id="success">A verification email has been sent to your address</p>');
+                showfeedback('<div id="success">A verification email has been sent to your address</div>');
             } else if (result === "wrong_email") {
-                showfeedback('<p id="warning">Wrong email address</p>');
+                showfeedback('<div id="warning">Wrong email address</div>');
             }
         }
     });
@@ -236,35 +234,6 @@ var inititdatepicker = function(jcdays,selected) {
             } else if (days[day] !== jcdays.jc_day) {
                 return [false,"","Not a journal club day"];
             }
-        }
-    });
-};
-
-// Show post form
-var showpostform = function(postid) {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {
-            post_show: true,
-            postid: postid},
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
-            setTimeout(function() {
-                $('.postcontent')
-                    .empty()
-                    .html(result.form)
-                    .fadeIn(200);
-                $('.post_txtarea')
-                    .html(txtarea)
-                    .show();
-                tinyMCE.remove();
-                window.tinymce.dom.Event.domLoaded = true;
-                tinymcesetup();
-            }, 1000);
-
         }
     });
 };
@@ -334,6 +303,26 @@ function showLogin() {
         }
     });
 }
+
+// Display presentation information in a modal window
+var displaypub = function(idpress,formel) {
+    idpress = (idpress == undefined) ? false:idpress;
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {
+            show_pub: idpress
+        },
+        success: function(data){
+            var result = jQuery.parseJSON(data);
+            formel
+                .hide()
+                .html(result)
+                .fadeIn(200);
+        }
+    });
+};
 
 $( document ).ready(function() {
 
@@ -1267,37 +1256,23 @@ $( document ).ready(function() {
         // Sign Up Form
         .on('click',".register",function(e) {
             e.preventDefault();
-            var firstname = $("input#firstname").val();
-            var lastname = $("input#lastname").val();
-            var username = $("input#username").val();
             var password = $("input#password").val();
             var conf_password = $("input#conf_password").val();
-            var email = $("input#email").val();
-            var position = $("select#position").val();
 
-            var valid = checkform('register_form');
-            if (valid === false) { return false; }
+            if (!checkform('register_form')) { return false; }
 
             if (password != conf_password) {
                 showfeedback('<p id="warning">Passwords must match</p>');
                 $("input#conf_password").focus();
                 return false;
             }
+            var data = $('#register_form').serialize();
 
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
                 async: false,
-                data: {
-                    firstname: firstname,
-                    lastname: lastname,
-                    username: username,
-                    password: password,
-                    conf_password: conf_password,
-                    email: email,
-                    position: position,
-                    register: true
-                },
+                data: data,
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     if (result == true) {

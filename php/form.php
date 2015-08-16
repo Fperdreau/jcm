@@ -276,7 +276,7 @@ if (!empty($_POST['login'])) {
 // Registration
 if (!empty($_POST['register'])) {
     $user = new User($db);
-    $result = $user -> make($user->username,$user->password,$user->firstname,$user->lastname,$user->position,$user->email);
+    $result = $user -> make($_POST);
     echo json_encode($result);
     exit;
 }

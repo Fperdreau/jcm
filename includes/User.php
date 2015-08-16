@@ -236,44 +236,30 @@ class User extends Users{
     /**
      * Create user
      *
-     * @param $username
-     * @param $password
-     * @param $firstname
-     * @param $lastname
-     * @param $position
-     * @param $email
-     * @param string $status
+     * @param array $post
      * @return bool|string
      */
-    function make($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
+    function make($post=array()) {
         $config = new AppConfig($this->db);
-		$this -> date = date("Y-m-d H:i:s");
-        $this -> username = $username;
-        $this -> firstname = $firstname;
-        $this -> lastname = $lastname;
-		$this -> fullname = "$this->firstname $this->lastname";
-        $this -> position = $position;
-        $this -> email = $email;
-        $this -> status = $status;
-        $this -> hash = $this->make_hash();
-        $this -> password = self::crypt_pwd($password);
-        if ($this->status == "admin") {
-        	$this->active = 1;
-		}
+        $post = self::sanitize($post);
+		$this->date = date("Y-m-d H:i:s");
+		$post['fullname'] = $post['firstname']." ".$post['lastname'];
+        $post['hash'] = $this->make_hash();
+        $post['password']= self::crypt_pwd($post['password']);
+        $post['active'] = ($post['status'] == "admin") ? 1:0;
 
         /** @var AppMail $mail */
         $mail = new AppMail($this->db,$config);
 
 		// Parse variables and values to store in the table
 		$class_vars = get_class_vars("User");
-        if (self :: user_exist($this->username) == false
-            && self :: mail_exist($this->email) == false) {
+        if (self :: user_exist($post['username']) == false
+            && self :: mail_exist($post['email']) == false) {
                 // Add to user table
-                $content = $this->parsenewdata($class_vars);
+                $content = $this->parsenewdata($class_vars,$post);
                 $this->db->addcontent($this->tablename,$content);
 
                 if ($this->status !=  "admin") {
-
                     // Send verification email to admins/organizer
                     if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
                         return true;
@@ -282,6 +268,7 @@ class User extends Users{
                         return 'mail_pb';
                     }
                 } else {
+                    // Send confirmation email to the user directly
                     if ($mail-> send_confirmation_mail($this->email,$this->username,$this->password)) {
                         return true;
                     } else {

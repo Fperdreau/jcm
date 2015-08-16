@@ -117,7 +117,6 @@ Process Installation
 if (!empty($_POST['operation'])) {
     $operation = $_POST['operation'];
 
-
     // STEP 1: Check database credentials provided by the user
     if ($operation == "db_info") {
         $result = $db->testdb($_POST);
@@ -369,12 +368,8 @@ if (!empty($_POST['operation'])) {
 
     // Final step: create admin account (for new installation only)
     if ($operation == 'inst_admin') {
-        $encrypted_pw = htmlspecialchars($_POST['password']);
-        $username = htmlspecialchars($_POST['username']);
-        $email = htmlspecialchars($_POST['email']);
-
         $user = new User($db);
-        if ($user->make($username, $encrypted_pw, $username, "", "", $email, "admin")) {
+        if ($user->make($_POST)) {
             $result = "<p id='success'>Admin account created</p>";
         } else {
             $result = "<p id='warning'>We could not create the admin account</p>";
@@ -438,23 +433,23 @@ if (!empty($_POST['getpagecontent'])) {
 				<input type='hidden' name='db_info' value='true' />
                 <div class='formcontrol''>
     				<label for='host'>Host Name</label>
-    				<input name='host' type='text' value='$host'>
+    				<input name='host' type='text' value='$host' required autocomplete='on'>
                 </div>
                 <div class='formcontrol''>
     				<label for='username'>Username</label>
-    				<input name='username' type='text' value='$username'>
+    				<input name='username' type='text' value='$username' required autocomplete='on'>
                 </div>
                 <div class='formcontrol''>
 				    <label for='passw'>Password</label>
-				    <input name='passw' type='password' value='$passw'>
+				    <input name='passw' type='password' value='$passw' required>
                 </div>
                 <div class='formcontrol''>
 				    <label for='dbname'>DB Name</label>
-				    <input name='dbname' type='text' value='$dbname'>
+				    <input name='dbname' type='text' value='$dbname' required autocomplete='on'>
                 </div>
                 <div class='formcontrol''>
 				    <label for='dbprefix'>DB Prefix</label>
-				    <input name='dbprefix' type='text' value='$dbprefix'>
+				    <input name='dbprefix' type='text' value='$dbprefix' required autocomplete='on'>
                 </div>
 				<p style='text-align: right'><input type='submit' name='db_info' value='Next' id='submit' class='db_info' data-op='$op'></p>
 			</form>
@@ -475,13 +470,13 @@ if (!empty($_POST['getpagecontent'])) {
                 <h3>Journal Club Manager - Website</h3>
                 <div class='formcontrol''>
                     <label for='sitetitle'>Site title</label>
-                    <input name='sitetitle' type='text' value='$AppConfig->sitetitle'>
+                    <input name='sitetitle' type='text' value='$AppConfig->sitetitle' required autocomplete='on'>
                 </div>
 
                 <h3>Journal Club Manager - Mailing service</h3>
                 <div class='formcontrol''>
                     <label for='mail_from'>Sender Email address</label>
-                    <input name='mail_from' type='text' value='$AppConfig->mail_from'>
+                    <input name='mail_from' type='email' value='$AppConfig->mail_from'>
                 </div>
                 <div class='formcontrol''>
                     <label for='mail_from_name'>Sender name</label>
@@ -523,21 +518,22 @@ if (!empty($_POST['getpagecontent'])) {
             <div class='feedback'></div>
 			<form method='post' id='admin_creation'>
 			    <div class='formcontrol''>
-				    <label for='admin_username'>UserName : </label>
-				    <input id='admin_username' type='text' name='username'>
+				    <label for='username'>UserName</label>
+				    <input type='text' name='username' required autocomplete='on'>
                 </div>
                 <div class='formcontrol''>
-				    <label for='admin_password'>Password : </label>
-				    <input id='admin_password' type='password' name='password'>
+				    <label for='password'>Password</label>
+				    <input type='password' name='password' required>
                 </div>
                 <div class='formcontrol''>
-				    <label for='admin_confpassword'>Confirm password: </label>
-				    <input id='admin_confpassword' type='password' name='admin_confpassword'>
+				    <label for='confpassword'>Confirm password</label>
+				    <input type='password' name='confpassword' required>
                 </div>
                 <div class='formcontrol''>
-				    <label for='admin_email'>Email: </label>
-				    <input type='text' name='email' id='admin_email'>
+				    <label for='admin_email'>Email</label>
+				    <input type='email' name='email' required autocomplete='on'>
                 </div>
+                <input type='hidden' name='status' value='admin'>
 				<input type='hidden' name='inst_admin' value='true'>
 				<p style='text-align: right;'><input type='submit' name='submit' value='Next' id='submit' class='admin_creation' data-op='$op'></p>
 			</form>
@@ -869,66 +865,23 @@ if (!empty($_POST['getpagecontent'])) {
                 .on('click','.admin_creation',function(e) {
                     e.preventDefault();
                     var op = $(this).attr('data-op');
-                    var username = $("input#admin_username").val();
-                    var password = $("input#admin_password").val();
-                    var conf_password = $("input#admin_confpassword").val();
-                    var email = $("input#admin_email").val();
+                    if (!checkform('admin_creation')) {return false;}
 
-                    if (username == "") {
-                        showfeedback('<p id="warning">This field is required</p>','.feedback');
-                        $("input#admin_username").focus();
-                        return false;
-                    }
-
-                    if (password == "") {
-                        showfeedback('<p id="warning">This field is required</p>','.feedback');
-                        $("input#admin_password").focus();
-                        return false;
-                    }
-
-                    if (conf_password == "") {
-                        showfeedback('<p id="warning">This field is required</p>','.feedback');
-                        $("input#admin_confpassword").focus();
-                        return false;
-                    }
-
-                    if (conf_password != password) {
-                        showfeedback('<p id="warning">Password must match</p>');
-                        $("input#admin_confpassword").focus();
-                        return false;
-                    }
-
-                    if (email == "") {
-                        showfeedback('<p id="warning">This field is required</p>','.feedback');
-                        $("input#admin_email").focus();
-                        return false;
-                    }
-
-                    if (!checkemail(email)) {
-                        showfeedback('<p id="warning">Oops, this is an invalid email</p>','.feedback');
-                        $("input#admin_email").focus();
-                        return false;
-                    }
-
+                    var data = $('#admin_creation').serialize();
                     jQuery.ajax({
                         url: 'install.php',
                         type: 'POST',
                         async: true,
-                        data: {
-                            operation: "inst_admin",
-                            username: username,
-                            password: password,
-                            email: email,
-                            conf_password: conf_password},
+                        data: data,
                         beforeSend: function() {
-                            loadingDiv('#pagecontent');
+                            loadingDiv('#admin_creation');
                         },
                         complete: function() {
-                            removeLoading('#pagecontent');
+                            removeLoading('#admin_creation');
                         },
                         success: function(data){
                             var result = jQuery.parseJSON(data);
-                            showfeedback(result);
+                            validsubmitform('#admin_creation',result);
                             getpagecontent(5,op);
                         }
                     });

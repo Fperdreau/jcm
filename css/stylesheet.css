@@ -142,6 +142,27 @@ select.select_opt {
     width: 100%;
 }
 
+.feedbackForm {
+    position : absolute;
+    z-index : 1000;
+    top : 0;
+    left : 0;
+    display : inline-flex;
+    text-align :center;
+    min-width : 100%;
+    min-height : 100%;
+    background : rgba(255,255,255,.9);
+    margin : auto;
+}
+
+.feedbackForm > div {
+    vertical-align: middle;
+}
+
+.wrongField {
+    background: rgba(200,0,0,.1);
+}
+
 /* *********************************************************************/
 /* Body
 /* *********************************************************************/
@@ -1051,7 +1072,6 @@ h3 {
 }
 
 /* Alerts */
-
 .warningmsg {
     display: none;
     position: absolute;
@@ -1074,7 +1094,6 @@ h3 {
 }
 
 #warning {
-    align-self: center;
     margin: auto;
     color: #990000;
     padding: 10px; /* Some padding to make some more space for our text  */
@@ -1083,7 +1102,6 @@ h3 {
 }
 
 #status {
-    align-self: center;
     margin: auto;
     color: #000099;
     background-color: rgba(0,0,127,.2); /* Add a background color to our status message   */
@@ -1091,16 +1109,11 @@ h3 {
 }
 
 #success {
-    align-self: center;
     margin: auto;
     color: #009900;
     padding: 10px; /* Some padding to make some more space for our text  */
     background-color: rgba(0,127,0,.2); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
-}
-
-.wrongField {
-    background: rgba(200,0,0,.1);
 }
 
 /* *********************************************************************/
