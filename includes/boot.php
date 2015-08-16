@@ -42,7 +42,7 @@ if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
 /**
  * Includes required files (classes)
  */
-include_once(PATH_TO_INCLUDES.'DbSet.php');
+include_once(PATH_TO_INCLUDES.'AppDb.php');
 include_once(PATH_TO_INCLUDES.'AppTable.php');
 $includeList = scandir(PATH_TO_INCLUDES);
 foreach ($includeList as $includeFile) {
