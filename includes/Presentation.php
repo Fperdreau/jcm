@@ -136,10 +136,10 @@ class Presentations extends AppTable {
             $content.= "
             <section>
                 <h2 class='section_header'>$year</h2>
-                <div class='list-container' id='pub_labels'>
-                    <div style='text-align: center; font-weight: bold; width: 5%;'>Date</div>
-                    <div style='text-align: center; font-weight: bold; width: 60%;'>Title</div>
-                    <div style='text-align: center; font-weight: bold; width: 25%;'>Speakers</div>
+                <div class='list-container list-heading'>
+                    <div style='width: 5%;'>Date</div>
+                    <div style='width: 60%;'>Title</div>
+                    <div style='width: 25%;'>Speakers</div>
                 </div>
                 $yearcontent
             </section>";
@@ -192,7 +192,7 @@ class Presentations extends AppTable {
          <form method='' action='' class='form'>
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
-              <div class='formcontrol' style='width: 50%;'>
+              <div class='formcontrol'>
                 <label for='id'>Select a wish</label>
                 <select name='id' id='select_wish'>
                     $option
@@ -423,12 +423,8 @@ class Presentation extends Presentations {
     public function show($user=false) {
         if (!$user) {
             $speaker = new User($this->db,$this->orator);
-            $speakerDiv = "<div style='text-align: center; width: 25%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$speaker->fullname</div>";
-            $datewidth = "10%";
-            $titlewidth = "60%";
+            $speakerDiv = "<div class='pub_speaker'>$speaker->fullname</div>";
         } else {
-            $datewidth = "auto";
-            $titlewidth = "70%";
             $speakerDiv = "";
         }
         return "
@@ -491,9 +487,9 @@ class Presentation extends Presentations {
         }
 
         return "
-        <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
-            <div style='display: inline-block; min-width: 60px;font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
-            <div style='display: inline-block; margin-left: 20px;'>
+        <div id='$this->id_pres' style='display: block; margin: auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block; min-width: 50px; font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
+            <div style='display: inline-block; margin-left: 20px; min-width: 200px;'>
                 <div>$show_but</div>
                 <div style='font-style: italic;'>Presented by $speaker</div>
             </div>

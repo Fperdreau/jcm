@@ -27,6 +27,7 @@ require_once('includes/boot.php');
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <META NAME="viewport" CONTENT="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, user-scalable=yes">
         <META NAME="description" CONTENT="Journal Club Manager. Organization. Submit or suggest a presentation. Archives.">
         <META NAME="keywords" CONTENT="Journal Club">
         <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
@@ -80,8 +81,10 @@ require_once('includes/boot.php');
         <!-- Footer section -->
         <footer id="footer">
             <div id="colBar"></div>
+            <div id="appTitle"><?php echo $AppConfig->app_name; ?></div>
+            <div id="appVersion">Version <?php echo $AppConfig->version; ?></div>
             <div id="sign">
-                <div><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a></div>
+                <div><?php echo "<a href='$AppConfig->repository' target='_blank'>Sources</a></div>
                 <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a></div>
                 <div><a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></div>
             </div>

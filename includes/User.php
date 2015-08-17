@@ -97,14 +97,14 @@ class Users extends AppTable {
 
         $req = $this->db->send_query($sql);
         $result =  "
-            <div class='list-container'>
-                <div class='list-heading' style='width: 10%'>First Name</div>
-                <div class='list-heading' style='width: 10%'>Last Name</div>
-                <div class='list-heading' style='width: 10%'>User Name</div>
-                <div class='list-heading' style='width: 20%'>Email</div>
-                <div class='list-heading' style='width: 10%'>Activated</div>
-                <div class='list-heading' style='width: 5%'>Submissions</div>
-                <div class='list-heading' style='width: 10%'>Status</div>
+            <div class='list-container list-heading'>
+                <div style='width: 10%'>First Name</div>
+                <div style='width: 10%'>Last Name</div>
+                <div style='width: 10%'>User Name</div>
+                <div style='width: 20%'>Email</div>
+                <div style='width: 10%'>Activated</div>
+                <div style='width: 5%'>Submissions</div>
+                <div style='width: 10%'>Status</div>
             </div>
         ";
 
@@ -136,14 +136,14 @@ class Users extends AppTable {
 
             $result .= "
             <div class='list-container' id='section_$user->username'>
-                <div class='list-section' style='width: 10%'>$user->firstname</div>
-                <div class='list-section' style='width: 10%'>$user->lastname</div>
-                <div class='list-section' style='width: 10%'>$user->username</div>
-                <div class='list-section' style='width: 20%'>$user->email</div>
-                <div class='list-section' style='width: 10%'>$cur_trage</div>
-                <div class='list-section' style='width: 5%'>$nbpres</div>
+                <div style='width: 10%'>$user->firstname</div>
+                <div style='width: 10%'>$user->lastname</div>
+                <div style='width: 10%'>$user->username</div>
+                <div style='width: 20%'>$user->email</div>
+                <div style='width: 10%'>$cur_trage</div>
+                <div style='width: 5%'>$nbpres</div>
 
-                <div class='list-section' style='width: 10%'>
+                <div style='width: 10%'>
                     <select name='status' id='status' data-user='$user->username' class='modify_status' style='min-width: 50px;'>
                         <option value='$user->status' selected='selected'>$user->status</option>
                         <option value='member'>Member</option>
@@ -515,9 +515,9 @@ class User extends Users{
         $sql .= " ORDER BY date";
         $req = $this->db->send_query($sql);
         $content = "
-            <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-                <div style='text-align: center; font-weight: bold; width: 20%;'>Date</div>
-                <div style='text-align: center; font-weight: bold; width: 70%;'>Title</div>
+            <div class='list-container list-heading' style='font-size: 12px;'>
+                <div style='width: 20%;'>Date</div>
+                <div style='width: 70%;'>Title</div>
             </div>
         ";
 

@@ -112,7 +112,6 @@ input[type="submit"]:active, input[type="button"]:active {
 }
 
 select#select_wish {
-    width: 400px;
 }
 
 input.input_opt {
@@ -166,15 +165,18 @@ select.select_opt {
 /* *********************************************************************/
 /* Body
 /* *********************************************************************/
-html { height: 100%; }
+html {
+    height: 100%;
+    font-size: 1em;
+}
 
 body {
+    width: 100%;
+    min-width: 320px;
     font-family: 'Lato', Calibri, Arial, sans-serif;
     font-weight: 300;
     font-size: 1em;
-    line-height: 1.1;
-	width: 100%;
-    min-width: 320px;
+    line-height: 1.2em;
     box-sizing: border-box;
     margin: auto;
     -webkit-font-smoothing: antialiased;
@@ -323,12 +325,11 @@ nav li:hover {
 #core {
     position: relative;
     z-index: 3;
-    width: 80%;
-    min-width: 320px;
-    /*border: 1px solid #dddddd;*/
+    max-width: 80%;
+    min-width: 300px;
+    box-sizing: border-box;
     padding: 0;
     margin: 0 auto 0 auto;
-    /*background-color: #ffffff;*/
     min-height: 768px;
 }
 
@@ -345,15 +346,31 @@ nav li:hover {
 }
 
 #sign {
-    padding: 20px 50px;
+    padding: 5px 50px;
 }
 
 #sign>div {
     vertical-align: middle;
     display:inline-block;
-    margin: 10px;
+    margin: 5px 10px;
     color: #cccccc;
     font-size: 0.9em;
+}
+
+#appTitle {
+    text-transform: uppercase;
+    color: #cccccc;
+    margin-top: 20px;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+#appVersion {
+    border-top: 1px solid rgba(150,150,150,.5);
+    color: rgba(150,150,150,.5);
+    margin-top: 0;
+    font-size: 0.9em;
+    font-weight: 200;
 }
 
 #colBar {
@@ -386,8 +403,7 @@ nav li:hover {
 
 #content {
     position: relative;
-    padding: 50px 20px;
-    width: 95%;
+    padding: 50px 0;
     margin: 0 auto;
     vertical-align: middle;
 }
@@ -421,6 +437,7 @@ section {
     padding: 0 10px 20px 10px;
     background-color: rgba(200,200,200,.1);
     border: 1px solid #ddd;
+    min-width: 300px;
 }
 
 section>div {
@@ -462,12 +479,10 @@ h1 {
 
 h2 {
     display: block;
-    max-width: 50%;
     color: #444444;
     margin: 5px 0 20px 5px;
     padding: 0;
     vertical-align: top;
-    border-bottom: 1px solid #DDD;
     font-weight: 500;
     font-size: 1.2em;
     text-transform: uppercase;
@@ -486,7 +501,7 @@ h3 {
     height: 20px;
     line-height: 20px;
     text-align: left;
-    font-weight: bold;
+    font-weight: 500;
 }
 
 .submission {
@@ -759,14 +774,13 @@ h3 {
     position: relative;
     font-size: 0.85em;
     text-align: justify;
-    margin: auto;
+    margin: 5px auto;
+    padding: 0 5px 0 5px;
+    height: auto;
 }
 
 .list-container > div {
     display: inline-block;
-    min-height: 20px;
-    height: auto;
-    line-height: 20px;
 }
 
 .list-container:after {
@@ -778,39 +792,40 @@ h3 {
 .pub_date{
     text-align: center;
     width: auto;
+    font-weight: bold;
 }
 
 .pub_title {
     text-align: left;
     max-width: 50%;
+    min-width: 30%;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .pub_speaker {
-
+    text-align: center;
+    width: 25%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.list-heading {
+.list-heading>div {
     font-size: 0.9em;
+    width: 100%;
+    margin: auto;
     font-weight: bold;
-    text-align: left;
-}
-
-.list-section {
-    text-align: left;
-}
-
-/* Archives */
-.current {
-    background: rgba(127,127,127,.3);
+    text-align: center;
+    text-transform: uppercase;
 }
 
 .pub_container {
     background: rgba(240,240,240,.5);
     margin: 0 auto 5px auto;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 .pub_container>a {
@@ -824,7 +839,6 @@ h3 {
 
 .pub_container>a:hover {
     color: #222222;
-
 }
 
 #pub_labels {
@@ -832,6 +846,8 @@ h3 {
     margin: auto;
     font-size: 1.1em;
     border-bottom: 1px solid #222222;
+    font-weight: 500;
+    text-align: center;
 }
 
 .show_btn {

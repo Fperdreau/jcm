@@ -32,14 +32,12 @@ $publist = $Presentations->getpublicationlist();
 
 $result = "
 <div id='content'>
-    <div class='section_page'>
-        <div class='feedback'></div>
-            <select name='year' class='archive_select'>
-                $options
-            </select>
-        <div id='archives_list'>
-            $publist
-        </div>
+    <div class='feedback'></div>
+        <select name='year' class='archive_select'>
+            $options
+        </select>
+    <div id='archives_list'>
+        $publist
     </div>
 </div>";
 

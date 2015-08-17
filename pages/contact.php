@@ -37,7 +37,7 @@ $jc_day = ucfirst($AppConfig->jc_day);
 
 $result = "
     <div id='content'>
-        <div style='vertical-align: top; display: inline-block; width: 45%;'>
+        <div class='half_section'>
             <section style='width: 90%;'>
                 <h2>Where</h2>
                 $AppConfig->lab_name</br>
@@ -60,7 +60,7 @@ $result = "
             </section>
         </div>
 
-        <div style='vertical-align: top; display: inline-block; width: 50%; text-align: right; margin-left: 30px;'>
+        <div class='half_section section_right'>
             <section>
                 <h2>Contact us</h2>
                 <div class='feedback'></div>
