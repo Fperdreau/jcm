@@ -48,8 +48,8 @@ $result = "
 
     <div class='section_page'>
         <div class='half_section section_left'>
-            <h2>Personal information</h2>
             <section>
+                <h2>Personal information</h2>
                 <form method='post' action='' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='profile_persoinfo_form' id='submit'/>
@@ -92,8 +92,8 @@ $result = "
         </div>
 
         <div class='half_section section_right'>
-            <h2>Contact information</h2>
             <section>
+                <h2>Contact information</h2>
                 <form method='post' action='' class='form' id='profile_emailinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='profile_emailinfo_form' id='submit'/>
@@ -126,8 +126,10 @@ $result = "
 
     <div class='section_page'>
         <div class='half_section section_left'>
-            <h2>My submissions</h2>
-            <section>$publication_list</section>
+            <section>
+                <h2>My submissions</h2>
+                $publication_list
+            </section>
         </div>
         <div class='half_section section_right'>
             <div class='plugins'></div>

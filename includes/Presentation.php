@@ -134,15 +134,15 @@ class Presentations extends AppTable {
             }
 
             $content.= "
-            <h2 class='section_header'>$year</h2>
             <section>
+                <h2 class='section_header'>$year</h2>
                 <div class='list-container' id='pub_labels'>
                     <div style='text-align: center; font-weight: bold; width: 5%;'>Date</div>
                     <div style='text-align: center; font-weight: bold; width: 60%;'>Title</div>
                     <div style='text-align: center; font-weight: bold; width: 25%;'>Speakers</div>
                 </div>
                 $yearcontent
-            </div>";
+            </section>";
         }
         return $content;
     }
@@ -427,7 +427,7 @@ class Presentation extends Presentations {
             $datewidth = "10%";
             $titlewidth = "60%";
         } else {
-            $datewidth = "20%";
+            $datewidth = "auto";
             $titlewidth = "70%";
             $speakerDiv = "";
         }
@@ -435,8 +435,8 @@ class Presentation extends Presentations {
         <div class='pub_container' id='$this->id_pres'>
         <a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>
             <div class='list-container'>
-                <div style='text-align: center; width: $datewidth;'>$this->date</div>
-                <div style='text-align: left; width: $titlewidth; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title</div>
+                <div class='pub_date'>$this->date</div>
+                <div class='pub_title'>$this->title</div>
                 $speakerDiv
             </div>
         </a>

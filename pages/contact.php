@@ -38,31 +38,31 @@ $jc_day = ucfirst($AppConfig->jc_day);
 $result = "
     <div id='content'>
         <div style='vertical-align: top; display: inline-block; width: 45%;'>
-            <h2>Where</h2>
             <section style='width: 90%;'>
+                <h2>Where</h2>
                 $AppConfig->lab_name</br>
                 $AppConfig->lab_street</br>
                 $AppConfig->lab_postcode, $AppConfig->lab_city</br>
                 $AppConfig->lab_country
             </section>
 
-            <h2>When</h2>
             <section style='width: 90%;'>
+                <h2>When</h2>
                 <b>Day:</b> $jc_day<br>
                 <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
                 <b>Room:</b> $AppConfig->room
             </section>
 
-            <h2>Map</h2>
             <section style='width: 90%;'>
+                <h2>Map</h2>
                 <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
                 </iframe>
             </section>
         </div>
 
         <div style='vertical-align: top; display: inline-block; width: 50%; text-align: right; margin-left: 30px;'>
-            <h2>Contact us</h2>
             <section>
+                <h2>Contact us</h2>
                 <div class='feedback'></div>
                 <form method='post' action='' class='form' id='contact_form'>
                     <div class='submit_btns'>

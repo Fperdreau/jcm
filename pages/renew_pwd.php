@@ -39,8 +39,8 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     }
     $result = "
             <div id='content'>
-                <h2>Change password</h2>
                 <section>
+                    <h2>Change password</h2>
                     $content
                 </section>
             </div>";

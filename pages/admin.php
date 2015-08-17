@@ -63,8 +63,8 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
     <h1>Manage Sessions</h1>
     <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
 
-    <h2>Sessions settings</h2>
     <section>
+        <h2>Sessions settings</h2>
         <form method='post' action='' class='form' id='config_form_session'>
             <div class='feedback' id='feedback_jcsession'></div>
             <input type='hidden' name='config_modify' value='true'>
@@ -105,8 +105,8 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         </form>
     </section>
 
-    <h2>Session/Presentation</h2>
     <section>
+        <h2>Session/Presentation</h2>
         <h3>Sessions</h3>
         <div class='formcontrol'>
             <label>Default session type </label>
@@ -125,8 +125,8 @@ if (!empty($_GET['op']) && $_GET['op'] == 'sessions') {
         <div class='type_list' id='pres'>$prestype</div>
     </section>
 
-    <h2>Manage Sessions</h2>
     <section>
+        <h2>Manage Sessions</h2>
         <div class='formcontrol'>
         <label>Number of sessions to show</label>
             <select class='show_sessions'>
@@ -149,8 +149,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
     $content = "
     <h1>Manage Users</h1>
     <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
-    <h2>Manage users</h2>
     <section>
+        <h2>Manage users</h2>
         <div class='formcontrol' style='width: 100px;'>
             <label for='order'>Sort by</label>
             <select name='order' class='user_select'>
@@ -178,8 +178,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
         <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
         Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
         <div class='feedback'></div>
-        <h2>Plugins list</h2>
         <section>
+            <h2>Plugins list</h2>
             $plugin_list
         </section>
     ";
@@ -194,12 +194,11 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
         Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
         either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
         <div class='feedback'></div>
-        <h2>Tasks list</h2>
         <section>
+            <h2>Tasks list</h2>
             $cronOpt
         </section>
     ";
-
 
 // Send mail
 } elseif (!empty($_GET['op']) && $_GET['op'] == 'mail') {
@@ -207,8 +206,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 		<h1>Mailing list</h1>
         <p class='page_description'>Here you can send an email to users who subscribed to the newsletter.</p>
         <div class='feedback'></div>
-        <h2>Send an email</h2>
         <section>
+            <h2>Send an email</h2>
             <form method='post' action=''>
                 <div class='submit_btns'>
                     <input type='submit' name='send' value='Send' id='submit' class='mailing_send'>
@@ -231,8 +230,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
 
     $content = "
 		<h1>Configuration</h1>
-        <h2>Site parameters</h2>
         <section>
+            <h2>Site parameters</h2>
             <form method='post' action='' class='form' id='config_form_site'>
                 <div class='submit_btns'>
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_site'>
@@ -262,8 +261,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
             </form>
         </section>
 
-        <h2>Lab information</h2>
         <section>
+            <h2>Lab information</h2>
             <form method='post' action='' class='form' id='config_form_lab'>
                 <div class='submit_btns'>
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_lab'>
@@ -297,8 +296,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
             </form>
         </section>
 
-        <h2>Email host information</h2>
         <section>
+            <h2>Email host information</h2>
             <form method='post' action='' class='form' id='config_form_mail'>
                 <div class='submit_btns'>
                     <input type='submit' name='modify' value='Modify' id='submit' class='config_form_mail'>
@@ -383,8 +382,8 @@ elseif (!empty($_GET['op']) && $_GET['op'] == 'users') {
                 <input type='button' id='submit' class='post_new' value='Add a new post'/>
             </div>
         </div>
-        <h2>New post</h2>
         <section>
+            <h2>New post</h2>
             <div class='feedback'></div>
             <div class='postcontent'>
             </div>

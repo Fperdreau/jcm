@@ -38,9 +38,9 @@ if ($op == 'new') {
         Fill up the form below, select a date (only available dates are selectable) and it's all done!
         Your submission will be automatically added to our database.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-        <h2>Submit a presentation</h2>
         <section id='submission_form'>
-        $submit_form
+            <h2>Submit a presentation</h2>
+            $submit_form
         </section>
     </div>
     ";
