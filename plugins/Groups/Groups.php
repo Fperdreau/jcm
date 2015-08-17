@@ -297,12 +297,12 @@ class Groups extends AppPlugins {
         }
         $width = $this->options['width']."px";
         return "
-            <div style='min-width: $width;'>
+            <section style='min-width: $width;'>
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>YOUR GROUP</div>
                 <div style='text-align: justify;'>
                     $content
                 </div>
-            </div>";
+            </section>";
     }
 }
 

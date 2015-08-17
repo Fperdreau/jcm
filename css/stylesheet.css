@@ -177,7 +177,6 @@ body {
     min-width: 320px;
     box-sizing: border-box;
     margin: auto;
-	background-color: #efefef;
     -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
     overflow-x: scroll;
@@ -324,28 +323,44 @@ nav li:hover {
 #core {
     position: relative;
     z-index: 3;
-    width: 70%;
+    width: 80%;
     min-width: 320px;
-    border: 1px solid #dddddd;
+    /*border: 1px solid #dddddd;*/
     padding: 0;
     margin: 0 auto 0 auto;
-    background-color: #ffffff;
+    /*background-color: #ffffff;*/
     min-height: 768px;
 }
 
 #footer {
     position: relative;
     z-index: 0;
-    width: 500px;
-    border-bottom-left-radius: 40px;
-    border-bottom-right-radius: 40px;
-    padding-top: 5px;
-    padding-bottom: 10px;
-	height: 15px;
+    width: 100%;
+	min-height: 100px;
 	text-align: center;
 	vertical-align: middle;
-    margin: auto;
+    margin: 20px auto;
 	background-color: rgba(50,50,50,1);
+    padding: 0;
+}
+
+#sign {
+    padding: 20px 50px;
+}
+
+#sign>div {
+    vertical-align: middle;
+    display:inline-block;
+    margin: 10px;
+    color: #cccccc;
+    font-size: 0.9em;
+}
+
+#colBar {
+    display: block;
+    width: 100%;
+    background: rgba(150,150,150,.5);
+    height: 30px;
 }
 
 /* *********************************************************************/
@@ -453,7 +468,7 @@ h2 {
     padding: 0;
     vertical-align: top;
     border-bottom: 1px solid #DDD;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 1.2em;
     text-transform: uppercase;
     text-align: left;
@@ -462,7 +477,7 @@ h2 {
 
 h3 {
     display: block;
-    font-size: 16px;
+    font-size: 1.1em;
     margin: 20px 0 5px auto;
     padding: 0;
     width: 100%;
@@ -472,17 +487,6 @@ h3 {
     line-height: 20px;
     text-align: left;
     font-weight: bold;
-}
-
-.pub_section_content {
-    line-height: 130%;
-    font-size: 16px;
-    margin: auto 50px auto auto;
-    clear: left;
-    width: 100%;
-    text-align: justify;
-    padding: 10px;
-    background-color: rgba(127,127,127,.1);
 }
 
 .submission {
@@ -649,7 +653,7 @@ h3 {
     padding: 0px;
     cursor: pointer;
     font-weight: 500;
-    font-size: 18px;
+    font-size: 0.9em;
     text-align: center;
     -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
     -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
@@ -669,7 +673,7 @@ h3 {
     display: none;
     width: 100%;
     color: #990000;
-    font-size: 13px; /* Set message font size  */
+    font-size: 0.8em; /* Set message font size  */
     padding: 5px; /* Some padding to make some more space for our text  */
     background-color: rgba(255,255,255,.9); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
@@ -678,7 +682,7 @@ h3 {
 .upl_filetypes {
     display: block;
     margin: 0 auto;
-    font-size: 12px;
+    font-size: 0.8em;
     font-weight: normal;
 }
 
@@ -692,7 +696,7 @@ h3 {
 .upl_info {
     display: inline-block;
     width: 190px;
-    font-size: 12px;
+    font-size: 0.9em;
     height: 30px;
     line-height: 30px;
     margin: 5px;
@@ -789,7 +793,7 @@ h3 {
 }
 
 .list-heading {
-    font-size: 11pt;
+    font-size: 0.9em;
     font-weight: bold;
     text-align: left;
 }
@@ -826,7 +830,7 @@ h3 {
 #pub_labels {
     width: 100%;
     margin: auto;
-    font-size: 14px;
+    font-size: 1.1em;
     border-bottom: 1px solid #222222;
 }
 
@@ -1083,12 +1087,6 @@ h3 {
 /* *********************************************************************/
 /* Text/Messages
 /* *********************************************************************/
-#sign {
-    text-align: right;
-    color: #cccccc;
-    font-size: 14px;
-}
-
 /* Alerts */
 .warningmsg {
     display: none;
@@ -1179,9 +1177,9 @@ h3 {
 }
 
 /* Popup Styles*/
-.popupHeader {background: #FFF; font-size:16px; font-weight: 300; text-transform: uppercase; color: #222;}
+.popupHeader {background: #FFF; font-size:1.2em; font-weight: 300; text-transform: uppercase; color: #222;}
 .popupHeader {position: relative; padding:10px 20px; border-bottom:1px solid #DDD; font-weight:bold;}
-.popupHeader .modal_close {position: absolute; right: 0; top:5px; padding:10px 15px; background: url('../images/delete.png') no-repeat; background-position: center center; background-size: 50% auto; cursor: pointer; color:#aaa; font-size:16px;}
+.popupHeader .modal_close {position: absolute; right: 0; top:5px; padding:10px 15px; background: url('../images/delete.png') no-repeat; background-position: center center; background-size: 50% auto; cursor: pointer; color:#aaa; font-size:1.2em;}
 .modal_close {
     vertical-align: top;
     display: inline-block;
@@ -1194,7 +1192,7 @@ h3 {
     background-size: 50% auto;
     cursor: pointer;
     color:#aaa;
-    font-size:16px;
+    font-size:1.2em;
 }
 
 .header_title {
@@ -1252,7 +1250,7 @@ input.dateinput {
 
 #pub_title {
     width: 100%;
-    font-size: 18px;
+    font-size: 1.2em;
     margin-bottom: 10px;
     display: block;
     font-weight: bold;
