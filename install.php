@@ -897,7 +897,7 @@ if (!empty($_POST['getpagecontent'])) {
 <div id="bodytable">
     <!-- Header section -->
     <div class="box" style='text-align: center; font-size: 1.7em; color: #336699; font-weight: 300;'>
-        FPvision - Installation
+        Journal Club Manager - Installation
     </div>
 
     <!-- Core section -->
