@@ -45,13 +45,20 @@ require_once('includes/boot.php');
 
         <!-- Header section -->
         <header class="header">
+
             <div id="sitetitle">
                 <?php echo $AppConfig->sitetitle;?>
-            </div>
+            </div><!--
+            --><div id="float_menu">MENU</div>
 
             <!-- Menu section -->
-            <div id="menu">
-                <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+            <div class="menu">
+                <div class="menutype topnav">
+                    <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+                </div>
+                <div class="menutype dropdown">
+                    <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+                </div>
             </div>
 
             <!-- Login box -->

@@ -171,12 +171,12 @@ html {
 }
 
 body {
+    height: 100%;
     width: 100%;
     min-width: 320px;
     font-family: 'Lato', Calibri, Arial, sans-serif;
     font-weight: 300;
     font-size: 1em;
-    line-height: 1.2em;
     box-sizing: border-box;
     margin: auto;
     -webkit-font-smoothing: antialiased;
@@ -202,31 +202,34 @@ header {
     left: 0;
     width: 100%;
     min-width: 320px;
-    height: auto;
     z-index: 10;
     background-color: #555555;
     padding: 0;
     margin: 0;
-    box-sizing: content-box;
-    text-align: justify;
+    box-sizing: border-box;
+    text-align: left;
+    height: 40px;
+
 }
 
-header >div{
+header>div{
     display: inline-block;
+    height: 40px;
+    line-height: 40px;
     vertical-align: bottom;
+    margin: 0;
 }
 
 #sitetitle {
     background: rgba(150,150,150,.5);
     color: rgba(255,255,255,1);
     text-align: left;
-    font-size: 2em;
+    font-size: 1.5em;
     font-weight: 300;
-    margin: 0 0 0 0px;
-    padding: 5px 10px 5px 10px;
+    margin: 0;
+    padding: 0 10px 0 10px;
     position: relative;
     border-left: 5px solid rgba(207,81,81,1);
-    left: 0;
 }
 
 #menu {
@@ -234,39 +237,46 @@ header >div{
 }
 
 #login_box {
-    margin: 10px 5px 0 0;
     height: auto;
     width: auto;
     float: right;
+    font-size: 0.9em;
     vertical-align: middle;
-    padding: 5px 10px;
     background-color: #222222;
-    border: 1px solid #FFF;
     color: #FFF;
     cursor: pointer;
+    padding: 0 5px 0 5px;
 }
 
 /* *********************************************************************/
 /* Menu
 /* *********************************************************************/
-nav ul {
+.menu {
+    width: auto;
+}
+
+.topnav {
+    width: auto;
+    display: inline-block;
+}
+
+.topnav nav ul {
     list-style-type: none;
     margin: auto;
     padding: 0;
 }
 
-nav li {
-    list-style: none;
+.topnav nav li {
     display: inline-block;
+    list-style: none;
     cursor: pointer;
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1.2em;
     color: rgba(207,81,81,1);
     margin-left: 20px;
-    padding-bottom: 5px;
 }
 
-nav li:hover {
+.topnav nav li:hover {
     color: #ffffff;
 }
 
@@ -274,8 +284,59 @@ nav li:hover {
     color: #ffffff;
 }
 
+/* Dropdown menu */
+#float_menu {
+    background: rgba(207,81,81,1);
+    padding: 0 10px 0 10px;
+    font-weight: 300;
+    color: rgba(255,255,255,1);
+    margin: 0;
+    cursor: pointer;
+}
+
+#float_menu:hover {
+    background: #FFF;
+    color: rgba(207,81,81,1);
+}
+
+.dropdown {
+    position: absolute;
+    display: none;
+}
+
+.dropdown nav {
+    display: block;
+    max-width: 250px;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(34,34,34,.9);
+    box-shadow: 0 2px 2px #555;
+}
+
+.dropdown nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.dropdown nav li {
+    text-align: center;
+    display: block;
+    margin: 0;
+    border-bottom: 1px solid rgba(255,255,255,.5);
+    color: #eee;
+    padding: 2px 10px 2px 10px;
+    cursor: pointer;
+}
+
+.dropdown nav li:hover {
+    border-bottom: 1px solid rgba(34,34,34,.5);
+    background: rgba(255,255,255,.5);
+    color: #222222;
+}
+
 /* additional menu */
-.addmenu-pres, .addmenu-admin {
+nav.submenu {
     display: none;
     position: absolute;
     background-color: rgba(34,34,34,.9);
@@ -285,38 +346,28 @@ nav li:hover {
     padding: 0;
 }
 
-.addmenu-pres li, .addmenu-admin li {
-    vertical-align: bottom;
-    list-style: none;
+nav.submenu ul {
     display: block;
-    padding: 5px 10px;
-    border-bottom: 1px solid rgba(255,255,255,.5);
-}
-
-.addmenu-pres li:hover, .addmenu-admin li:hover {
-    vertical-align: bottom;
-    list-style: none;
-    display: block;
-    padding: 5px 10px;
-    border-bottom: 1px solid rgba(34,34,34,.5);
-    background: rgba(255,255,255,.5);
-    color: #222222;
-}
-
-.addmenu-section {
-    text-align: center;
-    font-size: 18px;
+    list-style-type: none;
     margin: 0;
     padding: 0;
 }
 
-#addmenu {
-    text-decoration: none;
-    color: #aaaaaa;
+nav.submenu li {
+    vertical-align: bottom;
+    list-style: none;
+    display: block;
+    padding: 2px 5px;
+    margin: 0;
+    font-size: 1em;
+    border-bottom: 1px solid rgba(255,255,255,.5);
+    color: #eee;
 }
 
-#addmenu:hover {
-    color: #eeeeee;
+nav.submenu li:hover {
+    border-bottom: 1px solid rgba(34,34,34,.5);
+    background: rgba(255,255,255,.5);
+    color: #222222;
 }
 
 /* *********************************************************************/

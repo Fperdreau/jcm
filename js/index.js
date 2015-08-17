@@ -338,6 +338,34 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Header menu/Sub-menu
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        // Dropdown menu
+        .on('click','#float_menu',function() {
+            var position = $(this).position();
+            var height = $(this).outerHeight();
+            $('.dropdown')
+                .css({
+                    'top':height+"px",
+                    'left':position.left+"px"
+                })
+                .toggle(200);
+        })
+
+        .on('click','.submenu_trigger',function(e) {
+            e.preventDefault();
+            var position = $(this).position();
+            var width = $(this).outerWidth();
+            var height = $(this).outerHeight();
+            var id = $(this).attr('id');
+            var submenu = $(".submenu#"+id);
+            console.log(submenu);
+            submenu
+                .css({
+                    'left':position.left+width+"px",
+                    'top':position.top+height+"px"
+                })
+                .toggle(200);
+        })
+
         // Main menu sections
         .on('click',".menu-section",function(){
             $(".menu-section").removeClass("activepage");
@@ -349,32 +377,13 @@ $( document ).ready(function() {
             }
         })
 
-        // Sub-menu sections
-        .on('click',".addmenu-section",function(){
-            $(".addmenu-section").removeClass("activepage");
-            $(this).addClass("activepage");
+        .on('click',function(e) {
 
-            if ($(this).is('[data-url]')) {
-                var pagetoload = $(this).attr("data-url");
-                if ($(this).is('[data-param]')) {
-                    var dataparam = $(this).attr("data-param");
-                    loadpageonclick(pagetoload,dataparam);
-                } else {
-                    loadpageonclick(pagetoload,false);
-                }
-            }
-        })
-
-        .on('click',function(event) {
-            if(!$(event.target).closest('#menu_admin').length) {
-                if($('.addmenu-admin').is(":visible")) {
-                    $('.addmenu-admin').slideToggle();
-                }
-            }
-            if(!$(event.target).closest('#menu_pres').length) {
-                if($('.addmenu-pres').is(":visible")) {
-                    $('.addmenu-pres').slideToggle();
-                }
+            var container = $(".submenu");
+            if (!container.is(e.target) // if the target of the click isn't the container...
+                && container.has(e.target).length === 0) // ... nor a descendant of the container
+            {
+                container.hide();
             }
         })
 

@@ -19,16 +19,16 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 if (isset($_SESSION['status']) and ($_SESSION['status'] == "admin" or $_SESSION['status'] == "organizer")) {
-    $menuhidden = "<li class='menu-section' name='admin' id='menu_admin'>ADMIN</li>";
+    $menuhidden = "<li class='menu-section submenu_trigger' id='addmenu-admin'>ADMIN</li>";
 } else {
     $menuhidden = "";
 }
 
 if (!empty($_SESSION['status']) && $_SESSION['status'] == "admin") {
     $configmenu = "
-    <li class='addmenu-section' data-url='admin' data-param='op=config'><span id='addmenu'>Configuration</span></li>
-    <li class='addmenu-section' data-url='admin' data-param='op=plugins'><span id='addmenu'>Plugins</span></li>
-    <li class='addmenu-section' data-url='admin' data-param='op=cronjobs'><span id='addmenu'>CronJobs</span></li>";
+    <li class='menu-section' data-url='admin' data-param='op=config'><span id='addmenu'>Configuration</span></li>
+    <li class='menu-section' data-url='admin' data-param='op=plugins'><span id='addmenu'>Plugins</span></li>
+    <li class='menu-section' data-url='admin' data-param='op=cronjobs'><span id='addmenu'>CronJobs</span></li>";
 } else {
     $configmenu = "";
 }
@@ -37,27 +37,27 @@ echo "
 <nav>
     <ul>
         <li class='menu-section' data-url='home'>HOME</li>
-        <li class='menu-section' id='menu_pres'>SUBMIT</li>
+        <li class='menu-section submenu_trigger' id='addmenu-pres'>SUBMIT</li>
         <li class='menu-section' data-url='archives'>ARCHIVES</li>
         <li class='menu-section' data-url='contact'>CONTACT</li>
         $menuhidden
     </ul>
 </nav>
 
-<nav class='addmenu-pres'>
+<nav class='submenu' id='addmenu-pres'>
     <ul>
-        <li class='addmenu-section' data-url='submission' data-param='op=new'><span id='addmenu'>New presentation</span></li>
-        <li class='addmenu-section' data-url='submission' data-param='op=wishpick'><span id='addmenu'>Pick a wish</span></li>
-        <li class='addmenu-section' data-url='submission' data-param='op=suggest'><span id='addmenu'>Make a wish</span></li>
+        <li class='menu-section' data-url='submission' data-param='op=new'><span id='addmenu'>New presentation</span></li>
+        <li class='menu-section' data-url='submission' data-param='op=wishpick'><span id='addmenu'>Pick a wish</span></li>
+        <li class='menu-section' data-url='submission' data-param='op=suggest'><span id='addmenu'>Make a wish</span></li>
     </ul>
 </nav>
 
-<nav class='addmenu-admin'>
+<nav class='submenu' id='addmenu-admin'>
     <ul>
-        <li class='addmenu-section' data-url='admin' data-param='op=sessions'><span id='addmenu'>Manage Sessions</span></li>
-        <li class='addmenu-section' data-url='admin' data-param='op=users'><span id='addmenu'>Manage users</span></li>
-        <li class='addmenu-section' data-url='admin' data-param='op=mail'><span id='addmenu'>Send mail</span></li>
-        <li class='addmenu-section' data-url='admin' data-param='op=post'><span id='addmenu'>Posts</span></li>
+        <li class='menu-section' data-url='admin' data-param='op=sessions'><span id='addmenu'>Manage Sessions</span></li>
+        <li class='menu-section' data-url='admin' data-param='op=users'><span id='addmenu'>Manage users</span></li>
+        <li class='menu-section' data-url='admin' data-param='op=mail'><span id='addmenu'>Send mail</span></li>
+        <li class='menu-section' data-url='admin' data-param='op=post'><span id='addmenu'>Posts</span></li>
         $configmenu
     </ul>
 </nav>

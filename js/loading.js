@@ -148,14 +148,15 @@ function removeLoading(divId) {
 
 // Responsive design part
 function adapt() {
-    $('.float_menu').hide();
-    var headerwidth = $("header #sitetitle").width() + $("header .top_nav").width();
-    if ($(window).width() < headerwidth) {
-        $(".menu").show();
-        $(".top_nav").hide();
+    $('#float_menu').hide();
+    var headerwidth = $("#sitetitle").outerWidth() + $(".topnav").outerWidth() + $("#login_box").outerWidth() + 10;
+
+    if ($(window).width() <= headerwidth) {
+        $("#float_menu").show();
+        $(".topnav").hide();
     } else {
-        $(".menu").hide();
-        $('.top_nav')
+        $("#float_menu").hide();
+        $('.topnav')
             .css('display','inline-block')
             .show();
     }
