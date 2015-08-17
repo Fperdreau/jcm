@@ -43,9 +43,9 @@ class Groups extends AppPlugins {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    public function __construct(DbSet $db) {
+    public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->installed = $this->isInstalled();
         $this->tablename = $this->db->dbprefix.'_groups';

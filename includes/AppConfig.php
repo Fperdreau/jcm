@@ -96,10 +96,10 @@ class AppConfig extends AppTable {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param bool $get
      */
-    public function __construct(DbSet $db,$get=true) {
+    public function __construct(AppDb $db,$get=true) {
         parent::__construct($db, 'AppConfig',$this->table_data);
         if ($get) {
             self::get();

@@ -51,9 +51,6 @@ foreach ($includeList as $includeFile) {
     }
 }
 
-/** Load plugins */
-
-
 /**
  * Start session
  *
@@ -64,7 +61,7 @@ SessionInstance::initsession();
  * Declare classes
  *
  */
-$db = new DbSet();
+$db = new AppDb();
 $AppCore = new AppCore($db);
 $AppConfig = new AppConfig($db);
 $Presentations = new Presentations($db);

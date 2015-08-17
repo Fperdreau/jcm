@@ -40,10 +40,10 @@ class Posts extends AppTable {
 
     /**
      * Constructor
-     * @param $db DbSet
+     * @param $db AppDb
      * @param null $postid
      */
-    public function __construct(DbSet $db,$postid=null) {
+    public function __construct(AppDb $db,$postid=null) {
         parent::__construct($db,'Posts', $this->table_data);
         if (null !== $postid) {
             self::get($postid);

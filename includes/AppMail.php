@@ -41,10 +41,10 @@ class AppMail {
 
     /**
      * Class constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param AppConfig $config
      */
-    function __construct(DbSet $db, AppConfig $config) {
+    function __construct(AppDb $db, AppConfig $config) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname['User'];
         $this->config = $config;

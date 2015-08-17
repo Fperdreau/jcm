@@ -37,9 +37,9 @@ class AssignSpeakers extends AppCron {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    public function __construct(DbSet $db) {
+    public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
         $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);

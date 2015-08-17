@@ -55,10 +55,10 @@ class AppCron extends AppTable {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(DbSet $db, $name=False) {
+    public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
         $this->daysNbs = range(0,31,1);

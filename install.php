@@ -62,7 +62,7 @@ SessionInstance::initsession();
  * Declare classes
  *
  */
-$db = new DbSet();
+$db = new AppDb();
 $AppConfig = new AppConfig($db,false);
 
 /**

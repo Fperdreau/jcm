@@ -35,7 +35,7 @@ class FullBackup extends AppCron {
     public $hour;
     public $options=array("nb_version"=>10);
 
-    public function __construct(DbSet $db) {
+    public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
         $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);

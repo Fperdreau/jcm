@@ -37,10 +37,10 @@ class AppPlugins extends AppTable {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(DbSet $db, $name=False) {
+    public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Plugins', $this->table_data);
         if ($name !== False) {
             $this->name = $name;

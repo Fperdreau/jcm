@@ -25,10 +25,10 @@ class AppTable {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param $tablename
      */
-    function __construct(DbSet $db, $tablename, $table_data, $plugin=False) {
+    function __construct(AppDb $db, $tablename, $table_data, $plugin=False) {
         $this->db = $db;
         if ($plugin !== False) {
             $this->tablename = $db->dbprefix.'_'.$plugin;

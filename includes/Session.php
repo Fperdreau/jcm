@@ -33,9 +33,9 @@ class Sessions extends AppTable {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    function __construct(DbSet $db) {
+    function __construct(AppDb $db) {
         parent::__construct($db, "Session", $this->table_data);
 
         /** @var AppConfig $AppConfig */
@@ -291,10 +291,10 @@ class Session extends Sessions {
     public $speakers = array();
 
     /**
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $date
      */
-    public function __construct(DbSet $db,$date=null) {
+    public function __construct(AppDb $db,$date=null) {
         parent::__construct($db);
         $AppConfig = new AppConfig($this->db);
         $this->time = "$AppConfig->jc_time_from,$AppConfig->jc_time_to";

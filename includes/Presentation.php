@@ -40,9 +40,9 @@ class Presentations extends AppTable {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    function __construct(DbSet $db){
+    function __construct(AppDb $db){
         parent::__construct($db, "Presentation", $this->table_data);
     }
 
@@ -242,10 +242,10 @@ class Presentation extends Presentations {
     public $id_pres = "";
 
     /**
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $id_pres
      */
-    function __construct(DbSet $db, $id_pres=null){
+    function __construct(AppDb $db, $id_pres=null){
         parent::__construct($db);
 
         /** @var AppConfig $config */

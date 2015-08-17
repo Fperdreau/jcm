@@ -91,7 +91,7 @@ function check_login($status=null) {
  * @return string
  */
 function displayform($user,$Presentation=false,$submit="submit", $type=false, $date=false) {
-    $db = new DbSet();
+    $db = new AppDb();
     $config = new AppConfig($db);
     if ($Presentation == false) {
         $Presentation = new Presentation($db);
@@ -255,7 +255,7 @@ function browse($dir, $dirsNotToSaveArray = array()) {
  */
 function exportdbtoxls($tablename) {
     /***** EDIT BELOW LINES *****/
-    $db = new DbSet();
+    $db = new AppDb();
     $DB_TBLName = $db->dbprefix.$tablename; // MySQL AppTable Name
     $xls_filename = 'backup/export_'.$tablename.date('Y-m-d_H-i-s').'.xls'; // Define Excel (.xls) file name
 	$out = "";
@@ -325,7 +325,7 @@ function exportdbtoxls($tablename) {
  */
 function backup_db(){
     // Declare classes
-    $db = new DbSet();
+    $db = new AppDb();
 
     // Create Backup Folder
     $mysqlrelativedir = 'backup/mysql';
@@ -382,7 +382,7 @@ function backup_db(){
  * @param $mysqlSaveDir
  */
 function cleanbackups($mysqlSaveDir) {
-    $db = new DbSet();
+    $db = new AppDb();
     $config = new AppConfig($db);
     $oldbackup = browse($mysqlSaveDir);
     if (!empty($oldbackup)) {
@@ -424,7 +424,7 @@ function cleanbackups($mysqlSaveDir) {
  * @return bool
  */
 function mail_backup($backupfile) {
-    $db = new DbSet();
+    $db = new AppDb();
     $config = new AppConfig($db);
     $mail = new AppMail($db,$config);
     $admin = new User($db);

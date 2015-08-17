@@ -221,10 +221,10 @@ class User extends Users{
     /**
      * Constructor
      *
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $username
      */
-    function __construct(DbSet $db,$username=null) {
+    function __construct(AppDb $db,$username=null) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
@@ -416,8 +416,8 @@ class User extends Users{
         if ($option == 1){
             return self::check_account_activation($this->hash,$this->email,true);
         } else {
-            /** @var $this->db DbSet */
-            $this->db = new DbSet();
+            /** @var $this->db AppDb */
+            $this->db = new AppDb();
             $this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email));
             return "Account successfully deactivated";
         }

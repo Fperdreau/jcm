@@ -33,9 +33,9 @@ class Uploads extends AppTable{
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    function __construct(DbSet $db) {
+    function __construct(AppDb $db) {
         parent::__construct($db, 'Media', $this->table_data);
         $config = new AppConfig($db);
         $this->directory = PATH_TO_APP.'/uploads/';
@@ -113,10 +113,10 @@ class Media extends Uploads {
     public $type;
 
     /**
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $fileid
     */
-    function __construct(DbSet $db, $fileid=null){
+    function __construct(AppDb $db, $fileid=null){
         parent::__construct($db);
 
         if (null != $fileid) {
