@@ -131,8 +131,8 @@ echo "
         </div>
 
         <div class='feedback'></div>
+        <div class='modal_close'></div>
 
     </section>
-    <div class='modal_close'></div>
 
 </div>";

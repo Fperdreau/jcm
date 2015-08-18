@@ -312,7 +312,6 @@ var logout = function() {
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 var modalpubform = $('.modal_section#submission_form');
 
-
 /**
  * Close modal window
  * @param modal_id
@@ -423,6 +422,7 @@ $( document ).ready(function() {
                 .toggle(200);
         })
 
+        // Display submenu
         .on('click','.submenu_trigger',function(e) {
             e.preventDefault();
             var absPos = $(this).offset();
@@ -459,11 +459,11 @@ $( document ).ready(function() {
             }
         })
 
+        // Hide dropdown menus when not clicked
         .on('click',function(e) {
             var nav = $("nav");
             var dropdown = $('.dropdown');
-            if (!$('#float_menu').is(e.target))
-            {
+            if (!$('#float_menu').is(e.target)&& $('#float_menu').has(e.target).length === 0) {
                 if (!nav.is(e.target) && nav.has(e.target).length === 0) {
                     $('.submenu').hide();
                 }

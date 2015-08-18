@@ -46,10 +46,10 @@ require_once('includes/boot.php');
         <!-- Header section -->
         <header class="header">
 
-            <div id="sitetitle">
+            <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
+             --><div id="sitetitle">
                 <?php echo $AppConfig->sitetitle;?>
-            </div><!--
-            --><div id="float_menu">MENU</div>
+            </div>
 
             <!-- Menu section -->
             <div class="menu">
@@ -66,12 +66,13 @@ require_once('includes/boot.php');
                 <?php
                 if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
                     $showlogin = "
-                    <a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'>Sign in</a>
-                     | <a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'>Sign up</a>
+                    <div><a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'><img src='images/login.png' alt='login'></a></div>
+                    <div><a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'><img src='images/signup.png' alt='signup'></a></div>
                      ";
                 } else {
-                    $showlogin = "<a href='#' class='menu-section' data-url='profile'>My profile</a>
-                    | <a href='#' class='menu-section' id='logout'>Log out</a>";
+                    $showlogin = "
+                    <div><a href='#' class='menu-section' data-url='profile'><img src='images/profile.png' alt='profile'></a></div>
+                    <div><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
                 }
                 echo $showlogin;
                 ?>

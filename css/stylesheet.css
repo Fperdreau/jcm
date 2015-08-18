@@ -178,7 +178,6 @@ body {
     font-weight: 300;
     font-size: 1em;
     box-sizing: border-box;
-    margin: auto;
     -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
     overflow-x: scroll;
@@ -209,7 +208,6 @@ header {
     box-sizing: border-box;
     text-align: left;
     height: 40px;
-
 }
 
 header>div{
@@ -246,6 +244,24 @@ header>div{
     color: #FFF;
     cursor: pointer;
     padding: 0 5px 0 5px;
+}
+
+#login_box>div {
+    display: inline-block;
+    margin: 0;
+    background: rgba(207,81,81,1);
+    height: 25px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+#login_box img {
+    width: 80%;
+    height: auto;
+}
+
+#login_box>div:hover{
+    background: rgba(255,255,255,1);
 }
 
 /* *********************************************************************/
@@ -287,16 +303,20 @@ header>div{
 /* Dropdown menu */
 #float_menu {
     background: rgba(207,81,81,1);
-    padding: 0 10px 0 10px;
+    padding: 0 5px 0 5px;
     font-weight: 300;
-    color: rgba(255,255,255,1);
     margin: 0;
     cursor: pointer;
+    text-align: center;
+}
+
+#float_menu>img {
+    vertical-align: middle;
+    width: 30px;
 }
 
 #float_menu:hover {
     background: #FFF;
-    color: rgba(207,81,81,1);
 }
 
 .dropdown {
@@ -376,11 +396,11 @@ nav.submenu li:hover {
 #core {
     position: relative;
     z-index: 3;
-    max-width: 80%;
+    max-width: 95%;
     min-width: 300px;
     box-sizing: border-box;
     padding: 0;
-    margin: 0 auto 0 auto;
+    margin: auto;
     min-height: 768px;
 }
 
@@ -456,7 +476,6 @@ nav.submenu li:hover {
     position: relative;
     padding: 50px 0;
     margin: 0 auto;
-    vertical-align: middle;
 }
 
 .plugins {
@@ -1219,7 +1238,6 @@ h3 {
     top:auto;
     bottom:auto;
     margin: auto;
-
     max-height: 90%;
     text-align: left;
 }
@@ -1232,8 +1250,8 @@ h3 {
 }
 
 .popupBody {
-    min-width: 500px;
-    max-width: 500px;
+    max-width: 80%;
+    width: auto;
     max-height: 500px;
     padding: 10px;
     overflow: auto;
@@ -1250,7 +1268,7 @@ h3 {
 .modal_close {
     vertical-align: top;
     display: inline-block;
-    position: relative;
+    position: absolute;
     right: 0;
     top:0;
     padding:10px 15px;
