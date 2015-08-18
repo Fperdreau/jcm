@@ -136,7 +136,7 @@ var validsubmitform = function(form,text,callback,timing) {
         .html(text)
         .fadeIn(200);
 
-   setTimeout(function() {
+    setTimeout(function() {
         $('.feedbackForm')
             .fadeOut(200)
             .remove();
@@ -145,7 +145,6 @@ var validsubmitform = function(form,text,callback,timing) {
             callback();
         }
     },timing);
-
 };
 
 /**

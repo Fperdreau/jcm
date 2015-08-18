@@ -13,7 +13,7 @@ class AppPage extends AppTable {
         "name"=>array('CHAR(20)',false),
         "filename"=>array('CHAR(20)',false),
         "parent"=>array('CHAR(20)',false),
-        "status"=>array('CHAR(10)',false),
+        "status"=>array('INT(2)',false),
         "rank"=>array('INT(2)',false),
         "meta_title"=>array('VARCHAR(255)',false),
         "meta_keywords"=>array('TEXT(1000)',false),
@@ -77,7 +77,6 @@ class AppPage extends AppTable {
     public function update($post=array()) {
         $class_vars = get_class_vars('AppPage');
         $content = $this->parsenewdata($class_vars,$post);
-        var_dump($content);
         return $this->db->updatecontent($this->tablename,$content,array("name"=>$this->name));
     }
 
@@ -103,28 +102,33 @@ class AppPage extends AppTable {
      * @return bool
      */
     public function check_login() {
-        if (!isset($_SESSION['logok']) || $_SESSION['logok'] == false) {
-            $result['msg'] = "
+        if ((!isset($_SESSION['logok']) || $_SESSION['logok'] == false)) {
+            if ($this->status > -1) {
+                $result['msg'] = "
 		    <div id='content'>
-        		<p id='warning'>You must <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>
-        		log in</a> in order to access this page</p>
+        		<p id='warning'>You must <a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'>
+        		Sign In</a> or <a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'>
+        		Sign Up</a> in order to access this page!</p>
 		    </div>
 		    ";
-            $result['status'] = false;
-        } else {
-            $levels = array('admin'=>3,'organizer'=>2,'member'=>1);
-            $user = new User($this->db,$_SESSION['username']);
-            if ($levels[$user->status]<$this->status) {
-                $result['msg'] = "
-                    <div id='content'>
-                        <p id='warning'>Sorry, you do not have the permission to access this page</p>
-                        </p>
-                    </div>
-                    ";
                 $result['status'] = false;
             } else {
                 $result['status'] = true;
                 $result['msg'] = null;
+            }
+        } else {
+            $levels = array('admin'=>3,'organizer'=>2,'member'=>1);
+            $user = new User($this->db,$_SESSION['username']);
+            if ($levels[$user->status]>=$this->status || $this->status == -1) {
+                $result['status'] = true;
+                $result['msg'] = null;
+            } else {
+                $result['msg'] = "
+                    <div id='content'>
+                        <p id='warning'>Sorry, you do not have the permission to access this page</p>
+                    </div>
+                    ";
+                $result['status'] = false;
             }
         }
         return $result;
@@ -149,10 +153,10 @@ class AppPage extends AppTable {
                 $name = explode('_',$filename);
                 if (count($name)>1 && $name[0] == "admin") {
                     $name = $name[1];
-                    $status = "admin";
+                    $status = 2;
                 } else {
                     $name = $name[0];
-                    $status = "member";
+                    $status = -1;
                 }
                 $thisPage = new self($this->db, $name);
                 if (!$thisPage->isInstalled()) {

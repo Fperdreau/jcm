@@ -47,9 +47,8 @@ require_once('includes/boot.php');
             <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
              --><div id="sitetitle">
                 <?php echo $AppConfig->sitetitle;?>
-            </div>
-
-            <!-- Menu section -->
+            </div><!--
+            Menu section -->
             <div class="menu">
                 <div class="menutype topnav">
                     <?php require(PATH_TO_PHP.'page_menu.php'); ?>
@@ -57,9 +56,8 @@ require_once('includes/boot.php');
                 <div class="menutype dropdown">
                     <?php require(PATH_TO_PHP.'page_menu.php'); ?>
                 </div>
-            </div>
-
-            <!-- Login box -->
+            </div><!--
+             Login box-->
             <div id='login_box'>
                 <?php
                 if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {

@@ -20,36 +20,28 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 require('../includes/boot.php');
 
 $pages = ($AppPage->getPages());
-$sql = "SELECT * FROM ".$db->tablesname['Pages'];
+$sql = "SELECT name FROM ".$db->tablesname['Pages'];
 $req = $db->send_query($sql);
 $pageSettings = "";
 while ($row = mysqli_fetch_assoc($req)) {
     $pageName = $row['name'];
-    $pageStatus = $row['status'];
-    $pageRank = $row['rank'];
-    $pageParent = $row['parent'];
-    $pageTitle = $row['meta_title'];
-    $pageKey = $row['meta_keywords'];
-    $pageDesc = $row['meta_description'];
-
+    $thisPage = new AppPage($db,$pageName);
     $pageList = "<option value='none'>None</option>";
     foreach ($pages as $name) {
-        $selectOpt = ($name == $pageParent) ? "selected":"";
+        $selectOpt = ($name == $thisPage->parent) ? "selected":"";
         $pageList .= "<option value='$name' $selectOpt>$name</option>";
     }
 
     $statusList = "";
-    $status = array('member','organizer','admin','none');
-    $i = 0;
-    foreach ($status as $st) {
-        $selectOpt = ($st == $pageStatus) ? "selected":"";
-        $statusList .= "<option value='$i' $selectOpt>$st</option>";
-        $i++;
+    $status = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
+    foreach ($status as $statusName=>$int) {
+        $selectOpt = ($int == $thisPage->status) ? "selected":"";
+        $statusList .= "<option value='$int' $selectOpt>$statusName</option>";
     }
 
     $rankList = "";
     for ($i=0;$i<count($pages);$i++) {
-        $selectOpt = ($i == $pageRank) ? "selected":"";
+        $selectOpt = ($i == $thisPage->rank) ? "selected":"";
         $rankList .= "<option value='$i' $selectOpt>$i</option>";
     }
 
@@ -87,7 +79,6 @@ $content = "
     <p class='page_description'>Here you manage the pages' settings and status</p>
     <section>
         <h2>Pages Management</h2>
-        <div class='feedback'></div>
         $pageSettings
     </section>
 ";

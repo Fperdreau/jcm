@@ -210,7 +210,11 @@ if (!empty($_POST['getPage'])) {
 if (!empty($_POST['modPage'])) {
     $name = htmlspecialchars($_POST['name']);
     $Page = new AppPage($db,$name);
-    $result = $Page->update($_POST);
+    if ($Page->update($_POST)) {
+        $result = "<div id='success'>The modification has been made!</div>";
+    } else {
+        $result = "<div id='warning'>Something went wrong!</div>";
+    }
     echo json_encode($result);
     exit;
 }
