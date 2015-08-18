@@ -126,7 +126,7 @@ var processform = function(formid,feedbackid) {
  */
 var validsubmitform = function(form,text,callback,timing) {
     callback = (callback === undefined) ? false: callback;
-    timing = (timing === undefined) ? false: 3000;
+    timing = (timing === undefined) ? 3000: timing;
 
     var el = $(form);
 

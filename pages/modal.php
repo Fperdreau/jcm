@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-$result = "
+echo "
 
 <div id='modal' class='modalContainer' style='display:none;'>
     <section class='popupBody' style='display:inline-block'>

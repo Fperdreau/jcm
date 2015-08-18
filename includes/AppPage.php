@@ -106,8 +106,8 @@ class AppPage extends AppTable {
         if (!isset($_SESSION['logok']) || $_SESSION['logok'] == false) {
             $result['msg'] = "
 		    <div id='content'>
-        		<p id='warning'>You must <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>log in</a> to access this page</p>
-		        </p>
+        		<p id='warning'>You must <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>
+        		log in</a> in order to access this page</p>
 		    </div>
 		    ";
             $result['status'] = false;

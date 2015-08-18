@@ -71,7 +71,9 @@ function loadPageContent(page,urlparam) {
         success: function(data) {
             var json = jQuery.parseJSON(data);
             if (json.status === false) {
-                $('#pagecontent').html(json.msg);
+                $('#pagecontent')
+                    .html(json.msg)
+                    .fadeIn(200);
             } else {
                 displayPage(page,json.pageName,urlparam);
             }
