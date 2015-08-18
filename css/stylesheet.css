@@ -271,6 +271,14 @@ header>div{
     width: auto;
 }
 
+li {
+    text-transform: uppercase;
+}
+
+li a {
+    color: rgba(207,81,81,1);
+}
+
 .topnav {
     width: auto;
     display: inline-block;
@@ -292,7 +300,11 @@ header>div{
     margin-left: 20px;
 }
 
-.topnav nav li:hover {
+.topnav nav li a {
+    color: rgba(207,81,81,1);
+}
+
+.topnav nav li:hover>a {
     color: #ffffff;
 }
 
@@ -344,6 +356,7 @@ header>div{
     display: block;
     margin: 0;
     border-bottom: 1px solid rgba(255,255,255,.5);
+    border-left: 5px solid rgba(207,81,81,1);
     color: #eee;
     padding: 2px 10px 2px 10px;
     cursor: pointer;
@@ -355,6 +368,10 @@ header>div{
     color: #222222;
 }
 
+.dropdown nav li:hover>a {
+    color: #ffffff;
+}
+
 /* additional menu */
 nav.submenu {
     display: none;
@@ -364,6 +381,8 @@ nav.submenu {
     z-index: 10;
     margin: 0;
     padding: 0;
+    width: auto;
+    max-width: 250px;
 }
 
 nav.submenu ul {
@@ -387,6 +406,10 @@ nav.submenu li {
 nav.submenu li:hover {
     border-bottom: 1px solid rgba(34,34,34,.5);
     background: rgba(255,255,255,.5);
+    color: #222222;
+}
+
+nav.submenu li:hover>a {
     color: #222222;
 }
 
@@ -522,8 +545,8 @@ section>div {
 
 .half_section {
     vertical-align: top;
-    width: 40%;
-    min-width: 250px;
+    max-width: 40%;
+    min-width: 300px;
     display: inline-block;
     margin: auto;
 }
@@ -954,6 +977,7 @@ h3 {
 .plugDiv {
     border-bottom: 1px dashed #ddd;
     margin-bottom: 10px;
+    padding-bottom: 10px;
 }
 
 .plugDiv .formcontrol {
@@ -971,6 +995,7 @@ h3 {
     color: #222;
     vertical-align: top;
     margin-bottom: 5px;
+    text-transform: uppercase;
 }
 
 .plugTime {

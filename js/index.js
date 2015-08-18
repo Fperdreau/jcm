@@ -28,7 +28,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  * @param prestype
  */
 var showpubform = function(formel,idpress,type,date,prestype) {
-    console.log(formel);
     if (idpress == undefined) {idpress = false;}
     if (type == undefined) {type = "submit";}
     if (date == undefined) {date = false;}
@@ -435,7 +434,7 @@ $( document ).ready(function() {
             // Get submenu width
             var submenuWidth = realWidth(submenu);
             var horizontal;
-            if (absPos.left+width+250 < $(window).width()) {
+            if (absPos.left+width+submenuWidth < $(window).width()) {
                 horizontal = position.left+width;
             } else {
                 horizontal = position.left-submenuWidth;
@@ -449,13 +448,18 @@ $( document ).ready(function() {
         })
 
         // Main menu sections
-        .on('click',".menu-section",function(){
+        .on('click',".menu-section",function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
             $(".menu-section").removeClass("activepage");
             $(this).addClass("activepage");
 
-            if ($(this).is('[data-url]')) {
-                var pagetoload = $(this).attr("data-url");
-                loadpageonclick(pagetoload,false);
+            if ($(this).is('[id]')) {
+                var pagetoload = $(this).attr("id");
+                var param = ($(this).is('[data-param]'))? $(this).attr('data-param'):false;
+                getPage(pagetoload,param);
+                $('.submenu, .dropdown').fadeOut('slow');
             }
         })
 
@@ -802,6 +806,13 @@ $( document ).ready(function() {
         .on('click','.config_form_session',function(e) {
             e.preventDefault();
             processform("config_form_session","feedback_jcsession");
+        })
+
+        // Page management
+        .on('click','.page_modify',function(e) {
+            e.preventDefault();
+            var pageName = $(this).attr('id');
+            processform("config_page_"+pageName,"feedback");
         })
 
         // Add a session/presentation type

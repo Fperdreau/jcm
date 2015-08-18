@@ -17,8 +17,6 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-if (empty($_SESSION['logok'])) { $_SESSION['logok'] = false;}
-
 // Includes required files (classes)
 require_once('includes/boot.php');
 ?>
@@ -71,7 +69,7 @@ require_once('includes/boot.php');
                      ";
                 } else {
                     $showlogin = "
-                    <div><a href='#' class='menu-section' data-url='profile'><img src='images/profile.png' alt='profile'></a></div>
+                    <div><a href='index.php?page=profile' class='menu-section' id='profile'><img src='images/profile.png' alt='profile'></a></div>
                     <div><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
                 }
                 echo $showlogin;

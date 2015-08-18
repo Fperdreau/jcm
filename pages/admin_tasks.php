@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright Â© 2014, Florian Perdreau
+Copyright © 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -16,29 +16,31 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 require('../includes/boot.php');
 
-$years = $Presentations->get_years();
-// Select input (Years)
-$options = "
-<option value='' selected>Select a year</option>
-<option value='all'>All</option>";
-foreach ($years as $year) {
-    $options .= "<option value='$year'>$year</option>";
-}
+// Declare classes
+$user = new User($db,$_SESSION['username']);
 
-$publist = $Presentations->getpublicationlist();
+// Cronjobs settings
+$AppCron = new AppCron($db);
+$cronOpt = $AppCron->show();
+$content = "
+    <h1>Scheduled tasks</h1>
+    <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
+    Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
+    either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
+    <div class='feedback'></div>
+    <section>
+        <h2>Tasks list</h2>
+        $cronOpt
+    </section>
+";
 
 $result = "
-<div id='content'>
-    <div class='feedback'></div>
-        <select name='year' class='archive_select'>
-            $options
-        </select>
-    <div id='archives_list'>
-        $publist
-    </div>
-</div>";
+    <div id='content'>
+        $content
+    </div>";
 
 echo json_encode($result);
 exit;

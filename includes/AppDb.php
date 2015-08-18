@@ -119,6 +119,7 @@ class AppDb {
             "Posts" => $this->dbprefix."_post",
             "Media" => $this->dbprefix."_media",
             "Plugins" => $this->dbprefix."_plugins",
+            "Pages" => $this->dbprefix."_pages",
             "Crons" => $this->dbprefix."_crons"
         );
     }
@@ -360,8 +361,6 @@ class AppDb {
      * @param $table_name
      * @param $content
      * @return bool|mysqli_result
-     * @internal param $cols_name
-     * @internal param $values
      */
     public function addcontent($table_name,$content) {
         $cols_name = array();
@@ -442,10 +441,6 @@ class AppDb {
      * @param $content
      * @param array $reference
      * @return bool
-     * @internal param $cols_name
-     * @internal param $value
-     * @internal param $refcol
-     * @internal param $id
      */
     public function updatecontent($table_name,$content,$reference=array()) {
 

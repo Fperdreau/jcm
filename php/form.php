@@ -191,6 +191,31 @@ if (!empty($_POST['mod_plugins'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Pages Management
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Get Pages
+if (!empty($_POST['getPage'])) {
+    $page = htmlspecialchars($_POST['getPage']);
+    $Page = new AppPage($db,$page);
+    $result = $Page->check_login();
+    $result['pageName'] = $Page->filename;
+    $result['title'] = $Page->meta_title;
+    $result['keywords'] = $Page->meta_keywords;
+    $result['description'] = $Page->meta_description;
+    echo json_encode($result);
+    exit;
+}
+
+// Modify page settings
+if (!empty($_POST['modPage'])) {
+    $name = htmlspecialchars($_POST['name']);
+    $Page = new AppPage($db,$name);
+    $result = $Page->update($_POST);
+    echo json_encode($result);
+    exit;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar

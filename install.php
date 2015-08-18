@@ -339,6 +339,11 @@ if (!empty($_POST['operation'])) {
         $CronJobs = new AppCron($db);
         $CronJobs->setup($op);
 
+        // Page table
+        $AppPage = new AppPage($db);
+        $AppPage->setup($op);
+        $AppPage->getPages();
+
         echo json_encode($result);
         exit;
     }
@@ -547,14 +552,12 @@ if (!empty($_POST['getpagecontent'])) {
     }
 
     $result = "
-	<div id='content'>
-		<h1>Installation</h1>
-		<h2 style='width: 300px'>$title</h2>
+		<h2>$title</h2>
 		<section>
 		    <div class='feedback'></div>
 			<div id='operation'>$operation</div>
-		</div>
-	</div>";
+		</section>
+	";
 
     echo json_encode($result);
     exit;

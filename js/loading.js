@@ -26,7 +26,6 @@ var tinymcesetup = function() {
             {title: 'AppTable row 1', selector: 'tr', classes: 'tablerow1'}
         ]
     });
-
 };
 
 // Get page content
@@ -36,12 +35,14 @@ function getPage(page, urlparam) {
         page = (params.page == undefined) ? 'home':params.page;
     }
 
+    urlparam = (urlparam == undefined) ? parseurl():urlparam;
+    urlparam = (urlparam === false || urlparam === "") ? false: urlparam;
+
     jQuery.ajax({
         url: 'php/form.php',
         data: {get_app_status: true},
         type: 'POST',
         async: true,
-
         success: function(data) {
             var json = jQuery.parseJSON(data);
             if (json === 'Off' && page != 'admin') {
@@ -50,29 +51,38 @@ function getPage(page, urlparam) {
                     "<div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div><div> the website is currently under maintenance.</div></div></div>")
                     .fadeIn(200);
             } else {
-                if (page === undefined) {
-                    loadpageonclick('home',false);
-                } else {
-                    if (page !== false && page != 'install') {
-                        if (urlparam == undefined) {
-                            urlparam = parseurl();
-                        } else {
-                            urlparam = (urlparam != false) ? ''+urlparam:false;
+                loadPageContent(page,urlparam);
+            }
+        }
+    })
+}
 
-                        }
-                        loadpageonclick(page,urlparam);
-                    }
-                }
+/**
+ * Retrieve and display page content
+ * @param page
+ * @param urlparam
+ */
+function loadPageContent(page,urlparam) {
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: {getPage: page},
+        type: 'POST',
+        async: true,
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            if (json.status === false) {
+                $('#pagecontent').html(json.msg);
+            } else {
+                displayPage(page,json.pageName,urlparam);
             }
         }
     })
 }
 
 // Load page by clicking on menu sections
-var loadpageonclick = function(pagetoload,param) {
-    param = (param === undefined || param === "") ? false: param;
+var displayPage = function(page,pagetoload,param) {
     var stateObj = { page: pagetoload };
-    var url = (param === false) ? "index.php?page="+pagetoload:"index.php?page="+pagetoload+"&"+param;
+    var url = (param === false) ? "index.php?page="+page:"index.php?page="+page+"&"+param;
 
     jQuery.ajax({
         url: 'pages/'+pagetoload+'.php',
@@ -92,11 +102,11 @@ var loadpageonclick = function(pagetoload,param) {
             $('#pagecontent')
                 .hide()
                 .empty()
-                .html(json)
-                .fadeIn(200)
-                .find("section").each(function() {
-                    $(this).fadeIn(200);
-                });
+                .html(json);
+
+            $('#content').children("section").each(function() {
+                $(this).fadeIn(200);
+            });
             tinymcesetup();
             var callback = showPlugins;
             getPlugins(pagetoload, callback);

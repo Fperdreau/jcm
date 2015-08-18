@@ -102,24 +102,16 @@ class AppPlugins extends AppTable {
      * @return bool
      */
     public function isInstalled() {
-        /**
-         * Check if this plugin is registered to the db
-         */
         $plugins = $this->db->getinfo($this->db->tablesname['Plugins'],'name');
         return in_array($this->name,$plugins);
     }
 
     /**
-     * Create instance of the plugin from its name
-     * @param $pluginName
-     * @return mixed
+     * Instantiate a class from class name
+     * @param: class name (must be the same as the file name)
+     * @return: object
      */
     public function instantiate($pluginName) {
-        /**
-         * Instantiate a class from class name
-         * @param: class name (must be the same as the file name)
-         * @return: object
-         */
         $folder = PATH_TO_APP.'/plugins/';
         include_once($folder . $pluginName .'/'. $pluginName .'.php');
         return new $pluginName($this->db);

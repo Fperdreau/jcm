@@ -18,8 +18,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 require('../includes/boot.php');
-check_login();
-global $db, $Presentations;
+
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 
@@ -107,3 +106,4 @@ if ($op == 'new') {
 }
 
 echo json_encode($result);
+exit;

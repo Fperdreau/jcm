@@ -18,7 +18,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 require_once('../includes/boot.php');
-$db = new AppDb();
 $last_news = new Posts($db);
 $sessions = new Sessions($db);
 $presentations = new Presentations($db);
@@ -52,3 +51,4 @@ $result = "
 ";
 
 echo json_encode($result);
+exit;
