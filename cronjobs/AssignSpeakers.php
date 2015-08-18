@@ -189,4 +189,58 @@ class AssignSpeakers extends AppCron {
         $this->logger("$this->name.txt",$result);
         return $result;
     }
+
+    public function noticing($assignedSpeakers) {
+        // Declare classes
+        global $AppMail,$db;
+
+        $nsuccess = 0;
+        $nuser = count($assignedSpeakers);
+        if (!empty($assignedSpeakers)) {
+            foreach ($assignedSpeakers as $userName) {
+                $user = new User($db,$userName);
+                $content = $this->makeMail($user);
+                $body = $AppMail->formatmail($content['body']);
+                $subject = $content['subject'];
+                if ($AppMail->send_mail($user->email,$subject, $body)) {
+                    $nsuccess +=1;
+                }
+            }
+        }
+        return "Notifications sent: $nsuccess/$nuser";
+    }
+
+    /**
+     * Make reminder notification email (including only information about the upcoming session)
+     * @return mixed
+     */
+    private function makeMail($user) {
+        $sessions = new Sessions($this->db);
+        $next_session = $sessions->getsessions(true);
+        $sessioncontent = $sessions->shownextsession();
+        $date = $next_session[0];
+
+        $content['body'] = "
+            <div style='width: 95%; margin: auto; font-size: 16px;'>
+                <p>Hello,<br>
+                This is a reminder for the next Journal Club session.</p>
+            </div>
+
+            <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
+                <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
+                    Next session
+                </div>
+                <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
+                    $sessioncontent
+                </div>
+            </div>
+
+            <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
+                <p>Cheers,<br>
+                The Journal Club Team</p>
+            </div>
+        ";
+        $content['subject'] = "Next session: $date -reminder";
+        return $content;
+    }
 }
