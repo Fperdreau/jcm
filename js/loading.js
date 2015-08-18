@@ -153,7 +153,8 @@ function adapt() {
 
     if ($(window).width() <= headerwidth) {
         $("#float_menu").show();
-        $(".topnav").hide();
+        $(".topnav")
+            .hide();
     } else {
         $("#float_menu").hide();
         $('.topnav')

@@ -19,7 +19,14 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  FORMS
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Show publication form
+/**
+ * Show form to submit a presentation
+ * @param formel: ID of the form
+ * @param idpress: ID of the presentation
+ * @param type: form's type (submit, modify, suggest)
+ * @param date: presentation's date
+ * @param prestype
+ */
 var showpubform = function(formel,idpress,type,date,prestype) {
     console.log(formel);
     if (idpress == undefined) {idpress = false;}
@@ -49,7 +56,10 @@ var showpubform = function(formel,idpress,type,date,prestype) {
     });
 };
 
-// Show post form
+/**
+ * Display form to post a news
+ * @param postid
+ */
 var showpostform = function(postid) {
     jQuery.ajax({
         url: 'php/form.php',
@@ -78,7 +88,12 @@ var showpostform = function(postid) {
     });
 };
 
-// Process submitted form
+/**
+ * Process a form
+ * @param formid: DOM ID of the form
+ * @param feedbackid: DOM ID of the feedback div
+ * @returns {boolean}
+ */
 var processform = function(formid,feedbackid) {
     var el = "form#"+formid;
     if (!checkform(el)) { return false;}
@@ -102,7 +117,14 @@ var processform = function(formid,feedbackid) {
     });
 };
 
-// Show feedback message and replace the submitted form by an empty form
+/**
+ * Temporarily replace a form by a feedback message
+ * @param form: form id
+ * @param text: feedback to show
+ * @param callback: callback function (what to do after the feedback message. By default, we simply re-display the form
+ * as it was)
+ * @param timing: duration of feedback
+ */
 var validsubmitform = function(form,text,callback,timing) {
     callback = (callback === undefined) ? false: callback;
     timing = (timing === undefined) ? false: 3000;
@@ -123,11 +145,16 @@ var validsubmitform = function(form,text,callback,timing) {
         if (callback !== false) {
             callback();
         }
-    },3000);
+    },timing);
 
 };
 
-// Check for empty input fields
+/**
+ * Check whether every required fields have been filled up correctly
+ * @param formid
+ * @param feedbackDiv
+ * @returns {boolean}
+ */
 var checkform = function(formid,feedbackDiv) {
     var valid = true;
     $('#'+formid+' input,select,textarea').each(function () {
@@ -155,13 +182,22 @@ var checkform = function(formid,feedbackDiv) {
     return valid;
 };
 
-// Check email validity
+/**
+ * Check whether the provided email is valid
+ * @param email
+ * @returns {boolean}
+ */
 var checkemail = function(email) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
     return pattern.test(email);
 };
 
-//Show feedback
+/**
+ * Show a feedback after having processed the form
+ * @param message: feedback
+ * @param selector: feeback div
+ * @returns {boolean}
+ */
 var showfeedback = function(message,selector) {
     var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
 
@@ -175,7 +211,10 @@ var showfeedback = function(message,selector) {
     return false;
 };
 
-// send verification email after signing up
+/**
+ * Send a verification email after having signed up
+ * @param email
+ */
 var send_verifmail = function(email) {
     jQuery.ajax({
         url: 'php/form.php',
@@ -195,7 +234,11 @@ var send_verifmail = function(email) {
     });
 };
 
-// initialize jQuery-UI Calendar
+/**
+ * Initialize jQuery-UI calendar
+ * @param jcdays: associative array providing journal club sessions and their information
+ * @param selected: Currently selected day
+ */
 var inititdatepicker = function(jcdays,selected) {
 
     $('#datepicker').datepicker({
@@ -241,6 +284,9 @@ var inititdatepicker = function(jcdays,selected) {
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Logout
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/**
+ * Log out the user and trigger a modal window informing the user he/she has been logged out
+ */
 var logout = function() {
     $('.warningmsg').remove();
     jQuery.ajax({
@@ -266,14 +312,21 @@ var logout = function() {
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 var modalpubform = $('.modal_section#submission_form');
 
-// Close modal window
+
+/**
+ * Close modal window
+ * @param modal_id
+ */
 var close_modal = function(modal_id) {
     $("#lean_overlay").fadeOut(200);
     $(modal_id).css({"display":"none"});
     $("modal_section#submission_form").empty();
 };
 
-// Show the targeted modal section and hide the others
+/**
+ * Show the targeted modal section and hide the others
+ * @param sectionid
+ */
 var showmodal = function(sectionid) {
     var title = $(".modal_section#"+sectionid).attr('data-title');
     $(".header_title").text(title);
@@ -287,7 +340,9 @@ var showmodal = function(sectionid) {
     });
 };
 
-// show Login on start
+/**
+ * Automatically show login window on start (if user is not already logged in)
+ */
 function showLogin() {
     jQuery.ajax({
         url: 'php/form.php',
@@ -304,7 +359,11 @@ function showLogin() {
     });
 }
 
-// Display presentation information in a modal window
+/**
+ * Display presentation's information in a modal window
+ * @param idpress
+ * @param formel
+ */
 var displaypub = function(idpress,formel) {
     idpress = (idpress == undefined) ? false:idpress;
     jQuery.ajax({
@@ -323,6 +382,20 @@ var displaypub = function(idpress,formel) {
         }
     });
 };
+
+/**
+ * Get width of hidden objects (useful to get width of submenus)
+ * @param obj (DOM element)
+ * @returns {*}
+ */
+function realWidth(obj){
+    var clone = obj.clone();
+    clone.css("visibility","hidden");
+    $('body').append(clone);
+    var width = clone.outerWidth();
+    clone.remove();
+    return width;
+}
 
 $( document ).ready(function() {
 
@@ -352,15 +425,24 @@ $( document ).ready(function() {
 
         .on('click','.submenu_trigger',function(e) {
             e.preventDefault();
+            var absPos = $(this).offset();
             var position = $(this).position();
             var width = $(this).outerWidth();
             var height = $(this).outerHeight();
             var id = $(this).attr('id');
             var submenu = $(".submenu#"+id);
-            console.log(submenu);
+
+            // Get submenu width
+            var submenuWidth = realWidth(submenu);
+            var horizontal;
+            if (absPos.left+width+250 < $(window).width()) {
+                horizontal = position.left+width;
+            } else {
+                horizontal = position.left-submenuWidth;
+            }
             submenu
                 .css({
-                    'left':position.left+width+"px",
+                    'left':horizontal+"px",
                     'top':position.top+height+"px"
                 })
                 .toggle(200);
@@ -378,12 +460,16 @@ $( document ).ready(function() {
         })
 
         .on('click',function(e) {
-
-            var container = $(".submenu");
-            if (!container.is(e.target) // if the target of the click isn't the container...
-                && container.has(e.target).length === 0) // ... nor a descendant of the container
+            var nav = $("nav");
+            var dropdown = $('.dropdown');
+            if (!$('#float_menu').is(e.target))
             {
-                container.hide();
+                if (!nav.is(e.target) && nav.has(e.target).length === 0) {
+                    $('.submenu').hide();
+                }
+                if (dropdown.is(':visible') && !dropdown.is(e.target) && dropdown.has(e.target).length === 0) {
+                    dropdown.slideToggle();
+                }
             }
         })
 
