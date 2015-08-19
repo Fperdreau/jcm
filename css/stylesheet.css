@@ -541,17 +541,27 @@ section>div {
     margin: auto;
 }
 
-.section_page {
+.section_container {
     width: 100%;
-    text-align: center;
+    text-align: justify;
+    margin:auto;
+}
+
+.section_container>div{
+    display: inline-block;
+    vertical-align: top;
+    max-width: 45%;
+    min-width: 300px;
+    text-align: left;
+}
+
+.section_container:after{
+    content: "";
+    width: 100%;
+    display: inline-block;
 }
 
 .half_section {
-    vertical-align: top;
-    max-width: 40%;
-    min-width: 300px;
-    display: inline-block;
-    margin: auto;
 }
 
 .half_section>div{
