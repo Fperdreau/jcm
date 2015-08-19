@@ -1,6 +1,52 @@
 /**
- * Created by U648170 on 10-8-2015.
+ Copyright © 2014, Florian Perdreau
+ This file is part of Journal Club Manager.
+
+ Journal Club Manager is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ Journal Club Manager is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// TO TEST: loading object to bind on every ajax request
+var loader = function(el,type,callback) {
+    this.el = el;
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: {get_app_status: true},
+        type: type,
+        async: true,
+        context: this,
+        beforeSend: this.loadingDiv(),
+        complete: this.removeLoading(),
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            callback(json);
+        }
+    });
+
+    this.loadingDiv = function loadingDiv() {
+        $(this.el)
+            .fadeOut(200)
+            .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
+            .show();
+    };
+
+    this.removeLoading = function() {
+        this.el.children('.loadingDiv')
+            .fadeOut('slow')
+            .remove();
+        this.el.fadeIn(200);
+    };
+};
 
 // Set up tinyMCE (rich-text textarea)
 var tinymcesetup = function() {
