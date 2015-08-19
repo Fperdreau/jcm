@@ -461,9 +461,9 @@ if (!empty($_POST['getpagecontent'])) {
 			<div class='feedback'></div>
 		";
     } elseif ($step == 3) {
-        $AppConfig->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
         $db->get_config();
         if ($op == "update") $AppConfig = new AppConfig($db);
+        $AppConfig->site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']).'/';
 
         $title = "Step 2: Application configuration";
         $operation = "
@@ -471,7 +471,7 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='install_db' value='true' />
-
+                <input type='hidden' name='site_url' value='$AppConfig->site_url'/>
                 <h3>Journal Club Manager - Website</h3>
                 <div class='formcontrol''>
                     <label for='sitetitle'>Site title</label>
@@ -904,7 +904,7 @@ if (!empty($_POST['getpagecontent'])) {
     </div>
 
     <!-- Core section -->
-    <div class="box">
+    <div class="box" style="min-height: 300px;">
         <div id="pagecontent"></div>
     </div>
 
