@@ -99,7 +99,7 @@ class AssignSpeakers extends AppCron {
         // Get list of users
         $Users = new Users($this->db);
         $usersList = $Users->getUsers();
-        var_dump($usersList);
+
         // get previous speakers
         $prevSpeakers = $this->getPreviousSpeakers($usersList,$session->type);
 
@@ -215,7 +215,6 @@ class AssignSpeakers extends AppCron {
                 $content = $this->makeMail($user,$info);
                 $body = $AppMail->formatmail($content['body']);
                 $subject = $content['subject'];
-                print($subject);print($body);exit;
                 if ($AppMail->send_mail($user->email,$subject, $body)) {
                     $nsuccess +=1;
                 }
@@ -228,18 +227,21 @@ class AssignSpeakers extends AppCron {
      * Make reminder notification email (including only information about the upcoming session)
      * @return mixed
      */
-    private function makeMail($user, $info) {
+    public function makeMail($user, $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
-        $dueDate = date($date,'- 1 week');
+        $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
+        $AppConfig = new AppConfig($this->db);
+        $contactURL = $AppConfig->site_url."index.php?page=contact";
         $content['body'] = "
             <div style='width: 95%; margin: auto; font-size: 16px;'>
-                <p>Hello $user->fullname,<br>
-                You have been automatically invited to do a presentation during a $sessionType session on the $date.</p>
-                <p>Please, submit your presentation on the Journal Club Manager before the $dueDate.</p>
+                <p>Hello $user->fullname,</p>
+                <p>You have been automatically invited to present at a <span style='font-weight: 500'>$sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
+                <p>Please, submit your presentation on the Journal Club Manager before the <span style='font-weight: 500'>$dueDate</span>.</p>
+                <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> on the organizers as soon as possible.</p>
             </div>
 
-            <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
+            <div style='width: 95%; margin: 20px auto; font-size: 16px;'>
                 <p>Cheers,<br>
                 The Journal Club Team</p>
             </div>
