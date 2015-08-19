@@ -151,6 +151,7 @@ class AssignSpeakers extends AppCron {
         $jc_days = $Sessions->getjcdates(intval($this->options['nbsessiontoplan']));
         $created = 0;
         $updated = 0;
+        $assignedSpeakers = array();
         foreach ($jc_days as $day) {
 
             // If session does not exist yet, let's create it
@@ -182,14 +183,26 @@ class AssignSpeakers extends AppCron {
 
                     // Update session info
                     $session->get();
+
+                    $assignedSpeakers[$speaker->username] = array('date'=>$day,'type'=>$session->type);
                 }
             }
         }
         $result = "$created chair(s) created<br>$updated chair(s) updated";
+
+        // Notify speakers of their assignments
+        if (!empty($assignedSpeakers)) {
+            $result .= $this->noticing($assignedSpeakers);
+        }
         $this->logger("$this->name.txt",$result);
         return $result;
     }
 
+    /**
+     * Send an email to users who have been assigned to a presentation
+     * @param $assignedSpeakers
+     * @return string
+     */
     public function noticing($assignedSpeakers) {
         // Declare classes
         global $AppMail,$db;
@@ -197,11 +210,12 @@ class AssignSpeakers extends AppCron {
         $nsuccess = 0;
         $nuser = count($assignedSpeakers);
         if (!empty($assignedSpeakers)) {
-            foreach ($assignedSpeakers as $userName) {
+            foreach ($assignedSpeakers as $userName=>$info) {
                 $user = new User($db,$userName);
-                $content = $this->makeMail($user);
+                $content = $this->makeMail($user,$info);
                 $body = $AppMail->formatmail($content['body']);
                 $subject = $content['subject'];
+                print($subject);print($body);exit;
                 if ($AppMail->send_mail($user->email,$subject, $body)) {
                     $nsuccess +=1;
                 }
@@ -214,25 +228,15 @@ class AssignSpeakers extends AppCron {
      * Make reminder notification email (including only information about the upcoming session)
      * @return mixed
      */
-    private function makeMail($user) {
-        $sessions = new Sessions($this->db);
-        $next_session = $sessions->getsessions(true);
-        $sessioncontent = $sessions->shownextsession();
-        $date = $next_session[0];
-
+    private function makeMail($user, $info) {
+        $sessionType = $info['type'];
+        $date = $info['date'];
+        $dueDate = date($date,'- 1 week');
         $content['body'] = "
             <div style='width: 95%; margin: auto; font-size: 16px;'>
-                <p>Hello,<br>
-                This is a reminder for the next Journal Club session.</p>
-            </div>
-
-            <div style='width: 95%; margin: 10px auto; border: 1px solid #aaaaaa;'>
-                <div style='background-color: #CF5151; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                    Next session
-                </div>
-                <div style='font-size: 14px; padding: 5px; background-color: rgba(255,255,255,.5);'>
-                    $sessioncontent
-                </div>
+                <p>Hello $user->fullname,<br>
+                You have been automatically invited to do a presentation during a $sessionType session on the $date.</p>
+                <p>Please, submit your presentation on the Journal Club Manager before the $dueDate.</p>
             </div>
 
             <div style='width: 95%; margin: 10px auto; font-size: 16px;'>
@@ -240,7 +244,7 @@ class AssignSpeakers extends AppCron {
                 The Journal Club Team</p>
             </div>
         ";
-        $content['subject'] = "Next session: $date -reminder";
+        $content['subject'] = "Invitation to present on the $date";
         return $content;
     }
 }
