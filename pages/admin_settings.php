@@ -144,9 +144,7 @@ $content = "
 
 $result = "
     <div id='content'>
-        <section>
         $content
-        </section>
     </div>";
 
 echo json_encode($result);

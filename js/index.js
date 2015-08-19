@@ -103,15 +103,10 @@ var processform = function(formid,feedbackid) {
         type: 'POST',
         async: true,
         data: data,
-        beforeSend: function() {
-            loadingDiv(el);
-        },
-        complete: function() {
-           removeLoading(el);
-        },
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            validsubmitform(el,result);
+        beforeSend: loadingDiv(el),
+        complete: removeLoading(el),
+        success: function(data) {
+            validsubmitform(el,data);
         }
     });
 };
@@ -119,28 +114,31 @@ var processform = function(formid,feedbackid) {
 /**
  * Temporarily replace a form by a feedback message
  * @param form: form id
- * @param text: feedback to show
+ * @param data: feedback to show
  * @param callback: callback function (what to do after the feedback message. By default, we simply re-display the form
  * as it was)
  * @param timing: duration of feedback
  */
-var validsubmitform = function(form,text,callback,timing) {
+var validsubmitform = function(form,data,callback,timing) {
+    var text = jQuery.parseJSON(data);
+    console.log(text);
+
     callback = (callback === undefined) ? false: callback;
     timing = (timing === undefined) ? 3000: timing;
 
     var el = $(form);
+    el.append("<div class='feedbackForm'></div>");
+    var feedbackForm = $('.feedbackForm');
 
-    $(el).append("<div class='feedbackForm'></div>");
-
-    $('.feedbackForm')
+    feedbackForm
         .html(text)
         .fadeIn(200);
 
     setTimeout(function() {
-        $('.feedbackForm')
+        feedbackForm
             .fadeOut(200)
             .remove();
-        $(form).show();
+        el.show();
         if (callback !== false) {
             callback();
         }

@@ -16,38 +16,6 @@
  along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TO TEST: loading object to bind on every ajax request
-var loader = function(el,type,callback) {
-    this.el = el;
-    jQuery.ajax({
-        url: 'php/form.php',
-        data: {get_app_status: true},
-        type: type,
-        async: true,
-        context: this,
-        beforeSend: this.loadingDiv(),
-        complete: this.removeLoading(),
-        success: function(data) {
-            var json = jQuery.parseJSON(data);
-            callback(json);
-        }
-    });
-
-    this.loadingDiv = function loadingDiv() {
-        $(this.el)
-            .fadeOut(200)
-            .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
-            .show();
-    };
-
-    this.removeLoading = function() {
-        this.el.children('.loadingDiv')
-            .fadeOut('slow')
-            .remove();
-        this.el.fadeIn(200);
-    };
-};
-
 // Set up tinyMCE (rich-text textarea)
 var tinymcesetup = function() {
     tinymce.init({
@@ -172,7 +140,7 @@ var parseurl = function() {
 };
 
 // Get url params ($_GET)
-var getParams = function() {
+getParams = function() {
     var url = window.location.href;
     var splitted = url.split("?");
     if(splitted.length === 1) {
@@ -185,7 +153,7 @@ var getParams = function() {
         params[paramTuple[0]] = paramTuple[1];
     }
     return params;
-};
+}
 
 // Show loading animation
 function loadingDiv(divId) {
@@ -206,16 +174,17 @@ function removeLoading(divId) {
 
 // Responsive design part
 function adapt() {
-    $('#float_menu').hide();
-    var headerwidth = $("#sitetitle").outerWidth() + $(".topnav").outerWidth() + $("#login_box").outerWidth() + 10;
+    var floatmenu = $('#float_menu');
+    var topnav = $('.topnav');
+    floatmenu.hide();
+    var headerwidth = $("#sitetitle").outerWidth() + topnav.outerWidth() + $("#login_box").outerWidth() + 10;
 
     if ($(window).width() <= headerwidth) {
-        $("#float_menu").show();
-        $(".topnav")
-            .hide();
+        floatmenu.show();
+        topnav.hide();
     } else {
-        $("#float_menu").hide();
-        $('.topnav')
+        floatmenu.hide();
+        topnav
             .css('display','inline-block')
             .show();
     }

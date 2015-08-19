@@ -66,7 +66,7 @@ while ($row = mysqli_fetch_assoc($req)) {
                             <select class='select_opt' name='rank'>
                                 $rankList
                             </select>
-                       </div>
+                        </div>
                         <input type='submit' value='Modify' class='page_modify' id='$pageName'/>
                     </form>
                 </div>
