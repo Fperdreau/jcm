@@ -94,7 +94,7 @@ var showpostform = function(postid) {
  * @returns {boolean}
  * @param callback: callback function to execute after the form has been processed
  */
-var processform = function(formid,feedbackid,callback) {
+var processform = function(formid,callback) {
     callback = (callback === undefined) ? false: callback;
     var el = "form#"+formid;
     if (!checkform(el)) { return false;}
@@ -1139,9 +1139,12 @@ $( document ).ready(function() {
 
         .on('click','.processform',function(e) {
             e.preventDefault();
-            var formId = $(this).closest('form').attr('id');
-            var feedbackDiv = $(this).closest('.feedback');
-            processform(formId,feedbackDiv);
+            //var formId = $(this).closest('form').attr('id');
+            //var feedbackDiv = $(this).closest('.feedback');
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var formId = form.attr('id');
+            processform(formId);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
