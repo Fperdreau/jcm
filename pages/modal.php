@@ -36,7 +36,7 @@ echo "
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'>
-                        <input type='submit' id='submit' value='Log In' class='login'/>
+                        <input type='submit' id='login_form' value='Log In' class='login'/>
                     </div>
                     <div class='one_half last' style='text-align: right;'>
                         <input type='button' class='gotoregister' value='Sign Up'>

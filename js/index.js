@@ -92,8 +92,10 @@ var showpostform = function(postid) {
  * @param formid: DOM ID of the form
  * @param feedbackid: DOM ID of the feedback div
  * @returns {boolean}
+ * @param callback: callback function to execute after the form has been processed
  */
-var processform = function(formid,feedbackid) {
+var processform = function(formid,feedbackid,callback) {
+    callback = (callback === undefined) ? false: callback;
     var el = "form#"+formid;
     if (!checkform(el)) { return false;}
 
@@ -106,7 +108,7 @@ var processform = function(formid,feedbackid) {
         beforeSend: loadingDiv(el),
         complete: removeLoading(el),
         success: function(data) {
-            validsubmitform(el,data);
+            validsubmitform(el,data,callback);
         }
     });
 };
@@ -779,39 +781,6 @@ $( document ).ready(function() {
             return false;
         })
 
-        // Configuration of the application
-        .on('click','.config_form_site',function(e) {
-            e.preventDefault();
-            processform("config_form_site","feedback_site");
-        })
-
-        .on('click','.config_form_lab',function(e) {
-            e.preventDefault();
-            processform("config_form_lab","feedback_lab");
-        })
-
-        .on('click','.config_form_jc',function(e) {
-            e.preventDefault();
-            processform("config_form_jc","feedback_jc");
-        })
-
-        .on('click','.config_form_mail',function(e) {
-            e.preventDefault();
-            processform("config_form_mail","feedback_mail");
-        })
-
-        .on('click','.config_form_session',function(e) {
-            e.preventDefault();
-            processform("config_form_session","feedback_jcsession");
-        })
-
-        // Page management
-        .on('click','.page_modify',function(e) {
-            e.preventDefault();
-            var pageName = $(this).attr('id');
-            processform("config_page_"+pageName,"feedback");
-        })
-
         // Add a session/presentation type
         .on('click','.type_add',function(e) {
             var classname = $(this).attr('data-class');
@@ -1166,6 +1135,13 @@ $( document ).ready(function() {
                 }
             });
             return false;
+        })
+
+        .on('click','.processform',function(e) {
+            e.preventDefault();
+            var formId = $(this).closest('form').attr('id');
+            var feedbackDiv = $(this).closest('.feedback');
+            processform(formId,feedbackDiv);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

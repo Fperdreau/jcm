@@ -38,7 +38,7 @@ $result = "
                 <h2>Personal information</h2>
                 <form method='post' action='' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
-                        <input type='submit' name='user_modify' value='Modify' class='profile_persoinfo_form' id='submit'/>
+                        <input type='submit' name='user_modify' value='Modify' class='processform'/>
                     </div>
                     <input type='hidden' name='username' value='$user->username'/>
                     <div class='formcontrol'>
@@ -82,7 +82,7 @@ $result = "
                 <h2>Contact information</h2>
                 <form method='post' action='' class='form' id='profile_emailinfo_form'>
                     <div class='submit_btns'>
-                        <input type='submit' name='user_modify' value='Modify' class='profile_emailinfo_form' id='submit'/>
+                        <input type='submit' name='user_modify' value='Modify' class='processform'/>
                     </div>
                     <div class='formcontrol'>
                         <label for='email'>Email</label>
