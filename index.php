@@ -39,7 +39,6 @@ require_once('includes/boot.php');
     </head>
 
     <body class="mainbody">
-        <?php require(PATH_TO_PAGES.'modal.php'); ?>
 
         <!-- Header section -->
         <header class="header">
@@ -77,7 +76,9 @@ require_once('includes/boot.php');
 
         <!-- Core section -->
         <div id="core">
-        	<div id="pagecontent">
+            <?php require(PATH_TO_PAGES.'modal.php'); ?>
+
+            <div id="pagecontent">
                 <div id="plugins"></div>
             </div>
         </div>

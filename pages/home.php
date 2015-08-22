@@ -24,28 +24,35 @@ $presentations = new Presentations($db);
 
 /** @var $news Sessions */
 $news = $last_news->show();
-/** @var $nextpres Sessions */
-$nextpres = $sessions->shownextsession();
 /** @var $futurepres Sessions */
 $futurepres = $sessions->showfuturesession(4);
+
 /** @var $wishlist Sessions */
 $wishlist = $presentations->getwishlist();
 
 $result = "
-    <div id='content'>
-        <section class='news'>
-            <h2>News</h2>
-            $news
+    <section>
+        <h2>News</h2>
+        <div class='news'>
+                $news
+        </div>
+    </section>
+
+    <div class='section_container'>
+        <section>
+            <h2>Next Sessions</h2>
+            <div class='formcontrol'>
+                <label>Session to show</label>
+                <input type='date' class='selectSession' data-status='false' id='datepicker' name='date'>
+            </div>
+            <div id='sessionlist'>
+                $futurepres
+            </div>
         </section>
 
         <section>
-            <h2>Next Sessions</h2>
-        	$futurepres
-		</section>
-
-        <section>
             <h2>Wish list</h2>
-        	$wishlist
+            $wishlist
         </section>
     </div>
 ";

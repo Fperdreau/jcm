@@ -210,16 +210,21 @@ class Media extends Uploads {
         if (is_file($this->directory.$this->filename)) {
             if (unlink($this->directory.$this->filename)) {
                 if ($this->db->deletecontent($this->tablename,'fileid',$this->fileid)) {
-                    return true;
+                    $result['status'] = true;
+                    $result['msg'] = "<p id='success'>File Deleted</p>";
                 } else {
-                    return 'table_failed';
+                    $result['status'] = false;
+                    $result['msg'] = "<p id='success'>Oops!</p>";
                 }
             } else {
-                return 'not_deleted';
+                $result['status'] = false;
+                $result['msg'] = "<p id='success'>Oops!</p>";
             }
         } else {
-            return 'no_file ';
+            $result['status'] = false;
+            $result['msg'] = "<p id='success'>Oops!</p>";
         }
+        return $result;
     }
 
     /**

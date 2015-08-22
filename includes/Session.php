@@ -121,98 +121,103 @@ class Sessions extends AppTable {
 
     /**
      * Get all sessions
-     * @param int $nbsession
+     * @param $date
+     * @param string $status
      * @return string
      */
-    public function managesessions($nbsession=4) {
-        /** @var AppConfig $AppConfig */
+    public function managesessions($date=null,$status='admin') {
+        if ($date == null) {
+            $date = $this->getjcdates(1);
+            $date = $date[0];
+        }
+
+        $content = "";
+        if (self::dateexists($date)) {
+            $session = new Session($this->db,$date);
+        } else {
+            $session = new Session($this->db);
+            $session->make(array('date'=>$date));
+            $session->get();
+        }
+
+        // Get type options
         $AppConfig = new AppConfig($this->db);
+        $session_type = array_keys($AppConfig->session_type);
+        $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
+        foreach ($session_type as $type) {
+            if ($type === $session->type) {
+                $typeoptions .= "<option value='$type' selected>$type</option>";
+            } else {
+                $typeoptions .= "<option value='$type'>$type</option>";
+            }
+        }
+
+        // Get time
         $timeopt = maketimeopt();
 
-        $session_type = array_keys($AppConfig->session_type);
+        $time = explode(',',$session->time);
+        $timefrom = $time[0];
+        $timeto = $time[1];
 
-        $sessions = self::getjcdates($nbsession); // Get dates
-        $content = "";
-        foreach ($sessions as $date) {
-            if (self::dateexists($date)) {
-                $session = new Session($this->db,$date);
-            } else {
-                $session = new Session($this->db);
-                $session->make(array('date'=>$date));
-                $session->get();
-            }
+        // Get presentations
+        $nbPres = max($AppConfig->max_nb_session,count($session->presids));
+        $presentations = "";
+        for ($i=0;$i<$nbPres;$i++) {
+            $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
+            $pres = new Presentation($this->db,$presid);
+            $presentations .= $pres->showinsession($status,$date);
+        }
 
-            // Get type options
-            $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
-            foreach ($session_type as $type) {
-                if ($type === $session->type) {
-                    $typeoptions .= "<option value='$type' selected>$type</option>";
-                } else {
-                    $typeoptions .= "<option value='$type'>$type</option>";
-                }
-            }
-
-            // Get time
-            $time = explode(',',$session->time);
-            $timefrom = $time[0];
-            $timeto = $time[1];
-
-            // Get presentations
-            $nbPres = max($AppConfig->max_nb_session,count($session->presids));
-            $presentations = "";
-            for ($i=0;$i<$nbPres;$i++) {
-                $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
-                $pres = new Presentation($this->db,$presid);
-                $presentations .= $pres->showinsession('admin',$date);
-            }
-
-            $content .= "
-            <div class='session_div'>
-                <div class='session_header'>
-                    <div class='session_date'>$session->date</div>
-                    <div class='session_status'>$session->status</div>
-                    <div class='feedback' id='feedback_$session->date' style='width: auto;'>
+        $settings = "";
+        if ($status == "admin") {
+            $settings = "<h3>Settings</h3>
+                    <div class='session_type'>
+                        <div class='formcontrol' style='width: 100%;'>
+                            <label>Type</label>
+                            <select class='set_sessiontype' id='$session->date'>
+                            $typeoptions
+                            </select>
+                        </div>
                     </div>
+                    <div class='session_time'>
+                        <div class='formcontrol' style='width: 100%;'>
+                            <label>From</label>
+                            <select class='set_sessiontime' id='timefrom_$session->date' data-session='$session->date'>
+                                <option value='$timefrom' selected>$timefrom</option>
+                                $timeopt
+                            </select>
+                        </div>
+                    </div>
+                    <div class='session_time'>
+                        <div class='formcontrol' style='width: 100%;'>
+                            <label>To</label>
+                            <select class='set_sessiontime' id='timeto_$session->date' data-session='$session->date'>
+                                <option value='$timeto' selected>$timeto</option>
+                                $timeopt
+                            </select>
+                        </div>
+                    </div>";
+        }
+
+        $content .= "
+        <div class='session_div'>
+            <div class='session_header'>
+                <div class='session_date'>$session->date</div>
+                <div class='session_status'>$session->type</div>
+            </div>
+            <div class='session_core'>
+                <div class='session_settings'>
+                    $settings
                 </div>
-                <div class='session_core'>
-                    <div class='session_settings'>
-                        <h3>Settings</h3>
-                        <div class='session_type'>
-                            <div class='formcontrol' style='width: 100%;'>
-                                <label>Type</label>
-                                <select class='set_sessiontype' id='$session->date'>
-                                $typeoptions
-                                </select>
-                            </div>
-                        </div>
-                        <div class='session_time'>
-                            <div class='formcontrol' style='width: 100%;'>
-                                <label>From</label>
-                                <select class='set_sessiontime' id='timefrom_$session->date' data-session='$session->date'>
-                                    <option value='$timefrom' selected>$timefrom</option>
-                                    $timeopt
-                                </select>
-                            </div>
-                        </div>
-                        <div class='session_time'>
-                            <div class='formcontrol' style='width: 100%;'>
-                                <label>To</label>
-                                <select class='set_sessiontime' id='timeto_$session->date' data-session='$session->date'>
-                                    <option value='$timeto' selected>$timeto</option>
-                                    $timeopt
-                                </select>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class='session_presentations'>
-                        <h3>Presentations</h3>
-                        $presentations
-                    </div>
+                <div class='session_presentations'>
+                    <h3>Presentations</h3>
+                    $presentations
                 </div>
             </div>
-            ";
-        }
+        </div>
+        ";
+
         return $content;
     }
 
@@ -255,13 +260,15 @@ class Sessions extends AppTable {
             $sessioncontent = $session->showsession($mail);
 
             $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
+            $date = date('d M y',strtotime($session->date));
             $content .= "
-            <div style='display: block; margin: 5px auto 0 auto;'>
+            <div style='display: block; margin: 10px auto 0 auto;'>
                 <div style='display: block; margin: 0;'>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                        $day
+                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; background-color: #555555; color: #FFF; padding: 5px; font-size: 0.8em;'>
+                        $date
                     </div>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; min-width: 100px; width: auto; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px;'>
+                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px;
+                        min-width: 100px; width: auto; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px; font-size: 0.8em;'>
                         $type
                     </div>
                 </div>

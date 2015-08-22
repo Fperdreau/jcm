@@ -106,10 +106,10 @@ var displayPage = function(page,pagetoload,param) {
         async: true,
         data: param,
         beforeSend: function() {
-            loadingDiv('#pagecontent')
+            loadingDiv('#pagecontent');
         },
         complete: function () {
-            removeLoading('#pagecontent')
+            removeLoading('#pagecontent');
         },
         success: function(data){
             var json = jQuery.parseJSON(data);
@@ -117,10 +117,9 @@ var displayPage = function(page,pagetoload,param) {
 
             $('#pagecontent')
                 .hide()
-                .empty()
                 .html(json);
 
-            $('#content').children("section").each(function() {
+            $("section").each(function() {
                 $(this).fadeIn(200);
             });
             tinymcesetup();
@@ -157,19 +156,18 @@ getParams = function() {
 
 // Show loading animation
 function loadingDiv(divId) {
-    $(""+divId)
-        .fadeOut(200)
-        .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
-        .show();
+    var width = $(divId).width();
+    var height = $(divId).height();
+    $(divId).append('<div class="loadingDiv" style="width: '+width+'px; height: '+height+'px;"></div>');
 }
 
 // Remove loading animation
 function removeLoading(divId) {
-    var el = $(""+divId);
-    el.children('.loadingDiv')
-        .fadeOut('slow')
-        .remove();
+    var el = $(divId);
     el.fadeIn(200);
+    el.find('.loadingDiv')
+        .fadeOut(1000)
+        .remove();
 }
 
 // Responsive design part

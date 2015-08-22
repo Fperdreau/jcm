@@ -25,7 +25,7 @@ $user = new User($db,$_SESSION['username']);
 // Manage users
 $userlist = $Users->generateuserslist();
 
-$content = "
+$result = "
 <h1>Manage Users</h1>
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 <section>
@@ -47,13 +47,6 @@ $content = "
     $userlist
     </div>
 </section>";
-
-
-$result = "
-<div id='content'>
-$content
-</div>
-";
 
 echo json_encode($result);
 exit;

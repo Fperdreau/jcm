@@ -56,32 +56,6 @@ function showtypelist($types,$class,$divid) {
 }
 
 /**
- * Check if the user is logged in and has the required status to access the current page
- * @param null $status
- */
-function check_login($status=null) {
-	$cond = !isset($_SESSION['logok']) || $_SESSION['logok'] == false;
-	if (null != $status) {
-		if (is_array($status)) {
-			$cond = $cond || !in_array($_SESSION['status'], $status);
-		} else {
-			$cond = $cond || $_SESSION['status'] != $status;
-		}
-	}
-
-    if ($cond) {
-        $result = "
-		    <div id='content'>
-		        <p id='warning'>You must be logged in order to access this page</br>
-		        <a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'>Sign in</a> or <a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'>Sign Up</a></p>
-		    </div>
-		    ";
-		echo json_encode($result);
-        exit;
-    }
-}
-
-/**
  * Generate submission form and automatically fill it up with data provided by Presentation object.
  * @param $user
  * @param bool $Presentation
@@ -122,7 +96,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
     // Show date input only for submissions and updates
     if ($submit != "suggest") {
-        $dateinput = "<label>Date</label><input type='text' id='datepicker' name='date' value='$date'>
+        $dateinput = "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>
             ";
     } else {
         $dateinput = "";
@@ -149,7 +123,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
     return "
     <div class='submission'>
         <div class='feedback'></div>
-        <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
+        <form method='post' action='' enctype='multipart/form-data' id='submit_form'>
             <div class='submit_btns'>
                 <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
             </div>
@@ -171,7 +145,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
             <div class='formcontrol' id='guest' style='display: none;'>
                 <label>Speaker</label>
-                <input type='text' id='orator' name='orator'>
+                <input type='text' id='orator' name='orator' required>
             </div>
 
             <br><div class='formcontrol'>

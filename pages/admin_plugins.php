@@ -25,7 +25,7 @@ $user = new User($db,$_SESSION['username']);
 // Plugins
 $plugins = new AppPlugins($db);
 $plugin_list = $plugins->show();
-$content = "
+$result = "
     <h1>Plugins</h1>
     <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
     Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
@@ -35,11 +35,6 @@ $content = "
         $plugin_list
     </section>
 ";
-
-$result = "
-    <div id='content'>
-        $content
-    </div>";
 
 echo json_encode($result);
 exit;

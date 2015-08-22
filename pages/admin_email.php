@@ -22,7 +22,7 @@ require('../includes/boot.php');
 $user = new User($db,$_SESSION['username']);
 
 // Send mail
-$content = "
+$result = "
     <h1>Mailing list</h1>
     <p class='page_description'>Here you can send an email to users who subscribed to the newsletter.</p>
     <div class='feedback'></div>
@@ -42,11 +42,6 @@ $content = "
             </div>
         </form>
     </section>";
-
-$result = "
-    <div id='content'>
-        $content
-    </div>";
 
 echo json_encode($result);
 exit;

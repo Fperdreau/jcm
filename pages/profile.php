@@ -28,19 +28,16 @@ $notifStatus = ($user->notification == 1) ? "Yes":"No";
 $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
 
 $result = "
-<div id='content'>
     <h1>Hello $user->fullname!</h1>
     <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='user_delete'>Delete my account</a></div>
 
     <div class='section_container'>
-        <div class='half_section section_left'>
             <section>
                 <h2>Personal information</h2>
                 <form method='post' action='' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='processform'/>
                     </div>
-                    <input type='hidden' name='username' value='$user->username'/>
                     <div class='formcontrol'>
                         <label for='firstname'>First Name</label>
                         <input type='text' name='firstname' value='$user->firstname'/>
@@ -71,58 +68,50 @@ $result = "
                         <label>Presentations: </label>
                         <div>$user->nbpres submission(s)</div>
                     </div>
+                    <input type='hidden' name='username' value='$user->username'/>
                     <input type='hidden' name='user_modify' value='true' />
                     <div class='feedback' id='feedback_perso'></div>
                 </form>
             </section>
-        </div>
 
-        <div class='half_section section_right'>
-            <section>
-                <h2>Contact information</h2>
-                <form method='post' action='' class='form' id='profile_emailinfo_form'>
-                    <div class='submit_btns'>
-                        <input type='submit' name='user_modify' value='Modify' class='processform'/>
-                    </div>
-                    <div class='formcontrol'>
-                        <label for='email'>Email</label>
-                        <input type='text' name='email' value='$user->email'/>
-                    </div><br>
-                    <div class='formcontrol'>
-                        <label for='notification'>Email notifications</label>
-                        <select name='notification' class='select_opt'>
-                            <option value='$user->notification' selected>$notifStatus</option>
-                            <option value='1'>Yes</option>
-                            <option value='0'>No</option>
-                        </select>
-                    </div><br>
-                    <div class='formcontrol'>
-                        <label for='reminder'>Reminders</label>
-                        <select name='reminder' class='select_opt'>
-                            <option value='$user->reminder' selected>$reminderStatus</option>
-                            <option value='1'>Yes</option>
-                            <option value='0'>No</option>
-                        </select>
-                    </div>
-                    <input type='hidden' name='user_modify' value='true' />
-                    <input type='hidden' name='username' value='$user->username'/>
-                    <div class='feedback' id='feedback_mail'></div>
-                </form>
-            </section>
-        </div>
+        <section>
+            <h2>Contact information</h2>
+            <form method='post' action='' class='processform' id='profile_emailinfo_form'>
+                <div class='submit_btns'>
+                    <input type='submit' name='user_modify' value='Modify' class='processform'/>
+                </div>
+                <div class='formcontrol'>
+                    <label for='email'>Email</label>
+                    <input type='text' name='email' value='$user->email'/>
+                </div><br>
+                <div class='formcontrol'>
+                    <label for='notification'>Email notifications</label>
+                    <select name='notification' class='select_opt'>
+                        <option value='$user->notification' selected>$notifStatus</option>
+                        <option value='1'>Yes</option>
+                        <option value='0'>No</option>
+                    </select>
+                </div><br>
+                <div class='formcontrol'>
+                    <label for='reminder'>Reminders</label>
+                    <select name='reminder' class='select_opt'>
+                        <option value='$user->reminder' selected>$reminderStatus</option>
+                        <option value='1'>Yes</option>
+                        <option value='0'>No</option>
+                    </select>
+                </div>
+                <input type='hidden' name='user_modify' value='true' />
+                <input type='hidden' name='username' value='$user->username'/>
+                <div class='feedback' id='feedback_mail'></div>
+            </form>
+        </section>
 
-        <div class='half_section section_left'>
-            <section>
-                <h2>My submissions</h2>
-                $publication_list
-            </section>
-        </div>
-        <div class='half_section section_right'>
-            <div class='plugins'></div>
-        </div>
+        <section>
+            <h2>My submissions</h2>
+            $publication_list
+        </section>
+        <div class='plugins'></div>
     </div>
-
-</div>
 ";
 
 echo json_encode($result);

@@ -160,7 +160,6 @@ if (!empty($_POST['run_cron'])) {
     exit;
 }
 
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Plugins
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -271,33 +270,9 @@ if (!empty($_POST['logout'])) {
 
 // Check login
 if (!empty($_POST['login'])) {
-    $user = new User($db);
-
     $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
-    if ($user->get($username) == true) {
-        if ($user->active == 1) {
-            if ($user -> check_pwd($password) == true) {
-                $_SESSION['logok'] = true;
-                $_SESSION['username'] = $user -> username;
-                $_SESSION['firstname'] = $user -> firstname;
-                $_SESSION['lastname'] = $user -> lastname;
-                $_SESSION['status'] = $user -> status;
-                $result['status'] = true;
-            } else {
-                $attempt = $user->checkattempt();
-                $result['msg'] = $attempt == false ? "blocked_account":"wrong_password";
-                $result['status'] = $attempt;
-                $_SESSION['logok'] = false;
-            }
-        } else {
-            $result['status'] = false;
-            $result['msg'] = "not_activated";
-        }
-    } else {
-        $result['status'] = false;
-        $result['msg'] = "wrong_username";
-    }
+    $user = new User($db,$username);
+    $result = $user->login($_POST);
     echo json_encode($result);
     exit;
 }
@@ -305,7 +280,7 @@ if (!empty($_POST['login'])) {
 // Registration
 if (!empty($_POST['register'])) {
     $user = new User($db);
-    $result = $user -> make($_POST);
+    $result = $user->make($_POST);
     echo json_encode($result);
     exit;
 }
@@ -315,21 +290,16 @@ if (!empty($_POST['delete_user'])) {
     $user = new User($db);
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
-    if ($user -> get($username) == true) {
-        if ($user->active == 1) {
-            if ($user -> check_pwd($password) == true) {
-                $user ->delete_user($username);
-                $result = "deleted";
-                $_SESSION['logok'] = false;
-            } else {
-                $result = "wrong_password";
-            }
+    $result = $user->login($_POST);
+    if ($result['status'] == true) {
+        if ($user ->delete_user($username)) {
+            $result['msg'] = "<p id='success'>Your account has been deleted!</p>";
+            $result['status'] = false;
+            $_SESSION['logok'] = false;
         } else {
-        	$result = "not_activated";
+            $result['msg'] = "<p id='success'>Sorry, we could not delete your account!</p>";
+            $result['status'] = false;
         }
-
-    } else {
-        $result = "wrong_username";
     }
     echo json_encode($result);
     exit;
@@ -389,11 +359,7 @@ if (!empty($_POST['conf_changepw'])) {
 // Process user modifications
 if (!empty($_POST['user_modify'])) {
     $user = new User($db,$_POST['username']);
-    if ($user -> update($_POST)) {
-        $result = "<div id='success'>The modification has been made!</div>";
-    } else {
-        $result = "<div id='warning'>Something went wrong!</div>";
-    }
+    $result = $user->update($_POST);
     echo json_encode($result);
     exit;
 }
@@ -422,6 +388,7 @@ if (!empty($_POST['del_upl'])) {
     $fileid = $fileid[0];
     $up = new Media($db, $fileid);
     $result = $up->delete();
+    $result['uplname'] = $fileid;
     echo json_encode($result);
     exit;
 }
@@ -431,9 +398,11 @@ if (!empty($_POST['del_pub'])) {
     $Presentation = new Presentation($db);
     $id_Presentation = htmlspecialchars($_POST['del_pub']);
     if ($Presentation->delete_pres($id_Presentation)) {
-        $result = 'deleted';
+        $result['msg'] = "<p id='success'>The presentation has been deleted!</p>";
+        $result['status'] = true;
     } else {
-        $result = 'failed';
+        $result['msg'] = "<p id='warning'>Oops, something has gone wrong!</p>";
+        $result['status'] = false;
     }
     echo json_encode($result);
     exit;
@@ -581,16 +550,18 @@ Contact form
 if (!empty($_POST['contact_send'])) {
     $sel_admin_mail = htmlspecialchars($_POST['admin_mail']);
     $usr_msg = htmlspecialchars($_POST["message"]);
-    $usr_mail = htmlspecialchars($_POST["mail"]);
+    $usr_mail = htmlspecialchars($_POST["email"]);
     $usr_name = htmlspecialchars($_POST["name"]);
     $content = "Message sent by $usr_name ($usr_mail):<br><p>$usr_msg</p>";
     $body = $AppMail -> formatmail($content);
     $subject = "Contact from $usr_name";
 
     if ($AppMail->send_mail($sel_admin_mail,$subject,$body)) {
-        $result = "sent";
+        $result['status'] = true;
+        $result['msg'] = "<p id='success'>Your message has been sent!</p>";
     } else {
-        $result = "not_sent";
+        $result['msg'] = "<p id='warning'>Oops, something has gone wrong!</p>";;
+        $result['status'] = false;
     }
     echo json_encode($result);
     exit;
@@ -607,7 +578,7 @@ if (!empty($_POST['upload'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Admin tools
+User Management tools
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Sort user list
 if (!empty($_POST['user_select'])) {
@@ -615,20 +586,25 @@ if (!empty($_POST['user_select'])) {
 	if ($filter == "") {
 		$filter = null;
 	}
-
     $userlist = $Users->generateuserslist($filter);
     echo json_encode($userlist);
     exit;
 }
 
-// Export db if asked
-if (!empty($_POST['export'])) {
-    $table_name = htmlspecialchars($_POST['tablename']);
-    $result = exportdbtoxls($table_name);
+// Change user status
+if (!empty($_POST['modify_status'])) {
+    $username = htmlspecialchars($_POST['username']);
+    $newStatus = htmlspecialchars($_POST['option']);
+    $user = new User($db,$username);
+    $result = $user->setStatus($newStatus);
+    $result['content'] = $Users->generateuserslist();
     echo json_encode($result);
     exit;
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Mailing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Send mail if asked
 if (!empty($_POST['mailing_send'])) {
     $content['body'] = $_POST['spec_msg'];
@@ -644,36 +620,25 @@ if (!empty($_POST['mailing_send'])) {
     exit;
 }
 
-// Change user status
-if (!empty($_POST['modify_status'])) {
-    $username = htmlspecialchars($_POST['username']);
-    $newstatus = htmlspecialchars($_POST['option']);
-    $selected_user = new User($db,$username);
-
-    if ($newstatus == 'delete') {
-        $selected_user -> delete_user();
-        $result['status'] = "Account successfully deleted";
-    } elseif ($newstatus == "activate") {
-        $result['status'] = $selected_user -> activation(1);
-    } elseif ($newstatus == "desactivate") {
-        $result['status'] = $selected_user -> activation(0);
-    } else {
-        $selected_user -> change_user_status($newstatus);
-        $result['status'] = "User status is now $newstatus!";
-    }
-    $result['content'] = $Users->generateuserslist();
-    echo json_encode($result);
-    exit;
-}
-
-// Udpate application settings
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Application settings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Update application settings
 if (!empty($_POST['config_modify'])) {
-    $AppConfig->update($_POST);
-    $result = "<div id='success'>Modifications have been made!</div>";
+    if ($AppConfig->update($_POST)) {
+        $result['msg'] = "<div id='success'>Modifications have been made!</div>";
+        $result['status'] = true;
+    } else {
+        $result['msg'] = "<div id='warning'>Oops, something has gone wrong!</div>";
+        $result['status'] = false;
+    }
     echo json_encode($result);
     exit;
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+POSTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Add a new post
 if (!empty($_POST['post_add'])) {
     if ($_POST['post_add'] === 'post_add') {
@@ -709,6 +674,9 @@ if (!empty($_POST['post_del'])) {
     exit;
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Session Management tools
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Add a session/presentation type
 if (!empty($_POST['add_type'])) {
     $class = $_POST['add_type'];
@@ -759,8 +727,9 @@ if (!empty($_POST['del_type'])) {
 
 // Show sessions
 if (!empty($_POST['show_session'])) {
-    $nbsession = $_POST['show_session'];
-    $result = $Sessions->managesessions($nbsession);
+    $date = htmlspecialchars($_POST['show_session']);
+    $status = htmlspecialchars($_POST['status']);
+    $result = $Sessions->managesessions($date,$status);
     echo json_encode($result);
     exit;
 }
@@ -791,21 +760,20 @@ if (!empty($_POST['mod_session_time'])) {
     exit;
 }
 
-// Modify chairman
-if (!empty($_POST['mod_chair'])) {
-    $sessionid = $_POST['session'];
-    $chair = $_POST['chair'];
+// Modify speaker
+if (!empty($_POST['modSpeaker'])) {
+    $speaker = $_POST['modSpeaker'];
     $presid = $_POST['presid'];
-    $chairID = $_POST['chairID'];
+    $speaker = new User($db,$speaker);
 
-    $Chairs = new Chairs($db);
-    $Chairs->get('id',$chairID);
-    $Chairs->chair = $chair;
-    $result = $Chairs->update();
-
-    $Presentation = new Presentation($db,$presid);
-    $Presentation->chair = $chair;
-    $result = $Presentation->update();
+    $pres = new Presentation($db,$presid);
+    if ($pres->update(array('orator'=>$speaker->username))) {
+        $result['msg'] = "<div id='success'>$speaker->fullname is the new speaker!</div>";
+        $result['status'] = true;
+    } else {
+        $result['msg'] = "<div id='warning'>Oops, something has gone wrong!</div>";
+        $result['status'] = false;
+    }
 
     echo json_encode($result);
     exit;

@@ -36,61 +36,60 @@ $jc_day = ucfirst($AppConfig->jc_day);
 // Lab information
 
 $result = "
-    <div id='content'>
-        <div class='section_container'>
-            <div class='half_section'>
-                <section style='width: 90%;'>
-                    <h2>Where</h2>
-                    $AppConfig->lab_name</br>
-                    $AppConfig->lab_street</br>
-                    $AppConfig->lab_postcode, $AppConfig->lab_city</br>
-                    $AppConfig->lab_country
-                </section>
+    <div class='section_container'>
+        <div class='half_section'>
+            <section style='width: 90%;'>
+                <h2>Where</h2>
+                $AppConfig->lab_name</br>
+                $AppConfig->lab_street</br>
+                $AppConfig->lab_postcode, $AppConfig->lab_city</br>
+                $AppConfig->lab_country
+            </section>
 
-                <section style='width: 90%;'>
-                    <h2>When</h2>
-                    <b>Day:</b> $jc_day<br>
-                    <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
-                    <b>Room:</b> $AppConfig->room
-                </section>
+            <section style='width: 90%;'>
+                <h2>When</h2>
+                <b>Day:</b> $jc_day<br>
+                <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
+                <b>Room:</b> $AppConfig->room
+            </section>
 
-                <section style='width: 90%;'>
-                    <h2>Map</h2>
-                    <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
-                    </iframe>
-                </section>
-            </div>
+            <section style='width: 90%;'>
+                <h2>Map</h2>
+                <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
+                </iframe>
+            </section>
+        </div>
 
-            <div class='half_section section_right'>
-                <section>
-                    <h2>Contact us</h2>
-                    <div class='feedback'></div>
-                    <form method='post' action='' class='form' id='contact_form'>
-                        <div class='submit_btns'>
-                            <input type='submit' name='send' value='Send' id='submit' class='contact_send'>
-                        </div>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label for='admin_mail'>Organizer</label>
-                            <select name='admin_mail' id='admin_mail'>
-                                <option value='none' selected='selected'>Select an organizer</option>
-                                $mail_option
-                            </select>
-                        </div><br>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label for='name'>Your name</label>
-                            <input type='text' name='name' id='contact_name' placeholder='Your name'>
-                        </div>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label for='mail'>E-mail</label>
-                            <input type='text' name='mail' id='contact_mail' placeholder='Your email'>
-                        </div>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label for='message'>Message</label>
-                            <textarea id='message' name='message' placeholder='Your message'></textarea>
-                        </div>
-                    </form>
-                </section>
-            </div>
+        <div class='half_section section_right'>
+            <section>
+                <h2>Contact us</h2>
+                <div class='feedback'></div>
+                <form id='contact_form'>
+                    <input type='hidden' name='contact_send' value='true'/>
+                    <div class='submit_btns'>
+                        <input type='submit' name='send' value='Send' class='processform'>
+                    </div>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='admin_mail'>Organizer</label>
+                        <select name='admin_mail' required>
+                            <option value='none' selected='selected'>Select an organizer</option>
+                            $mail_option
+                        </select>
+                    </div><br>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='name'>Your name</label>
+                        <input type='text' name='name' placeholder='Your name' required>
+                    </div>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='mail'>E-mail</label>
+                        <input type='email' name='email' placeholder='Your email' required>
+                    </div>
+                    <div class='formcontrol' style='width: 100%;'>
+                        <label for='message'>Message</label>
+                        <textarea id='message' name='message' placeholder='Your message' required></textarea>
+                    </div>
+                </form>
+            </section>
         </div>
     </div>
 ";

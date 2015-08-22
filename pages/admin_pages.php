@@ -75,18 +75,13 @@ while ($row = mysqli_fetch_assoc($req)) {
 
 }
 
-$content = "
+$result = "
     <p class='page_description'>Here you manage the pages' settings and status</p>
     <section>
         <h2>Pages Management</h2>
         $pageSettings
     </section>
 ";
-
-$result = "
-    <div id='content'>
-        $content
-    </div>";
 
 echo json_encode($result);
 exit;

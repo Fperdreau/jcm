@@ -25,7 +25,7 @@ $user = new User($db,$_SESSION['username']);
 // Cronjobs settings
 $AppCron = new AppCron($db);
 $cronOpt = $AppCron->show();
-$content = "
+$result = "
     <h1>Scheduled tasks</h1>
     <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
     Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
@@ -36,11 +36,6 @@ $content = "
         $cronOpt
     </section>
 ";
-
-$result = "
-    <div id='content'>
-        $content
-    </div>";
 
 echo json_encode($result);
 exit;

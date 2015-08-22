@@ -38,12 +38,10 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
         $content = "<p id='warning'>Incorrect email or hash id.</p>";
     }
     $result = "
-            <div id='content'>
                 <section>
                     <h2>Change password</h2>
                     $content
-                </section>
-            </div>";
+                </section>";
     echo json_encode($result);
 }
 

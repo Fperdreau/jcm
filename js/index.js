@@ -35,6 +35,7 @@ var showpubform = function(formel,idpress,type,date,prestype) {
 
     // First we remove any existing submission form
     $('.submission').remove();
+
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -90,25 +91,36 @@ var showpostform = function(postid) {
 /**
  * Process a form
  * @param formid: DOM ID of the form
- * @param feedbackid: DOM ID of the feedback div
  * @returns {boolean}
  * @param callback: callback function to execute after the form has been processed
  */
 var processform = function(formid,callback) {
-    callback = (callback === undefined) ? false: callback;
-    var el = "form#"+formid;
-    if (!checkform(el)) { return false;}
+    if (!checkform(formid)) { return false;}
+    var data = $(formid).serialize();
+    processAjax(formid,data,callback);
+};
 
-    var data = $(el).serialize();
+/**
+ * Process Ajax requests
+ * @param formid
+ * @param data
+ * @param callback
+ */
+var processAjax = function(formid,data,callback) {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: true,
         data: data,
-        beforeSend: loadingDiv(el),
-        complete: removeLoading(el),
+        beforeSend: function() {
+            loadingDiv(formid);
+        },
+        complete: function() {
+            removeLoading(formid);
+        },
         success: function(data) {
-            validsubmitform(el,data,callback);
+            callback = (callback === undefined) ? false: callback;
+            validsubmitform(formid,data,callback);
         }
     });
 };
@@ -122,18 +134,15 @@ var processform = function(formid,callback) {
  * @param timing: duration of feedback
  */
 var validsubmitform = function(form,data,callback,timing) {
-    var text = jQuery.parseJSON(data);
-    console.log(text);
-
+    var result = jQuery.parseJSON(data);
     callback = (callback === undefined) ? false: callback;
     timing = (timing === undefined) ? 3000: timing;
-
     var el = $(form);
     el.append("<div class='feedbackForm'></div>");
     var feedbackForm = $('.feedbackForm');
 
     feedbackForm
-        .html(text)
+        .html(result.msg)
         .fadeIn(200);
 
     setTimeout(function() {
@@ -142,7 +151,7 @@ var validsubmitform = function(form,data,callback,timing) {
             .remove();
         el.show();
         if (callback !== false) {
-            callback();
+            callback(result);
         }
     },timing);
 };
@@ -155,28 +164,39 @@ var validsubmitform = function(form,data,callback,timing) {
  */
 var checkform = function(formid,feedbackDiv) {
     var valid = true;
-    $('#'+formid+' input,select,textarea').each(function () {
+    $('.inputFeedback').hide();
+    $(formid+' input,select,textarea').each(function () {
         $(this).removeClass('wrongField');
+
         // Check if required fields have been filled in
-        if ($(this).prop('required') && $.trim($(this).val()).length === 0){
-            $(this)
-                .addClass('wrongField')
-                .focus();
-            showfeedback('<p id="warning">This field is required</p>',feedbackDiv);
+        if ($(this).is(':visible') && $(this).prop('required') && $.trim($(this).val()).length === 0){
+            $(this).addClass('wrongField');
+            $(this).after("<div class='inputFeedback' style='display: none;'>*</div>");
+            $(this).next('.inputFeedback').animate({width:'toggle'});
+            showfeedback('<p class="formRequired">* Required</p>',feedbackDiv);
             valid = false;
-            return false;
         }
 
         // Check if provided email is valid
         if ($(this).attr('type') == 'email' && !checkemail($(this).val())) {
             showfeedback('<p id="warning">Invalid email!</p>',feedbackDiv);
-            $(this)
-                .addClass('wrongField')
-                .focus();
+            $(this).addClass('wrongField');
             valid = false;
-            return false;
         }
     });
+
+    // Check if form include password confirmation
+    var conf_password = $(formid+" input#conf_password");
+    if (conf_password.length) {
+        var password = $(formid+" input#password").val();
+        if (password != conf_password.val()) {
+            showfeedback('<p id="warning">Passwords must match!</p>');
+            conf_password.addClass('wrongField');
+        }
+    }
+
+    // Set focus on the first empty element
+    $('input.wrongField:first').focus();
     return valid;
 };
 
@@ -423,10 +443,11 @@ $( document ).ready(function() {
         // Display submenu
         .on('click','.submenu_trigger',function(e) {
             e.preventDefault();
-            var absPos = $(this).offset();
-            var position = $(this).position();
-            var width = $(this).outerWidth();
-            var height = $(this).outerHeight();
+            var menuEl = $(this).parent('li');
+            var absPos = menuEl.offset();
+            var position = menuEl.position();
+            var width = menuEl.outerWidth();
+            var height = menuEl.outerHeight();
             var id = $(this).attr('id');
             var submenu = $(".submenu#"+id);
 
@@ -497,7 +518,7 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('mouseenter','.submission',function(e) {
+        .on('mouseenter','#core, .submission',function(e) {
             e.preventDefault();
             jQuery.ajax({
                 url: 'php/form.php',
@@ -506,7 +527,7 @@ $( document ).ready(function() {
                 data: {get_calendar_param: true},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    var selected_date = $('input#selected_date').val();
+                    var selected_date = $('input[type="date"]').val();
                     inititdatepicker(result,selected_date);
                 }
             });
@@ -515,18 +536,6 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          User Profile
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-		 // Process personal info form
-        .on('click',".profile_persoinfo_form",function(e) {
-            e.preventDefault();
-            processform("profile_persoinfo_form","feedback_perso");
-        })
-
-		// Process coordinates (email, etc) form
-        .on('click',".profile_emailinfo_form",function(e) {
-            e.preventDefault();
-            processform("profile_emailinfo_form","feedback_mail");
-        })
-
 		// Send a verification email to the user if a change of password is requested
         .on('click',".change_pwd",function(){
             var email = $(this).attr("id");
@@ -535,20 +544,9 @@ $( document ).ready(function() {
         })
 
 		// Open a dialog box
-        .on('click',"#modal_change_pwd",function(){
-            var email = $("input#ch_email").val();
-
-            if (email === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#ch_email").focus();
-                return false;
-            }
-
-            if (!checkemail(email)) {
-                showfeedback('<p id="warning">Invalid email</p>');
-                $("input#ch_email").focus();
-                return false;
-            }
+        .on('click',".modal_change_pwd",function(){
+            if (!checkform('form#modal_change_pwd')) {return false;}
+            var email = $("input#email").val();
             send_verifmail(email);
         })
 
@@ -825,52 +823,36 @@ $( document ).ready(function() {
             });
         })
 
-        // Number of sessions to show
-        .on('change','.show_sessions',function(e) {
+        // Select session to show
+        .on('change','.selectSession',function(e) {
             var nbsession = $(this).val();
+            var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
+            console.log(status);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
                 async: true,
                 data: {
-                    show_session: nbsession},
+                    show_session: nbsession,
+                    status: status},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
                     $('#sessionlist')
-                        .hide()
                         .html(result)
                         .fadeIn(200);
                 }
             });
         })
 
-        // Modify chairman
-        .on('change','.mod_chair',function(e) {
-            var session = $(this).attr('data-session');
-            var chair = $(this).val();
-            var chairID = $(this).attr('data-chair');
-            var presid = $(this).attr('data-pres');
+        // Modify speaker
+        .on('change','.modSpeaker',function(e) {
+            var speaker = $(this).val();
+            var container = $(this).closest('.pres_container');
+            console.log(container);
+            var presid = container.attr('id');
+            var data = {modSpeaker: speaker, presid: presid};
+            processAjax('.pres_container#'+presid,data);
 
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_chair: true,
-                    session: session,
-                    chair: chair,
-                    chairID: chairID,
-                    presid: presid},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var feedbackdiv = 'feedback_'+session;
-                    if (result !== false) {
-                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
-                    } else {
-                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
-                    }
-                }
-            });
         })
 
         // Modify session time
@@ -989,22 +971,14 @@ $( document ).ready(function() {
           // Delete uploaded file
          .on('click','.del_upl',function() {
             var uplfilename = $(this).attr('id');
-            var uplname = $(this).attr('data-upl');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    del_upl: true,
-                    uplname: uplfilename},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === true) {
-                        $('.upl_info#upl_'+uplname).remove();
-                        $('.upl_link#upl_'+uplname).remove();
-                    }
+            var data = {del_upl: true,uplname: uplfilename};
+            var callback = function(result) {
+                if (result.status === true) {
+                    $('.upl_info#upl_'+result.uplname).remove();
+                    $('.upl_link#upl_'+result.uplname).remove();
                 }
-            });
+            };
+            processAjax('div.upl_filelist',data,callback);
          })
 
          // Select submission type
@@ -1030,10 +1004,13 @@ $( document ).ready(function() {
             e.preventDefault();
             var operation = $(this).attr('name');
             var form = $(this).closest('#submit_form');
+            var formId = 'form#submit_form';
             var type = $("select#type").val();
 
-            if (!checkform('submit_form')) { return false;}
+            // Check if the form has been fully completed
+            if (!checkform(formId)) { return false;}
 
+            // Check if a data has been selected (except for wishes)
             if (operation !== "suggest") {
                 var date = $("input#datepicker").val();
                 if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
@@ -1043,9 +1020,11 @@ $( document ).ready(function() {
                 }
             }
 
-            if ($('input.upl_link')[0]) {
+            // Check if files have been uploaded and attach them to this presentation
+            var uploadInput = $('input.upl_link');
+            if (uploadInput[0]) {
                 var links = new Array();
-                $('input.upl_link').each(function(){
+                uploadInput.each(function(){
                     var link = $(this).val();
                     links.push(link);
                 });
@@ -1053,97 +1032,25 @@ $( document ).ready(function() {
                 form.append("<input type='hidden' name='link' value='"+links+"'>");
             }
 
+            // Submit presentation
             var data = form.serialize();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: data,
-                beforeSend: function() {
-                    loadingDiv('.submission');
-                },
-                complete: function() {
-                    removeLoading('.submission');
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var subform = $('section#submission_form');
-
-                    if (result.status == true) {
-                        var callback = showpubform(subform,false);
-                        validsubmitform('.submission',result.msg,callback);
-                    } else {
-                        validsubmitform('.submission',result.msg);
-                    }
+            var callback = function(result) {
+                var subform = $('section#submission_form, .modal_section#submission_form');
+                if (result.status == true) {
+                    showpubform(subform,false);
                 }
-            });
-            return false;
+            };
+            processAjax(formId,data,callback);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Contact form
+         FORMS
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-       // Send an email to the chosen organizer
-	   .on('click','.contact_send',function(e) {
-            e.preventDefault();
-            var admin_mail = $("select#admin_mail").val();
-            var message = $("textarea#message").val();
-            var contact_mail = $("input#contact_mail").val();
-            var contact_name = $("input#contact_name").val();
-
-            if (admin_mail == "none") {
-                showfeedback('<p id="warning">You must select an organizer</p>');
-                $("select#admin_mail").focus();
-                return false;
-            }
-
-            if (contact_mail == "Your email") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#contact_mail").focus();
-                return false;
-            }
-
-            if (!checkemail(contact_mail)) {
-                showfeedback('<p id="warning">Invalid email!</p>');
-                $("input#contact_mail").focus();
-                return false;
-            }
-
-            if (contact_name == "Your name") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#contact_name").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    contact_send: true,
-                    admin_mail: admin_mail,
-                    message: message,
-                    name: contact_name,
-                    mail: contact_mail},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === "sent") {
-                        showfeedback('<p id="success">Your message has been sent!</p>');
-                    } else if (result === "not_sent") {
-                        showfeedback('<p id="warning">Oops, something went wrong!</p>');
-                    }
-                }
-            });
-            return false;
-        })
-
         .on('click','.processform',function(e) {
             e.preventDefault();
-            //var formId = $(this).closest('form').attr('id');
-            //var feedbackDiv = $(this).closest('.feedback');
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var formId = form.attr('id');
+            var formId = 'form#'+form.attr('id');
             processform(formId);
         })
 
@@ -1169,9 +1076,6 @@ $( document ).ready(function() {
             logout();
         })
 
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          Publication modal
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Show publication information on click
         .on('click','#modal_trigger_pubcontainer',function(e){
             e.preventDefault();
@@ -1183,13 +1087,15 @@ $( document ).ready(function() {
         // Choose a wish
         .on('click','#modal_trigger_pubmod',function(e){
             e.preventDefault();
-            var id_pres = $(this).attr('data-id');
-            var date = $(this).attr('data-date');
+            var id_pres = $(this).data('id');
+            var date = $(this).data('date');
             showmodal('submission_form');
             showpubform(modalpubform,id_pres,'submit',date);
         });
 
-	// Process events happening on the publication modal dialog box
+    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     Modal Window
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.modalContainer')
 		// Show publication modification form
         .on('click','.modify_ref',function(e) {
@@ -1205,50 +1111,37 @@ $( document ).ready(function() {
             var id_pres = $(this).attr("data-id");
             showmodal('pub_delete');
             $("#pub_delete").append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
-            $(".header_title").text('Delete confirmation');
         })
 
         // Going back to publication
         .on('click',".pub_back_btn",function(){
             showmodal('submission_form');
-            $(".header_title").text('Presentation');
         })
 
         // Confirm delete publication
         .on('click',"#confirm_pubdel",function(e) {
             e.preventDefault();
             var id_pres = $("input#del_pub").val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {del_pub: id_pres},
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                complete: function() {
-                    $('#loading').hide();
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    showfeedback('<p id="success">Publication deleted</p>');
+            var data = {del_pub:id_pres};
+            var callback = function(result) {
+                if (result.status == true) {
                     close_modal('.modalContainer');
-                    $('#'+id_pres).remove();
+                    $('#' + id_pres).remove();
                 }
-            });
+            };
+            processAjax('.modal_section#pub_delete',data,callback);
         })
 
         // Dialog change password
         .on('click',".modal_trigger_changepw",function(e){
             e.preventDefault();
             showmodal('user_changepw');
-            $(".header_title").text('Change password');
         })
 
         // Going back to Login Forms
-        .on('click',".back_btn",function(){
+        .on('click',".back_btn",function(e){
+            e.preventDefault();
             showmodal('user_login');
-            $(".header_title").text('Sign in');
             return false;
         })
 
@@ -1256,122 +1149,49 @@ $( document ).ready(function() {
         .on('click','.gotoregister',function(e) {
             e.preventDefault();
             showmodal('user_register');
-            $(".header_title").text('Sign Up');
         })
 
         // Delete user account confirmation form
         .on('click',"#confirmdeleteuser",function(e) {
             e.preventDefault();
-            var username = $("input#del_username").val();
-            var password = $("input#del_password").val();
-
-            var valid = checkform('login_form');
-            if (valid === false) { return false; }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {username: username,
-                    password: password,
-                    delete_user: true},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result == 'deleted') {
-                        window.location.href = "index.php?page=logout";
-                        location.reload();
-                    } else if (result == "wrong_username") {
-                        showfeedback('<p id="warning">Wrong username</p>');
-                    } else if (result == "wrong_password") {
-                        showfeedback('<p id="warning">Wrong username/password</p>');
-                    }
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var formId = 'form#'+form.attr('id');
+            var callback = function(result) {
+                if (result.status === true) {
+                    logout();
+                    window.location.href = "index.php?page=home";
+                    location.reload();
                 }
-            });
-            return false;
+            };
+            processform(formId,callback);
         })
 
         // Login form
         .on('click',".login",function(e) {
             e.preventDefault();
-            var username = $("input#log_username").val();
-            var password = $("input#log_password").val();
-
-            var valid = checkform('login_form');
-            if (valid === false) { return false; }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {username: username,
-                    password: password,
-                    login: true
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result.status == true) {
-                        var  text = '<p id="success">Welcome back!</p>';
-                        var callback = location.reload();
-                        validsubmitform('#login_form',text,callback);
-                    } else if (result.msg == "wrong_username") {
-                        var text = '<p id="warning">Wrong username</p>';
-                        validsubmitform('#login_form',text);
-                    } else if (result.msg == "wrong_password") {
-                        var text = '<p id="warning">Wrong password. ' + result.status + ' login attempts remaining</p>';
-                        validsubmitform('#login_form',text);
-                    } else if (result.msg == "blocked_account") {
-                        var text = '<p id="warning">Wrong password. You have exceeded the maximum number ' +
-                        'of possible attempts, hence your account has been deactivated for security reasons. ' +
-                        'We have sent an email to your address including an activation link.</p>';
-                        validsubmitform('#login_form',text);
-                    } else if (result.msg == "not_activated") {
-                        var text = '<p id="warning">Sorry, your account is not activated yet. ' +
-                            '<br> You will receive an email as soon as your registration is confirmed by an admin.<br> ' +
-                            'Please <a href="index.php?page=contact">contact us</a> if you have any question.</p>';
-                        validsubmitform('#login_form',text);
-                    }
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var formId = 'form#'+form.attr('id');
+            var callback = function(result) {
+                if (result.status === true) {
+                    location.reload();
                 }
-            });
-            return false;
+            };
+            processform(formId,callback);
         })
 
         // Sign Up Form
         .on('click',".register",function(e) {
             e.preventDefault();
-            var password = $("input#password").val();
-            var conf_password = $("input#conf_password").val();
-
-            if (!checkform('register_form')) { return false; }
-
-            if (password != conf_password) {
-                showfeedback('<p id="warning">Passwords must match</p>');
-                $("input#conf_password").focus();
-                return false;
-            }
-            var data = $('#register_form').serialize();
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: false,
-                data: data,
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result == true) {
-                        var text = '<p id="success">Your account has been created. You will receive an email after its ' +
-                            'validation by our admins.</p>';
-                        var callback = close_modal(".modalContainer");
-                        validsubmitform('#user_register',text,callback);
-                    } else if (result === "exist") {
-                        var text = '<p id="warning">This username/email address already exist in our database</p>';
-                        validsubmitform('#user_register',text);
-                    } else if (result === "mail_pb") {
-                        var text = '<p id="warning">Sorry, we have not been able to send a verification email to the organizers.' +
-                            ' Your registration cannot be validated for the moment. Please try again later.</p>';
-                        validsubmitform('#user_register',text);
-                    }
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var formId = 'form#'+form.attr('id');
+            var callback = function(result) {
+                if (result.status === true) {
+                    close_modal('.modalContainer');
                 }
-            });
-            return false;
+            };
+            processform(formId,callback);
         });
 });

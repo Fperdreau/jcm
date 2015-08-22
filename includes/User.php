@@ -262,22 +262,31 @@ class User extends Users{
                 if ($this->status !=  "admin") {
                     // Send verification email to admins/organizer
                     if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
-                        return true;
+                        $result['status'] = true;
+                        $result['msg'] = "<p id='success'>Your account has been created. You will receive an email after
+                            its validation by our admins.</p>";
                     } else {
                         self::delete_user($this->username);
-                        return 'mail_pb';
+                        $result['status'] = false;
+                        $result['msg'] = "<p id='warning'>Sorry, we have not been able to send a verification email to the organizers.
+                            Your registration cannot be validated for the moment. Please try again later.</p>";
                     }
                 } else {
                     // Send confirmation email to the user directly
-                    if ($mail-> send_confirmation_mail($this->email,$this->username,$this->password)) {
-                        return true;
+                    if ($mail->send_confirmation_mail($this->email,$this->username)) {
+                        $result['status'] = true;
+                        $result['msg'] = "<p id='success'>Your account has been successfully created!</p>";
                     } else {
-                        return 'mail_pb';
+                        $result['status'] = false;
+                        $result['msg'] = "<p id='warning'>Sorry, we have not been able to send a verification email to the organizers.
+                            Your registration cannot be validated for the moment. Please try again later.</p>";;
                     }
                 }
 		} else {
-			return 'exist';
+            $result['status'] = false;
+			$result['msg'] = "<p id='warning'>This username/email address already exist in our database</p>";
 		}
+        return $result;
     }
 
     /**
@@ -308,7 +317,6 @@ class User extends Users{
 
     /**
      * Get the number of presentations submitted by the user
-     *
      * @return int
      */
     function get_nbpres() {
@@ -328,12 +336,18 @@ class User extends Users{
      * @param $post
      * @return bool
      */
-    function update($post) {
+    public function update($post) {
         $class_vars = get_class_vars("User");
         $content = $this->parsenewdata($class_vars,$post);
-        $this->db->updatecontent($this->tablename,$content,array("username"=>$this->username));
+        if ($this->db->updatecontent($this->tablename,$content,array("username"=>$this->username))) {
+            $result['status'] = true;
+            $result['msg'] = "<div id='success'>The modification has been made!</div>";
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "<div id='warning'>Something went wrong!</div>";
+        }
         self::get($this->username);
-        return true;
+        return $result;
     }
 
     /**
@@ -342,7 +356,7 @@ class User extends Users{
      * @param $prov_username
      * @return bool
      */
-    function user_exist($prov_username) {
+    public function user_exist($prov_username) {
         $userslist = $this->db -> getinfo($this->tablename,'username');
         $active = $this->db->getinfo($this->tablename,'active',array('username'),array("'$prov_username'"));
         if (in_array($prov_username,$userslist) && $active == 1) {
@@ -358,7 +372,7 @@ class User extends Users{
      * @param $prov_mail
      * @return bool
      */
-    function mail_exist($prov_mail) {
+    public function mail_exist($prov_mail) {
         $mailinglist = $this->db->getinfo($this->tablename,'email');
         return (in_array($prov_mail,$mailinglist));
     }
@@ -369,7 +383,7 @@ class User extends Users{
      *
      * @return string
      */
-    public function make_hash() {
+    private function make_hash() {
         $hash = md5( rand(0,1000) );
         return $hash;
     }
@@ -382,7 +396,7 @@ class User extends Users{
      * @param $result
      * @return string
      */
-    function check_account_activation($hash,$email,$result) {
+    public function check_account_activation($hash,$email,$result) {
         $config = new AppConfig($this->db);
         $username = $this->db ->getinfo($this->tablename,'username',array("email"),array("'$email'"));
         $this->get($username);
@@ -412,7 +426,7 @@ class User extends Users{
      * @param $option
      * @return string
      */
-    function activation($option) {
+    private function activation($option) {
         if ($option == 1){
             return self::check_account_activation($this->hash,$this->email,true);
         } else {
@@ -424,12 +438,71 @@ class User extends Users{
     }
 
     /**
+     * User login
+     * @param $post
+     * @return mixed
+     */
+    public function login($post) {
+        $password = htmlspecialchars($post['password']);
+        if ($this->get($this->username) == true) {
+            if ($this->active == 1) {
+                if ($this -> check_pwd($password) == true) {
+                    $_SESSION['logok'] = true;
+                    $_SESSION['username'] = $this -> username;
+                    $_SESSION['status'] = $this -> status;
+                    $result['msg'] = "<p id=success>Hi $this->fullname,<br> welcome back!</p>";
+                    $result['status'] = true;
+                } else {
+                    $_SESSION['logok'] = false;
+                    $result['status'] = false;
+                    $attempt = $this->checkattempt();
+                    if ($attempt == false) {
+                        $result['msg'] = "<p id='warning'>Wrong password. You have exceeded the maximum number
+                            of possible attempts, hence your account has been deactivated for security reasons.
+                            We have sent an email to your address including an activation link.</p>";
+                    } else {
+                        $result['msg'] = "<p id='warning'>Wrong password. $attempt login attempts remaining</p>";
+                    }
+                }
+            } else {
+                $result['status'] = false;
+                $result['msg'] = "<p id='warning'>Sorry, your account is not activated yet. <br> You will receive an
+                    email as soon as your registration is confirmed by an admin.<br> Please,
+                    <a href='index.php?page=contact'>contact us</a> if you have any question.</p>";
+            }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "<p id='warning''>Wrong username</p>";
+        }
+        return $result;
+    }
+
+    /**
+     * Set User's status (delete/activate/deactivate/permission level)
+     * @param $newstatus
+     */
+    public function setStatus($newstatus) {
+        if ($newstatus == 'delete') {
+            $this -> delete_user();
+            $result['status'] = "Account successfully deleted";
+        } elseif ($newstatus == "activate") {
+            $result['status'] = $this -> activation(1);
+        } elseif ($newstatus == "desactivate") {
+            $result['status'] = $this -> activation(0);
+        } else {
+            $this -> change_user_status($newstatus);
+            $result['status'] = "User status is now $newstatus!";
+        }
+        return $result;
+    }
+
+    /**
      * Check number of unsuccessful login attempts.
      * Deactivate the user's account if this number exceeds the maximum
      * allowed number of attempts and send an email to the user with an activation link.
      * @return int
      */
-    public function checkattempt() {
+    private function checkattempt() {
         $last_login = new DateTime($this->last_login);
         $now = new DateTime();
         $diff = $now->diff($last_login);

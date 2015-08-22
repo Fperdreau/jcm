@@ -26,13 +26,14 @@ echo "
         <!-- Sign in section -->
         <div class='modal_section' id='user_login' data-title='Sign In' style='width: 400px;'>
             <form id='login_form'>
+                <input type='hidden' name='login' value='true'/>
                 <div class='formcontrol' style='width: 100%;'>
-                    <label for='log_username'>Username</label>
-                    <input type='text' id='log_username' name='username' required autocomplete='on'>
+                    <label for='username'>Username</label>
+                    <input type='text' name='username' required autocomplete='on'>
                 </div>
                 <div class='formcontrol' style='width: 100%;'>
-                    <label for='log_password'>Password</label>
-                    <input type='password' id='log_password' name='password' required>
+                    <label for='password'>Password</label>
+                    <input type='password' name='password' required>
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'>
@@ -86,7 +87,7 @@ echo "
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'><input type='submit' class='back_btn' value='Back'> <i class='fa fa-angle-double-left'></i> </div>
-                    <div class='one_half last'><input type='submit' class='register' id='submit' value='Sign up'></div>
+                    <div class='one_half last'><input type='submit' class='register' value='Sign up'></div>
                 </div>
             </form>
         </div>
@@ -94,28 +95,33 @@ echo "
         <!-- Delete account section -->
         <div class='modal_section' id='user_delete' data-title='Delete Profile'>
             <div>Please, confirm your identity</div>
-            <div class='formcontrol'>
-                <label for='del_username'>Username</label>
-                <input type='text' id='del_username' name='del_username' value=''/></br>
-            </div>
-            <div class='formcontrol'>
-                <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
-            </div>
-            <div class='action_btns'>
-                <div class='one_half last'><a href='' class='btn btn_red' id='confirmdeleteuser'>Delete</a></div>
-            </div>
+            <form id='confirmdeleteuser'>
+                <div class='formcontrol'>
+                    <label for='del_username'>Username</label>
+                    <input type='text' id='del_username' name='del_username' value=''/></br>
+                </div>
+                <div class='formcontrol'>
+                    <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
+                </div>
+                <div class='action_btns'>
+                    <div class='one_half last'><input type='submit' class='confirmdeleteuser' value='Change'></div>
+                </div>
+            </form>
         </div>
 
         <!-- Change password section -->
         <div class='modal_section' id='user_changepw' data-title='Change Password'>
             <div>We will send an email to the provided address with further instructions in order to change your password.</div>
-            <div class='formcontrol' style='width: 100%;'>
-            <label for='ch_email'>Email</label><input type='text' id='ch_email' name='ch_email' value=''/></br>
-            </div>
-            <div class='action_btns'>
-                <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
-                <div class='one_half last'><a href='' class='btn btn_red' id='modal_change_pwd'>Change</a></div>
-            </div>
+            <form id='modal_change_pwd'>
+                <div class='formcontrol'>
+                    <label for='email'>Email</label>
+                    <input type='email' name='email' value=''/>
+                </div>
+                <div class='action_btns'>
+                    <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
+                    <div class='one_half last'><input type='submit' class='modal_change_pwd' value='Change'></div>
+                </div>
+            </form>
         </div>
 
         <!-- Submission form section -->

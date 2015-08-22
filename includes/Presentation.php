@@ -343,10 +343,7 @@ class Presentation extends Presentations {
         // Update table
         $class_vars = get_class_vars("Presentation");
         $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
-        if (!$this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
-            return false;
-        }
-        return true;
+        return $this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres));
     }
 
     /**
@@ -483,15 +480,18 @@ class Presentation extends Presentations {
                     $speakerOpt .= "<option value='$orga->username' $selectOpt>$orga->fullname</option>";
                 }
             }
-            $speaker = "<select class='modSpeaker'>$speakerOpt</select>";
+            $speaker = "<select class='modSpeaker' style='max-width: 150px;'>$speakerOpt</select>";
         }
 
         return "
-        <div id='$this->id_pres' style='display: block; margin: auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
-            <div style='display: inline-block; min-width: 50px; font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
-            <div style='display: inline-block; margin-left: 20px; min-width: 200px;'>
+        <div class='pres_container' id='$this->id_pres' style='display: block; position: relative; margin: auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
+            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
                 <div>$show_but</div>
-                <div style='font-style: italic;'>Presented by $speaker</div>
+                <div style='font-style: italic;'>
+                    <div style='display: inline-block;'>Presented by </div>
+                    <div style='display: inline-block;'>$speaker</div>
+                </div>
             </div>
         </div>";
     }
@@ -561,28 +561,20 @@ class Presentation extends Presentations {
         /** @var AppConfig $config */
         $config = new AppConfig($this->db);
 
-        $url = $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres";
-
-        // Make a show button (modal trigger) if not in email. Otherwise, a simple href.
-        if ($show == true) {
-            $pick_url = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-id='$this->id_pres'><b>Make it true!</b></a>";
-        } else {
-            $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
-        }
+        $url = ($show == false) ? $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres":"#modal";
 
         $uploader = new User($this->db,$this->username);
-
+        $update = date('d M y',strtotime($this->up_date));
         return "
-        <div style='display: block; padding: 5px; text-align: justify; background-color: #eeeeee;'>
-            <div style='display: block; border-bottom: 1px solid #bbbbbb;'>
-                <div style='display: inline-block; padding: 0; width: 90%; max-width: 90%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title suggested by <span style='color: #CF5151;'>$uploader->fullname</span>
-                </div>
-                <div style='display: inline-block; text-align: right;'>
-                    $pick_url
-                </div>
+        <div class='wish_container' id='$this->id_pres' style='display: block; position: relative; margin: 10px auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;'>
+                $update
             </div>
-            <div style='display: block; padding: 0; width: auto; font-size: 12px; text-align: left;'>
-                <div style='color: #555555; font-weight: 300; font-style: italic; '>$this->up_date</div>
+            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
+               <a href='$url' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-id='$this->id_pres'>
+                    <div>$this->title</div>
+                    <div style='font-style: italic; color: #000000;'>Suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
+                </a>
             </div>
         </div>";
     }

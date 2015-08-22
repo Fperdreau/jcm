@@ -26,12 +26,10 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $user = new User($db);
     $valid = $user -> check_account_activation($hash,$email,$result);
     $result = "
-    <div id='content'>
         <section>
             <h2>Activation</h2>
 			<span id='warning'>$valid</span>
-    	</div>
-    </div>";
+    	</section>";
 
 	echo json_encode($result);
     exit;

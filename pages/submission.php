@@ -31,7 +31,6 @@ $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
 if ($op == 'new') {
     $submit_form = displayform($user,false,'submit',false,$date);
     $result = "
-    <div id='content'>
         <p class='page_description'>Book a Journal Club session to present a paper, your research, or a
         methodology topic. <br>
         Fill up the form below, select a date (only available dates are selectable) and it's all done!
@@ -41,14 +40,12 @@ if ($op == 'new') {
             <h2>Submit a presentation</h2>
             $submit_form
         </section>
-    </div>
     ";
 
 // Suggest a presentation
 } elseif ($op == 'suggest') {
     $submit_form = displayform($user,false,"suggest");
     $result = "
-    <div id='content'>
         <p class='page_description'>Here you can suggest a paper that somebody else could present at a Journal Club session.
          Fill up the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
@@ -56,7 +53,6 @@ if ($op == 'new') {
         <section id='submission_form'>
         $submit_form
         </section>
-    </div>
     ";
 
 // Select from the wish list
@@ -76,7 +72,6 @@ if ($op == 'new') {
     }
 
     $result = "
-    <div id='content'>
         <p class='page_description'>Here you can choose a suggested paper from the wishlist that you would like to present.<br>
             The form below will be automatically filled up with the data provided by the user who suggested the selected paper.
             Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
@@ -88,20 +83,17 @@ if ($op == 'new') {
             $submit_form
             </div>
         </section>
-    </div>
     ";
 
 // Modify a presentation
 } elseif ($op == 'mod_pub') {
     $submit_form = displayform($user,$Presentation,'submit');
     $result = "
-    <div id='content'>
         <p class='page_description'>Here you can modify your submission. Please, check on the information before submitting your presentation</p>
         <h2>Modify a presentation</h2>
         <section id='submission_form'>
             $submit_form
         </section>
-    </div>
     ";
 }
 

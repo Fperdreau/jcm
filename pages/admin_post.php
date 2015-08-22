@@ -46,7 +46,7 @@ if (!empty($postlist)) {
 }
 $options .= "</select>";
 
-$content = "
+$result = "
     <h1>News</h1>
     <p class='page_description'>Here you can add a post on the homepage.</p>
     <div style='display: block; width: 100%;'>
@@ -64,9 +64,5 @@ $content = "
     </section>
     ";
 
-$result = "
-    <div id='content'>
-        $content
-    </div>";
 echo json_encode($result);
 exit;

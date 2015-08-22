@@ -30,15 +30,13 @@ foreach ($years as $year) {
 $publist = $Presentations->getpublicationlist();
 
 $result = "
-<div id='content'>
     <div class='feedback'></div>
         <select name='year' class='archive_select'>
             $options
         </select>
     <div id='archives_list'>
         $publist
-    </div>
-</div>";
+    </div>";
 
 echo json_encode($result);
 exit;
