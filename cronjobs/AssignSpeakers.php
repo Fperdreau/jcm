@@ -55,7 +55,7 @@ class AssignSpeakers extends AppCron {
     }
 
     /**
-     * Get previous chairs
+     * Get previous Speakers
      * @param $organizers
      * @param $type
      * @return array
