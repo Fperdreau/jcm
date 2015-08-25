@@ -1,23 +1,28 @@
 /**
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * File for js and jquery functions
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- FORMS
+ GET FORMS
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /**
  * Show form to submit a presentation
@@ -61,172 +66,22 @@ var showpubform = function(formel,idpress,type,date,prestype) {
  * @param postid
  */
 var showpostform = function(postid) {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {
-            post_show: true,
-            postid: postid},
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
-            setTimeout(function() {
-                $('.postcontent')
-                    .empty()
-                    .html(result.form)
-                    .fadeIn(200);
-                $('.post_txtarea')
-                    .html(txtarea)
-                    .show();
-                tinyMCE.remove();
-                window.tinymce.dom.Event.domLoaded = true;
-                tinymcesetup();
-            }, 1000);
-
-        }
-    });
-};
-
-/**
- * Process a form
- * @param formid: DOM ID of the form
- * @returns {boolean}
- * @param callback: callback function to execute after the form has been processed
- */
-var processform = function(formid,callback) {
-    if (!checkform(formid)) { return false;}
-    var data = $(formid).serialize();
-    processAjax(formid,data,callback);
-};
-
-/**
- * Process Ajax requests
- * @param formid
- * @param data
- * @param callback
- */
-var processAjax = function(formid,data,callback) {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: data,
-        beforeSend: function() {
-            loadingDiv(formid);
-        },
-        complete: function() {
-            removeLoading(formid);
-        },
-        success: function(data) {
-            callback = (callback === undefined) ? false: callback;
-            validsubmitform(formid,data,callback);
-        }
-    });
-};
-
-/**
- * Temporarily replace a form by a feedback message
- * @param form: form id
- * @param data: feedback to show
- * @param callback: callback function (what to do after the feedback message. By default, we simply re-display the form
- * as it was)
- * @param timing: duration of feedback
- */
-var validsubmitform = function(form,data,callback,timing) {
-    var result = jQuery.parseJSON(data);
-    callback = (callback === undefined) ? false: callback;
-    timing = (timing === undefined) ? 3000: timing;
-    var el = $(form);
-    el.append("<div class='feedbackForm'></div>");
-    var feedbackForm = $('.feedbackForm');
-
-    feedbackForm
-        .html(result.msg)
-        .fadeIn(200);
-
-    setTimeout(function() {
-        feedbackForm
-            .fadeOut(200)
-            .remove();
-        el.show();
-        if (callback !== false) {
-            callback(result);
-        }
-    },timing);
-};
-
-/**
- * Check whether every required fields have been filled up correctly
- * @param formid
- * @param feedbackDiv
- * @returns {boolean}
- */
-var checkform = function(formid,feedbackDiv) {
-    var valid = true;
-    $('.inputFeedback').hide();
-    $(formid+' input,select,textarea').each(function () {
-        $(this).removeClass('wrongField');
-
-        // Check if required fields have been filled in
-        if ($(this).is(':visible') && $(this).prop('required') && $.trim($(this).val()).length === 0){
-            $(this).addClass('wrongField');
-            $(this).after("<div class='inputFeedback' style='display: none;'>*</div>");
-            $(this).next('.inputFeedback').animate({width:'toggle'});
-            showfeedback('<p class="formRequired">* Required</p>',feedbackDiv);
-            valid = false;
-        }
-
-        // Check if provided email is valid
-        if ($(this).attr('type') == 'email' && !checkemail($(this).val())) {
-            showfeedback('<p id="warning">Invalid email!</p>',feedbackDiv);
-            $(this).addClass('wrongField');
-            valid = false;
-        }
-    });
-
-    // Check if form include password confirmation
-    var conf_password = $(formid+" input#conf_password");
-    if (conf_password.length) {
-        var password = $(formid+" input#password").val();
-        if (password != conf_password.val()) {
-            showfeedback('<p id="warning">Passwords must match!</p>');
-            conf_password.addClass('wrongField');
-        }
-    }
-
-    // Set focus on the first empty element
-    $('input.wrongField:first').focus();
-    return valid;
-};
-
-/**
- * Check whether the provided email is valid
- * @param email
- * @returns {boolean}
- */
-var checkemail = function(email) {
-    var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
-    return pattern.test(email);
-};
-
-/**
- * Show a feedback after having processed the form
- * @param message: feedback
- * @param selector: feeback div
- * @returns {boolean}
- */
-var showfeedback = function(message,selector) {
-    var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
-
-    $(el)
-        .html(message)
-        .fadeIn();
-    setTimeout(function() {
-       $(el)
-           .empty();
-    },3000);
-    return false;
+    var el = $('.postcontent');
+    var data = {post_show: true,postid: postid};
+    var callback = function(result) {
+        var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
+        $('.postcontent')
+            .empty()
+            .html(result.form)
+            .fadeIn(200);
+        $('.post_txtarea')
+            .html(txtarea)
+            .show();
+        tinyMCE.remove();
+        window.tinymce.dom.Event.domLoaded = true;
+        tinymcesetup();
+    };
+    processAjax(el,data,callback);
 };
 
 /**
@@ -234,24 +89,13 @@ var showfeedback = function(message,selector) {
  * @param email
  */
 var send_verifmail = function(email) {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {
-            change_pw: true,
-            email: email},
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            if (result === "sent") {
-                showfeedback('<div id="success">A verification email has been sent to your address</div>');
-            } else if (result === "wrong_email") {
-                showfeedback('<div id="warning">Wrong email address</div>');
-            }
-        }
-    });
+    var data = {change_pw: true, email: email}
+    processAjax(form,data);
 };
 
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ jQuery DataPicker
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /**
  * Initialize jQuery-UI calendar
  * @param jcdays: associative array providing journal club sessions and their information
@@ -312,10 +156,10 @@ var logout = function() {
         type: 'POST',
         data: {logout: true},
         success: function() {
-            $('.mainbody').append("<div class='warningmsg'>You have been logged out!</div>");
-            $('.warningmsg').fadeIn(200);
+            $('.mainbody').append("<div class='logoutWarning'>You have been logged out!</div>");
+            $('.logoutWarning').fadeIn(200);
             setTimeout(function() {
-                $('.warningmsg')
+                $('.logoutWarning')
                     .fadeOut(200)
                     .empty()
                     .hide();
@@ -346,7 +190,7 @@ var close_modal = function(modal_id) {
  */
 var showmodal = function(sectionid) {
     var title = $(".modal_section#"+sectionid).attr('data-title');
-    $(".header_title").text(title);
+    $(".popupHeader").text(title);
     $('.modal_section').each(function() {
         var thisid = $(this).attr('id');
         if (thisid === sectionid) {
@@ -497,24 +341,6 @@ $( document ).ready(function() {
             }
         })
 
-		// Show presentation sub-menu
-        .on('click','#menu_pres',function() {
-            var position = $(this).position();
-            var headerHeight = $('.header').outerHeight();
-            $('.addmenu-pres')
-                .css({'left':position.left,'top':headerHeight})
-                .slideToggle(200);
-        })
-
-		// Show admin sub-menu
-        .on('click','#menu_admin',function() {
-            var position = $(this).position();
-            var headerHeight = $('.header').outerHeight();
-            $('.addmenu-admin')
-                .css({'left':position.left,'top':headerHeight})
-                .slideToggle(200);
-        })
-
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -545,56 +371,29 @@ $( document ).ready(function() {
 
 		// Open a dialog box
         .on('click',".modal_change_pwd",function(){
-            if (!checkform('form#modal_change_pwd')) {return false;}
+            var form = $(this).closest('form#modal_change_pwd');
+            if (!checkform(form)) {return false;}
             var email = $("input#email").val();
-            send_verifmail(email);
+            var data = {change_pw: true, email: email}
+            processAjax(form,data);
         })
 
 		// Password change form (email + new password)
         .on('click',".conf_changepw",function(){
-            var username = $("input#ch_username").val();
-            var password = $("input#ch_password").val();
-            var conf_password = $("input#ch_conf_password").val();
-
-            if (password === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#ch_password").focus();
-                return false;
-            }
-
-            if (conf_password === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#ch_conf_password").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    conf_changepw: true,
-                    username: username,
-                    password: password,
-                    conf_password: conf_password},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === "changed") {
-                        showfeedback('<p id="success">Your password has been modified.</p>');
-                    } else if (result === "mismatch") {
-                        showfeedback('<p id="warning">Passwords must match!</p>');
-                    }
-                }
-            });
+            e.preventDefault();
+            var form = $(this).closest('#mailing_send');
+            if (!checkform(form)) {return false;}
+            var data = form.serialize();
+            processAjax(form,data);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin tools
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // User management tool: sort users
-		.on('change','.user_select',function(e) {
+		.on('click','.user_select',function(e) {
             e.preventDefault();
-            var filter = $(this).val();
+            var filter = $(this).data('filter');
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -604,10 +403,7 @@ $( document ).ready(function() {
                     },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-					$('#user_list')
-                        .hide()
-                        .html(result)
-                        .fadeIn(200);
+					$('#user_list').html(result);
                 }
             });
             return false;
@@ -616,80 +412,33 @@ $( document ).ready(function() {
         // User Management tool: Modify user status
         .on('change','.modify_status',function(e) {
             e.preventDefault();
+            var div = $('#user_list');
             var username = $(this).attr("data-user");
             var option = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    modify_status: true,
-                    username: username,
-                    option: option},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result.msg === "deleted") {
-                        showfeedback('<p id="success">Account successfully deleted!</p>');
-                        $('#section_'+username).remove();
-                    } else {
-                        showfeedback('<p id="success">'+result.status+'</p>');
-                    }
-
-                    setTimeout(function() {
-                       $('#user_list')
-                        .hide()
-                        .html(result.content)
-                        .fadeIn(200);
-                    },2000);
-                }
-            });
-            return false;
+            var data = {modify_status: true,username: username,option: option};
+            var callback = function(result) {
+                setTimeout(function() {
+                    $('#user_list').html(result.content);
+                },2000);
+            };
+            processAjax(div,data,callback);
         })
 
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - Mailing
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Send an email to the mailing list
         .on('click','.mailing_send',function(e) {
             e.preventDefault();
-            var spec_head = $("input#spec_head").val();
-            var spec_msg = tinyMCE.activeEditor.getContent();
-
-            if (spec_head === "") {
-                showfeedback('<p id="warning">You must precise a subject</p>');
-                $("input#spec_head").focus();
-                return false;
-            }
-
-            if (spec_msg === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("textarea#spec_msg").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mailing_send: true,
-                    spec_head: spec_head,
-                    spec_msg: spec_msg},
-                beforeSend: function() {
-                    loadingDiv($(this));
-                },
-                complete: function() {
-                    removeLoading($(this));
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === "sent") {
-                        showfeedback('<div id="success">Your message has been sent!</div>');
-                    } else if (result === "not_sent") {
-                        showfeedback('<div id="warning">Oops, something went wrong!</div>');
-                    }
-                }
-            });
-            return false;
+            var form = $(this).closest('#mailing_send');
+            if (!checkform(form)) {return false;}
+            var data = form.serialize();
+            processAjax(form,data);
         })
 
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - News
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select news to modify
         .on('change','.select_post',function(e) {
             e.preventDefault();
@@ -707,78 +456,32 @@ $( document ).ready(function() {
         .on('click','.post_del',function(e) {
             e.preventDefault();
             var postid = $(this).attr('data-id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    post_del: true,
-                    postid: postid},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === true) {
-                        $('.postcontent')
-                            .hide()
-                            .html('<p id="success">Post successfully deleted</p>')
-                            .fadeIn(200);
-                        showpostform(false);
-                    } else {
-                        showfeedback('<p id="warning">We could not delete this post from the database</p>');
-                    }
-
+            var data = {post_del: true, postid: postid};
+            var callback = function(result) {
+                if (result.status === true) {
+                    showpostform(false);
                 }
-            });
+            };
+            processAjax('.postcontent',data,callback);
         })
 
         // Add a news to the homepage
-        .on('click','.post_add,.post_mod',function(e) {
+        .on('click','.submit_post',function(e) {
             e.preventDefault();
-            var op = $(this).attr('name');
-            var postid = $(this).attr('data-id');
-            var title = $('input#post_title').val();
-            var content = tinyMCE.get('post_content').getContent();
-            var username = $("input#post_username").val();
-            var homepage = $("select#post_homepage").val();
-
-            if (title === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $('input#title').focus();
-                return false;
-            }
-
-            if (content === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                tinymce.execCommand('mceFocus',false,'consent');
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    post_add: op,
-                    postid: postid,
-                    username: username,
-                    title: title,
-                    homepage: homepage,
-                    content: content},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === true) {
-                        $('.postcontent')
-                            .hide()
-                            .html('<p id="success">Thank you for your post!</p>')
-                            .fadeIn(200);
-                        showpostform(false);
-                    } else {
-                        showfeedback("<p id='warning'>Sorry, something has gone wrong!</p>");
-                    }
+            var form = $(this).closest('#post_form');
+            if (!checkform(form)) {return false;}
+            var callback = function(result) {
+                if (result.status === true) {
+                    showpostform(false);
                 }
-            });
-            return false;
+            };
+            var data = form.serialize();
+            processAjax(form,data,callback);
         })
 
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - Sessions
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Add a session/presentation type
         .on('click','.type_add',function(e) {
             var classname = $(this).attr('data-class');
@@ -823,127 +526,63 @@ $( document ).ready(function() {
             });
         })
 
+        // Change default session type
+        .on('change','.session_type_default',function(e) {
+            e.preventDefault();
+            var div = $('#session_type');
+            console.log(div);
+            var type = $(this).val();
+            var data = {session_type_default:type};
+            processAjax(div,data);
+        })
+
         // Select session to show
         .on('change','.selectSession',function(e) {
             var nbsession = $(this).val();
             var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
-            console.log(status);
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    show_session: nbsession,
-                    status: status},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    $('#sessionlist')
-                        .html(result)
-                        .fadeIn(200);
-                }
-            });
+            var data = {show_session: nbsession, status: status};
+            var div = $('#sessionlist');
+            var callback = function(result) {
+                $('#sessionlist')
+                    .html(result)
+                    .fadeIn(200);
+            };
+            processAjax(div,data,callback);
         })
 
         // Modify speaker
         .on('change','.modSpeaker',function(e) {
             var speaker = $(this).val();
             var container = $(this).closest('.pres_container');
-            console.log(container);
             var presid = container.attr('id');
             var data = {modSpeaker: speaker, presid: presid};
-            processAjax('.pres_container#'+presid,data);
-
+            processAjax(container,data);
         })
 
-        // Modify session time
-        .on('change','.set_sessiontime',function(e) {
-            var session = $(this).attr('data-session');
-            var timefrom = $('select#timefrom_'+session).val();
-            var timeto = $('select#timeto_'+session).val();
-            var time = timefrom+","+timeto;
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_session_time: true,
-                    session: session,
-                    time: time},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var feedbackdiv = 'feedback_'+session;
-                    if (result !== false) {
-                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
-                    } else {
-                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
-                    }
-                }
-            });
-        })
-
-        // Modify session time
-        .on('change','.set_sessiontype',function(e) {
-            var type = $(this).val();
-            var session = $(this).attr('id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_session_type: true,
-                    session: session,
-                    type: type},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var feedbackdiv = 'feedback_'+session;
-                    if (result !== false) {
-                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
-                    } else {
-                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
-                    }
-                }
-            });
+        // Modify session type
+        .on('change','.mod_session',function(e) {
+            e.preventDefault();
+            var prop = $(this).attr('name');
+            var value = $(this).val();
+            var sessionDiv = $(this).closest('.session_div');
+            var sessionID = sessionDiv.data('id');
+            var data = {modSession: true, session: sessionID, prop: prop, value: value};
+            processAjax(".session_div#"+sessionDiv.attr('id'),data);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Publication lists (Archives/user publications
+         Publication lists (Archives/user publications)
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Sort publications by years
 		.on('change','.archive_select',function(e) {
             e.preventDefault();
             var year = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    select_year: year
-                    },
-                beforeSend: function() {
-                    loadingDiv('#archives_list');
-                },
-                complete: function() {
-                    removeLoading('#archives_list');
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-					$('#archives_list').html(result);
-                }
-            });
-            return false;
-        })
-
-        .on('mouseover','.show_pres',function() {
-            $(this)
-                .css('background-color','#CF5252')
-                .children('a').css('color','#eeeeee');
-        })
-
-        .on('mouseleave','.show_pres',function() {
-            $(this)
-                .css('background-color','#dddddd')
-                .children('a').css('color','#CF5252');
+            var data = {select_year: year};
+            var callback = function(result) {
+                $('#archives_list').html(result);
+            };
+            var div = $('#archives_list');
+            processAjax(div,data,callback);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -960,26 +599,6 @@ $( document ).ready(function() {
         .on('click','.dl_btn',function() {
             $(".dlmenu").toggle();
         })
-
-         // Show uploaded file
-         .on('click','.upl_name',function() {
-            var uplname = $(this).attr('id');
-            var url = "uploads/"+uplname;
-            window.open(url,'_blank');
-         })
-
-          // Delete uploaded file
-         .on('click','.del_upl',function() {
-            var uplfilename = $(this).attr('id');
-            var data = {del_upl: true,uplname: uplfilename};
-            var callback = function(result) {
-                if (result.status === true) {
-                    $('.upl_info#upl_'+result.uplname).remove();
-                    $('.upl_link#upl_'+result.uplname).remove();
-                }
-            };
-            processAjax('div.upl_filelist',data,callback);
-         })
 
          // Select submission type
          .on('change','select#type',function(e) {
@@ -1003,12 +622,10 @@ $( document ).ready(function() {
         .on('click','.submit_pres',function(e) {
             e.preventDefault();
             var operation = $(this).attr('name');
-            var form = $(this).closest('#submit_form');
-            var formId = 'form#submit_form';
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var type = $("select#type").val();
-
             // Check if the form has been fully completed
-            if (!checkform(formId)) { return false;}
+            if (!checkform(form)) { return false;}
 
             // Check if a data has been selected (except for wishes)
             if (operation !== "suggest") {
@@ -1040,7 +657,7 @@ $( document ).ready(function() {
                     showpubform(subform,false);
                 }
             };
-            processAjax(formId,data,callback);
+            processAjax(form,data,callback);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1050,8 +667,7 @@ $( document ).ready(function() {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var formId = 'form#'+form.attr('id');
-            processform(formId);
+            processform(form);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1091,12 +707,11 @@ $( document ).ready(function() {
             var date = $(this).data('date');
             showmodal('submission_form');
             showpubform(modalpubform,id_pres,'submit',date);
-        });
+        })
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-    $('.modalContainer')
 		// Show publication modification form
         .on('click','.modify_ref',function(e) {
             e.preventDefault();
@@ -1123,13 +738,14 @@ $( document ).ready(function() {
             e.preventDefault();
             var id_pres = $("input#del_pub").val();
             var data = {del_pub:id_pres};
+            var el = $('.modal_section#pub_delete');
             var callback = function(result) {
                 if (result.status == true) {
                     close_modal('.modalContainer');
                     $('#' + id_pres).remove();
                 }
             };
-            processAjax('.modal_section#pub_delete',data,callback);
+            processAjax(el,data,callback);
         })
 
         // Dialog change password
@@ -1156,7 +772,6 @@ $( document ).ready(function() {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var formId = 'form#'+form.attr('id');
             var callback = function(result) {
                 if (result.status === true) {
                     logout();
@@ -1164,7 +779,7 @@ $( document ).ready(function() {
                     location.reload();
                 }
             };
-            processform(formId,callback);
+            processform(form,callback);
         })
 
         // Login form
@@ -1172,13 +787,12 @@ $( document ).ready(function() {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var formId = 'form#'+form.attr('id');
             var callback = function(result) {
                 if (result.status === true) {
                     location.reload();
                 }
             };
-            processform(formId,callback);
+            processform(form,callback);
         })
 
         // Sign Up Form
@@ -1186,12 +800,11 @@ $( document ).ready(function() {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var formId = 'form#'+form.attr('id');
             var callback = function(result) {
                 if (result.status === true) {
                     close_modal('.modalContainer');
                 }
             };
-            processform(formId,callback);
+            processform(form,callback);
         });
 });

@@ -1,21 +1,24 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 // Includes required files (classes)
 require('../includes/boot.php');
@@ -42,11 +45,22 @@ if (!empty($_POST['installDep'])) {
     $App = ($type == 'plugin') ? new AppPlugins($db):new AppCron($db);
     $thisApp = $App->instantiate($name);
     if ($op == 'install') {
-        $result = $thisApp->install();
+        if ($thisApp->install()) {
+            $result['status'] = true;
+            $result['msg'] = "$name has been installed!";
+        } else {
+            $result['status'] = false;
+        }
     } elseif ($op == 'uninstall') {
-        $result = $thisApp->delete();
+        if ($thisApp->delete()) {
+            $result['status'] = true;
+            $result['msg'] = "$name has been deleted!";
+        } else {
+            $result['status'] = false;
+        }
     } else {
-        $result = $thisApp->run();
+        $result['msg'] = $thisApp->run();
+        $result['status'] = true;
     }
     echo json_encode($result);
     exit;
@@ -72,7 +86,12 @@ if (!empty($_POST['modOpt'])) {
     $App = ($op == 'plugin') ? new AppPlugins($db): new AppCron($db);
     $thisApp = $App->instantiate($name);
     $thisApp->get();
-    $result = $thisApp->update(array('options'=>$data));
+    if ($thisApp->update(array('options'=>$data))) {
+        $result['stauts'] = true;
+        $result['msg'] = "$name's settings successfully updated!";
+    } else {
+        $result['stauts'] = true;
+    }
     echo json_encode($result);
     exit;
 }
@@ -155,7 +174,8 @@ if (!empty($_POST['run_cron'])) {
     $cronName = $_POST['cron'];
     $CronJobs = new AppCron($db);
     $cron = $CronJobs->instantiate($cronName);
-    $result = $cron->run();
+    $result['msg'] = $cron->run();
+    $result['status'] = true;
     echo json_encode($result);
     exit;
 }
@@ -210,9 +230,10 @@ if (!empty($_POST['modPage'])) {
     $name = htmlspecialchars($_POST['name']);
     $Page = new AppPage($db,$name);
     if ($Page->update($_POST)) {
-        $result = "<div id='success'>The modification has been made!</div>";
+        $result['status'] = true;
+        $result['msg'] = "The modification has been made!";
     } else {
-        $result = "<div id='warning'>Something went wrong!</div>";
+        $result['status'] = false;
     }
     echo json_encode($result);
     exit;
@@ -293,11 +314,10 @@ if (!empty($_POST['delete_user'])) {
     $result = $user->login($_POST);
     if ($result['status'] == true) {
         if ($user ->delete_user($username)) {
-            $result['msg'] = "<p id='success'>Your account has been deleted!</p>";
+            $result['msg'] = "Your account has been deleted!";
             $result['status'] = false;
             $_SESSION['logok'] = false;
         } else {
-            $result['msg'] = "<p id='success'>Sorry, we could not delete your account!</p>";
             $result['status'] = false;
         }
     }
@@ -327,12 +347,15 @@ if (!empty($_POST['change_pw'])) {
 
         $body = $AppMail->formatmail($content);
         if ($AppMail->send_mail($email,$subject,$body)) {
-            $result = "sent";
+            $result['msg'] = "An email has been sent to your address with further information";
+            $result['status'] = true;
         } else {
-            $result = "not_sent";
+            $result['msg'] = "Oops, we couldn't send you the verification email";
+            $result['status'] = false;
         }
     } else {
-        $result = "wrong_email";
+        $result['msg'] = "This email does not exist in our database";
+        $result['status'] = false;
     }
     echo json_encode($result);
     exit;
@@ -398,10 +421,9 @@ if (!empty($_POST['del_pub'])) {
     $Presentation = new Presentation($db);
     $id_Presentation = htmlspecialchars($_POST['del_pub']);
     if ($Presentation->delete_pres($id_Presentation)) {
-        $result['msg'] = "<p id='success'>The presentation has been deleted!</p>";
+        $result['msg'] = "The presentation has been deleted!";
         $result['status'] = true;
     } else {
-        $result['msg'] = "<p id='warning'>Oops, something has gone wrong!</p>";
         $result['status'] = false;
     }
     echo json_encode($result);
@@ -433,18 +455,17 @@ if (!empty($_POST['submit'])) {
         $session = new Session($db);
         if ($session->make($postsession)) {
             $result['status'] = true;
-            $result['msg'] = "<div id='success'>Thank you for your submission!</div>";
+            $result['msg'] = "Thank you for your submission!";
          } else {
             $pub->delete_pres($created);
             $result['status'] = false;
-            $result['msg'] = "<div id='warning'>Sorry, we could not create/update the session</div>";
+            $result['msg'] = "Sorry, we could not create/update the session";
          }
     } elseif ($created == "exists") {
         $result['status'] = false;
-        $result['msg'] = "<div id='warning'>This presentation already exist in our database.</div>";
+        $result['msg'] = "This presentation already exist in our database.";
     } else {
         $result['status'] = false;
-        $result['msg'] = "<div id='warning'>Oops, something has gone wrong.</div>";
     }
 
     echo json_encode($result);
@@ -459,13 +480,12 @@ if (isset($_POST['suggest'])) {
     $created = $pres->make($_POST);
     if ($created !== false && $created !== "exist") {
         $result['status'] = true;
-        $result['msg'] = "<div id='success'>Your presentation has been submitted.</div>";
+        $result['msg'] = "Your presentation has been submitted.";
     } elseif ($created == "exist") {
         $result['status'] = false;
-        $result['msg'] = "<div id='warning'>This presentation already exist in our database.</div>";
+        $result['msg'] = "This presentation already exist in our database.";
     } else {
         $result['status'] = false;
-        $result['msg'] = "<div id='warning'>Oops, something went wrong</div>";
     }
     echo json_encode($result);
     exit;
@@ -558,9 +578,8 @@ if (!empty($_POST['contact_send'])) {
 
     if ($AppMail->send_mail($sel_admin_mail,$subject,$body)) {
         $result['status'] = true;
-        $result['msg'] = "<p id='success'>Your message has been sent!</p>";
+        $result['msg'] = "Your message has been sent!";
     } else {
-        $result['msg'] = "<p id='warning'>Oops, something has gone wrong!</p>";;
         $result['status'] = false;
     }
     echo json_encode($result);
@@ -612,9 +631,10 @@ if (!empty($_POST['mailing_send'])) {
     $body = $AppMail -> formatmail($content['body']);
     $subject = $content['subject'];
     if ($AppMail_result = $AppMail->send_to_mailinglist($subject,$body)) {
-        $result = "sent";
+        $result['status'] = true;
+        $result['msg'] = "Your message has been sent!";
     } else {
-        $result = "not_sent";
+        $result['status'] = false;
     };
     echo json_encode($result);
     exit;
@@ -626,10 +646,9 @@ Application settings
 // Update application settings
 if (!empty($_POST['config_modify'])) {
     if ($AppConfig->update($_POST)) {
-        $result['msg'] = "<div id='success'>Modifications have been made!</div>";
+        $result['msg'] = "Modifications have been made!";
         $result['status'] = true;
     } else {
-        $result['msg'] = "<div id='warning'>Oops, something has gone wrong!</div>";
         $result['status'] = false;
     }
     echo json_encode($result);
@@ -669,7 +688,12 @@ if (!empty($_POST['post_show'])) {
 if (!empty($_POST['post_del'])) {
     $postid = htmlspecialchars($_POST['postid']);
     $post = new Posts($db,$postid);
-    $result = $post->delete($postid);
+    if ($post->delete($postid)) {
+        $result['status'] = true;
+        $result['msg'] = "The post has been deleted";
+    } else {
+        $result['status'] = true;
+    }
     echo json_encode($result);
     exit;
 }
@@ -734,28 +758,24 @@ if (!empty($_POST['show_session'])) {
     exit;
 }
 
-// Modify a session type
-if (!empty($_POST['mod_session_type'])) {
-    $sessionid = $_POST['session'];
-    $type = $_POST['type'];
-    $session = new Session($db);
-    $sessionpost = array(
-        'date'=>$sessionid,
-        'type'=>$type);
-    $result = $session->make($sessionpost);
-    echo json_encode($result);
-    exit;
-}
-
-// Modify a session time
-if (!empty($_POST['mod_session_time'])) {
-    $sessionid = $_POST['session'];
-    $time = $_POST['time'];
-    $session = new Session($db);
-    $sessionpost = array(
-        'date'=>$sessionid,
-        'time'=>$time);
-    $result = $session->make($sessionpost);
+// Modify a session
+if (!empty($_POST['modSession'])) {
+    $sessionid = htmlspecialchars($_POST['session']);
+    $prop = htmlspecialchars($_POST['prop']);
+    $value = htmlspecialchars($_POST['value']);
+    $session = new Session($db,$sessionid);
+    if (in_array($prop,array('time_to','time_from'))) {
+        $time = explodecontent(',',$session->time);
+        $value = ($prop == 'time_to') ? $time[0].','.$value:$value.','.$time[1];
+        $prop = 'time';
+    }
+    $post = array($prop=>$value);
+    if ($session->update($post)) {
+        $result['status'] = true;
+        $result['msg'] = "Session has been modified";
+    } else {
+        $result['status'] = false;
+    }
     echo json_encode($result);
     exit;
 }
@@ -768,10 +788,9 @@ if (!empty($_POST['modSpeaker'])) {
 
     $pres = new Presentation($db,$presid);
     if ($pres->update(array('orator'=>$speaker->username))) {
-        $result['msg'] = "<div id='success'>$speaker->fullname is the new speaker!</div>";
+        $result['msg'] = "$speaker->fullname is the new speaker!";
         $result['status'] = true;
     } else {
-        $result['msg'] = "<div id='warning'>Oops, something has gone wrong!</div>";
         $result['status'] = false;
     }
 
@@ -783,6 +802,18 @@ if (!empty($_POST['modSpeaker'])) {
 if (!empty($_POST['db_check'])) {
     $Sessions->checkcorrespondence();
     echo json_encode(true);
+    exit;
+}
+
+// Modify defaut session type
+if (!empty($_POST['session_type_default'])) {
+    if ($AppConfig->update($_POST)) {
+        $result['status'] = true;
+        $result['msg'] = "DONE";
+    } else {
+        $result['status'] = false;
+    }
+    echo json_encode($result);
     exit;
 }
 

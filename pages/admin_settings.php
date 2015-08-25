@@ -1,21 +1,24 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 require('../includes/boot.php');
 
@@ -117,27 +120,27 @@ $result = "
                     <input type='hidden' name='config_modify' value='true'/>
                     <div class='formcontrol'>
                         <label for='lab_name'>Name</label>
-                        <input type='text' name='lab_name' value='$AppConfig->lab_name'>
+                        <input type='text' name='lab_name' placeholder='Name of your Lab' value='$AppConfig->lab_name'>
                     </div>
                     <div class='formcontrol'>
                         <label for='lab_street'>Street</label>
-                        <input type='text' name='lab_street' value='$AppConfig->lab_street'>
+                        <input type='text' name='lab_street' placeholder='Street of your Lab' value='$AppConfig->lab_street'>
                     </div>
                     <div class='formcontrol'>
                         <label for='lab_postcode'>Post Code</label>
-                        <input type='text' name='lab_postcode' value='$AppConfig->lab_postcode'>
+                        <input type='text' name='lab_postcode' placeholder='Postcode of your lab' value='$AppConfig->lab_postcode'>
                     </div>
                     <div class='formcontrol'>
                         <label for='lab_city'>City</label>
-                        <input type='text' name='lab_city' value='$AppConfig->lab_city'>
+                        <input type='text' name='lab_city' placeholder='Your city' value='$AppConfig->lab_city'>
                     </div>
                     <div class='formcontrol'>
                         <label for='lab_country'>Country</label>
-                        <input type='text' name='lab_country' value='$AppConfig->lab_country'>
+                        <input type='text' name='lab_country' placeholder='Your country' value='$AppConfig->lab_country'>
                     </div>
                     <div class='formcontrol'>
                         <label for='lab_mapurl'>Google Map's URL</label>
-                        <input type='text' name='lab_mapurl' value='$AppConfig->lab_mapurl'>
+                        <input type='text' name='lab_mapurl' placeholder='URL to the Google map' value='$AppConfig->lab_mapurl'>
                     </div>
                     <div class='feedback' id='feedback_lab'></div>
                 </form>

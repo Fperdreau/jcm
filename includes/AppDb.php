@@ -1,21 +1,28 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class AppDb
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * Class AppDb
@@ -157,15 +164,15 @@ class AppDb {
         $this->bdd = mysqli_connect($this->host,$this->username,$this->passw);
         if (!$this->bdd) {
             $result['status'] = false;
-            die(json_encode("<p id='warning'> Failed to connect to the database<br>" . mysqli_error($this->bdd) . "</p>"));
+            die(json_encode("Failed to connect to the database" . mysqli_error($this->bdd)));
         }
 
         if (!mysqli_select_db($this->bdd,"$this->dbname")) {
-            die(json_encode("<p id='warning'>Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)."</p>"));
+            die(json_encode("Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)));
         }
 
         if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
-            die(json_encode("<p id='warning'>Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd)."</p>"));
+            die(json_encode("Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd)));
         }
 
         return $this->bdd;
@@ -179,17 +186,17 @@ class AppDb {
         $link = @mysqli_connect($config['host'],$config['username'],$config['passw']);
         if (!$link) {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'>Failed to connect to the database<br></p>";
+            $result['msg'] = "Failed to connect to the database<br>";
             return $result;
         }
 
         if (!@mysqli_select_db($link,$config['dbname'])) {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning'>Database '".$config['dbname']."' cannot be selected<br/></p>";
+            $result['msg'] = "Database '".$config['dbname']."' cannot be selected<br/>";
             return $result;
         }
         $result['status'] = true;
-        $result['msg'] = "<p id='success'>Connected</p>";
+        $result['msg'] = "Connected!";
         return $result;
     }
 

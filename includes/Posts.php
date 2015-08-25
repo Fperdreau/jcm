@@ -1,22 +1,34 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * File for class Posts
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager. If not, see <http://www.gnu.org/licenses/>.
-*/
-
+/**
+ * Class Posts
+ *
+ * Handle creation of posts
+ */
 class Posts extends AppTable {
 
     protected $table_data = array(
@@ -67,10 +79,12 @@ class Posts extends AppTable {
 
         // Add post to the database
         if ($this->db->addcontent($this->tablename,$content)) {
-            return true;
+            $result['status'] = true;
+            $result['msg'] = "Thank you for your post!";
         } else {
-            return false;
+            $result['status'] = false;
         }
+        return $result;
     }
 
     /**
@@ -102,10 +116,13 @@ class Posts extends AppTable {
     public function update($post=array()) {
         $class_vars = get_class_vars("Posts");
         $content = $this->parsenewdata($class_vars, $post, array('day','time'));
-        if (!$this->db->updatecontent($this->tablename,$content,array("postid"=>$this->postid))) {
-            return false;
+        if ($this->db->updatecontent($this->tablename,$content,array("postid"=>$this->postid))) {
+            $result['status'] = true;
+            $result['msg'] = "Thank you for your post!";
+        } else {
+            $result['status'] = false;
         }
-        return true;
+        return $result;
     }
 
     /**
@@ -129,7 +146,7 @@ class Posts extends AppTable {
      * @return bool
      */
     public function delete($postid) {
-        return $this->db->deletecontent($this->tablename,array('postid'),array("'$postid'"));
+        return $this->db->deletecontent($this->tablename,array('postid'),array($postid));
     }
 
     /**
@@ -213,22 +230,24 @@ class Posts extends AppTable {
             <form id='post_form'>
                 <div class='submit_btns'>
                     $del_btn
-                    <input type='submit' name='$op' value='$submit' id='submit' class='$op' data-id='$post->postid'/>
+                    <input type='submit' name='$op' value='$submit' class='submit_post'/>
                 </div>
-                <input type='hidden' id='post_username' value='$username'/>
-                <div class='formcontrol' style='width: 70%;'>
+                <input type='hidden' name='postid' value='$post->postid'>
+                <input type='hidden' name='post_add' value='$op'>
+                <input type='hidden' name='username' value='$username'/>
+                <div class='formcontrol'>
                     <label>Title</label>
-                    <input type='text' id='post_title' placeholder='Your title (max 255 characters)' value='$post->title' style='width: 70%;'>
+                    <input type='text' name='title' placeholder='Your title (max 255 characters)' value='$post->title' required>
                 </div>
-                <div class='formcontrol' style='width: 10%;'>
+                <div class='formcontrol'>
                     <label>Homepage</label>
-                    <select id='post_homepage'>
+                    <select name='homepage'>
                         <option value='$post->homepage'>$homepage</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
+                <div class='formcontrol'>
                     <label>Message</label>
                     <div class='post_txtarea' style='display: block; text-align: right;'>
                     </div>

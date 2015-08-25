@@ -1,22 +1,29 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * page for installation
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+/**
+ * BOOTING PART
+ */
 
 /**
  * Define timezone
@@ -50,7 +57,6 @@ foreach ($includeList as $includeFile) {
         require_once(PATH_TO_INCLUDES.$includeFile);
     }
 }
-
 
 /**
  * Start session
@@ -284,7 +290,7 @@ if (!empty($_POST['operation'])) {
                                     'date' => $row['up_date'],
                                     'fileid' => $id,
                                     'filename' => $link,
-                                    'presid' => $row['presid'],
+                                    'presid' => $row['id_pres'],
                                     'type' => $type
                                 );
                                 $db->addcontent($db->tablesname['Media'], $content);
@@ -374,11 +380,7 @@ if (!empty($_POST['operation'])) {
     // Final step: create admin account (for new installation only)
     if ($operation == 'inst_admin') {
         $user = new User($db);
-        if ($user->make($_POST)) {
-            $result = "<p id='success'>Admin account created</p>";
-        } else {
-            $result = "<p id='warning'>We could not create the admin account</p>";
-        }
+        $result = $user->make($_POST);
         echo json_encode($result);
         exit;
     }
@@ -436,23 +438,23 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
 				<input type='hidden' name='db_info' value='true' />
-                <div class='formcontrol''>
+                <div class='formcontrol'>
     				<label for='host'>Host Name</label>
     				<input name='host' type='text' value='$host' required autocomplete='on'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
     				<label for='username'>Username</label>
     				<input name='username' type='text' value='$username' required autocomplete='on'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
 				    <label for='passw'>Password</label>
 				    <input name='passw' type='password' value='$passw' required>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
 				    <label for='dbname'>DB Name</label>
 				    <input name='dbname' type='text' value='$dbname' required autocomplete='on'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
 				    <label for='dbprefix'>DB Prefix</label>
 				    <input name='dbprefix' type='text' value='$dbprefix' required autocomplete='on'>
                 </div>
@@ -473,25 +475,25 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='install_db' value='true' />
                 <input type='hidden' name='site_url' value='$AppConfig->site_url'/>
                 <h3>Journal Club Manager - Website</h3>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='sitetitle'>Site title</label>
                     <input name='sitetitle' type='text' value='$AppConfig->sitetitle' required autocomplete='on'>
                 </div>
 
                 <h3>Journal Club Manager - Mailing service</h3>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='mail_from'>Sender Email address</label>
                     <input name='mail_from' type='email' value='$AppConfig->mail_from'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='mail_from_name'>Sender name</label>
                     <input name='mail_from_name' type='text' value='$AppConfig->mail_from_name'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='mail_host'>Email host</label>
                     <input name='mail_host' type='text' value='$AppConfig->mail_host'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='SMTP_secure'>SMTP access</label>
                     <select name='SMTP_secure'>
                         <option value='$AppConfig->SMTP_secure' selected='selected'>$AppConfig->SMTP_secure</option>
@@ -500,15 +502,15 @@ if (!empty($_POST['getpagecontent'])) {
                         <option value='none'>none</option>
                      </select>
                  </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='mail_port'>Email port</label>
                     <input name='mail_port' type='text' value='$AppConfig->mail_port'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='mail_username'>Email username</label>
                     <input name='mail_username' type='text' value='$AppConfig->mail_username'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
                     <label for='mail_password'>Email password</label>
                     <input name='mail_password' type='password' value='$AppConfig->mail_password'>
                 </div>
@@ -521,26 +523,26 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 3: Admin account creation";
         $operation = "
             <div class='feedback'></div>
-			<form method='post' id='admin_creation'>
-			    <div class='formcontrol''>
+			<form id='admin_creation'>
+			    <div class='formcontrol'>
 				    <label for='username'>UserName</label>
 				    <input type='text' name='username' required autocomplete='on'>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
 				    <label for='password'>Password</label>
 				    <input type='password' name='password' required>
                 </div>
-                <div class='formcontrol''>
-				    <label for='confpassword'>Confirm password</label>
-				    <input type='password' name='confpassword' required>
+                <div class='formcontrol'>
+				    <label for='conf_password'>Confirm password</label>
+				    <input type='password' name='conf_password' required>
                 </div>
-                <div class='formcontrol''>
+                <div class='formcontrol'>
 				    <label for='admin_email'>Email</label>
 				    <input type='email' name='email' required autocomplete='on'>
                 </div>
                 <input type='hidden' name='status' value='admin'>
-				<input type='hidden' name='inst_admin' value='true'>
-				<p style='text-align: right;'><input type='submit' name='submit' value='Next' id='submit' class='admin_creation' data-op='$op'></p>
+				<input type='hidden' name='operation' value='inst_admin'>
+				<p style='text-align: right;'><input type='submit' value='Next' class='admin_creation' data-op='$op'></p>
 			</form>
 		";
     } elseif ($step == 5) {
@@ -586,6 +588,7 @@ if (!empty($_POST['getpagecontent'])) {
 
     <!-- JQuery -->
     <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="js/form.js"></script>
 
     <!-- Bunch of jQuery functions -->
     <script type="text/javascript">
@@ -599,7 +602,7 @@ if (!empty($_POST['getpagecontent'])) {
 
         // Remove loading animation
         function removeLoading(divId) {
-            $(''+divId).children('.loadingDiv').hide();
+            $(''+divId).find('.loadingDiv').hide();
         }
 
         // Check email validity
@@ -865,17 +868,20 @@ if (!empty($_POST['getpagecontent'])) {
                 })
 
                 // Final step: Create admin account
-                // Todo: pub form js
                 .on('click','.admin_creation',function(e) {
                     e.preventDefault();
                     var op = $(this).attr('data-op');
-                    if (!checkform('admin_creation')) {return false;}
-
-                    var data = $('form#admin_creation').serialize();
+                    var form = $(this).length > 0 ? $($(this)[0].form) : $();
+                    if (!checkform(form)) {return false;}
+                    var data = form.serialize();
+                    var callback = function(result) {
+                        if (result.status == true) {
+                            getpagecontent(5,op);
+                        }
+                    };
                     jQuery.ajax({
                         url: 'install.php',
                         type: 'POST',
-                        async: true,
                         data: data,
                         beforeSend: function() {
                             loadingDiv('#admin_creation');
@@ -884,9 +890,7 @@ if (!empty($_POST['getpagecontent'])) {
                             removeLoading('#admin_creation');
                         },
                         success: function(data){
-                            var result = jQuery.parseJSON(data);
-                            validsubmitform('#admin_creation',result);
-                            getpagecontent(5,op);
+                            validsubmitform(form,data,callback);
                         }
                     });
                 });

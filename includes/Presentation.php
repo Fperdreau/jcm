@@ -1,23 +1,32 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * File for classes Presentations and Presentation
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/** class Presentations.
+/**
+ * class Presentations.
+ *
  * Handle methods to display presentations list (archives, homepage, wish list)
  */
 class Presentations extends AppTable {
@@ -420,16 +429,17 @@ class Presentation extends Presentations {
     public function show($user=false) {
         if (!$user) {
             $speaker = new User($this->db,$this->orator);
-            $speakerDiv = "<div class='pub_speaker'>$speaker->fullname</div>";
+            $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
         } else {
             $speakerDiv = "";
         }
+        $date = date('d M',strtotime($this->date));
         return "
         <div class='pub_container' id='$this->id_pres'>
         <a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>
             <div class='list-container'>
-                <div class='pub_date'>$this->date</div>
-                <div class='pub_title'>$this->title</div>
+                <div class='pub_date'>$date</div>
+                <div class='pub_title warp'>$this->title</div>
                 $speakerDiv
             </div>
         </a>
@@ -480,7 +490,7 @@ class Presentation extends Presentations {
                     $speakerOpt .= "<option value='$orga->username' $selectOpt>$orga->fullname</option>";
                 }
             }
-            $speaker = "<select class='modSpeaker' style='max-width: 150px;'>$speakerOpt</select>";
+            $speaker = "<select class='modSpeaker select_opt' style='max-width: 150px;'>$speakerOpt</select>";
         }
 
         return "
@@ -543,7 +553,7 @@ class Presentation extends Presentations {
                     <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $orator->fullname</div>
                 </div>
             </div>
-            <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
+            <div style='width: 95%; text-align: justify; margin: auto; padding: 10px;'>
                 <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
             </div>
             $filediv

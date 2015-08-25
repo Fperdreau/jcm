@@ -1,21 +1,28 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class Users and User
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * Class Users
@@ -98,13 +105,12 @@ class Users extends AppTable {
         $req = $this->db->send_query($sql);
         $result =  "
             <div class='list-container list-heading'>
-                <div style='width: 10%'>First Name</div>
-                <div style='width: 10%'>Last Name</div>
-                <div style='width: 10%'>User Name</div>
-                <div style='width: 20%'>Email</div>
-                <div style='width: 10%'>Activated</div>
-                <div style='width: 5%'>Submissions</div>
-                <div style='width: 10%'>Status</div>
+                <div class='user_select' data-filter='firstname'>First Name</div>
+                <div class='user_select' data-filter='lastname'>Last Name</div>
+                <div class='user_select' data-filter='email'>Email</div>
+                <div class='warp user_select' data-filter='active'>Activated</div>
+                <div class='warp'>Submissions</div>
+                <div class='user_select' data-filter='status'>Status</div>
             </div>
         ";
 
@@ -136,15 +142,14 @@ class Users extends AppTable {
 
             $result .= "
             <div class='list-container' id='section_$user->username'>
-                <div style='width: 10%'>$user->firstname</div>
-                <div style='width: 10%'>$user->lastname</div>
-                <div style='width: 10%'>$user->username</div>
-                <div style='width: 20%'>$user->email</div>
-                <div style='width: 10%'>$cur_trage</div>
+                <div>$user->firstname</div>
+                <div>$user->lastname</div>
+                <div class='warp'>$user->email</div>
+                <div class='warp'>$cur_trage</div>
                 <div style='width: 5%'>$nbpres</div>
 
-                <div style='width: 10%'>
-                    <select name='status' id='status' data-user='$user->username' class='modify_status' style='min-width: 50px;'>
+                <div >
+                    <select name='status' id='status' data-user='$user->username' class='modify_status' style='max-width: 75%;'>
                         <option value='$user->status' selected='selected'>$user->status</option>
                         <option value='member'>Member</option>
                         <option value='admin'>Admin</option>
@@ -241,56 +246,61 @@ class User extends Users{
      */
     function make($post=array()) {
         $config = new AppConfig($this->db);
-        $post = self::sanitize($post);
-		$this->date = date("Y-m-d H:i:s");
-		$post['fullname'] = $post['firstname']." ".$post['lastname'];
-        $post['hash'] = $this->make_hash();
-        $post['password']= self::crypt_pwd($post['password']);
-        $post['active'] = ($post['status'] == "admin") ? 1:0;
-
-        /** @var AppMail $mail */
         $mail = new AppMail($this->db,$config);
 
-		// Parse variables and values to store in the table
+        $post = self::sanitize($post); // Escape $_POST content
+        $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
+
+        // Reformat first and last names
+        if (!empty($post['firstname'])) {
+            $post['firstname'] = ucfirst(strtolower($_POST['firstname']));
+            $post['lastname'] = ucfirst(strtolower($_POST['lastname']));
+            $post['fullname'] = $post['firstname']." ".$post['lastname'];
+        }
+
+        $post['hash'] = $this->make_hash(); // Create an unique hash for this user
+        $post['password']= self::crypt_pwd($post['password']); // Encrypt password
+        $post['active'] = ($post['status'] == "admin") ? 1:0; // Automatically activate the account if the user has an
+        // admin level
+
 		$class_vars = get_class_vars("User");
         if (self :: user_exist($post['username']) == false
             && self :: mail_exist($post['email']) == false) {
-                // Add to user table
-                $content = $this->parsenewdata($class_vars,$post);
-                $this->db->addcontent($this->tablename,$content);
+            $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
+            $this->db->addcontent($this->tablename,$content); // Add to user table
 
-                if ($this->status !=  "admin") {
+            if ($this->status !=  "admin") {
                     // Send verification email to admins/organizer
                     if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
                         $result['status'] = true;
-                        $result['msg'] = "<p id='success'>Your account has been created. You will receive an email after
-                            its validation by our admins.</p>";
+                        $result['msg'] = "Your account has been created. You will receive an email after
+                            its validation by our admins.";
                     } else {
                         self::delete_user($this->username);
                         $result['status'] = false;
-                        $result['msg'] = "<p id='warning'>Sorry, we have not been able to send a verification email to the organizers.
-                            Your registration cannot be validated for the moment. Please try again later.</p>";
+                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                            Your registration cannot be validated for the moment. Please try again later.";
                     }
                 } else {
                     // Send confirmation email to the user directly
-                    if ($mail->send_confirmation_mail($this->email,$this->username)) {
+                    if ($this->send_confirmation_mail()) {
                         $result['status'] = true;
-                        $result['msg'] = "<p id='success'>Your account has been successfully created!</p>";
+                        $result['msg'] = "Your account has been successfully created!";
                     } else {
                         $result['status'] = false;
-                        $result['msg'] = "<p id='warning'>Sorry, we have not been able to send a verification email to the organizers.
-                            Your registration cannot be validated for the moment. Please try again later.</p>";;
+                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                            Your registration cannot be validated for the moment. Please try again later.";;
                     }
                 }
 		} else {
             $result['status'] = false;
-			$result['msg'] = "<p id='warning'>This username/email address already exist in our database</p>";
+			$result['msg'] = "This username/email address already exist in our database";
 		}
         return $result;
     }
 
     /**
-     * Get user's information
+     * Get user's information from the database
      *
      * @param $prov_username
      * @return bool
@@ -307,6 +317,8 @@ class User extends Users{
                     $this->$varname = htmlspecialchars_decode($value);
                 }
             }
+            $this->firstname = ucfirst(strtolower($this->firstname));
+            $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
             $this->nbpres = self::get_nbpres();
             return true;
@@ -341,10 +353,8 @@ class User extends Users{
         $content = $this->parsenewdata($class_vars,$post);
         if ($this->db->updatecontent($this->tablename,$content,array("username"=>$this->username))) {
             $result['status'] = true;
-            $result['msg'] = "<div id='success'>The modification has been made!</div>";
         } else {
             $result['status'] = false;
-            $result['msg'] = "<div id='warning'>Something went wrong!</div>";
         }
         self::get($this->username);
         return $result;
@@ -397,22 +407,27 @@ class User extends Users{
      * @return string
      */
     public function check_account_activation($hash,$email,$result) {
-        $config = new AppConfig($this->db);
         $username = $this->db ->getinfo($this->tablename,'username',array("email"),array("'$email'"));
         $this->get($username);
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
                     $this->db->updatecontent($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
-                    /** @var AppMail $mail */
-                    $mail = new AppMail($this->db,$config);
-                    $mail-> send_confirmation_mail($this->email,$this->username);
-                    return "Account successfully activated. An email has been sent to the user!";
+                    if ($this->send_confirmation_mail()) {
+                        $result['status'] = true;
+                        $result['msg'] = "Account successfully activated. An email has been sent to the user!";
+                    } else {
+                        $result['status'] = false;
+                        $result['msg'] = "Account successfully activated, but we could not send a confirmation email to
+                        the user.";
+                    }
                 } else {
-                    return "Unexistent hash code for user.";
+                    $result['status'] = false;
+                    $result['msg'] = "Unexistent hash code for user.";
                 }
             } else {
-                return "This account has already been activated.";
+                $result['status'] = false;
+                $result['msg'] = "This account has already been activated.";
             }
         } else {
             self::delete_user($this->username);
@@ -428,13 +443,68 @@ class User extends Users{
      */
     private function activation($option) {
         if ($option == 1){
-            return self::check_account_activation($this->hash,$this->email,true);
+            $result = self::check_account_activation($this->hash,$this->email,true);
         } else {
-            /** @var $this->db AppDb */
-            $this->db = new AppDb();
-            $this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email));
-            return "Account successfully deactivated";
+            if ($this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email))) {
+                $result['status'] = true;
+                $result['msg'] = "Account successfully deactivated";
+            } else {
+                $result['status'] = false;
+            }
         }
+        return $result;
+    }
+
+    /**
+     * Send a confirmation email to the new user once his/her registration has been validated by an organizer
+     * @return bool
+     */
+    private function send_confirmation_mail() {
+        $config = new AppConfig($this->db);
+        $AppMail = new AppMail($this->db,$config);
+        $subject = 'Sign up | Confirmation'; // Give the email a subject
+        $login_url = $config->site_url."index.php";
+
+        $content = "
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello $this->fullname,</p>
+            <p>Thank you for signing up!</p>
+        </div>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            Your account has been created, you can now <a href='$login_url'>log in</a> with the following credentials.
+            <p><b>Username</b>: $this->username</p>
+            <p></p><b>Password</b>: Only you know it!</p>
+        </div>";
+        $body = $AppMail->formatmail($content);
+        return $AppMail->send_mail($this->email,$subject,$body);
+    }
+
+    /**
+     * Send an email to the user if his/her account has been deactivated due to too many login attempts.
+     * @return bool
+     */
+    private function send_activation_mail() {
+        $config = new AppConfig($this->db);
+        $AppMail = new AppMail($this->db,$config);
+
+        $subject = 'Your account has been deactivated'; // Give the email a subject
+        $authorize_url = $config->site_url."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
+        $newpwurl = $config->site_url."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
+        $content = "
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello $this->fullname,</p>
+            <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
+        </div>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            <p>You can reactivate your account by following this link:</br>
+                <a href='$authorize_url'>$authorize_url</a>
+            </p>
+            <p>If you forgot your password, you can ask for another one here:<br>
+                <a href='$newpwurl'>$newpwurl</a>
+            </p>
+        </div>";
+        $body = $AppMail->formatmail($content);
+        return $AppMail->send_mail($this->email,$subject,$body);
     }
 
     /**
@@ -450,29 +520,29 @@ class User extends Users{
                     $_SESSION['logok'] = true;
                     $_SESSION['username'] = $this -> username;
                     $_SESSION['status'] = $this -> status;
-                    $result['msg'] = "<p id=success>Hi $this->fullname,<br> welcome back!</p>";
+                    $result['msg'] = "Hi $this->fullname,<br> welcome back!";
                     $result['status'] = true;
                 } else {
                     $_SESSION['logok'] = false;
                     $result['status'] = false;
                     $attempt = $this->checkattempt();
                     if ($attempt == false) {
-                        $result['msg'] = "<p id='warning'>Wrong password. You have exceeded the maximum number
+                        $result['msg'] = "Wrong password. You have exceeded the maximum number
                             of possible attempts, hence your account has been deactivated for security reasons.
-                            We have sent an email to your address including an activation link.</p>";
+                            We have sent an email to your address including an activation link.";
                     } else {
-                        $result['msg'] = "<p id='warning'>Wrong password. $attempt login attempts remaining</p>";
+                        $result['msg'] = "Wrong password. $attempt login attempts remaining";
                     }
                 }
             } else {
                 $result['status'] = false;
-                $result['msg'] = "<p id='warning'>Sorry, your account is not activated yet. <br> You will receive an
+                $result['msg'] = "Sorry, your account is not activated yet. <br> You will receive an
                     email as soon as your registration is confirmed by an admin.<br> Please,
-                    <a href='index.php?page=contact'>contact us</a> if you have any question.</p>";
+                    <a href='index.php?page=contact'>contact us</a> if you have any question.";
             }
         } else {
             $result['status'] = false;
-            $result['msg'] = "<p id='warning''>Wrong username</p>";
+            $result['msg'] = "Wrong username";
         }
         return $result;
     }
@@ -480,18 +550,24 @@ class User extends Users{
     /**
      * Set User's status (delete/activate/deactivate/permission level)
      * @param $newstatus
+     * @return string
      */
     public function setStatus($newstatus) {
+        $result['status'] = false; // Set default status as false
         if ($newstatus == 'delete') {
-            $this -> delete_user();
-            $result['status'] = "Account successfully deleted";
+            if ($this -> delete_user()) {
+                $result['status'] = true;
+                $result['msg'] = "Account successfully deleted";
+            }
         } elseif ($newstatus == "activate") {
-            $result['status'] = $this -> activation(1);
+            $result = $this -> activation(1);
         } elseif ($newstatus == "desactivate") {
-            $result['status'] = $this -> activation(0);
+            $result = $this -> activation(0);
         } else {
-            $this -> change_user_status($newstatus);
-            $result['status'] = "User status is now $newstatus!";
+            if ($this -> change_user_status($newstatus))  {
+                $result['status'] = true;
+                $result['msg'] = "User status is now $newstatus!";
+            }
         }
         return $result;
     }
@@ -512,9 +588,7 @@ class User extends Users{
         $AppConfig = new AppConfig($this->db);
         if ($this->attempt >= $AppConfig->max_nb_attempt) {
             self::activation(0); // We deactivate the user's account
-            /** @var AppMail $mail */
-            $mail = new AppMail($this->db,$AppConfig);
-            $mail->send_activation_mail($this);
+            $this->send_activation_mail();
             return false;
         }
         $this->last_login = date('Y-m-d H:i:s');
@@ -551,7 +625,6 @@ class User extends Users{
         $hash = create_hash($password);
         return $hash;
     }
-
 
     /**
      * Delete user's account

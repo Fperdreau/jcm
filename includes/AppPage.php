@@ -1,10 +1,33 @@
 <?php
+/**
+ * File for class AppPage
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
- * Created by PhpStorm.
- * User: U648170
- * Date: 4-8-2015
- * Time: 12:48
+ * Class AppPage
+ *
+ * Handle pages' settings, meta-information, display and menu
  */
 class AppPage extends AppTable {
 
@@ -15,20 +38,22 @@ class AppPage extends AppTable {
         "parent"=>array('CHAR(20)',false),
         "status"=>array('INT(2)',false),
         "rank"=>array('INT(2)',false),
+        "show_Menu"=>array('INT(1)',false),
         "meta_title"=>array('VARCHAR(255)',false),
         "meta_keywords"=>array('TEXT(1000)',false),
         "meta_description"=>array('TEXT(1000)',false),
         "primary"=>"id"
     );
 
-    public $name;
-    public $filename;
-    public $parent;
-    public $rank;
-    public $status="";
-    public $meta_title;
-    public $meta_keywords;
-    public $meta_description;
+    public $name; // Page name
+    public $filename; // Page file
+    public $parent; // Page's parent
+    public $rank; // Order of apparition in menu
+    public $show_menu; // Show (1) or not in menu
+    public $status=""; // Persmission level
+    public $meta_title; // Page's title
+    public $meta_keywords; // Page's keywords
+    public $meta_description; // Page's description
 
     /**
      * Constructor
@@ -147,7 +172,7 @@ class AppPage extends AppTable {
         $content = scandir($folder);
         $pages = array();
         foreach ($content as $item) {
-            if (!empty($item) && !in_array($item,array('.','..','.htaccess','modal.php','verify.php','renew_pw.php'))) {
+            if (!empty($item) && !in_array($item,array('.','..','.htaccess','modal.php'))) {
                 $filename = explode('.',$item);
                 $filename = $filename[0];
                 $name = explode('_',$filename);

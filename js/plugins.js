@@ -1,19 +1,29 @@
-/*
- Copyright © 2014, Florian Perdreau
- This file is part of Journal Club Manager.
+/**
+ * File for javascript/jQuery functions
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
- Journal Club Manager is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Journal Club Manager is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Functions required to manage plugins and scheduled tasks
+ * @todo: create a plugin instead of series of indepedent functions
  */
 
 /**
@@ -75,9 +85,9 @@ $(document).ready(function() {
         .on('input','.modSettings', function(e){
             e.preventDefault();
             var input = $(this);
-            var option = $(this).attr('data-option');
-            var name = $(this).attr('data-name');
-            var op = $(this).attr('data-op');
+            var option = $(this).data('option');
+            var name = $(this).data('name');
+            var op = $(this).data('op');
             var value = $(this).val();
             jQuery.ajax({
                 url: 'php/form.php',
@@ -118,6 +128,16 @@ $(document).ready(function() {
             var name = $(this).attr('data-name');
             var op = $(this).attr('data-op');
             var type = $(this).attr('data-type');
+            var div = $(this).closest('.plugDiv');
+            var callback = function(result) {
+                if (result.status === true) {
+                    var newClass = (op=='install') ? 'uninstallBtn':'installBtn';
+                    var newattr = (op=='install') ? 'uninstall':'install';
+                    $(el)
+                        .attr('data-op',newattr)
+                        .addClass(newClass);
+                }
+            };
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -136,18 +156,7 @@ $(document).ready(function() {
                     $(el).addClass('loadBtn');
                 },
                 success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    var result = (op=='install') ? 'installed':'uninstalled';
-                    if (json === true) {
-                        var newClass = (op=='install') ? 'uninstallBtn':'installBtn';
-                        var newattr = (op=='install') ? 'uninstall':'install';
-                        $(el)
-                            .attr('data-op',newattr)
-                            .addClass(newClass);
-                        showfeedback("<p id='success'>"+name+" successfully "+result+"</p>");
-                    } else {
-                        showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
-                    }
+                    validsubmitform(div,data,callback);
                 }
 
             });
@@ -184,6 +193,7 @@ $(document).ready(function() {
             e.preventDefault();
             var name = $(this).parent('.plugOpt').attr('id');
             var op = $(this).attr('data-op');
+            var div = $(this).closest('.plugDiv');
 
             // Parse options
             var option = {};
@@ -193,22 +203,8 @@ $(document).ready(function() {
                 }
             });
 
-            jQuery.ajax({
-                url: "php/form.php",
-                async: true,
-                type: 'POST',
-                data: {modOpt: name,
-                    op: op,
-                    data:option},
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    if (json == true) {
-                        showfeedback("<p id='success'>"+name+"'s settings successfully updated!</p>");
-                    } else {
-                        showfeedback("<p id='warning'>Oops, something has gone wrong</p>");
-                    }
-                }
-            });
+            var data = {modOpt: name, op: op, data:option};
+            processAjax(div,data);
         })
 
     /**
@@ -218,6 +214,7 @@ $(document).ready(function() {
             e.preventDefault();
             var el = $(this);
             var cron = $(this).attr('data-cron');
+            var div = $(this).closest('.plugDiv');
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -229,10 +226,11 @@ $(document).ready(function() {
                 beforeSend: function() {
                     $(el).toggleClass('runBtn loadBtn');
                 },
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
+                complete: function() {
                     $(el).toggleClass('runBtn loadBtn');
-                    showfeedback("<p id='status'>"+json+"</p>");
+                },
+                success: function(data) {
+                    validsubmitform(div,data);
                 }
             });
         });

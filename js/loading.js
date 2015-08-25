@@ -1,22 +1,29 @@
 /**
- Copyright © 2014, Florian Perdreau
- This file is part of Journal Club Manager.
-
- Journal Club Manager is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- Journal Club Manager is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ * File for javascript/jQuery functions
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Set up tinyMCE (rich-text textarea)
+/**
+ * Set up tinyMCE (rich-text textarea)
+ */
 var tinymcesetup = function() {
     tinymce.init({
         mode: "textareas",
@@ -42,7 +49,11 @@ var tinymcesetup = function() {
     });
 };
 
-// Get page content
+/**
+ * Parse url and get page content accordingly
+ * @param page
+ * @param urlparam
+ */
 function getPage(page, urlparam) {
     if (page == undefined) {
         var params = getParams();
@@ -95,27 +106,33 @@ function loadPageContent(page,urlparam) {
     })
 }
 
-// Load page by clicking on menu sections
+/**
+ * Load page content by clicking on a menu section
+ *
+ * @param page
+ * @param pagetoload
+ * @param param
+ */
 var displayPage = function(page,pagetoload,param) {
     var stateObj = { page: pagetoload };
     var url = (param === false) ? "index.php?page="+page:"index.php?page="+page+"&"+param;
-
+    var el = $('#pagecontent');
     jQuery.ajax({
         url: 'pages/'+pagetoload+'.php',
         type: 'GET',
         async: true,
         data: param,
         beforeSend: function() {
-            loadingDiv('#pagecontent');
+            loadingDiv(el);
         },
         complete: function () {
-            removeLoading('#pagecontent');
+            removeLoading(el);
         },
         success: function(data){
             var json = jQuery.parseJSON(data);
             history.pushState(stateObj, pagetoload, url);
 
-            $('#pagecontent')
+            el
                 .hide()
                 .html(json);
 
@@ -129,7 +146,10 @@ var displayPage = function(page,pagetoload,param) {
     });
 };
 
-// Parse URL
+/**
+ * Parse URL
+ * @returns {Array}
+ */
 var parseurl = function() {
     var query = window.location.search.substring(1);
     var vars = query.split("&");
@@ -138,7 +158,10 @@ var parseurl = function() {
     return vars;
 };
 
-// Get url params ($_GET)
+/**
+ * Get URL parameters ($_GET)
+ * @returns {{}}
+ */
 getParams = function() {
     var url = window.location.href;
     var splitted = url.split("?");
@@ -154,23 +177,32 @@ getParams = function() {
     return params;
 }
 
-// Show loading animation
-function loadingDiv(divId) {
-    var width = $(divId).width();
-    var height = $(divId).height();
-    $(divId).append('<div class="loadingDiv" style="width: '+width+'px; height: '+height+'px;"></div>');
+/**
+ * Display loading animation during AJAX request
+ * @param el: DOM element in which we show the animation
+ */
+function loadingDiv(el) {
+    var width = el.width();
+    var height = el.height();
+    el
+        .css('position','relative')
+        .append('<div class="loadingDiv" style="width: '+width+'px; height: '+height+'px;"></div>');
 }
 
-// Remove loading animation
-function removeLoading(divId) {
-    var el = $(divId);
+/**
+ * Remove loading animation at the end of an AJAX request
+ * @param el: DOM element in which we show the animation
+ */
+function removeLoading(el) {
     el.fadeIn(200);
     el.find('.loadingDiv')
         .fadeOut(1000)
         .remove();
 }
 
-// Responsive design part
+/**
+ * Responsive design part: adapt page display to the window
+ */
 function adapt() {
     var floatmenu = $('#float_menu');
     var topnav = $('.topnav');

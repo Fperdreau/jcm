@@ -1,21 +1,33 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
 
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
+/**
+ * Bunch of common function
+ */
 
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+include('boot.php');
 
 /**
  * Explode anc clean array (remove empty strings and force the variable returned by explode to be an array
@@ -32,7 +44,6 @@ function explodecontent($delimiter,$var) {
     return $newvar;
 }
 
-
 /**
  * Show session/presentation types list (admin -> manage session)
  * @param $types
@@ -47,11 +58,51 @@ function showtypelist($types,$class,$divid) {
                 <div class='type_div' id='$divid'>
                     <div class='type_name'>$type</div>
                     <div class='type_del' data-type='$type' data-class='$class'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
                     </div>
                 </div>
             ";
     }
+    return $result;
+}
+
+/**
+ * Create drag&drop field
+ * @param array $links
+ * @return string
+ */
+function uploader($links=array()) {
+    global $AppConfig;
+
+    // Get files associated to this publication
+    $filesList = "";
+    $imgurl = '../images/delete.png';
+    if (!empty($links)) {
+        foreach ($links as $fileid=>$info) {
+            $filesList .=
+                "<div class='upl_info' id='upl_$fileid'>
+                <div class='upl_name' id='$fileid'>$fileid</div>
+                <div class='del_upl' id='$fileid' data-upl='$fileid'>
+                </div>
+            </div>";
+        }
+    }
+
+    $result = "
+        <div class='upl_container'>
+    	   <div class='upl_form'>
+                <form method='post' enctype='multipart/form-data'>
+                    <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
+                    <div class='upl_btn'>
+                        Add Files
+                        <br>(click or drop)
+                        <div class='upl_filetypes'>($AppConfig->upl_types)</div>
+                        <div class='upl_errors'></div>
+                    </div>
+                </form>
+    	   </div>
+            <div class='upl_filelist'>$filesList</div>
+        </div>";
+
     return $result;
 }
 
@@ -65,7 +116,7 @@ function showtypelist($types,$class,$divid) {
  * @return string
  */
 function displayform($user,$Presentation=false,$submit="submit", $type=false, $date=false) {
-    $db = new AppDb();
+    global $db;
     $config = new AppConfig($db);
     if ($Presentation == false) {
         $Presentation = new Presentation($db);
@@ -74,33 +125,15 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
     $type = ($type != false) ? $type:$Presentation->type;
 
     // Get files associated to this publication
-    $filelist = "";
-    if (!empty($Presentation->link)) {
-        $links = $Presentation->link;
-        foreach ($links as $fileid=>$info) {
-            $filelist .=
-            "<div class='upl_info' id='upl_$fileid'>
-                <div class='upl_name' id='$fileid'>$fileid</div>
-                <div class='del_upl' id='$fileid' data-upl='$fileid'>
-                    <img src='../images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
-                </div>
-            </div>";
-        }
-    } else {
-        $filelist .= "";
-    }
+    $links = $Presentation->link;
+    $uploader = uploader($links);
 
     // Presentation ID
     $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres:'false';
     $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
 
     // Show date input only for submissions and updates
-    if ($submit != "suggest") {
-        $dateinput = "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>
-            ";
-    } else {
-        $dateinput = "";
-    }
+    $dateinput = ($submit != "suggest") ? "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>":"";
 
     $authors = ($type !== 'minute') ? "<div class='formcontrol'>
                 <label>Authors </label>
@@ -155,26 +188,13 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
             $authors
 
-            <div class='formcontrol' style='width: 80%;'>
+            <div class='formcontrol'>
                 <label>Abstract</label>
                 <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
             </div>
         </form>
 
-        <div class='upl_container'>
-    	   <div class='upl_form'>
-                <form method='post' enctype='multipart/form-data'>
-                <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
-                <div class='upl_btn'>
-                    Add Files
-                    <br>(click or drop)
-                    <div class='upl_filetypes'>($config->upl_types)</div>
-                    <div class='upl_errors'></div>
-                </div>
-                </form>
-    	   </div>
-            <div class='upl_filelist'>$filelist</div>
-        </div>
+        $uploader
     </div>
 	";
 }
@@ -301,10 +321,15 @@ function backup_db(){
     // Declare classes
     $db = new AppDb();
 
+
     // Create Backup Folder
     $mysqlrelativedir = 'backup/mysql';
     $mysqlSaveDir = PATH_TO_APP.'/'.$mysqlrelativedir;
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
+
+    if (!is_dir(PATH_TO_APP.'/backup')) {
+        mkdir(PATH_TO_APP.'/backup',0777);
+    }
 
     if (!is_dir($mysqlSaveDir)) {
         mkdir($mysqlSaveDir,0777);
@@ -429,6 +454,10 @@ function file_backup() {
     $mysqlSaveDir = PATH_TO_APP.'/backup/mysql';
     $zipSaveDir = PATH_TO_APP.'/backup/complete';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
+
+    if (!is_dir(PATH_TO_APP.'/backup')) {
+        mkdir(PATH_TO_APP.'/backup',0777);
+    }
 
     if (!is_dir($zipSaveDir)) {
         mkdir($zipSaveDir,0777);

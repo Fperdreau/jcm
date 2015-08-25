@@ -1,24 +1,36 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+/**
+ * File for class AssignSpeakers
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 require('../includes/boot.php');
 
+/**
+ * Class AssignSpeakers
+ *
+ * Scheduled task that automatically assign speakers for the next presentations. Every assigned users will be notified
+ * by email.
+ */
 class AssignSpeakers extends AppCron {
     /**
      * Assign Speakers for the next n sessions
@@ -234,16 +246,11 @@ class AssignSpeakers extends AppCron {
         $AppConfig = new AppConfig($this->db);
         $contactURL = $AppConfig->site_url."index.php?page=contact";
         $content['body'] = "
-            <div style='width: 95%; margin: auto; font-size: 16px;'>
+            <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
                 <p>You have been automatically invited to present at a <span style='font-weight: 500'>$sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
                 <p>Please, submit your presentation on the Journal Club Manager before the <span style='font-weight: 500'>$dueDate</span>.</p>
                 <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> on the organizers as soon as possible.</p>
-            </div>
-
-            <div style='width: 95%; margin: 20px auto; font-size: 16px;'>
-                <p>Cheers,<br>
-                The Journal Club Team</p>
             </div>
         ";
         $content['subject'] = "Invitation to present on the $date";

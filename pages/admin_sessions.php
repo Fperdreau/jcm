@@ -1,21 +1,24 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 require('../includes/boot.php');
 
@@ -97,7 +100,7 @@ $result = "
             </div>
             <div class='formcontrol'>
                 <label>Presentations/Session</label>
-                <input type='text' size='3' name='max_nb_session' value='$AppConfig->max_nb_session'/>
+                <input type='text' name='max_nb_session' value='$AppConfig->max_nb_session'/>
             </div>
             <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
         </form>
@@ -106,19 +109,25 @@ $result = "
     <section>
         <h2>Session/Presentation</h2>
         <h3>Sessions</h3>
-        <div class='formcontrol'>
-            <label>Default session type </label>
-            <select class='session_type_default'>
-                $opttypedflt
-            </select>
-        </div><br>
-        <input type='button' id='submit' class='type_add' data-class='session' value='Add a category'/>
-        <input id='new_session_type' type='text' placeholder='New Category'/>
+        <div id='session_type' style='position: relative; margin-bottom: 20px;'>
+            <div class='formcontrol'>
+                <label>Default session type </label>
+                <select class='session_type_default'>
+                    $opttypedflt
+                </select>
+            </div>
+        </div>
+        <div style='font-size: 0;'>
+            <input type='button' class='type_add addBtn' data-class='session' value='+'/>
+            <input id='new_session_type' type='text' placeholder='New Category'/>
+        </div>
         <div class='feedback' id='feedback_session'></div>
         <div class='type_list' id='session'>$Sessionstype</div>
         <h3>Presentations</h3>
-        <input type='button' id='submit' class='type_add'  data-class='pres' value='Add a category'/>
-        <input id='new_pres_type' type='text' placeholder='New Category'/>
+        <div  style='font-size: 0;'>
+            <input type='button' class='type_add addBtn' data-class='pres' value='+'/>
+            <input id='new_pres_type' type='text' placeholder='New Category'/>
+        </div>
         <div class='feedback' id='feedback_pres'></div>
         <div class='type_list' id='pres'>$prestype</div>
     </section>
@@ -129,7 +138,7 @@ $result = "
         <h2>Manage Sessions</h2>
         <div class='formcontrol'>
             <label>Session to show</label>
-            <input type='date' class='selectSession' id='datepicker' name='date'>
+            <input type='date' class='selectSession' id='datepicker' name='date' data-status='admin'>
         </div>
         <div id='sessionlist'>
         $Sessionslist

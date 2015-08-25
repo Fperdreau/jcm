@@ -1,21 +1,28 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class Sessions and Session
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * Class Sessions
@@ -50,7 +57,7 @@ class Sessions extends AppTable {
      */
     public function getsessions($opt=null) {
         $sql = "SELECT date FROM $this->tablename";
-        if ($opt == true) {
+        if ($opt == true || $opt == null) {
             $sql .= " WHERE date>CURDATE()";
         } elseif ($opt !== null) {
             $sql .= " WHERE date>=$opt";
@@ -174,7 +181,7 @@ class Sessions extends AppTable {
                     <div class='session_type'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>Type</label>
-                            <select class='set_sessiontype' id='$session->date'>
+                            <select class='mod_session' name='type'>
                             $typeoptions
                             </select>
                         </div>
@@ -182,7 +189,7 @@ class Sessions extends AppTable {
                     <div class='session_time'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>From</label>
-                            <select class='set_sessiontime' id='timefrom_$session->date' data-session='$session->date'>
+                            <select class='mod_session' name='time_from'>
                                 <option value='$timefrom' selected>$timefrom</option>
                                 $timeopt
                             </select>
@@ -191,7 +198,7 @@ class Sessions extends AppTable {
                     <div class='session_time'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>To</label>
-                            <select class='set_sessiontime' id='timeto_$session->date' data-session='$session->date'>
+                            <select class='mod_session' name='time_to'>
                                 <option value='$timeto' selected>$timeto</option>
                                 $timeopt
                             </select>
@@ -200,7 +207,7 @@ class Sessions extends AppTable {
         }
 
         $content .= "
-        <div class='session_div'>
+        <div class='session_div' id='session_$session->date' data-id='$session->date'>
             <div class='session_header'>
                 <div class='session_date'>$session->date</div>
                 <div class='session_status'>$session->type</div>
@@ -229,7 +236,7 @@ class Sessions extends AppTable {
     public function shownextsession($mail=false) {
         $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
 
-        $dates = $this->getsessions(1);
+        $dates = $this->getsessions(true);
         if ($dates !== false) {
             $session = new Session($this->db,$dates[0]);
             $content = $session->showsessiondetails($show);

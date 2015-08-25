@@ -30,21 +30,9 @@ $result = "
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 <section>
     <h2>Manage users</h2>
-    <div class='formcontrol' style='width: 100px;'>
-        <label for='order'>Sort by</label>
-        <select name='order' class='user_select'>
-            <option value='' selected></option>
-            <option value='firstname'>First name</option>
-            <option value='lastname'>Last name</option>
-            <option value='username'>User name</option>
-            <option value='email'>Email</option>
-            <option value='active'>Activation date</option>
-            <option value='status'>Status</option>
-        </select>
-    </div>
     <div class='feedback'></div>
     <div id='user_list'>
-    $userlist
+        $userlist
     </div>
 </section>";
 
