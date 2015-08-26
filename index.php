@@ -31,8 +31,11 @@ require_once('includes/boot.php');
         <META NAME="viewport" CONTENT="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, user-scalable=yes">
         <META NAME="description" CONTENT="Journal Club Manager. Organization. Submit or suggest a presentation. Archives.">
         <META NAME="keywords" CONTENT="Journal Club">
+
+        <!-- Stylesheets -->
         <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
+        <link type='text/css' rel='stylesheet' href="css/uploader.css"/>
 
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>

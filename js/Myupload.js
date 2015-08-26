@@ -45,47 +45,82 @@ $(document).ready(function() {
 
     // Uploading process
     var processupl = function (data) {
+        var el = $('.upl_container');
         jQuery.ajax({
             type:'POST',
-            method:'POST',
             url:'php/upload.php',
             headers:{'Cache-Control':'no-cache'},
             data:data,
             contentType:false,
             processData:false,
-
+            beforeSend: animateBack(el),
+            complete: animateBack(el,true),
             success: function(response){
-                result = jQuery.parseJSON(response);
-                $('.upl_container').find('.upl_errors').hide();
+                var result = jQuery.parseJSON(response);
+                el.find('.upl_errors').hide();
                 var status = result.status;
                 var error = result.error;
                 if (error === true) {
                     var name = result.name;
                     $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-                    $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'><img src='images/delete.png' style='margin: auto; width: 15px; height: 15px;' alt='delete'></div></div>");
+                    $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'></div></div>");
                 } else {
-                    $('.upl_container').find('.upl_errors').html(error).show();
+                    el.find('.upl_errors').html(error).show();
                 }
             },
-
             error: function(response){
-                $('.upl_container').find('.upl_errors').html(response.statusText).show();
+               el.find('.upl_errors').html(response.statusText).show();
             }
 
         });
     };
 
-    var progressbar = function(el,value) {
-        var size = el.width();
-        var linearprogress = value;
-        var text = "Progression: "+Math.round(value*100)+"%";
+    /**
+     * Process Ajax requests
+     * @param formid
+     * @param data
+     * @param callback: callback function
+     * @param url: path to the php file
+     * @param timing
+     */
+    var sendAjax = function(formid,data,callback,url,timing) {
+        url = (url === undefined) ? 'php/form.php':url;
+        jQuery.ajax({
+            url: url,
+            type: 'POST',
+            async: true,
+            data: data,
+            beforeSend: function() {
+                animateBack(formid);
+            },
+            complete: function() {
+                animateBack(formid,true);
+            },
+            success: function(data) {
+                callback = (callback === undefined) ? false: callback;
+                validsubmitform(formid,data,callback,timing);
+            }
+        });
+    };
 
-        el
-            .show()
-            .text(text)
-            .css({
-                background: "linear-gradient(to right, rgba(200,200,200,.7) "+linearprogress+"%, rgba(200,200,200,0) "+linearprogress+"%)"
-            });
+    var animateBack = function(el,stop) {
+        stop = (stop === undefined) ? false:stop;
+
+        if (stop == false) {
+            var interval = 0;
+            var gradient_percent = 0;
+            var interval_value = 5;
+            var interval_gradient = setInterval(function(){
+                if(interval == 10) clearInterval(interval_gradient);
+
+                gradient_percent += interval_value;
+                el.css('background', 'linear-gradient(to right, #373535 '+gradient_percent+'%,rgba(0,0,0,0) 100%)');
+
+                ++interval;
+            }, 50);
+        } else {
+            el.css('background','rgba(68,68,68,1)');
+        }
     };
 
     var dragcounter = 0;
@@ -151,6 +186,6 @@ $(document).ready(function() {
                     $('.upl_link#upl_'+result.uplname).remove();
                 }
             };
-            processAjax(el,data,callback);
+            sendAjax(el,data,callback);
         });
 });
