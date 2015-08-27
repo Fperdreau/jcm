@@ -26,102 +26,131 @@
  * @todo: make a plugin of it
  */
 
+// Get file information on drop
+var getdrop = function (e) {
+    var dt = e.dataTransfer || (e.originalEvent && e.originalEvent.dataTransfer);
+
+    var files = e.target.files || (dt && dt.files);
+    if (files) {
+        var nbfiles = files.length;
+        for(var i = 0; i < nbfiles; ++i){
+            var data = new FormData();
+            data.append('file[]',files[i]);
+            processupl(data);
+        }
+    }
+};
+
+// Uploading process
+var processupl = function (data) {
+    var el = $('.upl_container');
+    var animBack = new AnimateBack(el);
+    jQuery.ajax({
+        type:'POST',
+        url:'php/upload.php',
+        headers:{'Cache-Control':'no-cache'},
+        data:data,
+        contentType:false,
+        processData:false,
+        beforeSend: animBack.start(),
+        complete: animBack.stop(),
+        success: function(response){
+            var result = jQuery.parseJSON(response);
+            el.find('.upl_errors').hide();
+            var status = result.status;
+            var error = result.error;
+            if (error === true) {
+                var name = result.name;
+                $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
+                $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'></div></div>");
+            } else {
+                el.find('.upl_errors').html(error).show();
+            }
+        },
+        error: function(response){
+            el.find('.upl_errors').html(response.statusText).show();
+        }
+    });
+};
+
+/**
+ * Process Ajax requests
+ * @param formid
+ * @param data
+ * @param callback: callback function
+ * @param url: path to the php file
+ * @param timing
+ */
+var sendAjax = function(formid,data,callback,url,timing) {
+    url = (url === undefined) ? 'php/form.php':url;
+    var loadingBack = new AnimateBack(formid);
+    jQuery.ajax({
+        url: url,
+        type: 'POST',
+        async: true,
+        data: data,
+        beforeSend: loadingBack.start(),
+        complete: loadingBack.stop(),
+        success: function(data) {
+            var result = jQuery.parseJSON(data);
+            callback(result);
+        }
+    });
+};
+
+/**
+ * Animate background (rightward moving linear-gradient)
+ * @param el
+ */
+function AnimateBack(el) {
+    this.el = el;
+    this.interval = 0;
+    this.gradient_percent = 0;
+    this.interval_value = 5;
+    this.timer = null;
+
+    this.anim = function(){
+        if(this.interval == 20) {
+            this.interval = 0;
+            this.gradient_percent = 0;
+        }
+
+        this.gradient_percent += this.interval_value;
+        this.el.css('background', 'linear-gradient(to right, rgba(64,64,64,1) '+ this.gradient_percent+'%,rgba(0,0,0,0) 100%)');
+
+        this.interval++;
+        console.log(this.interval);
+    };
+
+    this.start = function() {
+        if (this.timer == null) {
+            this.timer = setInterval(
+                (function(self) {         //Self-executing func which takes 'this' as self
+                    return function() {   //Return a function in the context of 'self'
+                        self.anim(); //Thing you wanted to run as non-window 'this'
+                    }
+                })(this),
+                50     //normal interval, 'this' scope not impacted here.
+            );
+        }
+    };
+
+    this.stop = function() {
+        var self = this;
+        if (self.timer !== null) {
+            console.log('stop');
+            console.log(self.timer);
+            setTimeout(function () {
+                clearInterval(self.timer);
+                self.el.css('background-color', 'rgba(68,68,68,1)');
+                self.timer = null;
+            }, 1000);
+        }
+    };
+
+}
+
 $(document).ready(function() {
-
-    // Get file information on drop
-    var getdrop = function (e) {
-        var dt = e.dataTransfer || (e.originalEvent && e.originalEvent.dataTransfer);
-
-        var files = e.target.files || (dt && dt.files);
-        if (files) {
-            var nbfiles = files.length;
-            for(var i = 0; i < nbfiles; ++i){
-                var data = new FormData();
-                data.append('file[]',files[i]);
-                processupl(data);
-            }
-        }
-    };
-
-    // Uploading process
-    var processupl = function (data) {
-        var el = $('.upl_container');
-        jQuery.ajax({
-            type:'POST',
-            url:'php/upload.php',
-            headers:{'Cache-Control':'no-cache'},
-            data:data,
-            contentType:false,
-            processData:false,
-            beforeSend: animateBack(el),
-            complete: animateBack(el,true),
-            success: function(response){
-                var result = jQuery.parseJSON(response);
-                el.find('.upl_errors').hide();
-                var status = result.status;
-                var error = result.error;
-                if (error === true) {
-                    var name = result.name;
-                    $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-                    $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'></div></div>");
-                } else {
-                    el.find('.upl_errors').html(error).show();
-                }
-            },
-            error: function(response){
-               el.find('.upl_errors').html(response.statusText).show();
-            }
-
-        });
-    };
-
-    /**
-     * Process Ajax requests
-     * @param formid
-     * @param data
-     * @param callback: callback function
-     * @param url: path to the php file
-     * @param timing
-     */
-    var sendAjax = function(formid,data,callback,url,timing) {
-        url = (url === undefined) ? 'php/form.php':url;
-        jQuery.ajax({
-            url: url,
-            type: 'POST',
-            async: true,
-            data: data,
-            beforeSend: function() {
-                animateBack(formid);
-            },
-            complete: function() {
-                animateBack(formid,true);
-            },
-            success: function(data) {
-                callback = (callback === undefined) ? false: callback;
-                validsubmitform(formid,data,callback,timing);
-            }
-        });
-    };
-
-    var animateBack = function(el,stop) {
-        stop = (stop === undefined) ? false:stop;
-
-        if (stop == false) {
-            var interval = 0;
-            var gradient_percent = 0;
-            var interval_value = 5;
-            var interval_gradient = setInterval(function(){
-                if(interval == 10) clearInterval(interval_gradient);
-
-                gradient_percent += interval_value;
-                el.css('background', 'linear-gradient(to right, #373535 '+gradient_percent+'%,rgba(0,0,0,0) 100%)');
-
-                ++interval;
-            }, 50);
-        } else {
-            el.css('background','rgba(68,68,68,1)');
-        }
-    };
 
     var dragcounter = 0;
     $('.mainbody')
@@ -179,7 +208,7 @@ $(document).ready(function() {
         .on('click','.del_upl',function() {
             var uplfilename = $(this).attr('id');
             var data = {del_upl: true,uplname: uplfilename};
-            var el = $(this).closest('div.upl_filelist');
+            var el = $('.upl_container');
             var callback = function(result) {
                 if (result.status === true) {
                     $('.upl_info#upl_'+result.uplname).remove();

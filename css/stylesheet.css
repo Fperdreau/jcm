@@ -638,7 +638,7 @@ section {
     text-align: left;
     display: block;
     font-size: 16px;
-    margin: 20px auto 20px auto;
+    margin: 20px 20px 20px auto;
     padding: 0 10px 20px 10px;
     background-color: rgba(200,200,200,.1);
     border: 1px solid #ddd;
@@ -651,7 +651,7 @@ section>div {
 
 .section_container {
     width: 100%;
-    text-align: justify;
+    text-align: left;
     margin:auto;
 }
 
