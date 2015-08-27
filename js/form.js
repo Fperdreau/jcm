@@ -97,13 +97,12 @@ var validsubmitform = function(el,data,callback,timing) {
         el.append("<div class='feedbackForm'></div>");
         var feedbackForm = $('.feedbackForm');
 
-        feedbackForm.html(msg).fadeIn(200);
+        feedbackForm.fadeOut(200).html(msg).fadeIn(200);
 
         setTimeout(function() {
             feedbackForm
                 .fadeOut(200)
                 .remove();
-            el.show();
 
             // Run callback function
             if (callback !== false) {
@@ -116,6 +115,7 @@ var validsubmitform = function(el,data,callback,timing) {
             callback(result);
         }
     }
+
 };
 
 /**

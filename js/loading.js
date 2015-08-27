@@ -182,11 +182,11 @@ getParams = function() {
  * @param el: DOM element in which we show the animation
  */
 function loadingDiv(el) {
-    var width = el.width();
-    var height = el.height();
     el
+        .fadeOut(200)
         .css('position','relative')
-        .append('<div class="loadingDiv" style="width: '+width+'px; height: '+height+'px;"></div>');
+        .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
+        .show();
 }
 
 /**

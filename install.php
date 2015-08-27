@@ -291,13 +291,14 @@ if (!empty($_POST['operation'])) {
                 }
             }
         }
-        $result = "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>";
+        $result['status'] = true;
+        $result['msg'] = "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>";
         echo json_encode($result);
         exit;
     }
 
     // Final step: create admin account (for new installation only)
-    if ($operation == 'inst_admin') {
+    if ($operation == 'admin_creation') {
         $user = new User($db);
         $result = $user->make($_POST);
         echo json_encode($result);
@@ -469,7 +470,6 @@ if (!empty($_POST['getpagecontent'])) {
 				    <input type='email' name='email' required autocomplete='on'>
                 </div>
                 <input type='hidden' name='status' value='admin'>
-				<input type='hidden' name='operation' value='inst_admin'>
                 <div class='submit_btns'>
                     <input type='submit' value='Next' class='admin_creation'>
                 </div>
@@ -500,7 +500,7 @@ if (!empty($_POST['getpagecontent'])) {
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" lang="fr">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <META NAME="description" CONTENT="Journal Club Manager. The easiest way to manage your lab's journal club.">
@@ -524,7 +524,6 @@ if (!empty($_POST['getpagecontent'])) {
 
     <!-- Bunch of jQuery functions -->
     <script type="text/javascript">
-        var operationDiv = $('#operation');
 
         // Get url params ($_GET)
         function getParams() {
@@ -549,10 +548,7 @@ if (!empty($_POST['getpagecontent'])) {
 
             var callback = function(result) {
                 history.pushState(stateObj, 'install', "install.php?step=" + result.step + "&op=" + result.op);
-                $('#pagecontent')
-                    .fadeOut(100)
-                    .html(result.content)
-                    .fadeIn(200);
+                $('#pagecontent').html(result.content).fadeIn(200);
             };
             var data = {getpagecontent: step, op: op};
             processAjax(div,data,callback,'install.php');
@@ -561,47 +557,53 @@ if (!empty($_POST['getpagecontent'])) {
         /**
          * Show loading animation
          */
-        function loadingDiv(divId) {
-            divId
+        function loadingDiv(el) {
+            el
                 .fadeOut(200)
+                .css('position','relative')
                 .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
                 .show();
         }
 
         /**
-         *  Remove loading animation
+         * Remove loading animation at the end of an AJAX request
+         * @param el: DOM element in which we show the animation
          */
-        function removeLoading(divId) {
-            divId.find('.loadingDiv').hide();
+        function removeLoading(el) {
+            el.fadeIn(200);
+            el.find('.loadingDiv')
+                .fadeOut(1000)
+                .remove();
         }
 
         /**
          * Create configuration file
          */
-        function makeconfigfile(data) {
-            data = modifyopeation(data,"do_conf");
+        function makeConfigFile(data) {
+            data = modOperation(data,"do_conf");
+            var operationDiv = $('#operation');
             processAjax(operationDiv,data,'install.php');
         }
 
         /**
          *  Do a backup of the db before making any modification
          */
-        function dobackup() {
-            operationDiv.append('<p id="status">Backup previous database</p>');
+        function doBackup() {
             var data = {operation: "backup"};
+            var operationDiv = $('#operation');
             processAjax(operationDiv,data,'install.php');
         }
 
         /**
          *  Check consistency between session/presentation tables
          */
-        function checkdb() {
-            operationDiv.append('<p id="status">Check consistency between session/presentation tables</p>');
-            var data = {operation: "checkdb"};
+        function checkDb() {
+            var data = {operation: "checkDb"};
+            var operationDiv = $('#operation');
             processAjax(operationDiv,data,'install.php');
         }
 
-        function modifyopeation(data,operation) {
+        function modOperation(data,operation) {
             var index;
             // Find and replace `content` if there
             for (index = 0; index < data.length; ++index) {
@@ -614,6 +616,7 @@ if (!empty($_POST['getpagecontent'])) {
         }
 
         $(document).ready(function () {
+
             $('.mainbody')
                 .ready(function() {
                     // Get step
@@ -649,44 +652,35 @@ if (!empty($_POST['getpagecontent'])) {
                     var operation = form.find('input[name="operation"]').val();
                     var data = form.serialize();
                     var callback = false;
+                    var operationDiv = $('#operation');
 
                     if (!checkform(form)) return false;
 
                     if (operation === 'db_info') {
                         callback = function() {
-                            operationDiv.empty();
 
                             // Create configuration file
-                            setTimeout(function(){
-                                makeconfigfile(data);
-                            },1000);
+                            makeConfigFile(data);
 
                             // Go to the next step
-                            setTimeout(function(){
-                                getpagecontent(3,op);
-                            },2000);
+                            getpagecontent(3,op);
                         };
                     } else if (operation === 'install_db') {
                         // First we backup the db before making any modifications
-                        setTimeout(function(){
-                            dobackup();
-                        },500);
+                        doBackup();
 
                         callback = function() {
                             // Check database consistency
-                            setTimeout(checkdb,1000);
-
+                            checkDb();
                             // Go to next step
-                            setTimeout(function() {
-                                if (op !== "update") {
-                                    getpagecontent(4,op);
-                                } else {
-                                    getpagecontent(5,op);
-                                }
-                            },2000);
+                            if (op !== "update") {
+                                getpagecontent(4,op);
+                            } else {
+                                getpagecontent(5,op);
+                            }
                         };
                     }
-                    processAjax(form,data,callback,'install.php');
+                    processAjax(operationDiv,data,callback,'install.php');
                 })
 
                 // Final step: Create admin account
