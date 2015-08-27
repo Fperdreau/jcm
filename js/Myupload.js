@@ -36,13 +36,17 @@ var getdrop = function (e) {
         for(var i = 0; i < nbfiles; ++i){
             var data = new FormData();
             data.append('file[]',files[i]);
-            processupl(data);
+            processUpl(data);
         }
     }
 };
 
-// Uploading process
-var processupl = function (data) {
+/**
+ * Process uploads
+ * Animate uploader background while files are being uploaded. Send ajax request ($_FILES) and retrieve success or errors.
+ * In case of success, show uploaded files in the files list. Otherwise, show error message.
+  */
+var processUpl = function (data) {
     var el = $('.upl_container');
     var animBack = new AnimateBack(el);
     jQuery.ajax({
@@ -62,7 +66,8 @@ var processupl = function (data) {
             if (error === true) {
                 var name = result.name;
                 $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-                $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"+status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'></div></div>");
+                $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"
+                    +status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'></div></div>");
             } else {
                 el.find('.upl_errors').html(error).show();
             }
@@ -79,9 +84,8 @@ var processupl = function (data) {
  * @param data
  * @param callback: callback function
  * @param url: path to the php file
- * @param timing
  */
-var sendAjax = function(formid,data,callback,url,timing) {
+var sendAjax = function(formid,data,callback,url) {
     url = (url === undefined) ? 'php/form.php':url;
     var loadingBack = new AnimateBack(formid);
     jQuery.ajax({
@@ -99,6 +103,7 @@ var sendAjax = function(formid,data,callback,url,timing) {
 };
 
 /**
+ * Constructor object.
  * Animate background (rightward moving linear-gradient)
  * @param el
  */
@@ -107,8 +112,12 @@ function AnimateBack(el) {
     this.interval = 0;
     this.gradient_percent = 0;
     this.interval_value = 5;
+    this.time_interval = 50;
     this.timer = null;
 
+    /**
+     * Animate background
+     */
     this.anim = function(){
         if(this.interval == 20) {
             this.interval = 0;
@@ -122,19 +131,25 @@ function AnimateBack(el) {
         console.log(this.interval);
     };
 
+    /**
+     * Start Animation
+     */
     this.start = function() {
         if (this.timer == null) {
             this.timer = setInterval(
-                (function(self) {         //Self-executing func which takes 'this' as self
-                    return function() {   //Return a function in the context of 'self'
-                        self.anim(); //Thing you wanted to run as non-window 'this'
+                (function(self) {
+                    return function() {
+                        self.anim();
                     }
                 })(this),
-                50     //normal interval, 'this' scope not impacted here.
+                this.time_interval
             );
         }
     };
 
+    /**
+     * Stop animation
+     */
     this.stop = function() {
         var self = this;
         if (self.timer !== null) {
@@ -147,7 +162,6 @@ function AnimateBack(el) {
             }, 1000);
         }
     };
-
 }
 
 $(document).ready(function() {
@@ -193,7 +207,7 @@ $(document).ready(function() {
             for(var i = 0; i < fileInput.files.length; ++i){
                 var data = new FormData();
                 data.append('file[]',fileInput.files[i]);
-                processupl(data);
+                processUpl(data);
             }
         })
 
