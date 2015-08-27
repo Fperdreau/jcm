@@ -56,6 +56,53 @@ class Presentations extends AppTable {
     }
 
     /**
+     * Create or update table
+     * @param bool $op
+     * @return mixed
+     */
+    public function setup($op=False) {
+        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+            $result['status'] = True;
+            $result['msg'] = "'$this->tablename' created";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = "'$this->tablename' not created";
+        }
+
+        if ($op === false) {
+            // Set username of the uploader
+            $sql = 'SELECT id_pres,username,orator,summary,authors,title,notified FROM ' . $this->tablename;
+            $req = $this->db->send_query($sql);
+            while ($row = mysqli_fetch_assoc($req)) {
+                $pub = new Presentation($this->db, $row['id_pres']);
+                $userid = $row['orator'];
+                $pub->summary = str_replace('\\', '', htmlspecialchars($row['summary']));
+                $pub->authors = str_replace('\\', '', htmlspecialchars($row['authors']));
+                $pub->title = str_replace('\\', '', htmlspecialchars($row['title']));
+
+                // If publication's submission date is past, we assume it has already been notified
+                if ($pub->up_date < date('Y-m-d H:i:s', strtotime('-2 days', strtotime(date('Y-m-d H:i:s'))))) {
+                    $pub->notified = 1;
+                    $pub->update();
+                }
+
+                if (empty($row['username']) || $row['username'] == "") {
+                    $sql = "SELECT username FROM " . $this->db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
+                    $userreq = $this->db->send_query($sql);
+                    $data = mysqli_fetch_assoc($userreq);
+                    if (!empty($data)) {
+                        $pub->orator = $data['username'];
+                        $pub->username = $data['username'];
+                    }
+                }
+                $pub->update();
+            }
+        }
+        return $result;
+
+    }
+
+    /**
      * Collect years of presentations present in the database
      * @return array
      */

@@ -23,6 +23,7 @@
 
 /**
  * Collection of useful functions to process forms
+ * @todo: make a plugin out of it
  */
 
 /**
@@ -30,11 +31,13 @@
  * @param el: DOM ID of the form
  * @returns {boolean}
  * @param callback: callback function to execute after the form has been processed
+ * @param url: path to the php-side file
+ * @param timing: duration of feeback message
  */
-var processform = function(el,callback) {
+var processform = function(el,callback,url,timing) {
     if (!checkform(el)) { return false;}
     var data = el.serialize();
-    processAjax(el,data,callback);
+    processAjax(el,data,callback,url,timing);
 };
 
 /**
@@ -43,7 +46,7 @@ var processform = function(el,callback) {
  * @param data
  * @param callback: callback function
  * @param url: path to the php file
- * @param timing
+ * @param timing: duration of feeback message
  */
 var processAjax = function(formid,data,callback,url,timing) {
     url = (url === undefined) ? 'php/form.php':url;
@@ -78,10 +81,6 @@ var validsubmitform = function(el,data,callback,timing) {
     callback = (callback === undefined) ? false: callback;
     timing = (timing === undefined) ? 2000:timing;
 
-    // Append feedback layer
-    el.append("<div class='feedbackForm'></div>");
-    var feedbackForm = $('.feedbackForm');
-
     // Format msg
     var msg = false;
     if (result.status === true) {
@@ -94,6 +93,10 @@ var validsubmitform = function(el,data,callback,timing) {
 
     // Display feedback message and/or run callback function
     if (msg !== false) {
+        // Append feedback layer
+        el.append("<div class='feedbackForm'></div>");
+        var feedbackForm = $('.feedbackForm');
+
         feedbackForm.html(msg).fadeIn(200);
 
         setTimeout(function() {

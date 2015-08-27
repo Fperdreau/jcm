@@ -109,6 +109,58 @@ class Uploads extends AppTable{
         }
         return true;
     }
+
+    /**
+     * Create or update table
+     * @param bool $op
+     * @return mixed
+     */
+    public function setup($op=False) {
+        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+            $result['status'] = True;
+            $result['msg'] = "'$this->tablename' created";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = "'$this->tablename' not created";
+        }
+
+        // If update, then we try to upgrade table for compatibility
+        if ($op === false) {
+            // Write previous uploads to this new table
+            $columns = $this->db->getcolumns($this->db->tablesname['Presentation']);
+            $filenames = $this->db->getinfo($this->tablename, 'filename');
+            if (in_array('link', $columns)) {
+                $sql = "SELECT up_date,id_pres,link FROM " . $this->db->tablesname['Presentation'];
+                $req = $this->db->send_query($sql);
+                while ($row = mysqli_fetch_assoc($req)) {
+                    $links = explode(',', $row['link']);
+                    if (!empty($links)) {
+                        foreach ($links as $link) {
+                            // Check if uploads does not already exist in the table
+                            if (!in_array($link, $filenames)) {
+                                // Make a unique id for this link
+                                $exploded = explode('.', $link);
+                                if (!empty($exploded)) {
+                                    $id = $exploded[0];
+                                    $type = $exploded[1];
+                                    // Add upload to the Media table
+                                    $content = array(
+                                        'date' => $row['up_date'],
+                                        'fileid' => $id,
+                                        'filename' => $link,
+                                        'presid' => $row['id_pres'],
+                                        'type' => $type
+                                    );
+                                    $this->db->addcontent($this->db->tablesname['Media'], $content);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
+    }
 }
 
 class Media extends Uploads {

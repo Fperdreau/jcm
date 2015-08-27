@@ -381,42 +381,6 @@ class AppDb {
     }
 
     /**
-     * Add post request content to a table
-     * @param $table_name
-     * @param $data
-     * @return bool|mysqli_result
-     */
-    public function addpostcontent($table_name, $data) {
-        $sql = "INSERT INTO ".$table_name;
-        $fis = array();
-        $vas = array();
-        foreach($data as $field=>$val) {
-            if (!in_array($field,array('submit'))) {
-                $fis[] = "`$field`";
-                $vas[] = "'".self::escape_query($val)."'";
-            }
-        }
-        $sql .= " (".implode(", ", $fis).") VALUES (".implode(", ", $vas).")";
-        return self::send_query($sql);
-    }
-
-    /**
-     * Update a row with posted content
-     * @param $table_name
-     * @param $data
-     * @param $refcol
-     * @param $id
-     */
-    public function updatepostcontent($table_name, $data, $refcol,$id) {
-        foreach($data as $field=>$val) {
-            if (!in_array($field,array('submit'))) {
-                $vas = "'".self::escape_query($val)."'";
-                self::updatecontent($table_name,array($field=>$vas),array($refcol=>$id));
-            }
-        }
-    }
-
-    /**
      * Delete content from the table
      * @param $table_name
      * @param $refcol
