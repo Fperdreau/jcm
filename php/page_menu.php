@@ -29,7 +29,6 @@ echo "
 <nav>
     <ul>
         <li><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
-        <li><a href='#' class='submenu_trigger' id='addmenu-pres'>submit</a></li>
         <li><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
         <li><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
         <li><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>

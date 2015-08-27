@@ -607,7 +607,7 @@ nav.submenu li:hover>a {
 #pagecontent {
     display: none;
     position: relative;
-    padding: 50px 0;
+    padding: 100px 0 50px 0;
     margin: 0 auto;
     max-width: 70%;
     min-width: 320px;
@@ -683,6 +683,23 @@ section>div {
 .section_right {
 }
 
+.row_container {
+    position: relative;
+    box-sizing: border-box;
+    text-align: justify;
+}
+
+.row_container>div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.row_container:after {
+    content: "";
+    width: 100%;
+    display: inline-block;
+}
+
 h1 {
     display: block;
     margin-left: -10px;
@@ -748,6 +765,49 @@ h3 {
 .wish_container:hover a {
     color: rgba(68,68,68,1);
 }
+
+.submitMenu {
+    position: fixed;
+    top: 40px;
+    left:0;
+    z-index: 10;
+
+    width: 100%;
+    min-width: 300px;
+    margin: 0;
+    box-sizing: border-box;
+
+    background: rgba(200,200,200,.5);
+    text-align: center;
+}
+
+.submitMenuSection {
+    display: inline-block;
+    font-size: 0.7em;
+    padding: 10px;
+    background: #E4E4E2;
+    text-align: center;
+    text-transform: uppercase;
+    transition: all 0.3s ease 0s;
+}
+
+.submitMenuSection a {
+    color:#444;
+    text-align: center;
+    text-decoration: none;
+}
+
+.submitMenuSection:hover>a {
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;
+}
+
+.submitMenuSection:hover {
+    color:#EEE;
+    background: rgba(207,81,81,1);
+}
+
 
 /* *********************************************************************/
 /* Buttons

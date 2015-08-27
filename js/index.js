@@ -39,7 +39,6 @@ var showpubform = function(formel,idpress,type,date,prestype) {
     if (prestype == undefined) {prestype = false;}
 
     // First we remove any existing submission form
-    $('.submission').remove();
 
     jQuery.ajax({
         url: 'php/form.php',
@@ -590,8 +589,9 @@ $( document ).ready(function() {
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select a wish
         .on('change','#select_wish',function(e) {
+            e.preventDefault();
             var presid = $(this).val();
-            var form = $('.wishform');
+            var form = $('.submission');
             showpubform(form,presid,'submit');
          })
 
@@ -709,6 +709,12 @@ $( document ).ready(function() {
             showpubform(modalpubform,id_pres,'submit',date);
         })
 
+        .on('click','#modal_trigger_newpub',function(e){
+            e.preventDefault();
+            var type = $(this).data('type');
+            showmodal('submission_form');
+            showpubform(modalpubform,false,type);
+        })
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/

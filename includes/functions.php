@@ -140,6 +140,8 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
                 <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
             </div>":"";
 
+    $selectopt = ($submit === "select") ? $Presentation->generate_selectwishlist():"";
+
     // Make submission's type selection list
     $typeoptions = "";
     $pres_type = explode(',',$config->pres_type);
@@ -153,9 +155,7 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
     // Text of the submit button
     $submitxt = ucfirst($submit);
-    return "
-    <div class='submission'>
-        <div class='feedback'></div>
+    $form = ($submit !== "select") ? "<div class='feedback'></div>
         <form method='post' action='' enctype='multipart/form-data' id='submit_form'>
             <div class='submit_btns'>
                 <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
@@ -194,7 +194,12 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
             </div>
         </form>
 
-        $uploader
+        $uploader":"";
+
+    return "
+    <div>$selectopt</div>
+    <div class='submission'>
+        $form
     </div>
 	";
 }

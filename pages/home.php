@@ -34,6 +34,21 @@ $futurepres = $sessions->showfuturesession(4);
 $wishlist = $presentations->getwishlist();
 
 $result = "
+    <div class='submitMenu'>
+        <div class='submitMenuSection'>
+            <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='submit'>
+               Submit</a>
+        </div>
+        <div class='submitMenuSection'>
+            <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='suggest'>
+           Make a wish</a>
+        </div>
+        <div class='submitMenuSection'>
+            <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='select'>
+           Select a wish</a>
+        </div>
+    </div>
+
     <section>
         <h2>News</h2>
         <div class='news'>
