@@ -770,7 +770,7 @@ h3 {
     position: fixed;
     top: 40px;
     left:0;
-    z-index: 10;
+    z-index: 91;
 
     width: 100%;
     min-width: 300px;
