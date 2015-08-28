@@ -1,23 +1,35 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * File for class AppPlugins
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-class AppPlugins extends Table {
+/**
+ * Class AppPlugins
+ *
+ * Handle plugins settings and routines (installation, running, ect.)
+ */
+class AppPlugins extends AppTable {
 
     protected $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
@@ -37,10 +49,10 @@ class AppPlugins extends Table {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(DbSet $db, $name=False) {
+    public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Plugins', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
@@ -102,24 +114,16 @@ class AppPlugins extends Table {
      * @return bool
      */
     public function isInstalled() {
-        /**
-         * Check if this plugin is registered to the db
-         */
         $plugins = $this->db->getinfo($this->db->tablesname['Plugins'],'name');
         return in_array($this->name,$plugins);
     }
 
     /**
-     * Create instance of the plugin from its name
-     * @param $pluginName
-     * @return mixed
+     * Instantiate a class from class name
+     * @param: class name (must be the same as the file name)
+     * @return: object
      */
-    public function instantiatePlugin($pluginName) {
-        /**
-         * Instantiate a class from class name
-         * @param: class name (must be the same as the file name)
-         * @return: object
-         */
+    public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/plugins/';
         include_once($folder . $pluginName .'/'. $pluginName .'.php');
         return new $pluginName($this->db);
@@ -145,7 +149,7 @@ class AppPlugins extends Table {
         $plugins = array();
         foreach ($pluginList as $pluginfile) {
             if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
-                $thisPlugin = $this->instantiatePlugin($pluginfile);
+                $thisPlugin = $this->instantiate($pluginfile);
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
                 }
@@ -163,4 +167,88 @@ class AppPlugins extends Table {
         return $plugins;
     }
 
+    /**
+     * Display job's settings
+     * @return string
+     */
+    public function displayOpt() {
+        $opt = "<div style='font-weight: 600;'>Options</div>";
+        if (!empty($this->options)) {
+            foreach ($this->options as $optName => $settings) {
+                if (count($settings) > 1) {
+                    $optProp = "";
+                    foreach ($settings as $prop) {
+                        $optProp .= "<option value='$prop'>$prop</option>";
+                    }
+                    $optProp = "<select name='$optName'>$optProp</select>";
+                } else {
+                    $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
+                }
+                $opt .= "
+                <div class='formcontrol'>
+                    <label for='$optName'>$optName</label>
+                    $optProp
+                </div>";
+            }
+            $opt .= "<input type='submit' class='modOpt' data-op='plugin' value='Modify'>";
+        } else {
+            $opt = "No settings are available for this job.";
+        }
+        return $opt;
+    }
+
+    /**
+     * Show plugins list
+     * @return string
+     */
+    public function show() {
+        $pluginsList = $this->getPlugins();
+        $plugin_list = "";
+        foreach ($pluginsList as $pluginName => $info) {
+            $installed = $info['installed'];
+            if ($installed) {
+                $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='plugin' data-op='uninstall' data-name='$pluginName'></div>";
+            } else {
+                $install_btn = "<div class='installDep workBtn installBtn' data-type='plugin' data-op='install' data-name='$pluginName'></div>";
+            }
+            $status = $info['status'];
+
+            $plugin_list .= "
+            <div class='plugDiv' id='plugin_$pluginName'>
+                <div class='plugLeft'>
+                    <div class='plugName'>$pluginName</div>
+                    <div class='plugTime'>" . $info['version'] . "</div>
+                    <div class='optbar'>
+                        <div class='optShow workBtn settingsBtn' data-op='plugin' data-name='$pluginName'></div>
+                        $install_btn
+                    </div>
+                </div>
+
+                <div class='plugSettings'>
+                    <div class='optbar'>
+                        <div class='formcontrol'>
+                            <label>Status</label>
+                            <select class='select_opt modSettings' data-op='plugin' data-option='status' data-name='$pluginName'>
+                            <option value='$status' selected>$status</option>
+                            <option value='On'>On</option>
+                            <option value='Off'>Off</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='settings'>
+                        <div class='formcontrol'>
+                            <label>Page</label>
+                            <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "' style='width: 20%'/>
+                        </div>
+                    </div>
+
+                    <div class='plugOpt' id='$pluginName'></div>
+
+                </div>
+            </div>
+            ";
+        }
+        return $plugin_list;
+    }
 }

@@ -1,0 +1,162 @@
+/**
+ * File for Myuploads CSS style
+ *
+ * CSS 3.0
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+.upl_container {
+    display: block;
+    min-width: 250px;
+    max-width: 400px;
+    height: auto;
+    padding: 10px;
+    margin: 20px auto 10px auto;
+    background-color: rgba(68,68,68,1);
+    border: 1px solid #000000;
+    text-align: center;
+    -webkit-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+    -moz-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+    box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
+}
+
+.dragging {
+    background-color: rgba(68,68,68,.5);
+}
+
+.upl_form {
+    width: 95%;
+    text-align: center;
+    margin: auto;
+    clear: both;
+}
+
+.upl_btn {
+    display: block;
+    margin: 0 auto 0 auto;
+    width: 200px;
+    height: auto;
+    line-height: 30px;
+    background-color: rgba(68,68,68,1);
+    color: rgba(255,255,255,1);
+    border: 1px solid #999;
+    padding: 0px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9em;
+    text-align: center;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+}
+
+.upl_btn:hover {
+    background-color: #666666;
+}
+
+.upl_btn:active {
+    background-color: rgba(68,68,68,1);
+    padding: 6px 10px 4px;
+}
+
+.upl_errors {
+    display: none;
+    width: 100%;
+    color: #990000;
+    font-size: 0.8em; /* Set message font size  */
+    padding: 5px; /* Some padding to make some more space for our text  */
+    background-color: rgba(255,255,255,.9); /* Add a background color to our status message   */
+    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+}
+
+.upl_filetypes {
+    display: block;
+    margin: 0 auto;
+    font-size: 0.8em;
+    font-weight: normal;
+}
+
+.upl_filelist {
+    width: 95%;
+    height: auto;
+    padding: 10px;
+    margin: 0;
+}
+
+.upl_info {
+    display: inline-block;
+    max-width: 190px;
+    font-size: 0.9em;
+    line-height: 30px;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #bbbbbb;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+    box-shadow: 0px 0px 15px 1px rgba(0,0,0,1);
+}
+
+.upl_info>div {
+    display: table-cell;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.upl_name {
+    white-space: pre-wrap;
+    width: 160px;
+    font-weight: bold;
+    text-align: center;
+    padding-left: 10px;
+}
+
+.upl_name:hover {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
+}
+
+.upl_type {
+    display: inline-block;
+    padding: 0 5px 0 5px;
+    margin-left: 0;
+    font-weight: bold;
+    background-color: #555555;
+    color: #EEEEEE;
+}
+
+.del_upl {
+    background: rgba(255, 255, 255, .7) url('../images/delete.png') no-repeat 50% 50%;
+    background-size: 15px;
+    border-left: 1px solid #999999;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+}
+
+.del_upl:hover {
+    background-color: rgba(207,81,81,.8);
+}
+
+.del_upl:active {
+    background-color: rgba(68,68,68,1);
+}

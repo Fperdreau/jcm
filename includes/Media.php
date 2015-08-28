@@ -1,23 +1,30 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * File for class Uploads and class Media
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-class Uploads extends Table{
+class Uploads extends AppTable{
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
@@ -33,9 +40,9 @@ class Uploads extends Table{
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    function __construct(DbSet $db) {
+    function __construct(AppDb $db) {
         parent::__construct($db, 'Media', $this->table_data);
         $config = new AppConfig($db);
         $this->directory = PATH_TO_APP.'/uploads/';
@@ -102,6 +109,58 @@ class Uploads extends Table{
         }
         return true;
     }
+
+    /**
+     * Create or update table
+     * @param bool $op
+     * @return mixed
+     */
+    public function setup($op=False) {
+        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+            $result['status'] = True;
+            $result['msg'] = "'$this->tablename' created";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = "'$this->tablename' not created";
+        }
+
+        // If update, then we try to upgrade table for compatibility
+        if ($op === false) {
+            // Write previous uploads to this new table
+            $columns = $this->db->getcolumns($this->db->tablesname['Presentation']);
+            $filenames = $this->db->getinfo($this->tablename, 'filename');
+            if (in_array('link', $columns)) {
+                $sql = "SELECT up_date,id_pres,link FROM " . $this->db->tablesname['Presentation'];
+                $req = $this->db->send_query($sql);
+                while ($row = mysqli_fetch_assoc($req)) {
+                    $links = explode(',', $row['link']);
+                    if (!empty($links)) {
+                        foreach ($links as $link) {
+                            // Check if uploads does not already exist in the table
+                            if (!in_array($link, $filenames)) {
+                                // Make a unique id for this link
+                                $exploded = explode('.', $link);
+                                if (!empty($exploded)) {
+                                    $id = $exploded[0];
+                                    $type = $exploded[1];
+                                    // Add upload to the Media table
+                                    $content = array(
+                                        'date' => $row['up_date'],
+                                        'fileid' => $id,
+                                        'filename' => $link,
+                                        'presid' => $row['id_pres'],
+                                        'type' => $type
+                                    );
+                                    $this->db->addcontent($this->db->tablesname['Media'], $content);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
+    }
 }
 
 class Media extends Uploads {
@@ -113,10 +172,10 @@ class Media extends Uploads {
     public $type;
 
     /**
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $fileid
     */
-    function __construct(DbSet $db, $fileid=null){
+    function __construct(AppDb $db, $fileid=null){
         parent::__construct($db);
 
         if (null != $fileid) {
@@ -128,14 +187,13 @@ class Media extends Uploads {
      * Create Media object
      * @param $file
      * @return bool|mixed|mysqli_result|string
-     * @internal param $presid
      */
     public function make($file) {
 
         // First check the file
-        $valid = $this->checkupload($file);
-        if ($valid !== true) {
-            return $valid;
+        $result['error'] = $this->checkupload($file);
+        if ($result['error'] != true) {
+            return $result;
         }
 
         // Second: Proceed to upload
@@ -211,16 +269,21 @@ class Media extends Uploads {
         if (is_file($this->directory.$this->filename)) {
             if (unlink($this->directory.$this->filename)) {
                 if ($this->db->deletecontent($this->tablename,'fileid',$this->fileid)) {
-                    return true;
+                    $result['status'] = true;
+                    $result['msg'] = "<p id='success'>File Deleted</p>";
                 } else {
-                    return 'table_failed';
+                    $result['status'] = false;
+                    $result['msg'] = "<p id='success'>Oops!</p>";
                 }
             } else {
-                return 'not_deleted';
+                $result['status'] = false;
+                $result['msg'] = "<p id='success'>Oops!</p>";
             }
         } else {
-            return 'no_file ';
+            $result['status'] = false;
+            $result['msg'] = "<p id='success'>Oops!</p>";
         }
+        return $result;
     }
 
     /**

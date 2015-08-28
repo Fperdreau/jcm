@@ -1,50 +1,57 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class AppConfig
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * Class AppConfig
  *
- * Handles application configuration information and routines (updates, get).
+ * Handles application's settings and routines (updates, get).
  */
-class AppConfig extends Table {
+class AppConfig extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "variable" => array("CHAR(20)", false),
         "value" => array("TEXT", false),
         "primary" => "id");
+
     /**
      * Application info
      *
      */
-    public $status = 'On';
-    public $app_name = "Journal Club Manager";
-    public $version = "v1.3.1";
-    public $author = "Florian Perdreau";
-    public $repository = "https://github.com/Fperdreau/jcm";
-    public $sitetitle = "Journal Club";
-    public $site_url = "(e.g. http://www.mydomain.com/Pjc/)";
-    public $clean_day = 10;
+    public $status = 'On'; // Application's status (on or off)
+    public $app_name = "Journal Club Manager"; // Application's name
+    public $version = "1.4"; // Application's version
+    public $author = "Florian Perdreau"; // Application's authors
+    public $repository = "https://github.com/Fperdreau/jcm"; // Application's sources
+    public $sitetitle = "Journal Club"; //
+    public $site_url = "(e.g. http://www.mydomain.com/Pjc/)"; // Web path to application
     public $max_nb_attempt = 5; // Maximum nb of login attempt
 
     /**
-     * Journal club info
+     * Session info
      *
      */
     public $jc_day = "thursday";
@@ -52,13 +59,6 @@ class AppConfig extends Table {
     public $jc_time_from = "17:00";
     public $jc_time_to = "18:00";
     public $max_nb_session = 2;
-
-    /**
-     * Session info
-     *
-     */
-    public $nbsessiontoplan = 10;
-    public $chair_assign = "manual";
     public $session_type = array(
         "Journal Club"=>array('TBA'),
         'Business Meeting'=>array('TBA'),
@@ -70,12 +70,12 @@ class AppConfig extends Table {
      * Lab info
      *
      */
-    public $lab_name = "Your Lab name";
-    public $lab_street = "Your Lab address";
-    public $lab_postcode = "Your Lab postal code";
-    public $lab_city = "Your Lab city";
-    public $lab_country = "Your Lab country";
-    public $lab_mapurl = "Google Map";
+    public $lab_name;
+    public $lab_street;
+    public $lab_postcode;
+    public $lab_city;
+    public $lab_country;
+    public $lab_mapurl;
 
     /**
      * Mail host information
@@ -99,15 +99,16 @@ class AppConfig extends Table {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param bool $get
      */
-    public function __construct(DbSet $db,$get=true) {
+    public function __construct(AppDb $db,$get=true) {
         parent::__construct($db, 'AppConfig',$this->table_data);
         if ($get) {
             self::get();
         }
     }
+
     /**
      * Get application settings
      * @return bool
@@ -131,7 +132,7 @@ class AppConfig extends Table {
     public function update($post=array()) {
         $class_vars = get_class_vars("AppConfig");
         $postkeys = array_keys($post);
-
+        $result = false;
         foreach ($class_vars as $name => $value) {
             if (in_array($name,array("db","tablename","table_data"))) continue;
             $newvalue = (in_array($name,$postkeys)) ? $post[$name]:$this->$name;
@@ -140,11 +141,11 @@ class AppConfig extends Table {
 
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
             if (!empty($exist)) {
-                $this->db->updatecontent($this->tablename,array("value"=>$newvalue),array("variable"=>$name));
+                $result = $this->db->updatecontent($this->tablename,array("value"=>$newvalue),array("variable"=>$name));
             } else {
-                $this->db->addcontent($this->tablename,array("variable"=>$name,"value"=>$newvalue));
+                $result = $this->db->addcontent($this->tablename,array("variable"=>$name,"value"=>$newvalue));
             }
         }
-        return true;
+        return $result;
     }
 }

@@ -1,35 +1,44 @@
 /**
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * File for js and jquery functions
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- General functions
+ GET FORMS
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-var modalpubform = $('.modal_section#submission_form');
-
-// Show publication form
+/**
+ * Show form to submit a presentation
+ * @param formel: ID of the form
+ * @param idpress: ID of the presentation
+ * @param type: form's type (submit, modify, suggest)
+ * @param date: presentation's date
+ * @param prestype
+ */
 var showpubform = function(formel,idpress,type,date,prestype) {
-    if (idpress === undefined) {idpress = false;}
-    if (type === undefined) {type = "submit";}
-    if (date === undefined) {date = false;}
-    if (prestype === undefined) {prestype = false;}
+    if (idpress == undefined) {idpress = false;}
+    if (type == undefined) {type = "submit";}
+    if (date == undefined) {date = false;}
+    if (prestype == undefined) {prestype = false;}
 
     // First we remove any existing submission form
-    $('.submission').remove();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -42,27 +51,6 @@ var showpubform = function(formel,idpress,type,date,prestype) {
         },
         success: function(data){
             var result = jQuery.parseJSON(data);
-            console.log(result);
-            formel
-                .hide()
-                .html(result)
-                .show();
-        }
-    });
-};
-
-// Display presentation information in a modal window
-var displaypub = function(idpress,formel) {
-
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: false,
-        data: {
-            show_pub: idpress
-        },
-        success: function(data){
-            var result = jQuery.parseJSON(data);
             formel
                 .hide()
                 .html(result)
@@ -71,111 +59,46 @@ var displaypub = function(idpress,formel) {
     });
 };
 
-// Process submitted form
-var processform = function(formid,feedbackid) {
-    var feedbackdiv = (typeof feedbackid === "undefined") ? feedbackdiv = "feedback": feedbackdiv=feedbackid;
-
-    var data = $("#"+formid).serialize();
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: data,
-        beforeSend: function() {
-            $("#loading").show();
-        },
-        complete: function() {
-            $("#loading").hide();
-        },
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            showfeedback(result,feedbackdiv);
-        }
-    });
+/**
+ * Display form to post a news
+ * @param postid
+ */
+var showpostform = function(postid) {
+    var el = $('.postcontent');
+    var data = {post_show: true,postid: postid};
+    var callback = function(result) {
+        var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
+        $('.postcontent')
+            .empty()
+            .html(result.form)
+            .fadeIn(200);
+        $('.post_txtarea')
+            .html(txtarea)
+            .show();
+        tinyMCE.remove();
+        window.tinymce.dom.Event.domLoaded = true;
+        tinymcesetup();
+    };
+    processAjax(el,data,callback);
 };
 
-// Show feedback message and replace the submitted form by an empty form
-var validsubmitform = function(form,text) {
-    $(form)
-        .hide()
-        .html(text)
-        .fadeIn(200);
-};
-
-// Check for empty input fields
-var checkform = function(formid) {
-    var valid = true;
-    $('#'+formid+' input,select').each(function () {
-        if ($.trim($(this).val()).length === 0){
-            $(this).focus();
-            showfeedback('<p id="warning">This field is required</p>');
-            valid = false;
-            return false;
-        }
-    });
-    return valid;
-};
-
-// Close modal window
-var close_modal = function(modal_id) {
-    $("#lean_overlay").fadeOut(200);
-    $(modal_id).css({"display":"none"});
-    $('#submission_form').empty();
-};
-
-// Check email validity
-var checkemail = function(email) {
-    var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
-    return pattern.test(email);
-};
-
-//Show feedback
-var showfeedback = function(message,selector) {
-    var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
-
-    $(el)
-        .html(message)
-        .fadeIn();
-    setTimeout(function() {
-       $(el)
-           .empty();
-    },3000);
-    return false;
-};
-
-// Show the targeted modal section and hide the others
-var showmodal = function(sectionid) {
-    $('.modal_section').each(function() {
-        var thisid = $(this).attr('id');
-        if (thisid === sectionid) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-    });
-};
-
-// send verification email after signing up
+/**
+ * Send a verification email after having signed up
+ * @param email
+ */
 var send_verifmail = function(email) {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {
-            change_pw: true,
-            email: email},
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            if (result === "sent") {
-                showfeedback('<p id="success">A verification email has been sent to your address</p>');
-            } else if (result === "wrong_email") {
-                showfeedback('<p id="warning">Wrong email address</p>');
-            }
-        }
-    });
+    var data = {change_pw: true, email: email}
+    processAjax(form,data);
 };
 
-// initialize jQuery-UI Calendar
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ jQuery DataPicker
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/**
+ * Initialize jQuery-UI calendar
+ * @param jcdays: associative array providing journal club sessions and their information
+ * @param selected: Currently selected day
+ */
 var inititdatepicker = function(jcdays,selected) {
 
     $('#datepicker').datepicker({
@@ -218,255 +141,220 @@ var inititdatepicker = function(jcdays,selected) {
     });
 };
 
-// Set up tinyMCE (rich-text textarea)
-var tinymcesetup = function() {
-    tinymce.init({
-        mode: "textareas",
-        selector: ".tinymce",
-        width: "90%",
-        height: 300,
-        plugins: [
-            "advlist autolink lists charmap print preview hr spellchecker",
-            "searchreplace wordcount visualblocks visualchars code fullscreen",
-            "save contextmenu directionality template paste textcolor"
-        ],
-        content_css: "js/tinymce/skins/lightgray/content.min.css",
-        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | l      ink image | print preview media fullpage | forecolor backcolor emoticons",
-        style_formats: [
-            {title: 'Bold text', inline: 'b'},
-            {title: 'Red text', inline: 'span', styles: {color: '#ff0000'}},
-            {title: 'Red header', block: 'h1', styles: {color: '#ff0000'}},
-            {title: 'Example 1', inline: 'span', classes: 'example1'},
-            {title: 'Example 2', inline: 'span', classes: 'example2'},
-            {title: 'Table styles'},
-            {title: 'Table row 1', selector: 'tr', classes: 'tablerow1'}
-        ]
-    });
-
-};
-
-// Load sections
-var index = 0, section_pages = $('.section_page');
-var loadsections = function(pagetoload) {
-    var section;
-
-    if (index <= section_pages.length) {
-        section = $(section_pages[index]);
-        ++index;
-        section.load(loadsections(pagetoload));
-    }
-};
-
-// Load page by clicking on menu sections
-var loadpageonclick = function(pagetoload,param) {
-    param = (typeof param !== 'undefined') ? param : false;
-    var stateObj = { page: pagetoload };
-    var url = (param === false) ? "index.php?page="+pagetoload:"index.php?page="+pagetoload+"&"+param;
-
-    /*$('#pagecontent')
-        .fadeOut(200)
-        .empty()
-        .html('<div id="content"></div>')
-        .show();
-    $('#content')
-        .empty()
-        .load('pages/'+pagetoload+'.php .section_page')
-        .fadeIn(200);
-    history.pushState(stateObj, pagetoload, url);*/
-
-    jQuery.ajax({
-        url: 'pages/'+pagetoload+'.php',
-        type: 'GET',
-        async: true,
-        data: param,
-        beforeSend: function() {
-            $('#pagecontent').fadeOut(200);
-            $('#loading').show();
-        },
-        complete: function () {
-            $('#loading').hide();
-        },
-        success: function(data){
-            var json = jQuery.parseJSON(data);
-            history.pushState(stateObj, pagetoload, url);
-
-            $('#pagecontent')
-                .empty()
-                .html(json)
-                .fadeIn(200)
-                .find(".section_page").each(function() {
-                    $(this).fadeIn('slow');
-                });
-            tinymcesetup();
-            var callback = showplugins;
-            getPlugins(pagetoload, callback);
-        }
-    });
-};
-
-var showpostform = function(postid) {
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Logout
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/**
+ * Log out the user and trigger a modal window informing the user he/she has been logged out
+ */
+var logout = function() {
+    $('.warningmsg').remove();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
-        async: true,
-        data: {
-            post_show: true,
-            postid: postid},
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
+        data: {logout: true},
+        success: function() {
+            $('.mainbody').append("<div class='logoutWarning'>You have been logged out!</div>");
+            $('.logoutWarning').fadeIn(200);
             setTimeout(function() {
-                $('.postcontent')
+                $('.logoutWarning')
+                    .fadeOut(200)
                     .empty()
-                    .html(result.form)
-                    .fadeIn(200);
-                $('.post_txtarea')
-                    .html(txtarea)
-                    .show();
-                tinyMCE.remove();
-                window.tinymce.dom.Event.domLoaded = true;
-                tinymcesetup();
-            }, 1000);
-
+                    .hide();
+                location.reload();
+            },3000);
         }
     });
 };
 
-// Parse URL
-var parseurl = function() {
-    var query = window.location.search.substring(1);
-    var vars = query.split("&");
-    vars = vars.slice(1,vars.length);
-    vars = vars.join("&");
-    return vars;
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Modal windows
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+var modalpubform = $('.modal_section#submission_form');
+
+/**
+ * Close modal window
+ * @param modal_id
+ */
+var close_modal = function(modal_id) {
+    $("#lean_overlay").fadeOut(200);
+    $(modal_id).css({"display":"none"});
+    $("modal_section#submission_form").empty();
 };
 
-// Get url params ($_GET)
-var getParams = function() {
-    var url = window.location.href;
-    var splitted = url.split("?");
-    if(splitted.length === 1) {
-        return {};
-    }
-    var paramList = decodeURIComponent(splitted[1]).split("&");
-    var params = {};
-    for(var i = 0; i < paramList.length; i++) {
-        var paramTuple = paramList[i].split("=");
-        params[paramTuple[0]] = paramTuple[1];
-    }
-    return params;
+/**
+ * Show the targeted modal section and hide the others
+ * @param sectionid
+ */
+var showmodal = function(sectionid) {
+    var title = $(".modal_section#"+sectionid).attr('data-title');
+    $(".popupHeader").text(title);
+    $('.modal_section').each(function() {
+        var thisid = $(this).attr('id');
+        if (thisid === sectionid) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
 };
 
-function getpage() {
-    var params = getParams();
-    var page = (params.page == undefined) ? 'home':params.page;
-
+/**
+ * Automatically show login window on start (if user is not already logged in)
+ */
+function showLogin() {
     jQuery.ajax({
         url: 'php/form.php',
-        data: {get_app_status: true},
         type: 'POST',
-        async: true,
+        data: {isLogged: true},
         success: function(data) {
             var json = jQuery.parseJSON(data);
-            if (json === 'Off' && page !== 'admin_tool') {
-                console.log('Site status: '+json);
-                console.log('page: '+page);
-                $('#pagecontent')
-                    .html("<div id='content'><p id='warning'>Sorry, the website is currently under maintenance.</p></div>")
-                    .fadeIn(200);
-            } else {
-                if (page === undefined) {
-                    loadpageonclick('home',false);
-                } else {
-                    if (page !== false && page != 'install') {
-                        var urlparam = parseurl();
-                        loadpageonclick(page,''+urlparam);
-                    }
-                }
+            if (json === false) {
+                $('.modal_trigger#user_login')
+                    .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
+                    .click();
             }
         }
-    })
+    });
+}
+
+/**
+ * Display presentation's information in a modal window
+ * @param idpress
+ * @param formel
+ */
+var displaypub = function(idpress,formel) {
+    idpress = (idpress == undefined) ? false:idpress;
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {
+            show_pub: idpress
+        },
+        success: function(data){
+            var result = jQuery.parseJSON(data);
+            formel
+                .hide()
+                .html(result)
+                .fadeIn(200);
+        }
+    });
+};
+
+/**
+ * Get width of hidden objects (useful to get width of submenus)
+ * @param obj (DOM element)
+ * @returns {*}
+ */
+function realWidth(obj){
+    var clone = obj.clone();
+    clone.css("visibility","hidden");
+    $('body').append(clone);
+    var width = clone.outerWidth();
+    clone.remove();
+    return width;
 }
 
 $( document ).ready(function() {
+
+    $('body').ready(function() {
+        showLogin();
+    });
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Main body
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
     $('.mainbody')
-        .ready(function() {
-            getpage();
-        })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Header menu/Sub-menu
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        // Dropdown menu
+        .on('click','#float_menu',function() {
+            var position = $(this).position();
+            var height = $(this).outerHeight();
+            $('.sideMenu')
+                .css({
+                    'top':height+"px",
+                    'left':position.left+"px"
+                })
+                .animate({width:'toggle'});
+        })
+
+        // Display submenu
+        .on('click','.submenu_trigger',function(e) {
+            e.preventDefault();
+            var menuEl = $(this).parent('li');
+            var absPos = menuEl.offset();
+            var position = menuEl.position();
+            var width = menuEl.outerWidth();
+            var height = menuEl.outerHeight();
+            var id = $(this).attr('id');
+            var submenu;
+            if ($(this).closest('div').hasClass('sideMenu')) {
+                submenu = $(".sideMenu nav.submenu#"+id);
+                submenu.toggle(200);
+            } else {
+                submenu = $(".topnav nav.submenu#"+id);
+                var submenuWidth = realWidth(submenu); // Get submenu width
+                var horizontal;
+                if (absPos.left+width+submenuWidth < $(window).width()) {
+                    horizontal = position.left;
+                } else {
+                    horizontal = position.left-submenuWidth;
+                }
+                submenu
+                    .css({
+                        'left':horizontal+"px",
+                        'top':position.top+height+"px"
+                    })
+                    .toggle(200);
+            }
+
+        })
+
         // Main menu sections
-        .on('click',".menu-section",function(){
+        .on('click',".menu-section",function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
             $(".menu-section").removeClass("activepage");
             $(this).addClass("activepage");
 
-            if ($(this).is('[data-url]')) {
-                var pagetoload = $(this).attr("data-url");
-                loadpageonclick(pagetoload,false);
+            if ($(this).is('[id]')) {
+                var pagetoload = $(this).attr("id");
+                var param = ($(this).is('[data-param]'))? $(this).attr('data-param'):false;
+                getPage(pagetoload,param);
+                $('.submenu, .dropdown').hide();
             }
-        })
-        // Sub-menu sections
-        .on('click',".addmenu-section",function(){
-            $(".addmenu-section").removeClass("activepage");
-            $(this).addClass("activepage");
 
-            if ($(this).is('[data-url]')) {
-                var pagetoload = $(this).attr("data-url");
-                if ($(this).is('[data-param]')) {
-                    var dataparam = $(this).attr("data-param");
-                    loadpageonclick(pagetoload,dataparam);
-                } else {
-                    loadpageonclick(pagetoload,false);
-                }
+            var sideMenu = $('.sideMenu');
+            if (sideMenu.is(':visible')) {
+                sideMenu.animate({width:"toggle"});
             }
         })
 
-        .on('click',function(event) {
-            if(!$(event.target).closest('#menu_admin').length) {
-                if($('.addmenu-admin').is(":visible")) {
-                    $('.addmenu-admin').hide();
+        // Hide dropdown menus when not clicked
+        .on('click',function(e) {
+            var nav = $("nav");
+            var sideMenu = $('.sideMenu');
+            if (!$('#float_menu').is(e.target)&& $('#float_menu').has(e.target).length === 0) {
+                if (!nav.is(e.target) && nav.has(e.target).length === 0) {
+                    $('.submenu').hide();
                 }
+
+                if (sideMenu.is(':visible') && !sideMenu.is(e.target) && sideMenu.has(e.target).length === 0) {
+                    sideMenu.animate({width:"toggle"});
+                }
+
             }
-            if(!$(event.target).closest('#menu_pres').length) {
-                if($('.addmenu-pres').is(":visible")) {
-                    $('.addmenu-pres').hide();
-                }
-            }
-        })
-
-		// Show presentation sub-menu
-        .on('click','#menu_pres',function() {
-            $('.addmenu-pres').slideToggle(200);
-        })
-
-		// Show admin sub-menu
-        .on('click','#menu_admin',function() {
-            $('.addmenu-admin').slideToggle(200);
-        })
-
-		// Log out
-        .on('click',"#logout",function(){
-            jQuery.ajax({
-                url: 'pages/logout.php',
-                type: 'POST',
-                async: true,
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    window.location = "index.php";
-                }
-            });
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('mouseenter','.submission',function(e) {
+        .on('mouseenter','#core, .submission',function(e) {
             e.preventDefault();
             jQuery.ajax({
                 url: 'php/form.php',
@@ -475,7 +363,7 @@ $( document ).ready(function() {
                 data: {get_calendar_param: true},
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-                    var selected_date = $('input#selected_date').val();
+                    var selected_date = $('input[type="date"]').val();
                     inititdatepicker(result,selected_date);
                 }
             });
@@ -484,18 +372,6 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          User Profile
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-		 // Process personal info form
-        .on('click',".profile_persoinfo_form",function(e) {
-            e.preventDefault();
-            processform("profile_persoinfo_form","feedback_perso");
-        })
-
-		// Process coordinates (email, etc) form
-        .on('click',".profile_emailinfo_form",function(e) {
-            e.preventDefault();
-            processform("profile_emailinfo_form","feedback_mail");
-        })
-
 		// Send a verification email to the user if a change of password is requested
         .on('click',".change_pwd",function(){
             var email = $(this).attr("id");
@@ -504,68 +380,30 @@ $( document ).ready(function() {
         })
 
 		// Open a dialog box
-        .on('click',"#modal_change_pwd",function(){
-            var email = $("input#ch_email").val();
-
-            if (email === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#ch_email").focus();
-                return false;
-            }
-
-            if (!checkemail(email)) {
-                showfeedback('<p id="warning">Invalid email</p>');
-                $("input#ch_email").focus();
-                return false;
-            }
-            send_verifmail(email);
+        .on('click',".modal_change_pwd",function(){
+            var form = $(this).closest('form#modal_change_pwd');
+            if (!checkform(form)) {return false;}
+            var email = $("input#email").val();
+            var data = {change_pw: true, email: email}
+            processAjax(form,data);
         })
 
 		// Password change form (email + new password)
         .on('click',".conf_changepw",function(){
-            var username = $("input#ch_username").val();
-            var password = $("input#ch_password").val();
-            var conf_password = $("input#ch_conf_password").val();
-
-            if (password === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#ch_password").focus();
-                return false;
-            }
-
-            if (conf_password === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#ch_conf_password").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    conf_changepw: true,
-                    username: username,
-                    password: password,
-                    conf_password: conf_password},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === "changed") {
-                        showfeedback('<p id="success">Your password has been modified.</p>');
-                    } else if (result === "mismatch") {
-                        showfeedback('<p id="warning">Passwords must match!</p>');
-                    }
-                }
-            });
+            e.preventDefault();
+            var form = $(this).closest('#mailing_send');
+            if (!checkform(form)) {return false;}
+            var data = form.serialize();
+            processAjax(form,data);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin tools
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // User management tool: sort users
-		.on('change','.user_select',function(e) {
+		.on('click','.user_select',function(e) {
             e.preventDefault();
-            var filter = $(this).val();
+            var filter = $(this).data('filter');
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -575,10 +413,7 @@ $( document ).ready(function() {
                     },
                 success: function(data){
                     var result = jQuery.parseJSON(data);
-					$('#user_list')
-                        .hide()
-                        .html(result)
-                        .fadeIn(200);
+					$('#user_list').html(result);
                 }
             });
             return false;
@@ -587,156 +422,33 @@ $( document ).ready(function() {
         // User Management tool: Modify user status
         .on('change','.modify_status',function(e) {
             e.preventDefault();
+            var div = $('#user_list');
             var username = $(this).attr("data-user");
             var option = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    modify_status: true,
-                    username: username,
-                    option: option},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result.msg === "deleted") {
-                        showfeedback('<p id="success">Account successfully deleted!</p>');
-                        $('#section_'+username).remove();
-                    } else {
-                        showfeedback('<p id="success">'+result.status+'</p>');
-                    }
-
-                    setTimeout(function() {
-                       $('#user_list')
-                        .hide()
-                        .html(result.content)
-                        .fadeIn(200);
-                    },2000);
-                }
-            });
-            return false;
+            var data = {modify_status: true,username: username,option: option};
+            var callback = function(result) {
+                setTimeout(function() {
+                    $('#user_list').html(result.content);
+                },2000);
+            };
+            processAjax(div,data,callback);
         })
 
-        // Check db integrity (matching session/presentation table)
-        .on('click','.db_check',function(e){
-            e.preventDefault();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {db_check: true},
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                complete: function () {
-                    $('#loading').hide();
-                },
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    showfeedback('<p id="success">OK</p>','db_check');
-                }
-            });
-        })
-
-		// Do a full backup (database + files) if asked
-        .on('click','.fullbackup',function(){
-            var webproc = true;
-
-            jQuery.ajax({
-                url: 'cronjobs/FullBackup.php',
-                type: 'GET',
-                async: true,
-                data: {webproc: webproc},
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    $('.feedback#full_backup').html('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
-                }
-            });
-        })
-
-		// Backup the database if asked
-        .on('click','.dbbackup',function(){
-            var webproc = true;
-            jQuery.ajax({
-                url: 'cronjobs/DbBackup.php',
-                type: 'GET',
-                async: true,
-                data: {webproc: webproc},
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    $('.feedback#db_backup').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download backup file</a></div>');
-                }
-            });
-        })
-
-        // Export mailing list to xls
-        .on('click','.exportdb',function(){
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    export: true,
-                    tablename: "mailinglist"},
-                success: function(data){
-                    var json = jQuery.parseJSON(data);
-                    $('#exportdb').append('<div class="file_link" data-url="'+json+'" style="width: auto;"><a href="' + json + '">Download XLS file</a></div>');
-                }
-            });
-        })
-
-		// Show link to created backup
-        .on('click','.file_link', function(){
-            var link = $(this).attr('data-url');
-            $(this)
-                .html('<p id="success">Downloaded</p>')
-                .fadeOut(5000);
-        })
-
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - Mailing
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Send an email to the mailing list
         .on('click','.mailing_send',function(e) {
             e.preventDefault();
-            var spec_head = $("input#spec_head").val();
-            var spec_msg = tinyMCE.activeEditor.getContent();
-
-            if (spec_head === "") {
-                showfeedback('<p id="warning">You must precise a subject</p>');
-                $("input#spec_head").focus();
-                return false;
-            }
-
-            if (spec_msg === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("textarea#spec_msg").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mailing_send: true,
-                    spec_head: spec_head,
-                    spec_msg: spec_msg},
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                complete: function() {
-                    $('#loading').hide();
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === "sent") {
-                        showfeedback('<p id="success">Your message has been sent!</p>');
-                    } else if (result === "not_sent") {
-                        showfeedback('<p id="warning">Oops, something went wrong!</p>');
-                    }
-                }
-            });
-            return false;
+            var form = $(this).closest('#mailing_send');
+            if (!checkform(form)) {return false;}
+            var data = form.serialize();
+            processAjax(form,data);
         })
 
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - News
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select news to modify
         .on('change','.select_post',function(e) {
             e.preventDefault();
@@ -754,105 +466,32 @@ $( document ).ready(function() {
         .on('click','.post_del',function(e) {
             e.preventDefault();
             var postid = $(this).attr('data-id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    post_del: true,
-                    postid: postid},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === true) {
-                        $('.postcontent')
-                            .hide()
-                            .html('<p id="success">Post successfully deleted</p>')
-                            .fadeIn(200);
-                        showpostform(false);
-                    } else {
-                        showfeedback('<p id="warning">We could not delete this post from the database</p>');
-                    }
-
+            var data = {post_del: true, postid: postid};
+            var callback = function(result) {
+                if (result.status === true) {
+                    showpostform(false);
                 }
-            });
+            };
+            processAjax('.postcontent',data,callback);
         })
 
         // Add a news to the homepage
-        .on('click','.post_add,.post_mod',function(e) {
+        .on('click','.submit_post',function(e) {
             e.preventDefault();
-            var op = $(this).attr('name');
-            var postid = $(this).attr('data-id');
-            var title = $('input#post_title').val();
-            var content = tinyMCE.get('post_content').getContent();
-            var username = $("input#post_username").val();
-            var homepage = $("select#post_homepage").val();
-
-            if (title === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $('input#title').focus();
-                return false;
-            }
-
-            if (content === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                tinymce.execCommand('mceFocus',false,'consent');
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    post_add: op,
-                    postid: postid,
-                    username: username,
-                    title: title,
-                    homepage: homepage,
-                    content: content},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === true) {
-                        $('.postcontent')
-                            .hide()
-                            .html('<p id="success">Thank you for your post!</p>')
-                            .fadeIn(200);
-                        showpostform(false);
-                    } else {
-                        showfeedback("<p id='warning'>Sorry, something has gone wrong!</p>");
-                    }
+            var form = $(this).closest('#post_form');
+            if (!checkform(form)) {return false;}
+            var callback = function(result) {
+                if (result.status === true) {
+                    showpostform(false);
                 }
-            });
-            return false;
+            };
+            var data = form.serialize();
+            processAjax(form,data,callback);
         })
 
-        // Configuration of the application
-        .on('click','.config_form_site',function(e) {
-            e.preventDefault();
-            processform("config_form_site","feedback_site");
-        })
-
-        .on('click','.config_form_lab',function(e) {
-            e.preventDefault();
-            processform("config_form_lab","feedback_lab");
-        })
-
-        .on('click','.config_form_jc',function(e) {
-            e.preventDefault();
-            processform("config_form_jc","feedback_jc");
-        })
-
-        .on('click','.config_form_mail',function(e) {
-            e.preventDefault();
-            processform("config_form_mail","feedback_mail");
-        })
-
-        .on('click','.config_form_session',function(e) {
-            e.preventDefault();
-            processform("config_form_session","feedback_jcsession");
-        })
-
-
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - Sessions
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Add a session/presentation type
         .on('click','.type_add',function(e) {
             var classname = $(this).attr('data-class');
@@ -897,143 +536,63 @@ $( document ).ready(function() {
             });
         })
 
-        // Number of sessions to show
-        .on('change','.show_sessions',function(e) {
-            var nbsession = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    show_session: nbsession},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    $('#sessionlist')
-                        .hide()
-                        .html(result)
-                        .fadeIn(200);
-                }
-            });
-        })
-
-        // Modify chairman
-        .on('change','.mod_chair',function(e) {
-            var session = $(this).attr('data-session');
-            var chair = $(this).val();
-            var chairID = $(this).attr('data-chair');
-            var presid = $(this).attr('data-pres');
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_chair: true,
-                    session: session,
-                    chair: chair,
-                    chairID: chairID,
-                    presid: presid},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var feedbackdiv = 'feedback_'+session;
-                    if (result !== false) {
-                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
-                    } else {
-                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
-                    }
-                }
-            });
-        })
-
-        // Modify session time
-        .on('change','.set_sessiontime',function(e) {
-            var session = $(this).attr('data-session');
-            var timefrom = $('select#timefrom_'+session).val();
-            var timeto = $('select#timeto_'+session).val();
-            var time = timefrom+","+timeto;
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_session_time: true,
-                    session: session,
-                    time: time},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var feedbackdiv = 'feedback_'+session;
-                    if (result !== false) {
-                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
-                    } else {
-                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
-                    }
-                }
-            });
-        })
-
-        // Modify session time
-        .on('change','.set_sessiontype',function(e) {
+        // Change default session type
+        .on('change','.session_type_default',function(e) {
+            e.preventDefault();
+            var div = $('#session_type');
+            console.log(div);
             var type = $(this).val();
-            var session = $(this).attr('id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    mod_session_type: true,
-                    session: session,
-                    type: type},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var feedbackdiv = 'feedback_'+session;
-                    if (result !== false) {
-                        showfeedback("<span id='success'>Modifications have been made</span>",feedbackdiv);
-                    } else {
-                        showfeedback("<span id='warning'>Oops something has gone wrong</span>",feedbackdiv);
-                    }
-                }
-            });
+            var data = {session_type_default:type};
+            processAjax(div,data);
+        })
+
+        // Select session to show
+        .on('change','.selectSession',function(e) {
+            var nbsession = $(this).val();
+            var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
+            var data = {show_session: nbsession, status: status};
+            var div = $('#sessionlist');
+            var callback = function(result) {
+                $('#sessionlist')
+                    .html(result)
+                    .fadeIn(200);
+            };
+            processAjax(div,data,callback);
+        })
+
+        // Modify speaker
+        .on('change','.modSpeaker',function(e) {
+            var speaker = $(this).val();
+            var container = $(this).closest('.pres_container');
+            var presid = container.attr('id');
+            var data = {modSpeaker: speaker, presid: presid};
+            processAjax(container,data);
+        })
+
+        // Modify session type
+        .on('change','.mod_session',function(e) {
+            e.preventDefault();
+            var prop = $(this).attr('name');
+            var value = $(this).val();
+            var sessionDiv = $(this).closest('.session_div');
+            var sessionID = sessionDiv.data('id');
+            var data = {modSession: true, session: sessionID, prop: prop, value: value};
+            processAjax(".session_div#"+sessionDiv.attr('id'),data);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Publication lists (Archives/user publications
+         Publication lists (Archives/user publications)
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Sort publications by years
 		.on('change','.archive_select',function(e) {
             e.preventDefault();
             var year = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    select_year: year
-                    },
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                complete: function() {
-                    $('#loading').hide();
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-					$('#archives_list').html(result);
-                }
-            });
-            return false;
-        })
-
-        .on('mouseover','.show_pres',function() {
-            $(this)
-                .css('background-color','#CF5252')
-                .children('a').css('color','#eeeeee');
-        })
-
-        .on('mouseleave','.show_pres',function() {
-            $(this)
-                .css('background-color','#dddddd')
-                .children('a').css('color','#CF5252');
+            var data = {select_year: year};
+            var callback = function(result) {
+                $('#archives_list').html(result);
+            };
+            var div = $('#archives_list');
+            processAjax(div,data,callback);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1041,9 +600,10 @@ $( document ).ready(function() {
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select a wish
         .on('change','#select_wish',function(e) {
+            e.preventDefault();
             var presid = $(this).val();
-            var form = $('.wishform');
-            showpubform(form,presid,'update');
+            var form = $('.submission');
+            showpubform(form,presid,'submit');
          })
 
         // Show download list
@@ -1051,41 +611,21 @@ $( document ).ready(function() {
             $(".dlmenu").toggle();
         })
 
-         // Show uploaded file
-         .on('click','.upl_name',function() {
-            var uplname = $(this).attr('id');
-            var url = "uploads/"+uplname;
-            window.open(url,'_blank');
-         })
-
-          // Delete uploaded file
-         .on('click','.del_upl',function() {
-            var uplfilename = $(this).attr('id');
-            var uplname = $(this).attr('data-upl');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    del_upl: true,
-                    uplname: uplfilename},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === true) {
-                        console.log('Delete upload: '+uplname);
-                        $('.upl_info#upl_'+uplname).remove();
-                        $('.upl_link#upl_'+uplname).remove();
-                    }
-                }
-            });
-         })
-
          // Select submission type
          .on('change','select#type',function(e) {
+            e.preventDefault();
+            var guestField = $('.submission #guest');
             var type = $(this).val();
-            $('#guest').hide();
+            guestField.prop('required',false);
+
             if (type == "guest") {
-                $('#guest').fadeIn();
+                guestField
+                    .prop('required',true)
+                    .fadeIn();
+            } else {
+                guestField
+                    .prop('required',false)
+                    .hide();
             }
          })
 
@@ -1093,149 +633,57 @@ $( document ).ready(function() {
         .on('click','.submit_pres',function(e) {
             e.preventDefault();
             var operation = $(this).attr('name');
-            var form = $(this).closest('#submission_form');
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var type = $("select#type").val();
-            var title = $("input#title").val();
-            var authors = $("input#authors").val();
-            var summary = $("textarea#summary").val();
+            // Check if the form has been fully completed
+            if (!checkform(form)) { return false;}
 
+            // Check if a data has been selected (except for wishes)
             if (operation !== "suggest") {
                 var date = $("input#datepicker").val();
                 if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
-                    showfeedback('<p id="warning">This field is required</p>');
+                    showfeedback('<p id="warning">You must choose a date!</p>');
                     $("input#datepicker").focus();
                     return false;
                 }
             }
 
-            if ($('input.upl_link')[0]) {
+            // Check if files have been uploaded and attach them to this presentation
+            var uploadInput = $('input.upl_link');
+            if (uploadInput[0]) {
                 var links = new Array();
-                $('input.upl_link').each(function(){
+                uploadInput.each(function(){
                     var link = $(this).val();
                     links.push(link);
                 });
                 links = links.join(',');
-                $('#submit_form').append("<input type='hidden' name='link' value='"+links+"'>");
+                form.append("<input type='hidden' name='link' value='"+links+"'>");
             }
 
-            if (title === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#title").focus();
-                return false;
-            }
-
-            if (authors === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#authors").focus();
-                return false;
-            }
-
-            if (type === "") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("select#type").focus();
-                return false;
-            }
-
-            if (type === "guest") {
-                var orator = $("input#orator").val();
-                if (orator === "") {
-                    showfeedback('<p id="warning">This field is required</p>');
-                    $("input#orator").focus();
-                    return false;
+            // Submit presentation
+            var data = form.serialize();
+            var callback = function(result) {
+                var subform = $('section#submission_form, .modal_section#submission_form');
+                if (result.status == true) {
+                    showpubform(subform,false);
                 }
-            }
-
-            if (summary === "") {
-                showfeedback('<p id="warning">Please provide a short description of your presentation (e.g. abstract)</p>');
-                $("textarea#summary").focus();
-                return false;
-            }
-
-            var data = $("#submit_form").serialize();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: data,
-                beforeSend: function() {
-                    $("#loading").show();
-                },
-                complete: function() {
-                    $("#loading").hide();
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result.status == true) {
-                        validsubmitform(form,result.msg);
-                        setTimeout(function() {
-                            showpubform(form,false);
-                        },2000);
-                    } else {
-                        showfeedback(result.msg);
-                    }
-                }
-            });
-            return false;
+            };
+            processAjax(form,data,callback);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Contact form
+         FORMS
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-       // Send an email to the chosen organizer
-	   .on('click','.contact_send',function(e) {
+        .on('click','.processform',function(e) {
             e.preventDefault();
-            var admin_mail = $("select#admin_mail").val();
-            var message = $("textarea#message").val();
-            var contact_mail = $("input#contact_mail").val();
-            var contact_name = $("input#contact_name").val();
-
-            if (admin_mail == "none") {
-                showfeedback('<p id="warning">You must select an organizer</p>');
-                $("select#admin_mail").focus();
-                return false;
-            }
-
-            if (contact_mail == "Your email") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#contact_mail").focus();
-                return false;
-            }
-
-            if (!checkemail(contact_mail)) {
-                showfeedback('<p id="warning">Invalid email!</p>');
-                $("input#contact_mail").focus();
-                return false;
-            }
-
-            if (contact_name == "Your name") {
-                showfeedback('<p id="warning">This field is required</p>');
-                $("input#contact_name").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    contact_send: true,
-                    admin_mail: admin_mail,
-                    message: message,
-                    name: contact_name,
-                    mail: contact_mail},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result === "sent") {
-                        showfeedback('<p id="success">Your message has been sent!</p>');
-                    } else if (result === "not_sent") {
-                        showfeedback('<p id="warning">Oops, something went wrong!</p>');
-                    }
-                }
-            });
-            return false;
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            processform(form);
         })
 
-
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Modal triggers
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Trigger modal dialog box for log in/sign up
         .on('mouseover',"a[rel*=leanModal]",function(e) {
             e.preventDefault();
@@ -1243,33 +691,16 @@ $( document ).ready(function() {
         })
 
         // Dialog log in
-        .on('click',"#modal_trigger_login",function(e){
+        .on('click',".modal_trigger",function(e){
             e.preventDefault();
-            showmodal('user_login');
-            $(".header_title").text('Log in');
+            var section  = $(this).attr('id');
+            showmodal(section);
         })
 
-        // Dialog sign up
-        .on('click',"#modal_trigger_register",function(e){
+        // Log out
+        .on('click',"#logout",function(e){
             e.preventDefault();
-            showmodal('user_register');
-            $(".header_title").text('Sign up');
-        })
-
-        // Delete user account dialog box
-        .on('click',"#modal_trigger_delete",function(e){
-            e.preventDefault();
-            showmodal('user_delete');
-            $(".header_title").text('Delete confirmation');
-        })
-
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          Publication modal
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        // Trigger modal dialog box for publications (show/modify/delete forms)
-        .on('mouseover',"a[rel*=pub_leanModal]",function(e) {
-            e.preventDefault();
-            $(this).leanModal({top : 50, width : 500, overlay : 0.6, closeButton: ".modal_close" });
+            logout();
         })
 
         // Show publication information on click
@@ -1278,36 +709,32 @@ $( document ).ready(function() {
             var id_pres = $(this).attr('data-id');
             showmodal('submission_form');
             displaypub(id_pres,modalpubform);
-            $(".header_title").text('Presentation');
-        })
-
-        // add a minute
-        .on('click','#addminute',function(e) {
-            e.preventDefault();
-            var date = $(this).attr('data-date');
-            showmodal('submission_form');
-            $(".header_title").text('Add a minute');
-            showpubform(modalpubform,false,'submit',date,'minute');
         })
 
         // Choose a wish
         .on('click','#modal_trigger_pubmod',function(e){
             e.preventDefault();
-            var id_pres = $(this).attr('data-id');
+            var id_pres = $(this).data('id');
+            var date = $(this).data('date');
             showmodal('submission_form');
-            showpubform(modalpubform,id_pres,'update');
-            $(".header_title").text('Make it true');
-        });
+            showpubform(modalpubform,id_pres,'submit',date);
+        })
 
-	// Process events happening on the publication modal dialog box
-    $('.pub_popupContainer')
+        .on('click','#modal_trigger_newpub',function(e){
+            e.preventDefault();
+            var type = $(this).data('type');
+            showmodal('submission_form');
+            showpubform(modalpubform,false,type);
+        })
+    /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     Modal Window
+     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Show publication modification form
         .on('click','.modify_ref',function(e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
             showmodal('submission_form');
-            showpubform(modalpubform,id_pres,'update');
-            $(".header_title").text('Modify');
+            showpubform(modalpubform,id_pres,'submit');
         })
 
 		// Show publication deletion confirmation
@@ -1316,52 +743,38 @@ $( document ).ready(function() {
             var id_pres = $(this).attr("data-id");
             showmodal('pub_delete');
             $("#pub_delete").append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
-            $(".header_title").text('Delete confirmation');
         })
 
         // Going back to publication
         .on('click',".pub_back_btn",function(){
             showmodal('submission_form');
-            $(".header_title").text('Presentation');
         })
 
         // Confirm delete publication
         .on('click',"#confirm_pubdel",function(e) {
             e.preventDefault();
             var id_pres = $("input#del_pub").val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {del_pub: id_pres},
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                complete: function() {
-                    $('#loading').hide();
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    showfeedback('<p id="success">Publication deleted</p>');
-                    close_modal('.pub_popupContainer');
-                    $('#'+id_pres).remove();
+            var data = {del_pub:id_pres};
+            var el = $('.modal_section#pub_delete');
+            var callback = function(result) {
+                if (result.status == true) {
+                    close_modal('.modalContainer');
+                    $('#' + id_pres).remove();
                 }
-            });
-        });
+            };
+            processAjax(el,data,callback);
+        })
 
-	// Process events happening on the login/sign up modal dialog box
-    $(".popupContainer")
         // Dialog change password
         .on('click',".modal_trigger_changepw",function(e){
             e.preventDefault();
             showmodal('user_changepw');
-            $(".header_title").text('Change password');
         })
 
         // Going back to Login Forms
-        .on('click',".back_btn",function(){
+        .on('click',".back_btn",function(e){
+            e.preventDefault();
             showmodal('user_login');
-            $(".header_title").text('Login');
             return false;
         })
 
@@ -1369,143 +782,46 @@ $( document ).ready(function() {
         .on('click','.gotoregister',function(e) {
             e.preventDefault();
             showmodal('user_register');
-            $(".header_title").text('Sign Up');
         })
 
         // Delete user account confirmation form
         .on('click',"#confirmdeleteuser",function(e) {
             e.preventDefault();
-            var username = $("input#del_username").val();
-            var password = $("input#del_password").val();
-
-            var valid = checkform('login_form');
-            if (valid === false) { return false; }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {username: username,
-                    password: password,
-                    delete_user: true},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result == 'deleted') {
-                        window.location.href = "index.php?page=logout";
-                        location.reload();
-                    } else if (result == "wrong_username") {
-                        showfeedback('<p id="warning">Wrong username</p>');
-                    } else if (result == "wrong_password") {
-                        showfeedback('<p id="warning">Wrong username/password</p>');
-                    }
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var callback = function(result) {
+                if (result.status === true) {
+                    logout();
+                    window.location.href = "index.php?page=home";
+                    location.reload();
                 }
-            });
-            return false;
+            };
+            processform(form,callback);
         })
 
         // Login form
         .on('click',".login",function(e) {
             e.preventDefault();
-            var username = $("input#log_username").val();
-            var password = $("input#log_password").val();
-
-            var valid = checkform('login_form');
-            if (valid === false) { return false; }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {username: username,
-                    password: password,
-                    login: true
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result.status == true) {
-                        $('#login_form')
-                            .hide()
-                            .html('<p id="success">Welcome back!</p>')
-                            .fadeIn(200);
-                        setTimeout(function() {
-                            location.reload();
-                        },2000);
-                    } else if (result.msg == "wrong_username") {
-                        showfeedback('<p id="warning">Wrong username</p>');
-                    } else if (result.msg == "wrong_password") {
-                        showfeedback('<p id="warning">Wrong password. ' + result.status + ' login attempts remaining</p>');
-                    } else if (result.msg == "blocked_account") {
-                        showfeedback('<p id="warning">Wrong password. You have exceeded the maximum number ' +
-                        'of possible attempts, hence your account has been deactivated for security reasons. ' +
-                        'We have sent an email to your address including an activation link.</p>');
-                    } else if (result.msg == "not_activated") {
-                        showfeedback('<p id="warning">Sorry, your account is not activated yet. ' +
-                            '<br> You will receive an email as soon as your registration is confirmed by an admin.<br> ' +
-                            'Please <a href="index.php?page=contact">contact us</a> if you have any question.</p>');
-                    }
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var callback = function(result) {
+                if (result.status === true) {
+                    location.reload();
                 }
-            });
-            return false;
+            };
+            processform(form,callback);
         })
 
         // Sign Up Form
         .on('click',".register",function(e) {
             e.preventDefault();
-            var firstname = $("input#firstname").val();
-            var lastname = $("input#lastname").val();
-            var username = $("input#username").val();
-            var password = $("input#password").val();
-            var conf_password = $("input#conf_password").val();
-            var email = $("input#email").val();
-            var position = $("select#position").val();
-
-            var valid = checkform('register_form');
-            if (valid === false) { return false; }
-
-            if (password != conf_password) {
-                showfeedback('<p id="warning">Passwords must match</p>');
-                $("input#conf_password").focus();
-                return false;
-            }
-
-            if (!checkemail(email)) {
-                showfeedback('<p id="warning">Invalid email!</p>');
-                $("input#email").focus();
-                return false;
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: false,
-                data: {
-                    firstname: firstname,
-                    lastname: lastname,
-                    username: username,
-                    password: password,
-                    conf_password: conf_password,
-                    email: email,
-                    position: position,
-                    register: true
-                },
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    if (result == true) {
-                        $('#user_register')
-                            .hide()
-                            .html('<p id="success">Your account has been created. You will receive an email after its validation by our admins.</p>')
-                            .fadeIn(200);
-                        setTimeout(function() {
-                            close_modal(".popupContainer");
-                        }, 5000);
-                    } else if (result === "exist") {
-                        showfeedback('<p id="warning">This username/email address already exist in our database</p>');
-                    } else if (result === "mail_pb") {
-                        showfeedback('<p id="warning">Sorry, we have not been able to send a verification email to the organizers. Your registration cannot be validated for the moment. Please try again later.</p>');
-                    }
-
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var callback = function(result) {
+                if (result.status === true) {
+                    close_modal('.modalContainer');
                 }
-            });
-            return false;
+            };
+            processform(form,callback);
         });
 });

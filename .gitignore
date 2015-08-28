@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Packages #
 ############
 # it's better to unpack these files and commit the raw source
@@ -45,3 +46,21 @@ dev/*
 # Project #
 #############
 .idea/*
+=======
+#ignore PhpStorm folder
+/.idea/
+
+#ignore logs files
+*.txt
+
+#ignore uploaded files
+/uploads/
+*.sql
+*.zip
+
+#ignore local configuration file
+/config/config.php
+
+#ignore development folder
+/dev/
+>>>>>>> v1.3.5

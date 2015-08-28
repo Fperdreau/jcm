@@ -22,23 +22,23 @@
 
 require('../includes/boot.php');
 
-if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
-    $hash = htmlspecialchars($_GET['hash']);
-    $email = htmlspecialchars($_GET['email']);
-    $result = htmlspecialchars($_GET['result']);
-    $user = new User($db);
-    $valid = $user -> check_account_activation($hash,$email,$result);
-    $result = "
-        <section>
-            <h2>Activation</h2>
-			<span id='warning'>$valid</span>
-    	</section>";
-} else {
-    $result = "
-        <section>
-            <h2>Activation</h2>
-            <div id='warning'>Incorrect email or hash id.</div>
-    	</section>";
-}
+// Declare classes
+$user = new User($db,$_SESSION['username']);
+
+// Cronjobs settings
+$AppCron = new AppCron($db);
+$cronOpt = $AppCron->show();
+$result = "
+    <h1>Scheduled tasks</h1>
+    <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
+    Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
+    either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
+    <div class='feedback'></div>
+    <section>
+        <h2>Tasks list</h2>
+        $cronOpt
+    </section>
+";
+
 echo json_encode($result);
 exit;

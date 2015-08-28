@@ -1,26 +1,34 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class Sessions and Session
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * Class Sessions
  */
-class Sessions extends Table {
+
+class Sessions extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
@@ -30,11 +38,12 @@ class Sessions extends Table {
         "type" => array("CHAR(30) NOT NULL"),
         "nbpres" => array("INT(2)", 0),
         "primary" => "id");
+
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    function __construct(DbSet $db) {
+    function __construct(AppDb $db) {
         parent::__construct($db, "Session", $this->table_data);
 
         /** @var AppConfig $AppConfig */
@@ -46,11 +55,10 @@ class Sessions extends Table {
      *  Get all sessions
      * @param null $opt
      * @return array|bool
-     * @internal param null $next
      */
     public function getsessions($opt=null) {
         $sql = "SELECT date FROM $this->tablename";
-        if ($opt == true) {
+        if ($opt == true || $opt == null) {
             $sql .= " WHERE date>CURDATE()";
         } elseif ($opt !== null) {
             $sql .= " WHERE date>=$opt";
@@ -75,43 +83,12 @@ class Sessions extends Table {
         /** @var AppConfig $AppConfig */
         $AppConfig = new AppConfig($this->db);
 
-        // Get next journal club days
-        if ($from === false) {
-            $startdate = strtotime("now");
-            $year = date('Y'); // Current year
-            $month = date('F'); // Current month;
-        } else {
-            $startdate = $from;
-            $exploded = explode('-',$from);
-            if (count($exploded) == 3) {
-                $monthNb = $exploded[1];
-                $month = date('F', mktime(0, 0, 0, $monthNb, 10)); // March
-                $year = $exploded[0];
-            } else {
-                $month = $exploded[0];
-                $year = $exploded[1];
-            }
-        }
-        if ($from === false) {
-            $first = strtotime("first " . $AppConfig->jc_day . " of $month $year"); // First journal club of the year
-            $lastday = mktime(0, 0, 0, 12, 31, $year); // Last day of the year
-        } else {
-            $first = strtotime($from);
-            $lastday = strtotime("$from + $nsession weeks");
-
-        }
-
-        $day = $first;
+        $startdate = ($from == false) ? strtotime('now'):strtotime($from);
         $jc_days = array();
-        $cpt = 0;
-        $curdate = date('Y-m-d',$day);
-        while ($day < $lastday) {
-            if ($day >= $startdate || $from == false) {
-                $jc_days[] = $curdate;
-                $cpt++;
-            }
-            if($cpt>=$nsession) { break; }
-            $curdate = date('Y-m-d',$day += 7 * 86400);
+        for ($s=0; $s<$nsession; $s++) {
+            $what = ($s == 0) ? 'this':'next';
+            $startdate = strtotime("$what $AppConfig->jc_day",$startdate);
+            $jc_days[] = date('Y-m-d',$startdate);
         }
         return $jc_days;
     }
@@ -121,7 +98,8 @@ class Sessions extends Table {
      * @param $date
      * @return bool
      */
-    protected function dateexists($date) {
+
+    public function dateexists($date) {
         $dates = $this->getsessions();
         if ($dates === false) {$dates = array();}
         return in_array($date,$dates);
@@ -151,67 +129,60 @@ class Sessions extends Table {
 
     /**
      * Get all sessions
-     * @param int $nbsession
+     * @param $date
+     * @param string $status
      * @return string
      */
-    public function managesessions($nbsession=4) {
-        /** @var AppConfig $AppConfig */
-        $AppConfig = new AppConfig($this->db);
-        $timeopt = maketimeopt();
-
-        $session_type = array_keys($AppConfig->session_type);
-
-        $dates = $this->getsessions(1);
-        $dates = ($dates == false) ? false: $dates[0];
-        $sessions = self::getjcdates($nbsession,$dates);
+    public function managesessions($date=null,$status='admin') {
+        if ($date == null) {
+            $date = $this->getjcdates(1);
+            $date = $date[0];
+        }
 
         $content = "";
-        foreach ($sessions as $date) {
-            if (self::dateexists($date)) {
-                $session = new Session($this->db,$date);
+        if (self::dateexists($date)) {
+            $session = new Session($this->db,$date);
+        } else {
+            $session = new Session($this->db);
+            $session->make(array('date'=>$date));
+            $session->get();
+        }
+
+        // Get type options
+        $AppConfig = new AppConfig($this->db);
+        $session_type = array_keys($AppConfig->session_type);
+        $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
+        foreach ($session_type as $type) {
+            if ($type === $session->type) {
+                $typeoptions .= "<option value='$type' selected>$type</option>";
             } else {
-                $session = new Session($this->db);
-                $session->make(array('date'=>$date));
-                $session->get();
+                $typeoptions .= "<option value='$type'>$type</option>";
             }
+        }
 
-            // Get type options
-            $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
-            foreach ($session_type as $type) {
-                if ($type === $session->type) {
-                    $typeoptions .= "<option value='$type' selected>$type</option>";
-                } else {
-                    $typeoptions .= "<option value='$type'>$type</option>";
-                }
-            }
+        // Get time
+        $timeopt = maketimeopt();
 
-            // Get time
-            $time = explode(',',$session->time);
-            $timefrom = $time[0];
-            $timeto = $time[1];
+        $time = explode(',',$session->time);
+        $timefrom = $time[0];
+        $timeto = $time[1];
 
-            // Get presentations
-            $presentations = "";
-            for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
-                $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
-                $chair = (isset($session->chairs[$i]) ? $session->chairs[$i] : array('chair'=>'TBA','id'=>false));
-                $pres = new Presentation($this->db,$presid);
-                $presentations .= $pres->showinsessionmanager($chair,$session->date);
-            }
+        // Get presentations
+        $nbPres = max($AppConfig->max_nb_session,count($session->presids));
+        $presentations = "";
+        for ($i=0;$i<$nbPres;$i++) {
+            $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
+            $pres = new Presentation($this->db,$presid);
+            $presentations .= $pres->showinsession($status,$date);
+        }
 
-            $content .= "
-            <div class='session_div'>
-                <div class='session_header'>
-                    <div class='session_date'>$session->date</div>
-                    <div class='session_status'>$session->status</div>
-                    <div class='feedback' id='feedback_$session->date' style='width: auto;'>
-                    </div>
-                </div>
-                <div class='session_core'>
+        $settings = "";
+        if ($status == "admin") {
+            $settings = "<h3>Settings</h3>
                     <div class='session_type'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>Type</label>
-                            <select class='set_sessiontype' id='$session->date'>
+                            <select class='mod_session' name='type'>
                             $typeoptions
                             </select>
                         </div>
@@ -219,7 +190,7 @@ class Sessions extends Table {
                     <div class='session_time'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>From</label>
-                            <select class='set_sessiontime' id='timefrom_$session->date' data-session='$session->date'>
+                            <select class='mod_session' name='time_from'>
                                 <option value='$timefrom' selected>$timefrom</option>
                                 $timeopt
                             </select>
@@ -228,17 +199,32 @@ class Sessions extends Table {
                     <div class='session_time'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>To</label>
-                            <select class='set_sessiontime' id='timeto_$session->date' data-session='$session->date'>
+                            <select class='mod_session' name='time_to'>
                                 <option value='$timeto' selected>$timeto</option>
                                 $timeopt
                             </select>
                         </div>
-                    </div>
-                    <div class='session_presentations'>$presentations</div>
+                    </div>";
+        }
+
+        $content .= "
+        <div class='session_div' id='session_$session->date' data-id='$session->date'>
+            <div class='session_header'>
+                <div class='session_date'>$session->date</div>
+                <div class='session_status'>$session->type</div>
+            </div>
+            <div class='session_core'>
+                <div class='session_settings'>
+                    $settings
+                </div>
+
+                <div class='session_presentations'>
+                    <h3>Presentations</h3>
+                    $presentations
                 </div>
             </div>
-            ";
-        }
+        </div>
+        ";
         return $content;
     }
 
@@ -249,8 +235,7 @@ class Sessions extends Table {
      */
     public function shownextsession($mail=false) {
         $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
-
-        $dates = $this->getsessions(1);
+        $dates = $this->getsessions(true);
         if ($dates !== false) {
             $session = new Session($this->db,$dates[0]);
             $content = $session->showsessiondetails($show);
@@ -281,21 +266,20 @@ class Sessions extends Table {
             $sessioncontent = $session->showsession($mail);
 
             $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
+            $date = date('d M y',strtotime($session->date));
             $content .= "
-            <div style='display: block; margin: 5px auto 0 auto;'>
+            <div style='display: block; margin: 10px auto 0 auto;'>
                 <div style='display: block; margin: 0;'>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                        $day
+                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; background-color: #555555; color: #FFF; padding: 5px; font-size: 0.8em;'>
+                        $date
                     </div>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; min-width: 100px; width: auto; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px;'>
+                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px;
+                        min-width: 100px; width: auto; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px; font-size: 0.8em;'>
                         $type
                     </div>
                 </div>
                 <div style='padding: 10px 20px 10px 10px; background-color: #eee; margin: 0; border: 1px solid rgba(175,175,175,.8);'>
                     $sessioncontent
-                    <div style='text-align: right; width: 100%;'>
-                        <div class='show_btn' style='width: 80px; vertical-align: middle; padding: 5px 7px 5px 7px;'><a href='#pub_modal' class='modal_trigger' id='addminute' rel='pub_leanModal' data-date='$session->date'>Add a minute</a></div>
-                    </div>
                 </div>
 
             </div>";
@@ -318,13 +302,12 @@ class Session extends Sessions {
     public $nbpres = 0;
     public $presids = array();
     public $speakers = array();
-    public $chairs = array();
 
     /**
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $date
      */
-    public function __construct(DbSet $db,$date=null) {
+    public function __construct(AppDb $db,$date=null) {
         parent::__construct($db);
         $AppConfig = new AppConfig($this->db);
         $this->time = "$AppConfig->jc_time_from,$AppConfig->jc_time_to";
@@ -342,19 +325,15 @@ class Session extends Sessions {
      * @return bool
      */
     public function make($post=array()) {
-        if (!$this::dateexists($post['date'])) {
+        $this->date = (!empty($post['date'])) ? $post['date']:$this->date;
+        if (!$this::dateexists($this->date)) {
             $class_vars = get_class_vars("Session");
-            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers','chairs'));
+            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers'));
 
             // Add session to the database
-            if ($this->db->addcontent($this->tablename,$content)) {
-                // Assign chairs for this session
-                return $this->addChairs();
-            } else {
-                return False;
-            }
+            return $this->db->addcontent($this->tablename,$content);
         } else {
-            self::get($post['date']);
+            self::get($this->date);
             return self::update($post);
         }
     }
@@ -386,7 +365,6 @@ class Session extends Sessions {
         $this->date = ($date !== null) ? $date : $this->date;
 
         // Get the associated presentations
-        $this->getChairs();
         $this->getPresids();
 
         $class_vars = get_class_vars("Session");
@@ -403,39 +381,6 @@ class Session extends Sessions {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Get planned chairs of this session
-     * @return array
-     */
-    public function getChairs() {
-        $sql = "SELECT id,chair FROM ".$this->db->tablesname['Chairs']." WHERE date='$this->date'";
-        $req = $this->db->send_query($sql);
-        $this->chairs = array();
-        while ($row = mysqli_fetch_assoc($req)) {
-            $this->chairs[] = array('chair'=>$row['chair'],'id'=>$row['id']);
-        }
-        if (count($this->chairs) < $this->max_nb_session) {
-            if ($this->addChairs()) {
-                $this->getChairs();
-            }
-        }
-    }
-
-    /**
-     * Add temporary chairs ('TBA') to the chair table
-     * @return bool
-     */
-    function addChairs() {
-        $nbChairs = count($this->chairs);
-        $Chairs = new Chairs($this->db);
-        for ($p=$nbChairs;$p<$this->max_nb_session;$p++) {
-            if (!$Chairs->make($this->date,'TBA')) {
-                return False;
-            }
-        }
-        return True;
     }
 
     /**
@@ -462,22 +407,13 @@ class Session extends Sessions {
         $this->status = parent::isbooked($this->date);
 
         $class_vars = get_class_vars("Session");
-        $content = $this->parsenewdata($class_vars,$post, array('speakers','presids','chairs'));
+        $content = $this->parsenewdata($class_vars,$post, array('speakers','presids'));
         if (!$this->db->updatecontent($this->tablename,$content,array('date'=>$this->date))) {
             return false;
         }
 
         self::get();
         return true;
-    }
-
-    /**
-     * Check if a chair has already been assigned
-     * @return bool
-     */
-    public function chairexist() {
-        if (empty($this->chairs)) return false;
-        return count($this->chairs)<count($this->presids);
     }
 
     /**
@@ -493,9 +429,8 @@ class Session extends Sessions {
         $max = (count($this->presids) < $this->max_nb_session) ? $this->max_nb_session:count($this->presids);
         for ($i=0;$i<$max;$i++) {
             $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
-            $chair['chair'] = (isset($this->chairs[$i])) ? $this->chairs[$i]['chair']:'';
             $pub = new Presentation($this->db,$presid);
-            $content .= $pub->showinsession($chair,$mail,$this->date);
+            $content .= $pub->showinsession($mail,$this->date);
         }
         return $content;
     }

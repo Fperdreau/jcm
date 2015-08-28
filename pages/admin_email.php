@@ -20,25 +20,31 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Declare classes
 require('../includes/boot.php');
+$user = new User($db,$_SESSION['username']);
 
-if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
-    $hash = htmlspecialchars($_GET['hash']);
-    $email = htmlspecialchars($_GET['email']);
-    $result = htmlspecialchars($_GET['result']);
-    $user = new User($db);
-    $valid = $user -> check_account_activation($hash,$email,$result);
-    $result = "
-        <section>
-            <h2>Activation</h2>
-			<span id='warning'>$valid</span>
-    	</section>";
-} else {
-    $result = "
-        <section>
-            <h2>Activation</h2>
-            <div id='warning'>Incorrect email or hash id.</div>
-    	</section>";
-}
+// Send mail
+$result = "
+    <h1>Mailing list</h1>
+    <p class='page_description'>Here you can send an email to users who subscribed to the newsletter.</p>
+    <section>
+        <h2>Send an email</h2>
+        <form id='mailing_send'>
+            <input type='hidden' name='mailing_send' value='true'>
+            <div class='submit_btns'>
+                <input type='submit' name='send' value='Send' class='mailing_send'>
+            </div>
+            <div class='formcontrol'>
+                <label>Subject:</label>
+                <input type='text' name='spec_head' placeholder='Subject' required/>
+            </div>
+            <div class='formcontrol'>
+                <label>Message</label>
+                <textarea name='spec_msg' class='tinymce' required></textarea>
+            </div>
+        </form>
+    </section>";
+
 echo json_encode($result);
 exit;

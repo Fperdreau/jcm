@@ -1,21 +1,33 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
 
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
+/**
+ * Bunch of common function
+ */
 
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+include('boot.php');
 
 /**
  * Explode anc clean array (remove empty strings and force the variable returned by explode to be an array
@@ -32,7 +44,6 @@ function explodecontent($delimiter,$var) {
     return $newvar;
 }
 
-
 /**
  * Show session/presentation types list (admin -> manage session)
  * @param $types
@@ -47,7 +58,6 @@ function showtypelist($types,$class,$divid) {
                 <div class='type_div' id='$divid'>
                     <div class='type_name'>$type</div>
                     <div class='type_del' data-type='$type' data-class='$class'>
-                    <img src='images/delete.png' style='width: 15px; height: auto;'>
                     </div>
                 </div>
             ";
@@ -56,29 +66,43 @@ function showtypelist($types,$class,$divid) {
 }
 
 /**
- * Check if the user is logged in and has the required status to access the current page
- * @param null $status
+ * Create drag&drop field
+ * @param array $links
+ * @return string
  */
-function check_login($status=null) {
-	$cond = !isset($_SESSION['logok']) || $_SESSION['logok'] == false;
-	if (null != $status) {
-		if (is_array($status)) {
-			$cond = $cond || !in_array($_SESSION['status'], $status);
-		} else {
-			$cond = $cond || $_SESSION['status'] != $status;
-		}
-	}
+function uploader($links=array()) {
+    global $AppConfig;
 
-    if ($cond) {
-        $result = "
-		    <div id='content'>
-		        <p id='warning'>You must be logged in order to access this page</br>
-		        <a rel='leanModal' id='modal_trigger_login' href='#modal' class='modal_trigger'>Log in</a> or <a rel='leanModal' id='modal_trigger_register' href='#modal' class='modal_trigger'>Sign Up</a></p>
-		    </div>
-		    ";
-		echo json_encode($result);
-        exit;
+    // Get files associated to this publication
+    $filesList = "";
+    if (!empty($links)) {
+        foreach ($links as $fileid=>$info) {
+            $filesList .=
+                "<div class='upl_info' id='upl_$fileid'>
+                <div class='upl_name' id='$fileid'>$fileid</div>
+                <div class='del_upl' id='$fileid' data-upl='$fileid'>
+                </div>
+            </div>";
+        }
     }
+
+    $result = "
+        <div class='upl_container'>
+    	   <div class='upl_form'>
+                <form method='post' enctype='multipart/form-data'>
+                    <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
+                    <div class='upl_btn'>
+                        Add Files
+                        <br>(click or drop)
+                        <div class='upl_filetypes'>($AppConfig->upl_types)</div>
+                        <div class='upl_errors'></div>
+                    </div>
+                </form>
+    	   </div>
+            <div class='upl_filelist'>$filesList</div>
+        </div>";
+
+    return $result;
 }
 
 /**
@@ -91,8 +115,8 @@ function check_login($status=null) {
  * @return string
  */
 function displayform($user,$Presentation=false,$submit="submit", $type=false, $date=false) {
-    $db = new DbSet();
-    $config = new AppConfig($db);
+    global $db, $AppConfig;
+
     if ($Presentation == false) {
         $Presentation = new Presentation($db);
     }
@@ -100,43 +124,26 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
     $type = ($type != false) ? $type:$Presentation->type;
 
     // Get files associated to this publication
-    $filelist = "";
-    if (!empty($Presentation->link)) {
-        $links = $Presentation->link;
-        foreach ($links as $fileid=>$info) {
-            $filelist .=
-            "<div class='upl_info' id='upl_$fileid'>
-                <div class='upl_name' id='$fileid'>$fileid</div>
-                <div class='del_upl' id='$fileid' data-upl='$fileid'>
-                    <img src='../images/delete.png' style='width: 15px; height: 15px;' alt='delete'>
-                </div>
-            </div>";
-        }
-    } else {
-        $filelist .= "";
-    }
+    $links = $Presentation->link;
+    $uploader = uploader($links);
 
-    $idPresentation = "";
-    if ($submit == "update") {
-        $idPresentation = "<input type='hidden' name='id_pres' value='$Presentation->id_pres'/>";
-    }
+    // Presentation ID
+    $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres:'false';
+    $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
 
     // Show date input only for submissions and updates
-    if ($submit != "suggest") {
-        $dateinput = "<label>Date</label><input type='text' id='datepicker' name='date' value='$date'>
-            ";
-    } else {
-        $dateinput = "";
-    }
+    $dateinput = ($submit != "suggest") ? "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>":"";
 
-    $authors = ($type !== 'minute') ? "<div class='formcontrol' style='width: 50%;'>
+    $authors = ($type !== 'minute') ? "<div class='formcontrol'>
                 <label>Authors </label>
-                <input type='text' id='authors' name='authors' value='$Presentation->authors'>
+                <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
             </div>":"";
+
+    $selectopt = ($submit === "select") ? $Presentation->generate_selectwishlist():"";
 
     // Make submission's type selection list
     $typeoptions = "";
-    $pres_type = explode(',',$config->pres_type);
+    $pres_type = explode(',',$AppConfig->pres_type);
     foreach ($pres_type as $types) {
         if ($types == $type) {
             $typeoptions .= "<option value='$types' selected>$types</option>";
@@ -147,10 +154,8 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
 
     // Text of the submit button
     $submitxt = ucfirst($submit);
-    return "
-    <div class='submission'>
-        <div class='feedback'></div>
-        <form method='post' action='' enctype='multipart/form-data' class='form' id='submit_form'>
+    $form = ($submit !== "select") ? "<div class='feedback'></div>
+        <form method='post' action='' enctype='multipart/form-data' id='submit_form'>
             <div class='submit_btns'>
                 <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
             </div>
@@ -159,114 +164,43 @@ function displayform($user,$Presentation=false,$submit="submit", $type=false, $d
             <input type='hidden' name='username' value='$user->username'/>
             $idPresentation
 
-            <div class='formcontrol' style='width: 15%;'>
+            <div class='formcontrol'>
                 <label>Type</label>
-                <select name='type' id='type'>
+                <select name='type' id='type' required>
                     $typeoptions
                 </select>
             </div>
 
-            <div class='formcontrol' style='width: 10%;'>
+            <div class='formcontrol'>
                 $dateinput
             </div>
 
-            <div class='formcontrol' id='guest' style='width: 30%; display: none;'>
+            <div class='formcontrol' id='guest' style='display: none;'>
                 <label>Speaker</label>
-                <input type='text' id='orator' name='orator'>
+                <input type='text' id='orator' name='orator' required>
             </div>
 
-            <br><div class='formcontrol' style='width: 50%;'>
+            <br><div class='formcontrol'>
                 <label>Title </label>
-                <input type='text' id='title' name='title' value='$Presentation->title'/>
+                <input type='text' id='title' name='title' value='$Presentation->title' required/>
             </div>
 
             $authors
 
-            <div class='formcontrol' style='width: 80%;'>
+            <div class='formcontrol'>
                 <label>Abstract</label>
-                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)'>$Presentation->summary</textarea>
+                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
             </div>
         </form>
 
-        <div class='upl_container'>
-    	   <div class='upl_form'>
-                <form method='post' enctype='multipart/form-data'>
-                <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
-                <div class='upl_btn'>
-                    Add Files
-                    <br>(click or drop)
-                    <div class='upl_filetypes'>($config->upl_types)</div>
-                    <div class='upl_errors'></div>
-                </div>
-                </form>
-    	   </div>
-            <div class='upl_filelist'>$filelist</div>
-        </div>
+        $uploader":"";
+
+    return "
+    <div>$selectopt</div>
+    <div class='submission'>
+        $form
     </div>
 	";
-}
-
-/**
- * Generate submission form and automatically fill it up with data provided by Presentation object.
- * @param $user
- * @param $Presentation
- * @return string
- */
-function displaypub($user,$Presentation) {
-    global $db;
-    if (!(empty($Presentation->link))) {
-        $download_button = "<div class='dl_btn' id='$Presentation->id_pres'>Download</div>";
-        $filelist = $Presentation->link;
-        $dlmenu = "<div class='dlmenu'>";
-        foreach ($filelist as $fileid=>$info) {
-            $dlmenu .= "
-                <div class='dl_info'>
-                    <div class='dl_type'>".strtoupper($info['type'])."</div>
-                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
-                </div>";
-        }
-        $dlmenu .= "</div>";
-    } else {
-        $download_button = "<div style='width: 100px'></div>";
-        $dlmenu = "";
-    }
-
-    // Add a delete link (only for admin and organizers or the authors)
-    if ($user->status != 'member' || $Presentation->orator == $user->username) {
-        $delete_button = "<div class='pub_btn'><a href='#' data-id='$Presentation->id_pres' class='delete_ref'>Delete</a></div>";
-        $modify_button = "<div class='pub_btn'><a href='#' data-id='$Presentation->id_pres' class='modify_ref'>Modify</a></div>";
-    } else {
-        $delete_button = "<div style='width: 100px'></div>";
-        $modify_button = "<div style='width: 100px'></div>";
-    }
-    $orator = new User($db, $Presentation->orator);
-    $type = ucfirst($Presentation->type);
-    $result = "
-        <div class='pub_caps'>
-            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                $type
-            </div>
-            <div id='pub_title'>$Presentation->title</div>
-            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$Presentation->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
-            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$Presentation->authors</div>
-        </div>
-
-        <div class='pub_abstract'>
-            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$Presentation->summary
-        </div>
-
-        <div class='pub_action_btn'>
-            <div class='pub_one_half'>
-                $download_button
-                $dlmenu
-            </div>
-            <div class='pub_one_half last'>
-                $delete_button
-                $modify_button
-            </div>
-        </div>
-        ";
-    return $result;
 }
 
 /**
@@ -317,9 +251,9 @@ function browse($dir, $dirsNotToSaveArray = array()) {
  * @return string
  */
 function exportdbtoxls($tablename) {
+    global $db;
     /***** EDIT BELOW LINES *****/
-    $db = new DbSet();
-    $DB_TBLName = $db->dbprefix.$tablename; // MySQL Table Name
+    $DB_TBLName = $db->dbprefix.$tablename; // MySQL AppTable Name
     $xls_filename = 'backup/export_'.$tablename.date('Y-m-d_H-i-s').'.xls'; // Define Excel (.xls) file name
 	$out = "";
 
@@ -387,20 +321,23 @@ function exportdbtoxls($tablename) {
  * @return string
  */
 function backup_db(){
-    // Declare classes
-    $db = new DbSet();
+    global $db;
 
     // Create Backup Folder
     $mysqlrelativedir = 'backup/mysql';
     $mysqlSaveDir = PATH_TO_APP.'/'.$mysqlrelativedir;
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
 
+    if (!is_dir(PATH_TO_APP.'/backup')) {
+        mkdir(PATH_TO_APP.'/backup',0777);
+    }
+
     if (!is_dir($mysqlSaveDir)) {
         mkdir($mysqlSaveDir,0777);
     }
 
     // Do backup
-    /* Store All Table name in an Array */
+    /* Store All AppTable name in an Array */
     $allTables = $db->getapptables();
 
     $return = "";
@@ -445,8 +382,7 @@ function backup_db(){
  * @param $mysqlSaveDir
  */
 function cleanbackups($mysqlSaveDir) {
-    $db = new DbSet();
-    $config = new AppConfig($db);
+    global $AppConfig;
     $oldbackup = browse($mysqlSaveDir);
     if (!empty($oldbackup)) {
         $files = array();
@@ -471,7 +407,7 @@ function cleanbackups($mysqlSaveDir) {
         $cpt = 0;
         foreach ($files as $date=>$old) {
             // Delete file if too old
-            if ($cpt >= $config->clean_day) {
+            if ($cpt >= $AppConfig->clean_day) {
                 if (is_file($old)) {
                     unlink($old);
                 }
@@ -487,9 +423,8 @@ function cleanbackups($mysqlSaveDir) {
  * @return bool
  */
 function mail_backup($backupfile) {
-    $db = new DbSet();
-    $config = new AppConfig($db);
-    $mail = new AppMail($db,$config);
+    global $db, $AppConfig;
+    $mail = new AppMail($db,$AppConfig);
     $admin = new User($db);
     $admin->get('admin');
 
@@ -518,6 +453,10 @@ function file_backup() {
     $mysqlSaveDir = PATH_TO_APP.'/backup/mysql';
     $zipSaveDir = PATH_TO_APP.'/backup/complete';
     $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
+
+    if (!is_dir(PATH_TO_APP.'/backup')) {
+        mkdir(PATH_TO_APP.'/backup',0777);
+    }
 
     if (!is_dir($zipSaveDir)) {
         mkdir($zipSaveDir,0777);

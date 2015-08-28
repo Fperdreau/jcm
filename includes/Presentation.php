@@ -1,26 +1,35 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * File for classes Presentations and Presentation
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/** class Presentations.
+/**
+ * class Presentations.
+ *
  * Handle methods to display presentations list (archives, homepage, wish list)
  */
-class Presentations extends Table {
+class Presentations extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
@@ -40,10 +49,57 @@ class Presentations extends Table {
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    function __construct(DbSet $db){
+    function __construct(AppDb $db){
         parent::__construct($db, "Presentation", $this->table_data);
+    }
+
+    /**
+     * Create or update table
+     * @param bool $op
+     * @return mixed
+     */
+    public function setup($op=False) {
+        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+            $result['status'] = True;
+            $result['msg'] = "'$this->tablename' created";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = "'$this->tablename' not created";
+        }
+
+        if ($op === false) {
+            // Set username of the uploader
+            $sql = 'SELECT id_pres,username,orator,summary,authors,title,notified FROM ' . $this->tablename;
+            $req = $this->db->send_query($sql);
+            while ($row = mysqli_fetch_assoc($req)) {
+                $pub = new Presentation($this->db, $row['id_pres']);
+                $userid = $row['orator'];
+                $pub->summary = str_replace('\\', '', htmlspecialchars($row['summary']));
+                $pub->authors = str_replace('\\', '', htmlspecialchars($row['authors']));
+                $pub->title = str_replace('\\', '', htmlspecialchars($row['title']));
+
+                // If publication's submission date is past, we assume it has already been notified
+                if ($pub->up_date < date('Y-m-d H:i:s', strtotime('-2 days', strtotime(date('Y-m-d H:i:s'))))) {
+                    $pub->notified = 1;
+                    $pub->update();
+                }
+
+                if (empty($row['username']) || $row['username'] == "") {
+                    $sql = "SELECT username FROM " . $this->db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
+                    $userreq = $this->db->send_query($sql);
+                    $data = mysqli_fetch_assoc($userreq);
+                    if (!empty($data)) {
+                        $pub->orator = $data['username'];
+                        $pub->username = $data['username'];
+                    }
+                }
+                $pub->update();
+            }
+        }
+        return $result;
+
     }
 
     /**
@@ -91,7 +147,7 @@ class Presentations extends Table {
      * @return array
      */
     function getyearspub($filter = NULL,$user = NULL) {
-        $sql = "SELECT YEAR(date),id_pres FROM $this->tablename WHERE ";
+        $sql = "SELECT YEAR(date),id_pres FROM $this->tablename WHERE title!='TBA' and ";
         $cond = array();
         if (null != $user) {
             $cond[] = "username='$user'";
@@ -134,16 +190,15 @@ class Presentations extends Table {
             }
 
             $content.= "
-            <div class='section_header'>$year</div>
-            <div class='section_content'>
-                <div class='list-container' id='pub_labels'>
-                    <div style='text-align: center; font-weight: bold; width: 10%;'>Date</div>
-                    <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
-                    <div style='text-align: center; font-weight: bold; width: 20%;'>Authors</div>
-                    <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+            <section>
+                <h2 class='section_header'>$year</h2>
+                <div class='list-container list-heading'>
+                    <div style='width: 5%;'>Date</div>
+                    <div style='width: 60%;'>Title</div>
+                    <div style='width: 25%;'>Speakers</div>
                 </div>
                 $yearcontent
-            </div>";
+            </section>";
         }
         return $content;
     }
@@ -193,7 +248,7 @@ class Presentations extends Table {
          <form method='' action='' class='form'>
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
-              <div class='formcontrol' style='width: 50%;'>
+              <div class='formcontrol'>
                 <label for='id'>Select a wish</label>
                 <select name='id' id='select_wish'>
                     $option
@@ -243,10 +298,10 @@ class Presentation extends Presentations {
     public $id_pres = "";
 
     /**
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $id_pres
      */
-    function __construct(DbSet $db, $id_pres=null){
+    function __construct(AppDb $db, $id_pres=null){
         parent::__construct($db);
 
         /** @var AppConfig $config */
@@ -266,17 +321,18 @@ class Presentation extends Presentations {
      */
     function make($post){
         $class_vars = get_class_vars("Presentation");
-
-        if ($this->pres_exist($post['title']) == false) {
+        if ($post['title'] == "TBA" || $this->pres_exist($post['title']) == false) {
 
             // Create an unique ID
-            $this->id_pres = self::create_presID();
+            $post['id_pres'] = self::create_presID();
+            $this->id_pres = $post['id_pres'];
 
             // Associates this presentation to an uploaded file if there is one
             if (!empty($post['link'])) {
                 $this->add_upload($post['link']);
             }
 
+            // If not a wish, add date
             if ($post['type'] !== 'wishlist') {
                 $this->date = $post['date'];
             }
@@ -285,8 +341,6 @@ class Presentation extends Presentations {
 
             // Add publication to the database
             if ($this->db->addcontent($this->tablename,$content)) {
-                // Assign a chair man for this presentation
-                $this->get_chair();
                 return $this->id_pres;
             } else {
                 return false;
@@ -341,58 +395,10 @@ class Presentation extends Presentations {
         // Get presentation's type
         $this->type = (array_key_exists("type", $post)) ? $post['type']:$this->type;
 
-        // Get a chair man for this presentation
-        $this->get_chair();
-
         // Update table
         $class_vars = get_class_vars("Presentation");
         $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
-        if (!$this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Pseudo randomly choose a chairman for this presentation if none has been assigned yet
-     */
-    private function get_chair() {
-        // Get session type
-        $session = new Session($this->db, $this->date);
-        $Chairs = new Chairs($this->db);
-        if (!$Chairs->get('presid',$this->id_pres)) {
-            // If the presentation does not have a corresponding chair
-            // Check if preassigned chairs for this session exist
-            $i = false;
-            foreach ($session->chairs as $chair) {
-                $thisChair = new Chairs($this->db);
-                if ($session->type == 'Journal Club' && $chair['chair'] == $this->orator) {
-                    $thisChair->get('id',$chair['id']);
-                    $thisChair->presid = $this->id_pres;
-                    $i = true;
-                } elseif ($thisChair->presid == 0) {
-                    $thisChair->get('id', $chair['id']);
-                    $thisChair->presid = $this->id_pres;
-                    if ($session->type == 'Journal Club') {
-                        // If journal club session, the chair is the speaker
-                        $thisChair->chair = $this->orator;
-                    }
-                    $i = true;
-                }
-                if ($i == true) {
-                    $thisChair->update();
-                    $this->chair = $thisChair->chair;
-                    break;
-                }
-            }
-            // If we found none, let's get a new one
-            if ($i == false) {
-                $this->chair = $Chairs->getChair($session->date,$this->orator);
-                $Chairs->make($session->date,$this->chair,$this->id_pres);
-            }
-
-        }
-        return $this->chair;
+        return $this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres));
     }
 
     /**
@@ -447,16 +453,8 @@ class Presentation extends Presentations {
         $uploads = new Uploads($this->db);
         $uploads->delete_files($this->id_pres);
 
-        // Delete corresponding entry in the Chairs table
-        $this->db->updatecontent($this->db->tablesname['Chairs'],array('presid'=>0),array('presid'=>$this->id_pres));
-
         // Delete corresponding entry in the publication table
-        if ($this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id))) {
-            $Chairs = new Chairs($this->db);
-            return $Chairs->delete('presid',$this->id_pres);
-        } else {
-            return false;
-        }
+        return $this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id));
     }
 
     /**
@@ -471,142 +469,87 @@ class Presentation extends Presentations {
 
     /**
      * Show this presentation (in archives)
+     * @param bool $user: adapt the display for the profile page
      * @return string
      */
-    public function show() {
+    public function show($user=false) {
+        if (!$user) {
+            $speaker = new User($this->db,$this->orator);
+            $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
+        } else {
+            $speakerDiv = "";
+        }
+        $date = date('d M',strtotime($this->date));
         return "
         <div class='pub_container' id='$this->id_pres'>
+        <a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>
             <div class='list-container'>
-                <div style='text-align: center; width: 10%;'>$this->date</div>
-                <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title</div>
-                <div style='text-align: center; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->authors</div>
-                <div style='text-align: center; width: 10%; vertical-align: middle;'>
-                    <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>MORE</a>
-                    </div>
-                </div>
+                <div class='pub_date'>$date</div>
+                <div class='pub_title warp'>$this->title</div>
+                $speakerDiv
             </div>
+        </a>
         </div>
         ";
     }
 
     /**
      * Show publication details in session list
-     * @param $chair
-     * @param $mail
+     * @param bool $opt
+     * @param $date
      * @return string
      */
-    public function showinsession($chair,$mail,$date) {
-
-        if ($chair['chair'] !== 'TBA') {
-            $chair = new User($this->db, $chair['chair']);
-            $chair = $chair->fullname;
-        } else {
-            $chair = 'TBA';
-        }
+    public function showinsession($opt=false,$date) {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='index.php?page=submission&op=new&date=$date'>Free</a>";
+            $show_but = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-date='$date'>FREE</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
             $speaker = new User($this->db,$this->orator);
             $speaker = $speaker->fullname;
+
             // Make "Show" button
-            if (null != $mail) {
-                $show_but = "$this->title ($this->authors)";
+            if ($opt == 'mail') {
+                $show_but = "$this->title";
             } else {
-                $authors = ($this->type !== 'minute') ? "($this->authors)" : "";
-                $show_but = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title $authors</a>";
+                $show_but = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>$this->title</a>";
             }
             $type = ucfirst($this->type);
         }
 
-        $chairDiv = ($this->type !== 'minute') ? "<div style='display: inline-block; vertical-align: middle; text-align: left; min-width: 20%; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$chair
-                </div>
-            </div>" : "";
+        // Either simply show speaker's name or option list of users (admin interface)
+        if ($opt == 'admin' && $opt != 'mail') {
+            /** Get list of organizers */
+            $Users = new Users($this->db);
+            $organizers = $Users->getUsers();
+            $organizers[] = 'TBA';
 
-        return "
-        <div id='$this->id_pres' style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 55%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>$type</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);' class='show_pres'>
-                    $show_but
-                </div>
-            </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin: 0;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 13px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #dddddd; padding: 5px; border-bottom: 1px solid rgba(207,81,81,.5);'>$speaker
-                </div>
-            </div>
-            $chairDiv
-        </div>";
-    }
-
-    /**
-     * Show details about this presentation
-     * @param $chair
-     * @return string
-     */
-    public function showinsessionmanager($chair,$sessionid) {
-        if ($chair['chair'] !== 'TBA') {
-            $chairman = new User($this->db,$chair['chair']);
-            $chairman = $chairman->fullname;
-        } else {
-            $chairman = $chair['chair'];
-        }
-        $chairID = $chair['id'];
-
-        /** Get list of organizers */
-        $Users = new Users($this->db);
-        $organizers = $Users->getadmin('admin');
-        $chairopt = "<option value='TBA'>TBA</option>";
-        foreach ($organizers as $key=>$organizer) {
-            $orguser = $organizer['username'];
-            $orgfull = $organizer['fullname'];
-            if ($orgfull === $chairman) {
-                $chairopt .= "<option value='$orguser' selected>$orgfull</option>";
-            } else {
-                $chairopt .= "<option value='$orguser'>$orgfull</option>";
+            $speakerOpt = "";
+            foreach ($organizers as $organizer) {
+                if ($speaker == 'TBA') {
+                    $speakerOpt .= "<option value='TBA' selected>TBA</option>";
+                } else {
+                    $orga = new User($this->db,$organizer);
+                    $selectOpt = ($orga->fullname == $speaker) ? 'selected':"";
+                    $speakerOpt .= "<option value='$orga->username' $selectOpt>$orga->fullname</option>";
+                }
             }
-        }
-
-        /** title link */
-        if ($this->id_pres !== "") {
-            /** @var User $speaker */
-            $speaker = new User($this->db,$this->orator);
-            $type = $this->type;
-            $speaker = $speaker->fullname;
-            $titlelink = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$this->id_pres'>$this->title ($this->authors)</a>";
-        } else {
-            $speaker = "TBA";
-            $type = "TBA";
-            $titlelink = "TBA";
+            $speaker = "<select class='modSpeaker select_opt' style='max-width: 150px;'>$speakerOpt</select>";
         }
 
         return "
-        <div id='$this->id_pres' style='display: block; width: 100%; margin: 0; font-size: 11px; font-weight: 300;'>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 40%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>$type</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1; background-color: #cccccc;padding: 5px;'>
-                    $titlelink
+        <div class='pres_container' id='$this->id_pres' style='display: block; position: relative; margin: auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
+            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
+                <div>$show_but</div>
+                <div style='font-style: italic;'>
+                    <div style='display: inline-block;'>Presented by </div>
+                    <div style='display: inline-block;'>$speaker</div>
                 </div>
             </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 20%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Speaker</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>$speaker
-                </div>
-            </div>
-            <div style='display: inline-block; vertical-align: middle; text-align: left; width: 25%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>
-                <label style='position: relative; left:0; top: 0; bottom: 0; background-color: rgba(207,81,81,.8); text-align: center; font-size: 11px; font-weight: 300; color: #EEE; padding: 7px 6px; z-index: 0;'>Chair</label>
-                <div style='display: block; position: relative; width: 100%; border: 0; z-index: 1;background-color: #cccccc;padding: 5px;'>
-                    <select class='mod_chair' data-chair='$chairID' data-pres='$this->id_pres' data-session='$sessionid' style='font-size: 10px; padding: 0;'>$chairopt</select>
-                </div>
-            </div>
-        </div>
-        ";
+        </div>";
     }
 
     /**
@@ -617,15 +560,6 @@ class Presentation extends Presentations {
     public function showDetails($show=false) {
         $AppConfig = new AppConfig($this->db);
         $orator = new User($this->db,$this->orator);
-
-        // Get chair
-        $chair = new Chairs($this->db);
-        if ($chair->get('presid',$this->id_pres)) {
-            $chairID = new User($this->db,$chair->chair);
-            $chairID = $chairID->fullname;
-        } else {
-            $chairID = 'TBA';
-        }
 
         // Get file list
         $filediv = "";
@@ -663,10 +597,9 @@ class Presentation extends Presentations {
                 </div>
                 <div style='display: inline-block; width: 45%; margin: 0 auto 0 0; text-align: right;'>
                     <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $orator->fullname</div>
-                    <div style='display: inline-block; margin-left: 30px; font-size: 15px; font-weight: 300;'><b>Chair:</b> $chairID</div>
                 </div>
             </div>
-            <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
+            <div style='width: 95%; text-align: justify; margin: auto; padding: 10px;'>
                 <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
             </div>
             $filediv
@@ -684,29 +617,105 @@ class Presentation extends Presentations {
         /** @var AppConfig $config */
         $config = new AppConfig($this->db);
 
-        $url = $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres";
-
-        // Make a show button (modal trigger) if not in email. Otherwise, a simple href.
-        if ($show == true) {
-            $pick_url = "<a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubmod' rel='pub_leanModal' data-id='$this->id_pres'><b>Make it true!</b></a>";
-        } else {
-            $pick_url = "<a href='$url' style='text-decoration: none;'><b>Make it true!</b></a>";
-        }
+        $url = ($show == false) ? $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres":"#modal";
 
         $uploader = new User($this->db,$this->username);
-
+        $update = date('d M y',strtotime($this->up_date));
         return "
-        <div style='display: block; padding: 5px; text-align: justify; background-color: #eeeeee;'>
-            <div style='display: block; border-bottom: 1px solid #bbbbbb;'>
-                <div style='display: inline-block; padding: 0; width: 90%; max-width: 90%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$this->title ($this->authors) suggested by <span style='color: #CF5151;'>$uploader->fullname</span>
-                </div>
-                <div style='display: inline-block; text-align: right;'>
-                    $pick_url
-                </div>
+        <div class='wish_container' id='$this->id_pres' style='display: block; position: relative; margin: 10px auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;'>
+                $update
             </div>
-            <div style='display: block; padding: 0; width: auto; font-size: 12px; text-align: left;'>
-                <div style='color: #555555; font-weight: 300; font-style: italic; '>$this->up_date</div>
+            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
+               <a href='$url' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-id='$this->id_pres'>
+                    <div>$this->title</div>
+                    <div style='font-style: italic; color: #000000;'>Suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
+                </a>
             </div>
         </div>";
+    }
+
+    /**
+     * Generate submission form and automatically fill it up with data provided by Presentation object.
+     * @param $user
+     * @param bool $show
+     * @return string
+     */
+    public function displaypub($user=false, $show=false) {
+        $user = ($user == false) ? new User($this->db):$user;
+        $AppConfig = new AppConfig($this->db);
+        $download_button = "";
+        $dlmenu = "";
+        $filediv = "";
+        if (!(empty($this->link))) {
+            if ($show) {
+                // Show files list as a dropdown menu
+                $download_button = "<div class='dl_btn pub_btn' id='$this->id_pres'><a href='#'>Download</a></div>";
+                $filelist = $this->link;
+                $dlmenu = "<div class='dlmenu'>";
+                foreach ($filelist as $fileid=>$info) {
+                    $dlmenu .= "
+                <div class='dl_info'>
+                    <div class='dl_type'>".strtoupper($info['type'])."</div>
+                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
+                </div>";
+                }
+                $dlmenu .= "</div>";
+            } else {
+                // Show files list as links
+                $filecontent = "";
+                foreach ($this->link as $fileid=>$info) {
+                    $urllink = $AppConfig->site_url."uploads/".$info['filename'];
+                    $filecontent .= "
+                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
+                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                        <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                    </div>";
+                }
+                $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto;
+            margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
+            }
+        } else {
+            $download_button = "<div style='width: 100px'></div>";
+            $dlmenu = "";
+        }
+
+        // Add a delete link (only for admin and organizers or the authors)
+        if ($user->status != 'member' || $this->orator == $user->username) {
+            $delete_button = "<div class='pub_btn'><a href='#' data-id='$this->id_pres' class='delete_ref'>Delete</a></div>";
+            $modify_button = "<div class='pub_btn'><a href='#' data-id='$this->id_pres' class='modify_ref'>Modify</a></div>";
+        } else {
+            $delete_button = "<div style='width: 100px'></div>";
+            $modify_button = "<div style='width: 100px'></div>";
+        }
+        $orator = new User($this->db, $this->orator);
+        $type = ucfirst($this->type);
+        $result = "
+        <div class='pub_caps'>
+            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
+                $type
+            </div>
+            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;'>$this->title</div>
+            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
+            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
+        </div>
+
+        <div class='pub_abstract'>
+            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$this->summary
+        </div>
+
+        <div class='pub_action_btn'>
+            <div class='pub_one_half'>
+                $download_button
+                $dlmenu
+            </div>
+            <div class='pub_one_half last'>
+                $delete_button
+                $modify_button
+            </div>
+        </div>
+        $filediv
+        ";
+        return $result;
     }
 }

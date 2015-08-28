@@ -1,21 +1,28 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class AppMail
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 // Import html2text class
 require_once(PATH_TO_LIBS."html2text-0.2.2/html2text.php");
@@ -41,10 +48,10 @@ class AppMail {
 
     /**
      * Class constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param AppConfig $config
      */
-    function __construct(DbSet $db, AppConfig $config) {
+    function __construct(AppDb $db, AppConfig $config) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname['User'];
         $this->config = $config;
@@ -78,60 +85,6 @@ class AppMail {
         <p>The Journal Club Team</p>
         ";
 
-        $body = self::formatmail($content);
-        return self::send_mail($to,$subject,$body);
-    }
-
-    /**
-     * Send an email to the user if his/her account has been deactivated due to too many login attempts.
-     * @param User $user
-     * @return bool
-     */
-    function send_activation_mail(User $user) {
-        $to = $user->email;
-        $subject = 'Your account has been deactivated'; // Give the email a subject
-        $authorize_url = $this->config->site_url."index.php?page=verify&email=$user->email&hash=$user->hash&result=true";
-        $newpwurl = $this->config->site_url."index.php?page=renew_pwd&hash=$user->hash&email=$user->email";
-        $content = "
-        <p>Hello <b>$user->fullname</b>,</p>
-        <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
-        <p>You can reactivate your account by following this link:<br>
-        <a href='$authorize_url'>$authorize_url</a>
-        </p>
-        <p>If you forgot your password, you can ask for another one here:<br>
-        <a href='$newpwurl'>$newpwurl</a>
-        </p>
-        <p>Cheers,<br>The Journal Club Team</p>
-        ";
-
-        $body = self::formatmail($content);
-        return self::send_mail($to,$subject,$body);
-    }
-
-    /**
-     * Send a confirmation email to the new user once his/her registration has been validated by an organizer
-     * @param $to
-     * @param $username
-     * @return bool
-     */
-    function send_confirmation_mail($to,$username) {
-        /** @var User $user */
-        $user = new User($this->db);
-        $user->get($username);
-
-        $subject = 'Signup | Confirmation'; // Give the email a subject
-        $login_url = $this->config->site_url."index.php";
-
-        $content = "
-        Hello $user->fullname,<br><br>
-        Thank you for signing up!<br>
-        <p>Your account has been created, you can now <a href='$login_url'>log in</a> with the following credentials.</p>
-        <p>------------------------<br>
-        <b>Username</b>: $username<br>
-        <b>Password</b>: Only you know it!<br>
-        ------------------------</p>
-        <p>The Journal Club Team</p>
-        ";
         $body = self::formatmail($content);
         return self::send_mail($to,$subject,$body);
     }
@@ -246,16 +199,23 @@ class AppMail {
         $profile_url = $this->config->site_url.'index.php?page=profile';
         $sitetitle = $this->config->sitetitle;
         $body = "
-            <div style='font-family: Helvetica Neue, Helvetica, Arial, sans-serif sans-serif; background-color: #cccccc; color: #222222; font-weight: 300; font-size: 12px; min-width: 600px; margin: auto;'>
-                <div style='line-height: 1.2; width: 100%; color: #000000;'>
-                    <div style='font-size: 30px; color: #cccccc; line-height: 40px; height: 40px; text-align: center; background-color: #555555;'>$sitetitle
+            <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
+                <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; font-size: 2em; line-height: 40px; height: 40px; text-align: center;'>
+                        $sitetitle
                     </div>
 
-                    <div style='padding: 10px; margin: auto; text-align: justify; background-color: rgba(255,255,255,.5);'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; text-align: justify;'>
                         $content
+
+                        <!-- Signature -->
+                        <div style='width: 100%; margin: auto;'>
+                            <p>Cheers,</p>
+                            <p style='font-style: italic; font-weight: 500;'>The Journal Club Team</p>
+                        </div>
                     </div>
 
-                    <div style='color: #EEEEEE; width: 100%; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #555555;'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
                         This email has been sent automatically. You can choose to no longer receive notification emails from your
                         <a href='$profile_url' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
                     </div>

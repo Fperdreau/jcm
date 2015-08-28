@@ -22,23 +22,22 @@
 
 require('../includes/boot.php');
 
-if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
-    $hash = htmlspecialchars($_GET['hash']);
-    $email = htmlspecialchars($_GET['email']);
-    $result = htmlspecialchars($_GET['result']);
-    $user = new User($db);
-    $valid = $user -> check_account_activation($hash,$email,$result);
-    $result = "
-        <section>
-            <h2>Activation</h2>
-			<span id='warning'>$valid</span>
-    	</section>";
-} else {
-    $result = "
-        <section>
-            <h2>Activation</h2>
-            <div id='warning'>Incorrect email or hash id.</div>
-    	</section>";
-}
+// Declare classes
+$user = new User($db,$_SESSION['username']);
+
+// Plugins
+$plugins = new AppPlugins($db);
+$plugin_list = $plugins->show();
+$result = "
+    <h1>Plugins</h1>
+    <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
+    Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
+    <div class='feedback'></div>
+    <section>
+        <h2>Plugins list</h2>
+        $plugin_list
+    </section>
+";
+
 echo json_encode($result);
 exit;

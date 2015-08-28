@@ -1,24 +1,34 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class Groups
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 require('../includes/boot.php');
 
+/**
+ * Class Groups
+ *
+ * Plugin that assign users to different groups according to the number of presentations in a session. Display the
+ * user's group on his/her profile page
+ */
 class Groups extends AppPlugins {
 
     protected $table_data = array(
@@ -37,14 +47,15 @@ class Groups extends AppPlugins {
     public $status = 'Off';
     public $installed = False;
     public $options = array(
-        "width"=>200
+        "width"=>200,
+        "room"=>array("B.2.15","B.1.38")
     );
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      */
-    public function __construct(DbSet $db) {
+    public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->installed = $this->isInstalled();
         $this->tablename = $this->db->dbprefix.'_groups';
@@ -63,7 +74,7 @@ class Groups extends AppPlugins {
      */
     public function install() {
         // Create corresponding table
-        $table = new Table($this->db, "Groups", $this->table_data, 'groups');
+        $table = new AppTable($this->db, "Groups", $this->table_data, 'groups');
         $table->setup();
 
         // Register the plugin in the db
@@ -104,11 +115,11 @@ class Groups extends AppPlugins {
         global $Sessions, $db, $AppConfig;
 
         // Get presentations of the next session
-        $nextdate = $Sessions->getsessions(1);
+        $nextdate = $Sessions->getsessions(true);
         $session = new Session($db,$nextdate[0]);
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = $AppConfig->max_nb_session;
+        $ngroups = max($AppConfig->max_nb_session,count($session->presids));
 
         // Get users list
         $Users = new Users($this->db);
@@ -121,13 +132,8 @@ class Groups extends AppPlugins {
         $pregroups = array();
         for ($i=0;$i<$ngroups;$i++) {
             $speaker = (isset($session->speakers[$i])) ? $session->speakers[$i]:'TBA';
-            $chair = (isset($session->chairs[$i]['chair'])) ? $session->chairs[$i]['chair']:'TBA';
-            $pregroups[$i][] = array("member"=>$chair,"role"=>"chair");
-            if ($chair != $speaker) {
-                $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
-            }
+            $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
             $excludedusers[] = $speaker;
-            $excludedusers[] = $chair;
         }
         $remainusers = array_values(array_diff($users,$excludedusers));
 
@@ -175,63 +181,23 @@ class Groups extends AppPlugins {
         // Declare classes
         $nextdate = $Sessions->getsessions(1);
         $session = new Session($db,$nextdate[0]);
-        $chairs = $session->chairs;
 
-        $rooms = array("B.2.15","B.1.38");
-        $nsent = 0;
         // Make email
+        $nsent = 0;
         $string = "";
-
         for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
             $groupinfo = $assigned_groups[$i];
             $presid = $groupinfo['presid'];
-            $room = (isset($rooms[$i])) ? $rooms[$i]:'TBA';
+            $room = (isset($this->options['room'][$i])) ? $this->options['room'][$i]:'TBA';
 
             /** @var Presentation $pres */
             $pres = new Presentation($db,$presid);
             $type = ($pres->type !== '') ? ucfirst($pres->type):'TBA';
-            $title = ($pres->title !== '') ? ucfirst($pres->title):'TBA';
-            $authors = ($pres->authors !== '') ? ucfirst($pres->authors):'TBA';
-
             $group = $groupinfo['group'];
-            $chair = (isset($chairs[$i]['chair'])) ? new User($db,$chairs[$i]['chair']):'TBA';
-            $speaker = new User($db, $pres->orator);
-            $speaker = ($speaker->username !== '') ? $speaker->fullname:'TBA';
-            $chair = ($chair !== 'TBA') ? $chair->fullname:'TBA';
-
-            // Get file list for this presentation
-            $filelist = $pres->link;
-            $filecontent = "";
-            foreach ($filelist as $file) {
-                $ext = explode('.',$file);
-                $ext = strtoupper($ext[1]);
-                $urllink = $AppConfig->site_url."uploads/".$file;
-                $filecontent .= "<div style='display: inline-block; height: 15px; line-height: 15px;
-                    text-align: center; padding: 5px; white-space: pre-wrap; min-width: 40px; width: auto;
-                    margin: 5px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
-                    <a href='$urllink' target='_blank'>$ext</a></div>";
-            }
-
 
             // Display details about this presentation
             if ($type !== 'TBA') {
-                $presentation_desc = "
-                <div style='display: block; position: relative; margin: 0 0 5px; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                    $type
-                </div>
-                <div style='width: 95%; margin: auto; padding: 5px 10px 0 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid #aaaaaa;'>
-                    <span style='font-weight: bold;'>Title:</span> $title<br>
-                    <div style='display: inline-block; margin-left: 0;'><b>Authors:</b> $authors</div>
-                    <div style='display: inline-block; float:right;'><b>Speaker:</b> $speaker</div>
-                    <div style='margin-left: 30px; display: inline-block;'><b>Chair:</b> $chair</div>
-                </div>
-                <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
-                    <span style='font-style: italic; font-size: 13px;'>$pres->summary</span>
-                </div>
-                <div style='display: block; text-align: justify; width: auto; min-height: 0; height: auto; margin: auto; background-color: #444444;'>
-                    $filecontent
-                </div>
-                ";
+                $presentation_desc = $pres->displaypub(false,false);
             } else {
                 $submit_url = $AppConfig->site_url.'index.php?page=submission&op=new';
                 $presentation_desc = "
@@ -240,14 +206,12 @@ class Groups extends AppPlugins {
             }
 
             $pubcontent = "
-                <div style='margin: auto; border: 1px solid #aaaaaa;'>
-                    <div style='background-color: #BE4141; color: #eeeeee; padding: 5px; text-align: left; font-weight: bold; font-size: 16px;'>
-                        Your Group Presentation
-                    </div>
-                    <div style='width: 100%; min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
-                        $presentation_desc
-                     </div>
-                </div>";
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+                    YOUR GROUP PRESENTATION
+                </div>
+                <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
+                    $presentation_desc
+                 </div>";
 
             foreach($group as $mbr) {
                 $username = $mbr['member'];
@@ -257,25 +221,30 @@ class Groups extends AppPlugins {
 
                 $user = new User($db,$username);
                 $content = "
-                    <div style='width: 95%; margin: auto; font-size: 16px;'>
+                    <div style='width: 100%; margin: auto;'>
                         <p>Hello <span style='font-weight: 600;'>$user->firstname</span>,</p>
                         <p>Here is your assignment for our next journal club session that will be held on the
                         $session->date in room <b>$room</b>.</p>
-                        <p>Cheers,<br>The Journal Club Team</p>
-                        <div style='display: block; margin: auto; width: auto;'>
-                            <div style='display: inline-block; width: 20%; border: 1px solid #aaaaaa;'>
+
+                        <div style='display: block; vertical-align: top; margin: auto;'>
+                            <div style='display: inline-block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
                                 $groupcontent
                             </div>
-                            <div style='display: inline-block; margin-left: 5%; vertical-align: top; width: 70%;'>
+                            <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; max-width: 60%; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
                                 $pubcontent
                             </div>
+                        </div>
+
+                        <div style='width: 100%; margin: auto;'>
+                            <p>Cheers,</p>
+                            <p style='font-style: italic; font-weight: 500;'>The Journal Club Team</p>
                         </div>
                     </div>
                     ";
 
+                $AppMail = new AppMail($db,$AppConfig);
                 $body = $AppMail -> formatmail($content);
                 $subject = "Your group assignment - $session->date";
-                //print($subject); echo "<br>"; print($body); exit;
                 if ($AppMail->send_mail($user->email,$subject,$body)) {
                     $nsent += 1;
                 } else {
@@ -328,7 +297,7 @@ class Groups extends AppPlugins {
                 $role = $info['role'];
                 $grpuser = new User($this->db,$grpmember);
                 $fullname = ucfirst(strtolower($grpuser->firstname))." ".ucfirst(strtolower($grpuser->lastname));
-                $color = ($u % 2 == 0) ? '#dddddd':'#bbbbbb';
+                $color = ($u % 2 == 0) ? 'rgba(220,220,220,.7)':'rgba(220,220,220,.2)';
                 if ($grpuser->username == $username) {
                     $content .= "<div style='display: block; text-align: left; padding: 5px; background-color: $color;'>
                     <div style='display: inline-block; width: 70%; color: #CF5151;'>YOU</div>
@@ -343,17 +312,12 @@ class Groups extends AppPlugins {
         }
         $width = $this->options['width']."px";
         return "
-            <div style='width: $width; margin: auto; vertical-align: top;'>
-            <div style='display: block; position: relative; background-color: rgba(187,81,81,1); color: #eeeeee;
-            width: 50%; height: 20px; line-height: 20px; padding: 5px; margin: 20px auto -10px auto; text-align: center;
-            font-weight: 300; font-size: 16px; z-index: 11; -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-            -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1); box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);'>
-            My Group</div>
-            <div style='font-size: 12px; display: block; margin: auto;text-align: justify; padding: 20px;
-            background-color: rgba(200,200,200,.1); -webkit-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);
-            -moz-box-shadow: 0px 0px 1px 1px rgba(187,187,187,1); box-shadow: 0px 0px 1px 1px rgba(187,187,187,1);'>
-            $content</div>
-            </div>";
+            <section style='min-width: $width;'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>YOUR GROUP</div>
+                <div style='text-align: justify;'>
+                    $content
+                </div>
+            </section>";
     }
 }
 

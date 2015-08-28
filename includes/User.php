@@ -1,28 +1,35 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class Users and User
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * Class Users
  *
  * Handle user-related methods (generate users list/ get organizers list)
  */
-class Users extends Table {
+class Users extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
@@ -97,14 +104,13 @@ class Users extends Table {
 
         $req = $this->db->send_query($sql);
         $result =  "
-            <div class='list-container'>
-                <div class='list-heading' style='width: 10%'>First Name</div>
-                <div class='list-heading' style='width: 10%'>Last Name</div>
-                <div class='list-heading' style='width: 10%'>User Name</div>
-                <div class='list-heading' style='width: 20%'>Email</div>
-                <div class='list-heading' style='width: 10%'>Activated</div>
-                <div class='list-heading' style='width: 5%'>Submissions</div>
-                <div class='list-heading' style='width: 10%'>Status</div>
+            <div class='list-container list-heading'>
+                <div class='user_select' data-filter='firstname'>First Name</div>
+                <div class='user_select' data-filter='lastname'>Last Name</div>
+                <div class='user_select' data-filter='email'>Email</div>
+                <div class='warp user_select' data-filter='active'>Activated</div>
+                <div class='warp'>Submissions</div>
+                <div class='user_select' data-filter='status'>Status</div>
             </div>
         ";
 
@@ -136,15 +142,14 @@ class Users extends Table {
 
             $result .= "
             <div class='list-container' id='section_$user->username'>
-                <div class='list-section' style='width: 10%'>$user->firstname</div>
-                <div class='list-section' style='width: 10%'>$user->lastname</div>
-                <div class='list-section' style='width: 10%'>$user->username</div>
-                <div class='list-section' style='width: 20%'>$user->email</div>
-                <div class='list-section' style='width: 10%'>$cur_trage</div>
-                <div class='list-section' style='width: 5%'>$nbpres</div>
+                <div>$user->firstname</div>
+                <div>$user->lastname</div>
+                <div class='warp'>$user->email</div>
+                <div class='warp'>$cur_trage</div>
+                <div style='width: 5%'>$nbpres</div>
 
-                <div class='list-section' style='width: 10%'>
-                    <select name='status' id='status' data-user='$user->username' class='modify_status'>
+                <div >
+                    <select name='status' id='status' data-user='$user->username' class='modify_status' style='max-width: 75%;'>
                         <option value='$user->status' selected='selected'>$user->status</option>
                         <option value='member'>Member</option>
                         <option value='admin'>Admin</option>
@@ -221,10 +226,10 @@ class User extends Users{
     /**
      * Constructor
      *
-     * @param DbSet $db
+     * @param AppDb $db
      * @param null $username
      */
-    function __construct(DbSet $db,$username=null) {
+    function __construct(AppDb $db,$username=null) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
@@ -236,66 +241,66 @@ class User extends Users{
     /**
      * Create user
      *
-     * @param $username
-     * @param $password
-     * @param $firstname
-     * @param $lastname
-     * @param $position
-     * @param $email
-     * @param string $status
+     * @param array $post
      * @return bool|string
      */
-    function make($username,$password,$firstname,$lastname,$position,$email,$status = "member") {
+    function make($post=array()) {
         $config = new AppConfig($this->db);
-		$this -> date = date("Y-m-d H:i:s");
-        $this -> username = $username;
-        $this -> firstname = $firstname;
-        $this -> lastname = $lastname;
-		$this -> fullname = "$this->firstname $this->lastname";
-        $this -> position = $position;
-        $this -> email = $email;
-        $this -> status = $status;
-        $this -> hash = $this -> create_hash($this);
-        $this -> password = self::crypt_pwd($password);
-        if ($this->status == "admin") {
-        	$this->active = 1;
-		}
-
-        /** @var AppMail $mail */
-        require('AppMail.php');
         $mail = new AppMail($this->db,$config);
 
-		// Parse variables and values to store in the table
+        $post = self::sanitize($post); // Escape $_POST content
+        $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
+
+        // Reformat first and last names
+        if (!empty($post['firstname'])) {
+            $post['firstname'] = ucfirst(strtolower($_POST['firstname']));
+            $post['lastname'] = ucfirst(strtolower($_POST['lastname']));
+            $post['fullname'] = $post['firstname']." ".$post['lastname'];
+        }
+
+        $post['hash'] = $this->make_hash(); // Create an unique hash for this user
+        $post['password']= self::crypt_pwd($post['password']); // Encrypt password
+        $post['active'] = ($post['status'] == "admin") ? 1:0; // Automatically activate the account if the user has an
+        // admin level
+
 		$class_vars = get_class_vars("User");
-        if (self :: user_exist($this->username) == false
-            && self :: mail_exist($this->email) == false) {
-                // Add to user table
-                $content = $this->parsenewdata($class_vars);
-                $this->db->addcontent($this->tablename,$content);
+        if (self :: user_exist($post['username']) == false
+            && self :: mail_exist($post['email']) == false) {
+            $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
+            $this->db->addcontent($this->tablename,$content); // Add to user table
 
-                if ($this->status !=  "admin") {
-
+            if ($this->status !=  "admin") {
                     // Send verification email to admins/organizer
                     if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
-                        return true;
+                        $result['status'] = true;
+                        $result['msg'] = "Your account has been created. You will receive an email after
+                            its validation by our admins.";
                     } else {
                         self::delete_user($this->username);
-                        return 'mail_pb';
+                        $result['status'] = false;
+                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                            Your registration cannot be validated for the moment. Please try again later.";
                     }
                 } else {
-                    if ($mail-> send_confirmation_mail($this->email,$this->username,$this->password)) {
-                        return true;
+                    // Send confirmation email to the user directly
+                    if ($this->send_confirmation_mail()) {
+                        $result['status'] = true;
+                        $result['msg'] = "Your account has been successfully created!";
                     } else {
-                        return 'mail_pb';
+                        $result['status'] = false;
+                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                            Your registration cannot be validated for the moment. Please try again later.";;
                     }
                 }
 		} else {
-			return 'exist';
+            $result['status'] = false;
+			$result['msg'] = "This username/email address already exist in our database";
 		}
+        return $result;
     }
 
     /**
-     * Get user's information
+     * Get user's information from the database
      *
      * @param $prov_username
      * @return bool
@@ -312,6 +317,8 @@ class User extends Users{
                     $this->$varname = htmlspecialchars_decode($value);
                 }
             }
+            $this->firstname = ucfirst(strtolower($this->firstname));
+            $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
             $this->nbpres = self::get_nbpres();
             return true;
@@ -322,7 +329,6 @@ class User extends Users{
 
     /**
      * Get the number of presentations submitted by the user
-     *
      * @return int
      */
     function get_nbpres() {
@@ -342,12 +348,16 @@ class User extends Users{
      * @param $post
      * @return bool
      */
-    function update($post) {
+    public function update($post) {
         $class_vars = get_class_vars("User");
         $content = $this->parsenewdata($class_vars,$post);
-        $this->db->updatecontent($this->tablename,$content,array("username"=>$this->username));
+        if ($this->db->updatecontent($this->tablename,$content,array("username"=>$this->username))) {
+            $result['status'] = true;
+        } else {
+            $result['status'] = false;
+        }
         self::get($this->username);
-        return true;
+        return $result;
     }
 
     /**
@@ -356,7 +366,7 @@ class User extends Users{
      * @param $prov_username
      * @return bool
      */
-    function user_exist($prov_username) {
+    public function user_exist($prov_username) {
         $userslist = $this->db -> getinfo($this->tablename,'username');
         $active = $this->db->getinfo($this->tablename,'active',array('username'),array("'$prov_username'"));
         if (in_array($prov_username,$userslist) && $active == 1) {
@@ -372,7 +382,7 @@ class User extends Users{
      * @param $prov_mail
      * @return bool
      */
-    function mail_exist($prov_mail) {
+    public function mail_exist($prov_mail) {
         $mailinglist = $this->db->getinfo($this->tablename,'email');
         return (in_array($prov_mail,$mailinglist));
     }
@@ -383,7 +393,7 @@ class User extends Users{
      *
      * @return string
      */
-    public function create_hash() {
+    private function make_hash() {
         $hash = md5( rand(0,1000) );
         return $hash;
     }
@@ -396,23 +406,28 @@ class User extends Users{
      * @param $result
      * @return string
      */
-    function check_account_activation($hash,$email,$result) {
-        $config = new AppConfig($this->db);
+    public function check_account_activation($hash,$email,$result) {
         $username = $this->db ->getinfo($this->tablename,'username',array("email"),array("'$email'"));
         $this->get($username);
         if ($result == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
                     $this->db->updatecontent($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
-                    /** @var AppMail $mail */
-                    $mail = new AppMail($this->db,$config);
-                    $mail-> send_confirmation_mail($this->email,$this->username);
-                    return "Account successfully activated. An email has been sent to the user!";
+                    if ($this->send_confirmation_mail()) {
+                        $result['status'] = true;
+                        $result['msg'] = "Account successfully activated. An email has been sent to the user!";
+                    } else {
+                        $result['status'] = false;
+                        $result['msg'] = "Account successfully activated, but we could not send a confirmation email to
+                        the user.";
+                    }
                 } else {
-                    return "Unexistent hash code for user.";
+                    $result['status'] = false;
+                    $result['msg'] = "Unexistent hash code for user.";
                 }
             } else {
-                return "This account has already been activated.";
+                $result['status'] = false;
+                $result['msg'] = "This account has already been activated.";
             }
         } else {
             self::delete_user($this->username);
@@ -426,15 +441,135 @@ class User extends Users{
      * @param $option
      * @return string
      */
-    function activation($option) {
+    private function activation($option) {
         if ($option == 1){
-            return self::check_account_activation($this->hash,$this->email,true);
+            $result = self::check_account_activation($this->hash,$this->email,true);
         } else {
-            /** @var $this->db DbSet */
-            $this->db = new DbSet();
-            $this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email));
-            return "Account successfully deactivated";
+            if ($this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email))) {
+                $result['status'] = true;
+                $result['msg'] = "Account successfully deactivated";
+            } else {
+                $result['status'] = false;
+            }
         }
+        return $result;
+    }
+
+    /**
+     * Send a confirmation email to the new user once his/her registration has been validated by an organizer
+     * @return bool
+     */
+    private function send_confirmation_mail() {
+        $config = new AppConfig($this->db);
+        $AppMail = new AppMail($this->db,$config);
+        $subject = 'Sign up | Confirmation'; // Give the email a subject
+        $login_url = $config->site_url."index.php";
+
+        $content = "
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello $this->fullname,</p>
+            <p>Thank you for signing up!</p>
+        </div>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            Your account has been created, you can now <a href='$login_url'>log in</a> with the following credentials.
+            <p><b>Username</b>: $this->username</p>
+            <p></p><b>Password</b>: Only you know it!</p>
+        </div>";
+        $body = $AppMail->formatmail($content);
+        return $AppMail->send_mail($this->email,$subject,$body);
+    }
+
+    /**
+     * Send an email to the user if his/her account has been deactivated due to too many login attempts.
+     * @return bool
+     */
+    private function send_activation_mail() {
+        $config = new AppConfig($this->db);
+        $AppMail = new AppMail($this->db,$config);
+
+        $subject = 'Your account has been deactivated'; // Give the email a subject
+        $authorize_url = $config->site_url."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
+        $newpwurl = $config->site_url."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
+        $content = "
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello $this->fullname,</p>
+            <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
+        </div>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            <p>You can reactivate your account by following this link:</br>
+                <a href='$authorize_url'>$authorize_url</a>
+            </p>
+            <p>If you forgot your password, you can ask for another one here:<br>
+                <a href='$newpwurl'>$newpwurl</a>
+            </p>
+        </div>";
+        $body = $AppMail->formatmail($content);
+        return $AppMail->send_mail($this->email,$subject,$body);
+    }
+
+    /**
+     * User login
+     * @param $post
+     * @return mixed
+     */
+    public function login($post) {
+        $password = htmlspecialchars($post['password']);
+        if ($this->get($this->username) == true) {
+            if ($this->active == 1) {
+                if ($this -> check_pwd($password) == true) {
+                    $_SESSION['logok'] = true;
+                    $_SESSION['username'] = $this -> username;
+                    $_SESSION['status'] = $this -> status;
+                    $result['msg'] = "Hi $this->fullname,<br> welcome back!";
+                    $result['status'] = true;
+                } else {
+                    $_SESSION['logok'] = false;
+                    $result['status'] = false;
+                    $attempt = $this->checkattempt();
+                    if ($attempt == false) {
+                        $result['msg'] = "Wrong password. You have exceeded the maximum number
+                            of possible attempts, hence your account has been deactivated for security reasons.
+                            We have sent an email to your address including an activation link.";
+                    } else {
+                        $result['msg'] = "Wrong password. $attempt login attempts remaining";
+                    }
+                }
+            } else {
+                $result['status'] = false;
+                $result['msg'] = "Sorry, your account is not activated yet. <br> You will receive an
+                    email as soon as your registration is confirmed by an admin.<br> Please,
+                    <a href='index.php?page=contact'>contact us</a> if you have any question.";
+            }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "Wrong username";
+        }
+        return $result;
+    }
+
+    /**
+     * Set User's status (delete/activate/deactivate/permission level)
+     * @param $newstatus
+     * @return string
+     */
+    public function setStatus($newstatus) {
+        $result['status'] = false; // Set default status as false
+        if ($newstatus == 'delete') {
+            if ($this -> delete_user()) {
+                $result['status'] = true;
+                $result['msg'] = "Account successfully deleted";
+            }
+        } elseif ($newstatus == "activate") {
+            $result = $this -> activation(1);
+        } elseif ($newstatus == "desactivate") {
+            $result = $this -> activation(0);
+        } else {
+            if ($this -> change_user_status($newstatus))  {
+                $result['status'] = true;
+                $result['msg'] = "User status is now $newstatus!";
+            }
+        }
+        return $result;
     }
 
     /**
@@ -443,7 +578,7 @@ class User extends Users{
      * allowed number of attempts and send an email to the user with an activation link.
      * @return int
      */
-    public function checkattempt() {
+    private function checkattempt() {
         $last_login = new DateTime($this->last_login);
         $now = new DateTime();
         $diff = $now->diff($last_login);
@@ -453,9 +588,7 @@ class User extends Users{
         $AppConfig = new AppConfig($this->db);
         if ($this->attempt >= $AppConfig->max_nb_attempt) {
             self::activation(0); // We deactivate the user's account
-            /** @var AppMail $mail */
-            $mail = new AppMail($this->db,$AppConfig);
-            $mail->send_activation_mail($this);
+            $this->send_activation_mail();
             return false;
         }
         $this->last_login = date('Y-m-d H:i:s');
@@ -489,19 +622,18 @@ class User extends Users{
      * @return string
      */
     function crypt_pwd($password) {
-        require("PasswordHash.php");
         $hash = create_hash($password);
         return $hash;
     }
-
 
     /**
      * Delete user's account
      *
      * @return bool
      */
-    function delete_user() {
-        return $this->db -> deletecontent($this->tablename,array("username"),array("'$this->username'"));
+    function delete_user($username=null) {
+        $username = ($username == null) ? $this->username:$username;
+        return $this->db -> deletecontent($this->tablename,array("username"),array("$username"));
     }
 
     /**
@@ -529,10 +661,9 @@ class User extends Users{
         $sql .= " ORDER BY date";
         $req = $this->db->send_query($sql);
         $content = "
-            <div class='list-container' id='pub_labels' style='font-size: 12px;'>
-                <div style='text-align: center; font-weight: bold; width: 15%;'>Date</div>
-                <div style='text-align: center; font-weight: bold; width: 50%;'>Title</div>
-                <div style='text-align: center; font-weight: bold; width: 10%;'></div>
+            <div class='list-container list-heading' style='font-size: 12px;'>
+                <div style='width: 20%;'>Date</div>
+                <div style='width: 70%;'>Title</div>
             </div>
         ";
 
@@ -540,27 +671,7 @@ class User extends Users{
             $pubid = $row['id_pres'];
             /** @var Presentation $pub */
             $pub = new Presentation($this->db,$pubid);
-            if ($pub->date == "0000-00-00") {
-                if ($pub->type == "wishlist") {
-                    $date = "WISH";
-                } else {
-                    $date = "";
-                }
-            } else {
-                $date = $pub->date;
-            }
-            $content .= "
-                <div class='pub_container' id='$pub->id_pres'>
-                    <div class='list-container' style='font-size: 12px;'>
-                        <div style='text-align: center; width: 15%;'>$date</div>
-                        <div style='text-align: left; width: 50%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;'>$pub->title</div>
-                        <div style='text-align: center; width: 10%; vertical-align: middle;'>
-                            <div class='show_btn'><a href='#pub_modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='pub_leanModal' data-id='$pub->id_pres'>MORE</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ";
+            $content .= $pub->show(true);
         }
         return $content;
     }

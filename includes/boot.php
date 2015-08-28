@@ -1,21 +1,32 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * Boot.php
+ *
+ * Startup of the application.
+ */
 
 /**
  * Define timezone
@@ -42,17 +53,14 @@ if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
 /**
  * Includes required files (classes)
  */
-include_once(PATH_TO_INCLUDES.'DbSet.php');
-include_once(PATH_TO_INCLUDES.'Table.php');
+include_once(PATH_TO_INCLUDES.'AppDb.php');
+include_once(PATH_TO_INCLUDES.'AppTable.php');
 $includeList = scandir(PATH_TO_INCLUDES);
 foreach ($includeList as $includeFile) {
     if (!in_array($includeFile,array('.','..','boot.php'))) {
         require_once(PATH_TO_INCLUDES.$includeFile);
     }
 }
-
-/** Load plugins */
-
 
 /**
  * Start session
@@ -64,9 +72,9 @@ SessionInstance::initsession();
  * Declare classes
  *
  */
-$db = new DbSet();
-$AppCore = new AppCore($db);
+$db = new AppDb();
 $AppConfig = new AppConfig($db);
+$AppPage = new AppPage($db);
 $Presentations = new Presentations($db);
 $Users = new Users($db);
 $Sessions = new Sessions($db);

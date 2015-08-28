@@ -1,30 +1,39 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * File for class AppCron
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
- * Manage scheduled tasks.
+ * Class AppCron
+ *
+ * Handle scheduled tasks and corresponding routines.
  * - installation
  * - update
  * - run
- * Class AppCron
+ *
  */
-class AppCron extends Table {
+class AppCron extends AppTable {
 
     protected $table_data = array(
         "id"=>array('INT NOT NULL AUTO_INCREMENT',false),
@@ -50,15 +59,14 @@ class AppCron extends Table {
     public $path;
     public $status;
     public $installed;
-    public $options;
-
+    public $options=array();
 
     /**
      * Constructor
-     * @param DbSet $db
+     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(DbSet $db, $name=False) {
+    public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
         $this->daysNbs = range(0,31,1);
@@ -86,8 +94,11 @@ class AppCron extends Table {
         $sql = "SELECT * FROM $this->tablename WHERE name='$this->name'";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_assoc($req);
-        foreach ($data as $prop=>$value) {
-            $this->$prop = $value;
+        if (!empty($data)) {
+            foreach ($data as $prop=>$value) {
+                $value = ($prop == "options") ? json_decode($value,true):$value;
+                $this->$prop = $value;
+            }
         }
     }
 
@@ -124,7 +135,7 @@ class AppCron extends Table {
      * @param: class name (must be the same as the file name)
      * @return: object
      */
-    public function instantiateCron($pluginName) {
+    public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/cronjobs/';
         include_once($folder . $pluginName .'.php');
         return new $pluginName($this->db);
@@ -184,6 +195,9 @@ class AppCron extends Table {
      */
     static function logger($file, $string) {
         $cronlog = PATH_TO_APP."/cronjobs/logs/$file";
+        if (!is_dir(PATH_TO_APP.'/cronjobs/logs')) {
+            mkdir(PATH_TO_APP.'/cronjobs/logs',0777);
+        }
         if (!is_file($cronlog)) {
             $fp = fopen($cronlog,"w+");
         } else {
@@ -225,7 +239,7 @@ class AppCron extends Table {
             if (!empty($cronFile) && !in_array($cronFile,array('.','..','run.php','logs'))) {
                 $name = explode('.',$cronFile);
                 $name = $name[0];
-                $thisPlugin = $this->instantiateCron($name);
+                $thisPlugin = $this->instantiate($name);
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
                 }
@@ -236,10 +250,141 @@ class AppCron extends Table {
                     'time'=>$thisPlugin->time,
                     'dayName'=>$thisPlugin->dayName,
                     'dayNb'=>$thisPlugin->dayNb,
-                    'hour'=>$thisPlugin->hour);
+                    'hour'=>$thisPlugin->hour,
+                    'options'=>$thisPlugin->options);
             }
         }
         return $jobs;
     }
 
+    /**
+     * Display job's settings
+     * @return string
+     */
+    public function displayOpt() {
+        $opt = "<div style='font-weight: 600;'>Options</div>";
+        if (!empty($this->options)) {
+            foreach ($this->options as $optName => $settings) {
+                if (count($settings) > 1) {
+                    $optProp = "";
+                    foreach ($settings as $prop) {
+                        $optProp .= "<option value='$prop'>$prop</option>";
+                    }
+                    $optProp = "<select name='$optName'>$optProp</select>";
+                } else {
+                    $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
+                }
+                $opt .= "
+                <div class='formcontrol'>
+                    <label for='$optName'>$optName</label>
+                    $optProp
+                </div>";
+            }
+            $opt .= "<input type='submit' class='modOpt' data-op='cron' value='Modify'>";
+        } else {
+            $opt = "No settings are available for this job.";
+        }
+        return $opt;
+    }
+
+    /**
+     * Display jobs list
+     * @return string
+     */
+    public function show() {
+        $jobsList = $this->getJobs();
+        $cronList = "";
+        foreach ($jobsList as $cronName => $info) {
+            $installed = $info['installed'];
+            if ($installed) {
+                $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='cron' data-op='uninstall' data-name='$cronName'></div>";
+            } else {
+                $install_btn = "<div class='installDep workBtn installBtn' data-type='cron' data-op='install' data-name='$cronName'></div>";
+            }
+
+            $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
+            $status = $info['status'];
+            $time = $info['time'];
+
+            $dayName_list = "";
+            foreach ($this->daysNames as $day) {
+                if ($day == $info['dayName']) {
+                    $dayName_list .= "<option value='$day' selected>$day</option>";
+                } else {
+                    $dayName_list .= "<option value='$day'>$day</option>";
+                }
+            }
+
+            $dayNb_list = "";
+            foreach ($this->daysNbs as $i) {
+                if ($i == $info['dayNb']) {
+                    $dayNb_list .= "<option value='$i' selected>$i</option>";
+                } else {
+                    $dayNb_list .= "<option value='$i'>$i</option>";
+                }
+            }
+
+            $hours_list = "";
+            foreach ($this->hours as $i) {
+                if ($i == $info['hour']) {
+                    $hours_list .= "<option value='$i' selected>$i:00</option>";
+                } else {
+                    $hours_list .= "<option value='$i'>$i:00</option>";
+                }
+            }
+
+            $cronList .= "
+            <div class='plugDiv' id='cron_$cronName'>
+                <div class='plugLeft'>
+                    <div class='plugName'>$cronName</div>
+                    <div class='plugTime' id='cron_time_$cronName'>$time</div>
+                    <div class='optbar'>
+                        <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
+                        $install_btn
+                        $runBtn
+                    </div>
+                </div>
+
+                <div class='plugSettings'>
+                    <div class='optbar'>
+                        <div class='formcontrol'>
+                            <label>Status</label>
+                            <select class='select_opt modSettings' data-op='cron' data-option='status' data-name='$cronName'>
+                            <option value='$status' selected>$status</option>
+                            <option value='On'>On</option>
+                            <option value='Off'>Off</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='settings'>
+                        <div class='formcontrol'>
+                            <label>Day</label>
+                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayName'>
+                                $dayName_list
+                            </select>
+                        </div>
+                        <div class='formcontrol'>
+                            <label>Date</label>
+                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayNb'>
+                                $dayNb_list
+                            </select>
+                        </div>
+                        <div class='formcontrol'>
+                           <label>Time</label>
+                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='hour'>
+                                $hours_list
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class='plugOpt' id='$cronName'></div>
+
+                </div>
+            </div>
+            ";
+        }
+
+        return $cronList;
+    }
 }

@@ -1,60 +1,58 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
+/**
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-This file is part of Journal Club Manager.
-
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-if (isset($_SESSION['status']) and ($_SESSION['status'] == "admin" or $_SESSION['status'] == "organizer")) {
-    $menuhidden = "<div class='menu-section' name='admin_tool' id='menu_admin'>ADMIN</div>";
-} else {
-    $menuhidden = "";
-}
-
-if (!empty($_SESSION['status']) && $_SESSION['status'] == "admin") {
-    $configmenu = "
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=config'><span id='addmenu'>Configuration</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=plugins'><span id='addmenu'>Plugins</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=cronjobs'><span id='addmenu'>CronJobs</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=tools'><span id='addmenu'>Tools</span></div>";
-} else {
-    $configmenu = "";
-}
+/**
+ * Menu
+ * @todo: should be automatically built by AppPage class
+ */
 
 echo "
-<div class='menu-container'>
-    <div class='menu-section' data-url='home'>HOME</div>
-    <div class='menu-section' id='menu_pres'>SUBMIT</div>
-    <div class='menu-section' data-url='archives'>ARCHIVES</div>
-    <div class='menu-section' data-url='contact'>CONTACT</div>
-    $menuhidden
-</div>
+<nav>
+    <ul>
+        <li><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
+        <li><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
+        <li><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
+        <li><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>
+    </ul>
+</nav>
 
-<div class='addmenu-pres'>
-    <div class='addmenu-section' data-url='submission' data-param='op=new'><span id='addmenu'>New presentation</span></div>
-    <div class='addmenu-section' data-url='submission' data-param='op=wishpick'><span id='addmenu'>Pick a wish</span></div>
-    <div class='addmenu-section' data-url='submission' data-param='op=suggest'><span id='addmenu'>Make a wish</span></div>
-</div>
+<nav class='submenu' id='addmenu-pres'>
+    <ul>
+        <li><a href='index.php?page=home&op=new' class='menu-section' id='submission' data-param='op=new'>New presentation</a></li>
+        <li><a href='index.php?page=home&op=wishpick' class='menu-section' id='submission' data-param='op=wishpick'>Pick a wish</a></li>
+        <li><a href='index.php?page=home&op=suggest' class='menu-section' id='submission' data-param='op=suggest'>Make a wish</a></li>
+    </ul>
+</nav>
 
-<div class='addmenu-admin'>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=sessions'><span id='addmenu'>Manage Sessions</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=users'><span id='addmenu'>Manage users</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=mail'><span id='addmenu'>Send mail</span></div>
-    <div class='addmenu-section' data-url='admin_tool' data-param='op=post'><span id='addmenu'>Posts</span></div>
-    $configmenu
-</div>
-
+<nav class='submenu' id='addmenu-admin'>
+    <ul>
+        <li><a href='index.php?page=sessions' class='menu-section' id='sessions'>Sessions</a></li>
+        <li><a href='index.php?page=users' class='menu-section' id='users'>Users</a></li>
+        <li><a href='index.php?page=email' class='menu-section' id='email'>Mailing</a></li>
+        <li><a href='index.php?page=post' class='menu-section' id='post'>Posts</a></li>
+        <li><a href='index.php?page=settings' class='menu-section' id='settings'>Settings</a></li>
+        <li><a href='index.php?page=pages' class='menu-section' id='pages'>Pages</a></li>
+        <li><a href='index.php?page=plugins' class='menu-section' id='plugins'>Plugins</a></li>
+        <li><a href='index.php?page=tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
+    </ul>
+</nav>
 ";

@@ -1,23 +1,35 @@
 <?php
-/*
-Copyright © 2014, Florian Perdreau
-This file is part of Journal Club Manager.
+/**
+ * File for class Posts
+ *
+ * PHP version 5
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-Journal Club Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Journal Club Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with Journal Club Manager. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-class Posts extends Table {
+/**
+ * Class Posts
+ *
+ * Handle creation of posts
+ */
+class Posts extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
@@ -40,15 +52,53 @@ class Posts extends Table {
 
     /**
      * Constructor
-     * @param $db DbSet
+     * @param $db AppDb
      * @param null $postid
      */
-    public function __construct(DbSet $db,$postid=null) {
+    public function __construct(AppDb $db,$postid=null) {
         parent::__construct($db,'Posts', $this->table_data);
         if (null !== $postid) {
             self::get($postid);
         }
         $this->postid = $postid;
+    }
+
+    /**
+     * Create or update table
+     * @param bool $op
+     * @return mixed
+     */
+    public function setup($op=False) {
+        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+            $result['status'] = True;
+            $result['msg'] = "'$this->tablename' created";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = "'$this->tablename' not created";
+        }
+
+        if ($op === false) {
+            // Give ids to posts that do not have one yet (compatibility with older verions)
+            $post = new Posts($this->db);
+            $sql = "SELECT postid,date,username FROM " . $this->tablename;
+            $req = $this->db->send_query($sql);
+            while ($row = mysqli_fetch_assoc($req)) {
+                $date = $row['date'];
+                if (empty($row['postid']) || $row['postid'] == "NULL") {
+                    // Get uploader username
+                    $userid = $row['username'];
+                    $sql = "SELECT username FROM " . $this->db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
+                    $userreq = $this->db->send_query($sql);
+                    $data = mysqli_fetch_assoc($userreq);
+
+                    $username = $data['username'];
+                    $post->date = $date;
+                    $postid = $post->makeID();
+                    $this->db->updatecontent($this->tablename, array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
+                }
+            }
+        }
+        return $result;
     }
 
     /**
@@ -67,10 +117,12 @@ class Posts extends Table {
 
         // Add post to the database
         if ($this->db->addcontent($this->tablename,$content)) {
-            return true;
+            $result['status'] = true;
+            $result['msg'] = "Thank you for your post!";
         } else {
-            return false;
+            $result['status'] = false;
         }
+        return $result;
     }
 
     /**
@@ -102,10 +154,13 @@ class Posts extends Table {
     public function update($post=array()) {
         $class_vars = get_class_vars("Posts");
         $content = $this->parsenewdata($class_vars, $post, array('day','time'));
-        if (!$this->db->updatecontent($this->tablename,$content,array("postid"=>$this->postid))) {
-            return false;
+        if ($this->db->updatecontent($this->tablename,$content,array("postid"=>$this->postid))) {
+            $result['status'] = true;
+            $result['msg'] = "Thank you for your post!";
+        } else {
+            $result['status'] = false;
         }
-        return true;
+        return $result;
     }
 
     /**
@@ -129,7 +184,7 @@ class Posts extends Table {
      * @return bool
      */
     public function delete($postid) {
-        return $this->db->deletecontent($this->tablename,array('postid'),array("'$postid'"));
+        return $this->db->deletecontent($this->tablename,array('postid'),array($postid));
     }
 
     /**
@@ -169,9 +224,9 @@ class Posts extends Table {
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
                 $news .= "
-                <div style='width: 100%; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
-                    <div style='width: 60%; height: 20px; line-height: 20px; margin: 5px 10px auto; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
-                    <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
+                <div style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                    <div style='width: 60%; height: 20px; line-height: 20px; margin: 0; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
+                    <div style='text-align: justify; margin: auto; background-color: rgba(220,220,220,.2); padding: 10px;'>
                         $post->content
                     </div>
                     <div style='width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
@@ -213,22 +268,24 @@ class Posts extends Table {
             <form id='post_form'>
                 <div class='submit_btns'>
                     $del_btn
-                    <input type='submit' name='$op' value='$submit' id='submit' class='$op' data-id='$post->postid'/>
+                    <input type='submit' name='$op' value='$submit' class='submit_post'/>
                 </div>
-                <input type='hidden' id='post_username' value='$username'/>
-                <div class='formcontrol' style='width: 70%;'>
+                <input type='hidden' name='postid' value='$post->postid'>
+                <input type='hidden' name='post_add' value='$op'>
+                <input type='hidden' name='username' value='$username'/>
+                <div class='formcontrol'>
                     <label>Title</label>
-                    <input type='text' id='post_title' placeholder='Your title (max 255 characters)' value='$post->title' style='width: 70%;'>
+                    <input type='text' name='title' placeholder='Your title (max 255 characters)' value='$post->title' required>
                 </div>
-                <div class='formcontrol' style='width: 10%;'>
+                <div class='formcontrol'>
                     <label>Homepage</label>
-                    <select id='post_homepage'>
+                    <select name='homepage'>
                         <option value='$post->homepage'>$homepage</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
+                <div class='formcontrol'>
                     <label>Message</label>
                     <div class='post_txtarea' style='display: block; text-align: right;'>
                     </div>
