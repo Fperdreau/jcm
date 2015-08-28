@@ -46,60 +46,62 @@ require_once('includes/boot.php');
 
     <body class="mainbody">
 
-        <!-- Header section -->
-        <header class="header">
+        <div class="sideMenu">
+            <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+        </div>
 
-            <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
+            <!-- Header section -->
+            <header class="header">
+
+                <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
              --><div id="sitetitle">
-                <?php echo $AppConfig->sitetitle;?>
-            </div><!--
+                    <?php echo $AppConfig->sitetitle;?>
+                </div><!--
             Menu section -->
-            <div class="menu">
-                <div class="menutype topnav">
-                    <?php require(PATH_TO_PHP.'page_menu.php'); ?>
-                </div>
-                <div class="menutype dropdown">
-                    <?php require(PATH_TO_PHP.'page_menu.php'); ?>
-                </div>
-            </div><!--
+                <div class="menu">
+                    <div class="topnav">
+                        <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+                    </div>
+                </div><!--
              Login box-->
-            <div id='login_box'>
-                <?php
-                if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
-                    $showlogin = "
+                <div id='login_box'>
+                    <?php
+                    if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
+                        $showlogin = "
                     <div><a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'><img src='images/login.png' alt='login'></a></div>
                     <div><a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'><img src='images/signup.png' alt='signup'></a></div>
                      ";
-                } else {
-                    $showlogin = "
+                    } else {
+                        $showlogin = "
                     <div><a href='index.php?page=profile' class='menu-section' id='profile'><img src='images/profile.png' alt='profile'></a></div>
                     <div><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
-                }
-                echo $showlogin;
-                ?>
+                    }
+                    echo $showlogin;
+                    ?>
+                </div>
+            </header>
+
+            <!-- Core section -->
+            <div id="core">
+                <?php require(PATH_TO_PAGES.'modal.php'); ?>
+
+                <div id="pagecontent">
+                    <div id="plugins"></div>
+                </div>
             </div>
-        </header>
 
-        <!-- Core section -->
-        <div id="core">
-            <?php require(PATH_TO_PAGES.'modal.php'); ?>
-
-            <div id="pagecontent">
-                <div id="plugins"></div>
-            </div>
-        </div>
-
-        <!-- Footer section -->
-        <footer id="footer">
-            <div id="colBar"></div>
-            <div id="appTitle"><?php echo $AppConfig->app_name; ?></div>
-            <div id="appVersion">Version <?php echo $AppConfig->version; ?></div>
-            <div id="sign">
-                <div><?php echo "<a href='$AppConfig->repository' target='_blank'>Sources</a></div>
+            <!-- Footer section -->
+            <footer id="footer">
+                <div id="colBar"></div>
+                <div id="appTitle"><?php echo $AppConfig->app_name; ?></div>
+                <div id="appVersion">Version <?php echo $AppConfig->version; ?></div>
+                <div id="sign">
+                    <div><?php echo "<a href='$AppConfig->repository' target='_blank'>Sources</a></div>
                 <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3</a></div>
                 <div><a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></div>
-            </div>
-        </footer>
+                </div>
+            </footer>
+
 
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.js"></script>

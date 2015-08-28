@@ -206,7 +206,12 @@ function removeLoading(el) {
 function adapt() {
     var floatmenu = $('#float_menu');
     var topnav = $('.topnav');
-    floatmenu.hide();
+    var sideMenu = $('.sideMenu');
+    sideMenu.hide(); // Hide sideMenu
+    floatmenu.hide(); // Hide Menu button
+    $('.submenu').hide();
+
+    // Get header width
     var headerwidth = $("#sitetitle").outerWidth() + topnav.outerWidth() + $("#login_box").outerWidth() + 10;
 
     if ($(window).width() <= headerwidth) {

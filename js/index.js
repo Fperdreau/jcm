@@ -275,12 +275,12 @@ $( document ).ready(function() {
         .on('click','#float_menu',function() {
             var position = $(this).position();
             var height = $(this).outerHeight();
-            $('.dropdown')
+            $('.sideMenu')
                 .css({
                     'top':height+"px",
                     'left':position.left+"px"
                 })
-                .toggle(200);
+                .animate({width:'toggle'});
         })
 
         // Display submenu
@@ -292,22 +292,27 @@ $( document ).ready(function() {
             var width = menuEl.outerWidth();
             var height = menuEl.outerHeight();
             var id = $(this).attr('id');
-            var submenu = $(".submenu#"+id);
-
-            // Get submenu width
-            var submenuWidth = realWidth(submenu);
-            var horizontal;
-            if (absPos.left+width+submenuWidth < $(window).width()) {
-                horizontal = position.left+width;
+            var submenu;
+            if ($(this).closest('div').hasClass('sideMenu')) {
+                submenu = $(".sideMenu nav.submenu#"+id);
+                submenu.toggle(200);
             } else {
-                horizontal = position.left-submenuWidth;
+                submenu = $(".topnav nav.submenu#"+id);
+                var submenuWidth = realWidth(submenu); // Get submenu width
+                var horizontal;
+                if (absPos.left+width+submenuWidth < $(window).width()) {
+                    horizontal = position.left;
+                } else {
+                    horizontal = position.left-submenuWidth;
+                }
+                submenu
+                    .css({
+                        'left':horizontal+"px",
+                        'top':position.top+height+"px"
+                    })
+                    .toggle(200);
             }
-            submenu
-                .css({
-                    'left':horizontal+"px",
-                    'top':position.top+height+"px"
-                })
-                .toggle(200);
+
         })
 
         // Main menu sections
@@ -322,21 +327,28 @@ $( document ).ready(function() {
                 var pagetoload = $(this).attr("id");
                 var param = ($(this).is('[data-param]'))? $(this).attr('data-param'):false;
                 getPage(pagetoload,param);
-                $('.submenu, .dropdown').fadeOut('slow');
+                $('.submenu, .dropdown').hide();
+            }
+
+            var sideMenu = $('.sideMenu');
+            if (sideMenu.is(':visible')) {
+                sideMenu.animate({width:"toggle"});
             }
         })
 
         // Hide dropdown menus when not clicked
         .on('click',function(e) {
             var nav = $("nav");
-            var dropdown = $('.dropdown');
+            var sideMenu = $('.sideMenu');
             if (!$('#float_menu').is(e.target)&& $('#float_menu').has(e.target).length === 0) {
                 if (!nav.is(e.target) && nav.has(e.target).length === 0) {
                     $('.submenu').hide();
                 }
-                if (dropdown.is(':visible') && !dropdown.is(e.target) && dropdown.has(e.target).length === 0) {
-                    dropdown.slideToggle();
+
+                if (sideMenu.is(':visible') && !sideMenu.is(e.target) && sideMenu.has(e.target).length === 0) {
+                    sideMenu.animate({width:"toggle"});
                 }
+
             }
         })
 
