@@ -84,7 +84,6 @@ require_once('includes/boot.php');
             <!-- Core section -->
             <div id="core">
                 <?php require(PATH_TO_PAGES.'modal.php'); ?>
-
                 <div id="pagecontent">
                     <div id="plugins"></div>
                 </div>

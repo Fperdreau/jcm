@@ -34,7 +34,11 @@ $futurepres = $sessions->showfuturesession(4);
 /** @var $wishlist Sessions */
 $wishlist = $presentations->getwishlist();
 
-$result = "
+// Submission menu
+if ((!isset($_SESSION['logok']) || $_SESSION['logok'] == false)) {
+    $submitMenu = "";
+} else {
+    $submitMenu = "
     <div class='submitMenu'>
         <div class='submitMenuSection'>
             <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='submit'>
@@ -48,7 +52,11 @@ $result = "
             <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='select'>
            Select a wish</a>
         </div>
-    </div>
+    </div>";
+}
+
+$result = "
+    $submitMenu
 
     <section>
         <h2>News</h2>
