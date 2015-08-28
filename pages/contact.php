@@ -40,7 +40,7 @@ $jc_day = ucfirst($AppConfig->jc_day);
 
 $result = "
     <div class='section_container'>
-        <section style='width: 90%;'>
+        <section>
             <h2>Where</h2>
             $AppConfig->lab_name</br>
             $AppConfig->lab_street</br>
@@ -48,14 +48,14 @@ $result = "
             $AppConfig->lab_country
         </section>
 
-        <section style='width: 90%;'>
+        <section>
             <h2>When</h2>
             <b>Day:</b> $jc_day<br>
             <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
             <b>Room:</b> $AppConfig->room
         </section>
 
-        <section style='width: 90%;'>
+        <section>
             <h2>Map</h2>
             <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
             </iframe>

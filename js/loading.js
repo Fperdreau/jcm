@@ -220,7 +220,18 @@ function adapt() {
     }
 
     var height = $(window).height();
+    var winWidth = $(window).width();
     $('#core').css('min-height',height+"px");
+
+    var modal = $(".modalContainer");
+    var modalWidth = modal.outerWidth();
+    var modalMargin = (modalWidth<winWidth) ? modalWidth/2:0;
+    var modalLeft = (modalWidth<winWidth) ? 50:0;
+    modal
+        .css({
+            'margin-left':-modalMargin+'px',
+            'left':modalLeft+'%'});
+
 }
 
 $( document ).ready(function() {

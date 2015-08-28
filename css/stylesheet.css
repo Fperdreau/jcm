@@ -82,7 +82,7 @@
 
 form {
     position: relative;
-    max-width: 500px;
+    max-width: 100%;
     margin: auto;
 }
 
@@ -150,9 +150,6 @@ textarea {
     /* Size and position */
     width: 90%;
     min-height: 150px;
-}
-
-select#select_wish {
 }
 
 input.input_opt {
@@ -277,7 +274,7 @@ input[type='button'].addBtn {
 /* *********************************************************************/
 html {
     height: 100%;
-    font-size: 1em;
+    font-size: 16px;
 }
 
 body {
@@ -651,14 +648,14 @@ section>div {
 
 .section_container {
     width: 100%;
-    text-align: left;
+    text-align: justify;
     margin:auto;
 }
 
 .section_container>div, .section_container>section{
     display: inline-block;
     vertical-align: top;
-    max-width: 47%;
+    width: 45%;
     min-width: 300px;
     text-align: left;
 }
@@ -783,7 +780,7 @@ h3 {
 
 .submitMenuSection {
     display: inline-block;
-    font-size: 0.7em;
+    font-size: 0.8em;
     padding: 10px;
     background: #E4E4E2;
     text-align: center;
@@ -1317,24 +1314,24 @@ h3 {
 /* Publication modal window */
 .modalContainer {
     position:absolute;
-    max-width: 400px;
+    padding: 0;
     min-width: 300px;
+    width: 40%;
     height: auto;
-    left:45%;
     top:80px;
 }
 
 .modalContainer .modal_section {
     display: none;
-    margin: auto;
+    margin: 0;
     width: auto;
     position: relative;
 }
 
 .popupBody {
-    width: auto;
+    width: 100%;
     padding: 0;
-    margin: auto;
+    margin: 0;
     background: #FFF;
     -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
     -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
