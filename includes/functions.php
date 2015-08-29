@@ -317,10 +317,11 @@ function exportdbtoxls($tablename) {
 }
 
 /**
- * Backup routine
- * @return string
+ * Backup database and save it as a *.sql file. Clean backup folder (remove oldest versions) at the end.
+ * @param $nbVersion: Number of previous backup versions to keep on the server (the remaining will be removed)
+ * @return string : Path to *.sql file
  */
-function backup_db(){
+function backupDb($nbVersion){
     global $db;
 
     // Create Backup Folder
@@ -373,29 +374,29 @@ function backup_db(){
     fwrite($handle,$return);
     fclose($handle);
 
-    cleanbackups($mysqlSaveDir);
+    cleanBackups($mysqlSaveDir,$nbVersion);
     return "$mysqlrelativedir/$fileNamePrefix.sql";
 }
 
 /**
  * Check for previous backup and delete the oldest ones
- * @param $mysqlSaveDir
+ * @param $mysqlSaveDir: Path to backup folder
+ * @param $nbVersion: Number of backups to keep on the server
  */
-function cleanbackups($mysqlSaveDir) {
-    global $AppConfig;
-    $oldbackup = browse($mysqlSaveDir);
-    if (!empty($oldbackup)) {
+function cleanBackups($mysqlSaveDir,$nbVersion) {
+    $oldBackup = browse($mysqlSaveDir);
+    if (!empty($oldBackup)) {
         $files = array();
         // First get files date
-        foreach ($oldbackup as $file) {
-            $filewoext = explode('.',$file);
-            $filewoext = $filewoext[0];
-            $prop = explode('_',$filewoext);
+        foreach ($oldBackup as $file) {
+            $fileWoExt = explode('.',$file);
+            $fileWoExt = $fileWoExt[0];
+            $prop = explode('_',$fileWoExt);
             if (count($prop)>1) {
                 $back_date = $prop[1];
                 $back_time = $prop[2];
-                $formatedtime = str_replace('-',':',$back_time);
-                $date = $back_date." ".$formatedtime;
+                $formatedTime = str_replace('-',':',$back_time);
+                $date = $back_date." ".$formatedTime;
                 $files[$date] = $file;
             }
         }
@@ -407,7 +408,7 @@ function cleanbackups($mysqlSaveDir) {
         $cpt = 0;
         foreach ($files as $date=>$old) {
             // Delete file if too old
-            if ($cpt >= $AppConfig->clean_day) {
+            if ($cpt >= $nbVersion) {
                 if (is_file($old)) {
                     unlink($old);
                 }
@@ -446,7 +447,7 @@ function mail_backup($backupfile) {
  * Full backup routine (files + database)
  * @return string
  */
-function file_backup() {
+function backupFiles() {
 
     $dirToSave = PATH_TO_APP;
     $dirsNotToSaveArray = array(PATH_TO_APP."backup");

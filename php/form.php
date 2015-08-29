@@ -493,22 +493,25 @@ if (isset($_POST['suggest'])) {
 
 // Display submission form
 if (!empty($_POST['getpubform'])) {
+    if (isset($_SESSION['logok']) && $_SESSION['logok']) {
+        $id_Presentation = $_POST['getpubform'];
+        if ($id_Presentation == "false") {
+            $pub = false;
+        } else {
+            $pub = new Presentation($db,$id_Presentation);
+        }
+        if (!isset($_SESSION['username'])) {
+            $_SESSION['username'] = false;
+        }
+        $date = (!empty($_POST['date']) && $_POST['date'] !== 'false') ? $_POST['date']:false;
+        $type = (!empty($_POST['type']) && $_POST['type'] !== 'false') ? $_POST['type']:false;
+        $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
 
-    $id_Presentation = $_POST['getpubform'];
-    if ($id_Presentation == "false") {
-        $pub = false;
+        $user = new User($db,$_SESSION['username']);
+        $result = displayform($user,$pub,$type,$prestype,$date);
     } else {
-        $pub = new Presentation($db,$id_Presentation);
+        $result = "<p id='warning'>You must sign in to access this page!</p>";
     }
-    if (!isset($_SESSION['username'])) {
-        $_SESSION['username'] = false;
-    }
-    $date = (!empty($_POST['date']) && $_POST['date'] !== 'false') ? $_POST['date']:false;
-    $type = (!empty($_POST['type']) && $_POST['type'] !== 'false') ? $_POST['type']:false;
-    $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
-
-    $user = new User($db,$_SESSION['username']);
-    $result = displayform($user,$pub,$type,$prestype,$date);
     echo json_encode($result);
     exit;
 }

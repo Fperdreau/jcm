@@ -34,7 +34,7 @@
  * @param url: path to the php-side file
  * @param timing: duration of feeback message
  */
-var processform = function(el,callback,url,timing) {
+var processForm = function(el,callback,url,timing) {
     if (!checkform(el)) { return false;}
     var data = el.serialize();
     processAjax(el,data,callback,url,timing);
@@ -96,8 +96,7 @@ var validsubmitform = function(el,data,callback,timing) {
         // Append feedback layer
         el.append("<div class='feedbackForm'></div>");
         var feedbackForm = $('.feedbackForm');
-
-        feedbackForm.fadeOut(200).html(msg).fadeIn(200);
+        feedbackForm.html(msg).fadeIn(200);
 
         setTimeout(function() {
             feedbackForm

@@ -44,7 +44,6 @@ class DbBackup extends AppCron {
     public $dayName;
     public $dayNb;
     public $hour;
-
     public $options=array("nb_version"=>10);
 
     /**
@@ -62,7 +61,6 @@ class DbBackup extends AppCron {
      * @return bool|mysqli_result
      */
     public function install() {
-        // Register the plugin in the db
         $class_vars = get_class_vars($this->name);
         return $this->make($class_vars);
     }
@@ -73,13 +71,13 @@ class DbBackup extends AppCron {
      */
     public function run() {
         // Run cron job
-        $backupfile = backup_db();
-        $filelink = json_encode($backupfile);
+        $backupFile = backupDb($this->options['nb_version']);
+        $fileLink = json_encode($backupFile);
 
         // Write log only if server request
         $result = "Backup successfully done";
         $this->logger("$this->name.txt",$result);
         $this->time = AppCron::parseTime($this->dayNb,$this->dayName, $this->hour);
-        return $filelink;
+        return $fileLink;
     }
 }

@@ -311,10 +311,6 @@ class AppDb {
         }
 	}
 
-    public function modifyCharSet() {
-
-    }
-
     /**
      * Drop a table
      * @param $table_name

@@ -62,16 +62,16 @@ class FullBackup extends AppCron {
 
     public function run() {
         // db backup
-        $backupfile = backup_db(); // backup database
-        mail_backup($backupfile); // Send backup file to admins
+        $backupFile = backupDb($this->options['nb_version']); // backup database
+        mail_backup($backupFile); // Send backup file to admins
 
         // file backup
-        $zipfile = file_backup(); // Backup site files (archive)
-        $filelink = json_encode($zipfile);
+        $zipFile = backupFiles(); // Backup site files (archive)
+        $fileLink = json_encode($zipFile);
 
         // Write log only if server request
         $result = "Full Backup successfully done.";
         $this->logger("$this->name.txt",$result);
-        return $filelink;
+        return $fileLink;
     }
 }

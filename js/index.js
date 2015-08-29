@@ -37,26 +37,21 @@ var showpubform = function(formel,idpress,type,date,prestype) {
     if (type == undefined) {type = "submit";}
     if (date == undefined) {date = false;}
     if (prestype == undefined) {prestype = false;}
-
-    // First we remove any existing submission form
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: false,
-        data: {
-            getpubform: idpress,
+    var data = {
+        getpubform: idpress,
             type: type,
             date: date,
             prestype: prestype
-        },
-        success: function(data){
-            var result = jQuery.parseJSON(data);
-            formel
-                .hide()
-                .html(result)
-                .fadeIn(200);
-        }
-    });
+    };
+    // First we remove any existing submission form
+    var callback = function(result) {
+        formel
+            .html(result)
+            .fadeIn(200);
+
+    };
+    processAjax(formel,data,callback);
+
 };
 
 /**
@@ -678,7 +673,7 @@ $( document ).ready(function() {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            processform(form);
+            processForm(form);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -796,7 +791,7 @@ $( document ).ready(function() {
                     location.reload();
                 }
             };
-            processform(form,callback);
+            processForm(form,callback);
         })
 
         // Login form
@@ -809,7 +804,7 @@ $( document ).ready(function() {
                     location.reload();
                 }
             };
-            processform(form,callback);
+            processForm(form,callback);
         })
 
         // Sign Up Form
@@ -822,6 +817,6 @@ $( document ).ready(function() {
                     close_modal('.modalContainer');
                 }
             };
-            processform(form,callback);
+            processForm(form,callback);
         });
 });

@@ -32,12 +32,10 @@ $news = $last_news->show();
 $futurepres = $sessions->showfuturesession(4);
 
 /** @var $wishlist Sessions */
-$wishlist = $presentations->getwishlist();
+$wishlist = $presentations->getwishlist(10,true);
 
 // Submission menu
-if ((!isset($_SESSION['logok']) || $_SESSION['logok'] == false)) {
-    $submitMenu = "";
-} else {
+
     $submitMenu = "
     <div class='submitMenu'>
         <div class='submitMenuSection'>
@@ -53,7 +51,7 @@ if ((!isset($_SESSION['logok']) || $_SESSION['logok'] == false)) {
            Select a wish</a>
         </div>
     </div>";
-}
+
 
 $result = "
     $submitMenu

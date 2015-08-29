@@ -64,44 +64,6 @@ class Posts extends AppTable {
     }
 
     /**
-     * Create or update table
-     * @param bool $op
-     * @return mixed
-     */
-    public function setup($op=False) {
-        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
-            $result['status'] = True;
-            $result['msg'] = "'$this->tablename' created";
-        } else {
-            $result['status'] = False;
-            $result['msg'] = "'$this->tablename' not created";
-        }
-
-        if ($op === false) {
-            // Give ids to posts that do not have one yet (compatibility with older verions)
-            $post = new Posts($this->db);
-            $sql = "SELECT postid,date,username FROM " . $this->tablename;
-            $req = $this->db->send_query($sql);
-            while ($row = mysqli_fetch_assoc($req)) {
-                $date = $row['date'];
-                if (empty($row['postid']) || $row['postid'] == "NULL") {
-                    // Get uploader username
-                    $userid = $row['username'];
-                    $sql = "SELECT username FROM " . $this->db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
-                    $userreq = $this->db->send_query($sql);
-                    $data = mysqli_fetch_assoc($userreq);
-
-                    $username = $data['username'];
-                    $post->date = $date;
-                    $postid = $post->makeID();
-                    $this->db->updatecontent($this->tablename, array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
-                }
-            }
-        }
-        return $result;
-    }
-
-    /**
      * Create a post and add it to the database
      * @param $post
      * @return bool
