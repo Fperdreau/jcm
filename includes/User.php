@@ -270,28 +270,28 @@ class User extends Users{
             $this->db->addcontent($this->tablename,$content); // Add to user table
 
             if ($this->status !=  "admin") {
-                    // Send verification email to admins/organizer
-                    if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
-                        $result['status'] = true;
-                        $result['msg'] = "Your account has been created. You will receive an email after
-                            its validation by our admins.";
-                    } else {
-                        self::delete_user($this->username);
-                        $result['status'] = false;
-                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
-                            Your registration cannot be validated for the moment. Please try again later.";
-                    }
+                // Send verification email to admins/organizer
+                if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
+                    $result['status'] = true;
+                    $result['msg'] = "Your account has been created. You will receive an email after
+                        its validation by our admins.";
                 } else {
-                    // Send confirmation email to the user directly
-                    if ($this->send_confirmation_mail()) {
-                        $result['status'] = true;
-                        $result['msg'] = "Your account has been successfully created!";
-                    } else {
-                        $result['status'] = false;
-                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
-                            Your registration cannot be validated for the moment. Please try again later.";;
-                    }
+                    self::delete_user($this->username);
+                    $result['status'] = false;
+                    $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                        Your registration cannot be validated for the moment. Please try again later.";
                 }
+            } else {
+                // Send confirmation email to the user directly
+                if ($this->send_confirmation_mail()) {
+                    $result['status'] = true;
+                    $result['msg'] = "Your account has been successfully created!";
+                } else {
+                    $result['status'] = true;
+                    $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                        Your registration cannot be validated for the moment. Please try again later.";;
+                }
+            }
 		} else {
             $result['status'] = false;
 			$result['msg'] = "This username/email address already exist in our database";

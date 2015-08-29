@@ -118,10 +118,10 @@ function check_release_integrity() {
 
 /**
  * Patching database tables for version older than 1.2.
- * @param $version
  */
-function patching($version) {
+function patching() {
 
+    $version = $_SESSION['installed_version'];
     if ($version < 1.2) {
         // Patch Presentation table
         // Set username of the uploader
@@ -236,7 +236,9 @@ if (!empty($_POST['operation'])) {
         $dirname = PATH_TO_CONFIG;
         if (is_dir($dirname) === false) {
             if (!mkdir($dirname, 0755)) {
-                json_encode("Could not create config directory");
+                $result['status'] = false;
+                $result['msg'] = "Could not create config directory";
+                echo json_encode($result);
                 exit;
             }
         }
@@ -245,7 +247,9 @@ if (!empty($_POST['operation'])) {
         $dirname = PATH_TO_APP . "/uploads/";
         if (is_dir($dirname) === false) {
             if (!mkdir($dirname, 0755)) {
-                json_encode("Could not create uploads directory");
+                $result['status'] = false;
+                $result['msg'] = "Could not create uploads directory";
+                echo json_encode($result);
                 exit;
             }
         }
@@ -317,7 +321,7 @@ if (!empty($_POST['operation'])) {
 
         // Get default application settings
         $AppConfig = new AppConfig($db, false);
-        $version = $AppConfig->version;
+        $version = $AppConfig->version; // New version number
         if ($op === true) {
             $AppConfig->get();
         }
@@ -359,6 +363,11 @@ if (!empty($_POST['operation'])) {
         $AppPage = new AppPage($db);
         $AppPage->setup($op);
         $AppPage->getPages();
+
+        // Apply patch if required
+        if ($op == false) {
+            patching();
+        }
 
         $result['msg'] = "Database installation complete!";
         $result['status'] = true;
@@ -416,6 +425,7 @@ if (!empty($_POST['getpagecontent'])) {
      */
     $config = $db->get_config();
     $version = ($config['version'] !== false) ? $config['version']: false;
+    $_SESSION['installed_version'] = $version;
 
     if ($step == 1) {
         $title = "Welcome to the Journal Club Manager";
