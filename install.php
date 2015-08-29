@@ -279,6 +279,7 @@ if (!empty($_POST['operation'])) {
             $result['status'] = false;
             $result['msg'] = "Impossible to open the file";
         }
+        var_dump($result);
         echo json_encode($result);
         exit;
     }
@@ -683,9 +684,9 @@ if (!empty($_POST['getpagecontent'])) {
          * Create configuration file
          */
         function makeConfigFile(data) {
-            data = modOperation(data,"do_conf");
+            data = modOperation(data,'do_conf');
             var operationDiv = $('#operation');
-            processAjax(operationDiv,data,'install.php');
+            processAjax(operationDiv,data,false,'install.php');
         }
 
         /**
@@ -694,7 +695,7 @@ if (!empty($_POST['getpagecontent'])) {
         function doBackup() {
             var data = {operation: "backup"};
             var operationDiv = $('#operation');
-            processAjax(operationDiv,data,'install.php');
+            processAjax(operationDiv,data,false,'install.php');
         }
 
         /**
@@ -703,15 +704,15 @@ if (!empty($_POST['getpagecontent'])) {
         function checkDb() {
             var data = {operation: "checkDb"};
             var operationDiv = $('#operation');
-            processAjax(operationDiv,data,'install.php');
+            processAjax(operationDiv,data,false,'install.php');
         }
 
         function modOperation(data,operation) {
-            var index;
+            var i;
             // Find and replace `content` if there
-            for (index = 0; index < data.length; ++index) {
-                if (data[index].name == "operation") {
-                    data[index].value = operation;
+            for (i = 0; i < data.length; ++i) {
+                if (data[i].name == "operation") {
+                    data[i].value = operation;
                     break;
                 }
             }
@@ -753,7 +754,7 @@ if (!empty($_POST['getpagecontent'])) {
                     var form = input.length > 0 ? $(input[0].form) : $();
                     var op = form.find('input[name="op"]').val();
                     var operation = form.find('input[name="operation"]').val();
-                    var data = form.serialize();
+                    var data = form.serializeArray();
                     var callback = false;
                     var operationDiv = $('#operation');
 
