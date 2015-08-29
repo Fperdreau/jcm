@@ -545,6 +545,7 @@ if (!empty($_POST['getpagecontent'])) {
 			<form id='admin_creation'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='admin_creation'/>
+                <input type='hidden' name='status' value='admin'/>
 
 			    <div class='formcontrol'>
 				    <label for='username'>UserName</label>

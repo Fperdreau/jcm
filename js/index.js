@@ -535,7 +535,6 @@ $( document ).ready(function() {
         .on('change','.session_type_default',function(e) {
             e.preventDefault();
             var div = $('#session_type');
-            console.log(div);
             var type = $(this).val();
             var data = {session_type_default:type};
             processAjax(div,data);

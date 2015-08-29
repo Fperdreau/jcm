@@ -1319,6 +1319,13 @@ h3 {
     padding: 10px;
 }
 
+#nopage {
+    width: 80%;
+    font-size: 1.1em;
+    color: rgba(207,81,81,1);
+    text-transform: uppercase;
+}
+
 #warning {
     margin: auto;
     color: #990000;
@@ -1441,7 +1448,6 @@ a.btn_red {color: #FFF;}
     text-align: center;
     text-decoration: none;
     color:#ED6347;
->>>>>>> v1.3.5
 }
 
 input.dateinput {

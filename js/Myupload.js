@@ -128,7 +128,6 @@ function AnimateBack(el) {
         this.el.css('background', 'linear-gradient(to right, rgba(64,64,64,1) '+ this.gradient_percent+'%,rgba(0,0,0,0) 100%)');
 
         this.interval++;
-        console.log(this.interval);
     };
 
     /**
@@ -153,8 +152,6 @@ function AnimateBack(el) {
     this.stop = function() {
         var self = this;
         if (self.timer !== null) {
-            console.log('stop');
-            console.log(self.timer);
             setTimeout(function () {
                 clearInterval(self.timer);
                 self.el.css('background-color', 'rgba(68,68,68,1)');
