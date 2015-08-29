@@ -142,7 +142,7 @@ class AppPage extends AppTable {
                 $result['msg'] = null;
             }
         } else {
-            $levels = array('admin'=>3,'organizer'=>2,'member'=>1);
+            $levels = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
             $user = new User($this->db,$_SESSION['username']);
             if ($levels[$user->status]>=$this->status || $this->status == -1) {
                 $result['status'] = true;
