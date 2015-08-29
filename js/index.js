@@ -561,7 +561,7 @@ $( document ).ready(function() {
             var sessionDiv = $(this).closest('.session_div');
             var sessionID = sessionDiv.data('id');
             var data = {modSession: true, session: sessionID, prop: prop, value: value};
-            processAjax(".session_div#"+sessionDiv.attr('id'),data);
+            processAjax(sessionDiv,data);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
