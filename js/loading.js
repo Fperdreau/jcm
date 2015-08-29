@@ -187,7 +187,6 @@ getParams = function() {
  */
 function loadingDiv(el) {
     el
-        .fadeOut(200)
         .css('position','relative')
         .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
         .show();

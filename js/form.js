@@ -94,9 +94,14 @@ var validsubmitform = function(el,data,callback,timing) {
     // Display feedback message and/or run callback function
     if (msg !== false) {
         // Append feedback layer
+        var width = el.width();
+        var height = el.height();
         el.append("<div class='feedbackForm'></div>");
         var feedbackForm = $('.feedbackForm');
-        feedbackForm.html(msg).fadeIn(200);
+        feedbackForm
+            .css({width: width+'px', height: height+'px'})
+            .html(msg)
+            .fadeIn(200);
 
         setTimeout(function() {
             feedbackForm
