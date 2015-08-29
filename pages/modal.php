@@ -118,15 +118,16 @@ echo "
 
         <!-- Change password section -->
         <div class='modal_section' id='user_changepw' data-title='Change Password'>
-            <div>We will send an email to the provided address with further instructions in order to change your password.</div>
+            <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
             <form id='modal_change_pwd'>
+                <input type='hidden' name='change_pw' value='true'>
                 <div class='formcontrol'>
                     <label for='email'>Email</label>
-                    <input type='email' name='email' value=''/>
+                    <input type='email' name='email' value='' required/>
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
-                    <div class='one_half last'><input type='submit' class='modal_change_pwd' value='Change'></div>
+                    <div class='one_half last'><input type='submit' class='processform' value='Send'></div>
                 </div>
             </form>
         </div>

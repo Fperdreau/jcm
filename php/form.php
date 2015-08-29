@@ -333,7 +333,7 @@ if (!empty($_POST['change_pw'])) {
     if ($user->mail_exist($email)) {
         $username = $db ->getinfo($db->tablesname['User'],'username',array("email"),array("'$email'"));
         $user->get($username);
-        $reset_url = $AppConfig->site_url."index.php?page=renew_pwd&hash=$user->hash&email=$user->email";
+        $reset_url = $AppConfig->site_url."index.php?page=renew&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
             Hello $user->firstname $user->lastname,<br>
@@ -342,7 +342,6 @@ if (!empty($_POST['change_pw'])) {
             <br><a href='$reset_url'>$reset_url</a></p>
             <br>
             <p>If you did not request this change, please ignore this email.</p>
-            The Journal Club Team
             ";
 
         $body = $AppMail->formatmail($content);
@@ -363,17 +362,15 @@ if (!empty($_POST['change_pw'])) {
 
 // Change user password after confirmation
 if (!empty($_POST['conf_changepw'])) {
-    $user = new User($db);
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
-    $conf_password = htmlspecialchars($_POST['conf_password']);
-    if ($password != $conf_password) {
-        $result = "mismatch";
+    $user = new User($db,$username);
+    $post['password'] = $user->crypt_pwd($password);
+    if ($user->update($post)) {
+        $result['msg'] = "Your password has been changed!";
+        $result['status'] = true;
     } else {
-        $user->get($username);
-        $post['password'] = $user->crypt_pwd($password);
-        $user->update($post);
-        $result = "changed";
+        $result['status'] = false;
     }
     echo json_encode($result);
     exit;

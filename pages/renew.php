@@ -33,18 +33,18 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     if ($user->hash == $hash) {
         $content = "
             <form id='conf_changepw'>
+                <input type='hidden' name='conf_changepw' value='true'/>
                 <input type='hidden' name='username' value='$username' id='ch_username'/>
                 <div class='formcontrol'>
-                    <label for='password'>Password</label>
-                    <input type='password' name='password' value=''/>
+                    <label for='password'>New Password</label>
+                    <input type='password' name='password' value='' required/>
                 </div>
                 <div class='formcontrol'>
                     <label for='conf_password'>Confirm password</label>
-                    <input type='password' name='conf_password' value=''/></br>
+                    <input type='password' name='conf_password' value='' required/></br>
                 </div>
                 <div class='submit_btns'>
                     <input type='submit' name='login' value='Submit' class='conf_changepw'/>
-                    <div class='feedback'></div>
                 </div>
             </form>";
     } else {

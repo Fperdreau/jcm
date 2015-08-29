@@ -403,13 +403,13 @@ class User extends Users{
      *
      * @param $hash
      * @param $email
-     * @param $result
+     * @param $activ
      * @return string
      */
-    public function check_account_activation($hash,$email,$result) {
+    public function check_account_activation($hash,$email,$activ) {
         $username = $this->db ->getinfo($this->tablename,'username',array("email"),array("'$email'"));
         $this->get($username);
-        if ($result == "true") {
+        if ($activ == "true") {
             if ($this->active == 0) {
                 if ($this->hash == $hash) {
                     $this->db->updatecontent($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
@@ -433,6 +433,7 @@ class User extends Users{
             self::delete_user($this->username);
             return "Permission denied by the admin. Account successfully deleted.";
         }
+        return $result;
     }
 
     /**

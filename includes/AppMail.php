@@ -82,7 +82,6 @@ class AppMail {
         <p><a href='$authorize_url'>Authorize</a></p>
         or
         <p><a href='$deny_url'>Deny</a></p>
-        <p>The Journal Club Team</p>
         ";
 
         $body = self::formatmail($content);

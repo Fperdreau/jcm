@@ -77,15 +77,6 @@ var showpostform = function(postid) {
     processAjax(el,data,callback);
 };
 
-/**
- * Send a verification email after having signed up
- * @param email
- */
-var send_verifmail = function(email) {
-    var data = {change_pw: true, email: email}
-    processAjax(form,data);
-};
-
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  jQuery DataPicker
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -368,28 +359,27 @@ $( document ).ready(function() {
          User Profile
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Send a verification email to the user if a change of password is requested
-        .on('click',".change_pwd",function(){
+        .on('click',".change_pwd",function(e){
+            e.preventDefault();
+            var form = $(this).closest('form');
             var email = $(this).attr("id");
-            send_verifmail(email);
-            showfeedback('<p id="success">An email with instructions has been sent to your address</p>','feedback_perso');
-        })
-
-		// Open a dialog box
-        .on('click',".modal_change_pwd",function(){
-            var form = $(this).closest('form#modal_change_pwd');
-            if (!checkform(form)) {return false;}
-            var email = $("input#email").val();
-            var data = {change_pw: true, email: email}
+            var data = {change_pw: true, email: email};
             processAjax(form,data);
         })
 
 		// Password change form (email + new password)
-        .on('click',".conf_changepw",function(){
+        .on('click',".conf_changepw",function(e){
             e.preventDefault();
-            var form = $(this).closest('#mailing_send');
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
             if (!checkform(form)) {return false;}
             var data = form.serialize();
-            processAjax(form,data);
+            var callback = function(result) {
+                if (result.status == true) {
+                    setTimeout(logout,2000);
+                }
+            };
+            processAjax(form,data,callback);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
