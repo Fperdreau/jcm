@@ -95,9 +95,12 @@ function loadPageContent(page,urlparam) {
         async: true,
         success: function(data) {
             var json = jQuery.parseJSON(data);
+            console.log(json);
             if (json.status === false) {
                 $('#pagecontent')
-                    .html(json.msg)
+                    .html("<div style='margin: auto; width: 80%; font-size: 1.1em; text-transform: uppercase; color: rgba(207,81,81,1);'>If you were looking for the answer to the question: <p style='text-align: center; font-size: 1.4em;'> What is the universe?</p> " +
+                    "I can tell you it is 42.<p>But since you were probably looking for a page that does not exist, then I will tell you</p> <p style='text-align: center; font-size: 2em;'>404 ERROR!</p>" +
+                    "</div>")
                     .fadeIn(200);
             } else {
                 displayPage(page,json.pageName,urlparam);

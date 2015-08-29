@@ -779,7 +779,7 @@ if (!empty($_POST['getpagecontent'])) {
                 .on('click','.admin_creation',function(e) {
                     e.preventDefault();
                     var form = $(this).length > 0 ? $($(this)[0].form) : $();
-                    var op = form.find('input["name"="op"]').val();
+                    var op = form.find('input[name="op"]').val();
                     if (!checkform(form)) {return false;}
                     var callback = function(result) {
                         if (result.status == true) {
