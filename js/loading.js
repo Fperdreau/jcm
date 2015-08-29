@@ -95,7 +95,7 @@ function loadPageContent(page,urlparam) {
         async: true,
         success: function(data) {
             var json = jQuery.parseJSON(data);
-            if (json.status === false) {
+            if (json.pageName === null) {
                 $('#pagecontent')
                     .html("<div id='nopage'>If you were looking for the answer to the question:" +
                     "<p style='font-size: 1.4em; text-align: center;'>What is the universe?</p> " +
@@ -103,8 +103,13 @@ function loadPageContent(page,urlparam) {
                     "<p>But since you were looking for a page that does not exist, then I can tell you:</p>" +
                     "<p style='font-size: 2em; text-align: center;'>ERROR 404</p></div>")
                     .fadeIn(200);
-            } else {
+            } else if (json.status === true) {
                 displayPage(page,json.pageName,urlparam);
+            } else {
+                console.log(json);
+                $('#pagecontent')
+                    .html(json.msg)
+                    .fadeIn(200);
             }
         }
     })
@@ -136,9 +141,7 @@ var displayPage = function(page,pagetoload,param) {
             var json = jQuery.parseJSON(data);
             history.pushState(stateObj, pagetoload, url);
 
-            el
-                .hide()
-                .html(json);
+            el.hide().html(json);
 
             $("section").each(function() {
                 $(this).fadeIn(200);

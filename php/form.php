@@ -216,17 +216,11 @@ Pages Management
 if (!empty($_POST['getPage'])) {
     $page = htmlspecialchars($_POST['getPage']);
     $Page = new AppPage($db,$page);
-    if ($Page->filename !== null) {
-        $result = $Page->check_login();
-        $result['pageName'] = $Page->filename;
-        $result['title'] = $Page->meta_title;
-        $result['keywords'] = $Page->meta_keywords;
-        $result['description'] = $Page->meta_description;
-        $result['status'] = true;
-    } else {
-        $result['status'] = false;
-    }
-
+    $result = $Page->check_login();
+    $result['pageName'] = $Page->filename;
+    $result['title'] = $Page->meta_title;
+    $result['keywords'] = $Page->meta_keywords;
+    $result['description'] = $Page->meta_description;
     echo json_encode($result);
     exit;
 }
