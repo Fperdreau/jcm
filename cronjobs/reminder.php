@@ -54,6 +54,10 @@ class Reminder extends AppCron {
         return $this->make($class_vars);
     }
 
+    /**
+     * Run scheduled task: send a reminder a email to users
+     * @return string
+     */
     public function run() {
         /**
          * Run cron job
@@ -73,9 +77,6 @@ class Reminder extends AppCron {
         } else {
             $result = "ERROR message not sent.";
         }
-
-        // Write log
-        $this->logger("$this->name.txt",$result);
         return $result;
 
     }

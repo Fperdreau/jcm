@@ -71,7 +71,7 @@ class Notification extends AppCron {
         global $AppMail;
 
         // Number of users
-        $nusers = count($AppMail->get_mailinglist("reminder"));
+        $nusers = count($AppMail->get_mailinglist("notification"));
 
         // Get presentation list
         $presentation = new Presentations($this->db);
@@ -81,7 +81,7 @@ class Notification extends AppCron {
             $content = $this->makeMail($presentationList);
             $body = $AppMail->formatmail($content['body']);
             $subject = $content['subject'];
-            if ($AppMail->send_to_mailinglist($subject, $body, "reminder")) {
+            if ($AppMail->send_to_mailinglist($subject, $body, "notification")) {
                 $result = "message sent successfully to $nusers users.";
 
                 // Tell to the db that notifications have been sent about the new presentations
@@ -93,9 +93,6 @@ class Notification extends AppCron {
             } else {
                 $result = "ERROR message not sent.";
             }
-
-            // Write log
-            $this->logger("$this->name.txt", $result);
             return $result;
         } else {
             return "No new presentations";
