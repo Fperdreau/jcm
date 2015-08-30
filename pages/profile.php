@@ -28,7 +28,7 @@ $Presentation = new Presentation($db);
 $publication_list = $user->getpublicationlist(null);
 $notifStatus = ($user->notification == 1) ? "Yes":"No";
 $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
-
+$assignStatus = ($user->assign == 1) ? "Yes":"No";
 $result = "
     <h1>Hello $user->fullname!</h1>
     <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='user_delete'>Delete my account</a></div>
@@ -98,6 +98,14 @@ $result = "
                     <label for='reminder'>Reminders</label>
                     <select name='reminder' class='select_opt'>
                         <option value='$user->reminder' selected>$reminderStatus</option>
+                        <option value='1'>Yes</option>
+                        <option value='0'>No</option>
+                    </select>
+                </div>
+                <div class='formcontrol'>
+                    <label for='reminder'>Assignment</label>
+                    <select name='assign' class='select_opt'>
+                        <option value='$user->assign' selected>$assignStatus</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>

@@ -112,7 +112,7 @@ class AssignSpeakers extends AppCron {
 
         // Get list of users
         $Users = new Users($this->db);
-        $usersList = $Users->getUsers();
+        $usersList = $Users->getUsers(true);
 
         // get possible speakers for this session type
         $previousSpeakers = $this->getPreviousSpeakers($usersList,$session->type);

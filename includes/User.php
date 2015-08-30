@@ -43,6 +43,7 @@ class Users extends AppTable {
         "email" => array("CHAR(100)", false),
         "notification" => array("INT(1)", 1),
         "reminder" => array("INT(1)", 1),
+        "assign" => array("INT(1)", 1),
         "nbpres" => array("INT(3)", 0),
         "status" => array("CHAR(10)", false),
         "hash" => array("CHAR(32)", false),
@@ -78,10 +79,12 @@ class Users extends AppTable {
 
     /**
      * Get user list
+     * @param bool $assign
      * @return array
      */
-    public function getUsers() {
+    public function getUsers($assign = false) {
         $sql = "SELECT username FROM $this->tablename WHERE notification=1 and active=1 and status!='admin'";
+        $sql = ($assign == true) ? $sql." and assign=1":$sql;
         $req = $this->db->send_query($sql);
         $users = array();
         while ($row = mysqli_fetch_assoc($req)) {
@@ -200,6 +203,8 @@ class User extends Users{
 
     /** @var int  */
     public $notification = 1;
+
+    public $assign = 1;
 
     /** @var string  */
     public $status = "member";
