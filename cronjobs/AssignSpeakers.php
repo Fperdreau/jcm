@@ -67,26 +67,26 @@ class AssignSpeakers extends AppCron {
     }
 
     /**
-     * Get previous Speakers
-     * @param $organizers
-     * @param $type
+     * Get list of previous Speakers for a given session type
+     * @param $usersList: List of users (excluding admins)
+     * @param $type: Session's type
      * @return array
      */
-    public function getPreviousSpeakers($organizers, $type) {
+    public function getPreviousSpeakers($usersList, $type) {
         $Presentation = new Presentation($this->db);
-        $sql = "SELECT orator,date FROM ".$Presentation->tablename;
+        $sql = "SELECT orator,date FROM $Presentation->tablename ORDER BY date ASC";
         $req = $this->db->send_query($sql);
         $list = array();
-        $session = new Session($this->db);
 
         while ($row=mysqli_fetch_assoc($req)) {
             $speaker = $row['orator'];
-            $session->get($row['date']);
+            $session = new Session($this->db,$row['date']);
             if ($session->type == $type) {
                 if (!in_array($speaker, $list) && $speaker != "TBA") {
                     $list[] = $speaker;
                 }
-                $diff = array_values(array_diff($organizers,$list));
+                $diff = array_values(array_diff($usersList,$list));
+                // If all users have presented once, we simply restart the list of possible speakers
                 if (empty($diff)) {
                     $list = array();
                 }
@@ -100,7 +100,9 @@ class AssignSpeakers extends AppCron {
      * @param $sessionid
      * @return string
      */
-    public function getSpeakers($sessionid) {
+    public function getSpeaker($sessionid) {
+        set_time_limit(10);
+
         /** @var Session $session */
         $session = new Session($this->db,$sessionid);
 
@@ -112,50 +114,42 @@ class AssignSpeakers extends AppCron {
         $Users = new Users($this->db);
         $usersList = $Users->getUsers();
 
-        // get previous speakers
-        $prevSpeakers = $this->getPreviousSpeakers($usersList,$session->type);
+        // get possible speakers for this session type
+        $previousSpeakers = $this->getPreviousSpeakers($usersList,$session->type);
 
-        // Update exclusion list
-        $exclude = array_merge($exclude,$prevSpeakers);
+        // add previous speakers to the exclude list
+        $exclude = array_merge($exclude,$previousSpeakers);
+
+        // exclude the already assigned speakers for this session from the list of possible speakers
+        $possibleSpeakers = array_values(array_diff($usersList,$exclude));
 
         if (empty($usersList)) {
-            /** If no users have the organizer status, the chairman is to be announced.*/
+            /** If no users, the speaker is to be announced.*/
             /** To Be Announced as a default */
-            $chair = 'TBA';
-            /** We start a new list of previous chairmen*/
-            $prevSpeakers = array();
+            $newSpeaker = 'TBA';
         } else {
-            /** We randomly pick a chairman among organizers who have not chaired a session yet,
-             * apart from the other chairmen of this session.
+            /** We randomly pick a speaker among organizers who have not chaired a session yet,
+             * apart from the other speakers of this session.
              */
-            $possiblechairs = array_values(array_diff($usersList, $exclude));
-            if (!empty($possiblechairs)) {
-                $ind = rand(0, count($possiblechairs) - 1);
-                $chair = $possiblechairs[$ind];
+            if (!empty($possibleSpeakers)) {
+                $ind = rand(0, count($possibleSpeakers) - 1);
+                $newSpeaker = $possibleSpeakers[$ind];
             } else {
                 /** Otherwise, if all organizers have already been speaker once,
                  * we randomly pick one among all the organizers,
                  * apart from the other speakers of this session
                  */
-                $possiblechairs = array_values(array_diff($usersList, $speakers));
-                $ind = rand(0, count($possiblechairs) - 1);
-                $chair = $possiblechairs[$ind];
-
-                /** We start a new list of previous chairmen */
-                $prevSpeakers = array();
+                $possibleSpeakers = array_values(array_diff($usersList, $speakers));
+                $ind = rand(0, count($possibleSpeakers) - 1);
+                $newSpeaker = $possibleSpeakers[$ind];
             }
         }
 
         // Update the previous chairmen list
-        $prevSpeakers[] = $chair;
-        return $chair;
+        return $newSpeaker;
     }
 
-    /**
-     * Run scheduled task: assign speaker to the next sessions
-     * @return bool|string
-     */
-    public function run() {
+    public function assign() {
         global $db, $Sessions;
         $this->get();
 
@@ -176,7 +170,7 @@ class AssignSpeakers extends AppCron {
                 // If a session is planned for this day, we assign X speakers (1 speaker by presentation)
                 for ($p = $session->nbpres; $p < $session->max_nb_session; $p++) {
                     // Get speaker
-                    $Newspeaker = $this->getSpeakers($day);
+                    $Newspeaker = $this->getSpeaker($day);
                     $speaker = new User($this->db,$Newspeaker);
 
                     // Assign a presentation to the new speaker
@@ -196,18 +190,29 @@ class AssignSpeakers extends AppCron {
                     // Update session info
                     $session->get();
 
-                    $assignedSpeakers[$speaker->username] = array('date'=>$day,'type'=>$session->type);
+                    $assignedSpeakers[$day][] = array('speaker'=>$speaker->username,'type'=>$session->type);
                 }
             }
         }
-        $result = "$created chair(s) created<br>$updated chair(s) updated";
+        $result['content'] = $assignedSpeakers;
+        $result['msg'] = "$created chair(s) created<br>$updated chair(s) updated";
+        return $result;
+    }
+
+    /**
+     * Run scheduled task: assign speaker to the next sessions
+     * @return bool|string
+     */
+    public function run() {
+
+        // Assign speakers
+        $result = $this->assign();
 
         // Notify speakers of their assignments
-        if (!empty($assignedSpeakers)) {
-            $result .= $this->noticing($assignedSpeakers);
+        if (!empty($result['content'])) {
+            $result .= $this->noticing($result['content']);
         }
-        $this->logger("$this->name.txt",$result);
-        return $result;
+        return $result['msg'];
     }
 
     /**
