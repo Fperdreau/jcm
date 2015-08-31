@@ -41,14 +41,14 @@ class Users extends AppTable {
         "password" => array("CHAR(50)", false),
         "position" => array("CHAR(10)", false),
         "email" => array("CHAR(100)", false),
-        "notification" => array("INT(1)", 1),
-        "reminder" => array("INT(1)", 1),
-        "assign" => array("INT(1)", 1),
-        "nbpres" => array("INT(3)", 0),
+        "notification" => array("INT(1) NOT NULL", 1),
+        "reminder" => array("INT(1) NOT NULL", 1),
+        "assign" => array("INT(1) NOT NULL", 1),
+        "nbpres" => array("INT(3) NOT NULL", 0),
         "status" => array("CHAR(10)", false),
         "hash" => array("CHAR(32)", false),
-        "active" => array("INT(1)", 0),
-        "attempt" => array("INT(1)", 0),
+        "active" => array("INT(1) NOT NULL", 0),
+        "attempt" => array("INT(1) NOT NULL", 0),
         "last_login" => array("DATETIME NOT NULL"),
         "primary" => "id");
 
@@ -204,6 +204,7 @@ class User extends Users{
     /** @var int  */
     public $notification = 1;
 
+    /** @var int  */
     public $assign = 1;
 
     /** @var string  */
