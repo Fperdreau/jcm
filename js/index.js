@@ -470,7 +470,8 @@ $( document ).ready(function() {
                     showpostform(false);
                 }
             };
-            var data = form.serialize();
+            var data = form.serializeArray();
+            console.log(data); return false;
             processAjax(form,data,callback);
         })
 
