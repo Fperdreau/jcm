@@ -1,5 +1,11 @@
 # Journal Club Manager &copy; 2014
 
+## Release: 1.4.1
+### Changes
+- fixed bugs in scheduled task execution
+- Added an option on the profile page to leave the user the choice to be automatically assigned as a speaker.
+- Improved automatic assignment of speakers and added work-around to prevent maximum execution time limit.
+
 ## Release: 1.4
 ### Changes:
 - Major bugs corrections
