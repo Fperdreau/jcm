@@ -70,6 +70,7 @@ function run() {
             } catch (Exception $e) {
                 echo "Could not write log";
             }
+            echo $logs;
             echo "<p>...Done</p>";
         }
         return $logs;
