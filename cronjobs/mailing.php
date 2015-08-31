@@ -76,8 +76,7 @@ class Mailing extends AppCron {
             $result = "ERROR message not sent.";
         }
 
-        $this->logger("$this->name.txt",$result);
-        return($result);
+        return $result;
     }
 
     /**

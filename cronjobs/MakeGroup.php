@@ -62,7 +62,6 @@ class MakeGroup extends AppCron {
         // run cron job
         $groups = new Groups($db);
         $result = $groups->run();
-        $this->logger("$this->name.txt",$result);
         return $result;
     }
 }

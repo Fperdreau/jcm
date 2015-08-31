@@ -74,10 +74,8 @@ class DbBackup extends AppCron {
         $backupFile = backupDb($this->options['nb_version']);
         $fileLink = json_encode($backupFile);
 
-        // Write log only if server request
-        $result = "Backup successfully done";
-        $this->logger("$this->name.txt",$result);
+        $result = "Backup successfully done: $fileLink";
         $this->time = AppCron::parseTime($this->dayNb,$this->dayName, $this->hour);
-        return $fileLink;
+        return $result;
     }
 }

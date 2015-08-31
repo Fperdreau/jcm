@@ -43,6 +43,7 @@ class Users extends AppTable {
         "email" => array("CHAR(100)", false),
         "notification" => array("INT(1)", 1),
         "reminder" => array("INT(1)", 1),
+        "assign" => array("INT(1)", 1),
         "nbpres" => array("INT(3)", 0),
         "status" => array("CHAR(10)", false),
         "hash" => array("CHAR(32)", false),
@@ -78,10 +79,12 @@ class Users extends AppTable {
 
     /**
      * Get user list
+     * @param bool $assign
      * @return array
      */
-    public function getUsers() {
+    public function getUsers($assign = false) {
         $sql = "SELECT username FROM $this->tablename WHERE notification=1 and active=1 and status!='admin'";
+        $sql = ($assign == true) ? $sql." and assign=1":$sql;
         $req = $this->db->send_query($sql);
         $users = array();
         while ($row = mysqli_fetch_assoc($req)) {
@@ -109,7 +112,7 @@ class Users extends AppTable {
                 <div class='user_select' data-filter='lastname'>Last Name</div>
                 <div class='user_select' data-filter='email'>Email</div>
                 <div class='warp user_select' data-filter='active'>Activated</div>
-                <div class='warp'>Submissions</div>
+                <div class='warp user_select' data-filter='nbpres'>Submissions</div>
                 <div class='user_select' data-filter='status'>Status</div>
             </div>
         ";
@@ -200,6 +203,8 @@ class User extends Users{
 
     /** @var int  */
     public $notification = 1;
+
+    public $assign = 1;
 
     /** @var string  */
     public $status = "member";
@@ -310,8 +315,7 @@ class User extends Users{
         $sql = "SELECT * FROM $this->tablename WHERE username='$prov_username'";
         $req = $this->db -> send_query($sql);
         $data = mysqli_fetch_assoc($req);
-        $exist = $this->db->getinfo($this->tablename,'username',array("username"),array("'$prov_username'"));
-        if (!empty($exist)) {
+        if (!empty($data)) {
             foreach ($data as $varname=>$value) {
                 if (array_key_exists($varname,$class_vars)) {
                     $this->$varname = htmlspecialchars_decode($value);
@@ -321,6 +325,7 @@ class User extends Users{
             $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
             $this->nbpres = self::get_nbpres();
+            $this->update(array('nbpres'=>$this->nbpres));
             return true;
         } else {
             return false;
@@ -351,12 +356,7 @@ class User extends Users{
     public function update($post) {
         $class_vars = get_class_vars("User");
         $content = $this->parsenewdata($class_vars,$post);
-        if ($this->db->updatecontent($this->tablename,$content,array("username"=>$this->username))) {
-            $result['status'] = true;
-        } else {
-            $result['status'] = false;
-        }
-        self::get($this->username);
+        $result['status'] = $this->db->updatecontent($this->tablename,$content,array("username"=>$this->username));
         return $result;
     }
 

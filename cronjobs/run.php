@@ -42,6 +42,7 @@ function run() {
         $logs = "There are $nbJobs task(s) to run.\n";
         foreach ($runningCron as $job) {
             echo "<p>Running '$job'...</p>";
+            $result = null;
 
             // Instantiate job object
             $thisJob = $AppCron->instantiateCron($job);
@@ -61,6 +62,13 @@ function run() {
                 $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Next running time: $thisJob->time</p>";
             } else {
                 $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Could not update the next running time</p>";
+            }
+
+            // Write log
+            try {
+                $AppCron->logger("$thisJob->name.txt", $result);
+            } catch (Exception $e) {
+                echo "Could not write log";
             }
             echo "<p>...Done</p>";
         }
