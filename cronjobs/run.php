@@ -45,7 +45,7 @@ function run() {
             $result = null;
 
             // Instantiate job object
-            $thisJob = $AppCron->instantiateCron($job);
+            $thisJob = $AppCron->instantiate($job);
             $thisJob->get();
 
             // Run job
