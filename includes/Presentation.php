@@ -217,7 +217,7 @@ class Presentations extends AppTable {
      * @return array
      */
     public function getLatest() {
-        $sql = "SELECT id_pres FROM $this->tablename WHERE notified='0'";
+        $sql = "SELECT id_pres FROM $this->tablename WHERE notified='0' and title!='TBA'";
         $req = $this->db->send_query($sql);
         $publicationList = array();
         while ($row = mysqli_fetch_assoc($req)) {
