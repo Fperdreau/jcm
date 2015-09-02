@@ -242,6 +242,18 @@ function realWidth(obj){
     return width;
 }
 
+function modArray(data,prop,value) {
+    var i;
+    // Find and replace `content` if there
+    for (i = 0; i < data.length; ++i) {
+        if (data[i].name == prop) {
+            data[i].value = value;
+            break;
+        }
+    }
+    return data;
+}
+
 $( document ).ready(function() {
 
     $('body').ready(function() {
@@ -427,7 +439,9 @@ $( document ).ready(function() {
             e.preventDefault();
             var form = $(this).closest('#mailing_send');
             if (!checkform(form)) {return false;}
-            var data = form.serialize();
+            var data = form.serializeArray();
+            var content = tinyMCE.get('spec_msg').getContent();
+            data = modArray(data,'spec_msg',content);
             processAjax(form,data);
         })
 
@@ -470,7 +484,9 @@ $( document ).ready(function() {
                     showpostform(false);
                 }
             };
-            var data = form.serialize();
+            var data = form.serializeArray();
+            var content = tinyMCE.get('post_content').getContent();
+            data = modArray(data,'content',content);
             processAjax(form,data,callback);
         })
 

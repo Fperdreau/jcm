@@ -41,7 +41,7 @@ $result = "
             </div>
             <div class='formcontrol'>
                 <label>Message</label>
-                <textarea name='spec_msg' class='tinymce' required></textarea>
+                <textarea name='spec_msg' id='spec_msg' class='tinymce' required></textarea>
             </div>
         </form>
     </section>";

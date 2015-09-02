@@ -38,7 +38,7 @@ class AppPage extends AppTable {
         "parent"=>array('CHAR(20)',false),
         "status"=>array('INT(2)',false),
         "rank"=>array('INT(2)',false),
-        "show_Menu"=>array('INT(1)',false),
+        "show_menu"=>array('INT(1)',false),
         "meta_title"=>array('VARCHAR(255)',false),
         "meta_keywords"=>array('TEXT(1000)',false),
         "meta_description"=>array('TEXT(1000)',false),
@@ -50,7 +50,7 @@ class AppPage extends AppTable {
     public $parent; // Page's parent
     public $rank; // Order of apparition in menu
     public $show_menu; // Show (1) or not in menu
-    public $status=""; // Persmission level
+    public $status=""; // Permission level
     public $meta_title; // Page's title
     public $meta_keywords; // Page's keywords
     public $meta_description; // Page's description
@@ -284,6 +284,99 @@ class AppPage extends AppTable {
             include(PATH_TO_PAGES."$this->filename.php");
             return $result;
         }
+    }
+
+    /**
+     * Show page settings
+     * @return string
+     */
+    public function showOpt() {
+        $pages = $this->getPages();
+        $sql = "SELECT name FROM ".$this->tablename;
+        $req = $this->db->send_query($sql);
+        $pageSettings = "";
+        while ($row = mysqli_fetch_assoc($req)) {
+            $pageName = $row['name'];
+            $thisPage = new AppPage($this->db,$pageName);
+            $pageList = "<option value='none'>None</option>";
+            foreach ($pages as $name) {
+                $selectOpt = ($name == $thisPage->parent) ? "selected":"";
+                $pageList .= "<option value='$name' $selectOpt>$name</option>";
+            }
+
+            $statusList = "";
+            $status = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
+            foreach ($status as $statusName=>$int) {
+                $selectOpt = ($int == $thisPage->status) ? "selected":"";
+                $statusList .= "<option value='$int' $selectOpt>$statusName</option>";
+            }
+
+            $rankList = "";
+            for ($i=0;$i<count($pages);$i++) {
+                $selectOpt = ($i == $thisPage->rank) ? "selected":"";
+                $rankList .= "<option value='$i' $selectOpt>$i</option>";
+            }
+
+            $showList = "";
+            $showOpt = array("no"=>0,"yes"=>1);
+            foreach ($showOpt as $opt=>$value) {
+                $selectOpt = ($value == $thisPage->show_menu) ? "selected":"";
+                $showList .= "<option value='$value' $selectOpt>$opt</option>";
+            }
+
+            $pageSettings .= "
+            <div class='plugDiv' id='page_$pageName'>
+                <div class='plugLeft' style='width: 200px;'>
+                    <div class='plugName'>$pageName</div>
+                </div>
+
+                <div class='plugSettings'>
+                    <form id='config_page_$pageName'>
+                        <input type='hidden' value='true' name='modPage' />
+                        <input type='hidden' value='$pageName' name='name' />
+                        <div style='display: inline-block'>
+                            <div class='formcontrol'>
+                                <label>Status</label>
+                                <select class='select_opt' name='status'>
+                                    $statusList
+                                </select>
+                            </div>
+                            <div class='formcontrol'>
+                                <label>Rank</label>
+                                <select class='select_opt' name='rank'>
+                                    $rankList
+                                </select>
+                            </div>
+                            <div class='formcontrol'>
+                                <label>Show in menu</label>
+                                <select class='select_opt' name='show_menu'>
+                                    $showList
+                                </select>
+                            </div>
+
+                            <div class='formcontrol'>
+                                <label>Title</label>
+                                <input type='text' name='meta_title' value='$thisPage->meta_title'>
+                            </div>
+                            <div class='formcontrol'>
+                                <label>Description</label>
+                                <input type='text' name='meta_description' value='$thisPage->meta_description'>
+                            </div>
+                            <div class='formcontrol'>
+                                <label>Keywords</label>
+                                <input type='text' name='meta_keywords' value='$thisPage->meta_keywords'>
+                            </div>
+                        </div>
+
+                        <div class='submit_btns'>
+                            <input type='submit' value='Modify' class='processform'/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            ";
+        }
+        return $pageSettings;
     }
 
 }
