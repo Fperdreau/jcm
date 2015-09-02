@@ -279,7 +279,6 @@ if (!empty($_POST['operation'])) {
             $result['status'] = false;
             $result['msg'] = "Impossible to open the file";
         }
-        var_dump($result);
         echo json_encode($result);
         exit;
     }
