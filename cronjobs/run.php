@@ -54,22 +54,19 @@ function run() {
                 echo $result;
                 $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: $result</p>";
             } catch (Exception $e) {
-                $logs .= "<p>Job $job encountered an error: $e->getMessage()</p>";
+                $logs .= "<p>Job $job encountered an error: ".$e->getMessage()."</p>";
             }
 
             // Update new running time
-            if ($thisJob->updateTime()) {
-                $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Next running time: $thisJob->time</p>";
+            $newTime = $thisJob->updateTime();
+            if ($newTime['status']) {
+                $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Next running time: ".$newTime['msg']."</p>";
             } else {
                 $logs .= "<p>".date('[Y-m-d H:i:s]') . " $job: Could not update the next running time</p>";
             }
 
             // Write log
-            try {
-                $AppCron->logger("$thisJob->name.txt", $result);
-            } catch (Exception $e) {
-                echo "Could not write log";
-            }
+            $AppCron->logger("$thisJob->name.txt", $result);
             echo $logs;
             echo "<p>...Done</p>";
         }

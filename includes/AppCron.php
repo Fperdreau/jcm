@@ -161,10 +161,12 @@ class AppCron extends AppTable {
         $dayNb = ($dayNb>$maxday) ? $maxday:$dayNb;
 
         if ($dayNb > 0) {
+            // Run scheduled task on a particular date
             $strday = ($dayNb < $day)
                 ? date('Y-m-d',strtotime("$year-$month-$dayNb + 1 month"))
                 :date('Y-m-d',strtotime("$year-$month-$dayNb"));
         } elseif ($dayName !=='All') {
+            // Run scheduled task on a particular day in the week
             if ($dayName == $todayName && $hour > $thisHour) {
                 $strday = $today;
             } else {
@@ -184,8 +186,13 @@ class AppCron extends AppTable {
      */
     function updateTime() {
         $newTime = self::parseTime($this->dayNb,$this->dayName, $this->hour);
-        //return $this->update(array('time'=>$newTime));
-        return $newTime;
+        if ($this->update(array('time'=>$newTime))) {
+            $result['status'] = true;
+            $result['msg'] = $newTime;
+        } else {
+            $result['status'] = false;
+        }
+        return $result;
     }
 
     /**
@@ -205,8 +212,12 @@ class AppCron extends AppTable {
         }
         $string = "[" . date('Y-m-d H:i:s') . "]: $string.\r\n";
 
-        fwrite($fp,$string);
-        fclose($fp);
+        try {
+            fwrite($fp,$string);
+            fclose($fp);
+        } catch (Exception $e) {
+            echo "<p>Could not write file '$cronlog':<br>".$e->getMessage()."</p>";
+        }
     }
 
     /**
