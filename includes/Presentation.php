@@ -644,13 +644,13 @@ class Presentation extends Presentations {
         $orator = new User($this->db, $this->orator);
         $type = ucfirst($this->type);
         $result = "
-        <div class='pub_caps'>
+        <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
             <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
                 $type
             </div>
-            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;'>$this->title</div>
+            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>$this->title</div>
             <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
-            <div id='pub_authors'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
+            <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
         </div>
 
         <div class='pub_abstract'>
