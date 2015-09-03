@@ -303,22 +303,6 @@ if (!empty($_POST['operation'])) {
         // Tables to create
         $tables_to_create = $db->tablesname;
 
-        // First we remove any deprecated tables
-        $old_tables = $db->getapptables();
-        foreach ($old_tables as $old_table) {
-            if (!in_array($old_table, $tables_to_create)) {
-                if ($db->deletetable($old_table) == true) {
-                    $result['msg'] = "$old_table has been deleted because we do not longer need it";
-                    $result['status'] = true;
-                } else {
-                    $result['status'] = false;
-                    $result['msg'] = "We could not remove $old_table although we do not longer need it";
-                    echo json_encode($result);
-                    exit;
-                }
-            }
-        }
-
         // Get default application settings
         $AppConfig = new AppConfig($db, false);
         $version = $AppConfig->version; // New version number
@@ -329,6 +313,7 @@ if (!empty($_POST['operation'])) {
 
         // Create config table
         $AppConfig->setup($op);
+        $AppConfig->get();
         $AppConfig->update($_POST);
 
         // Create users table
