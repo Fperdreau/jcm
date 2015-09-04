@@ -792,21 +792,24 @@ if (!empty($_POST['getpagecontent'])) {
 
 <div id="bodytable">
     <!-- Header section -->
-    <div class="box" style='text-align: center; font-size: 1.7em; color: #336699; font-weight: 300;'>
+    <div class="box" style='text-align: center; font-size: 1.7em; color: rgba(68,68,68,1); font-weight: 300;'>
         Journal Club Manager - Installation
     </div>
 
     <!-- Core section -->
-    <div class="box" style="min-height: 300px;">
-        <div id="pagecontent"></div>
+    <div class="box" style="min-height: 400px;">
+        <div id="pagecontent" style="padding: 20px 0;"></div>
     </div>
 
-    <!-- Footer section -->
-    <div class="box" style="text-align: center">
-        <span id="sign"><?php echo "<a href='$AppConfig->repository' target='_blank'>$AppConfig->app_name $AppConfig->version</a>
-             | <a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3 </a>
-             | <a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></span>
-    </div>
+    <footer id="footer" style='width: 60%; padding: 20px; margin: 2% auto;'>
+        <div id="appTitle"><?php echo $AppConfig->app_name; ?></div>
+        <div id="appVersion">Version <?php echo $AppConfig->version; ?></div>
+        <div id="sign">
+            <div><?php echo "<a href='$AppConfig->repository' target='_blank'>Sources</a></div>
+                <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3</a></div>
+                <div><a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></div>
+        </div>
+    </footer>
 </div>
 
 </body>

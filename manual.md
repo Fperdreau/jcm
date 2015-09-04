@@ -1,11 +1,20 @@
 # Journal Club Manager
 Version 1.4.1 | Copyright © 2014 Florian Perdreau
 
-![](./media/image1.png)
-=======================
+![Computer version](./media/computer.png)
+*Computer version*
+
+![Mobile version](./media/mobile.png)
+*Mobile version*
 
 Summary
 =======
+1. [Introduction](#introduction)
+2. [License](#license)
+3. [System Requirements] (#system-requirements)
+4. [Installation](#installation)
+5. [Sections](#sections)
+6. [Registration](#registration-procedure)
 
 Introduction
 ============
@@ -81,7 +90,7 @@ In your favorite web-browser, go to the URL: <http://www.mydomain.com/jcm/instal
 
 ### Step 0: New installation or update
 
-![](./media/image2.png)
+![Installation Step 0](./media/install1.png)
 
 The installer will automatically check for the presence of previous installations of the Journal Club Manager.
 
@@ -91,7 +100,7 @@ Otherwise, you will also have the option of updating a previous installation. Do
 
 ### Step 1 : Database configuration
 
-![](./media/image3.png)
+![Installation - Database configuration](./media/install2.png)
 
 ***Hostname***: Your SQL hostname (e.g.: sql.mydomain.com)
 
@@ -107,19 +116,24 @@ Otherwise, you will also have the option of updating a previous installation. Do
 
 ### Step 2: Application configuration
 
-![](./media/image4.png)
+![Installation - Application settings](./media/install3.png)
 
 #### Journal Club Manager - Website
 
 **Site title:** title of the website (it will appear in the website’s header: e.g. “My Lab Journal Club”).
 
 #### Journal Club Manager – Mailing service
+An (optional) feature of the *Journal Club Manager* allows to send notifications, reminders or assignment to users by 
+
+email. To use this feature, you need to set the mailing system and particularly the SMTP host. You can either choose to use
+
+the SMTP host of your server (if there is) or to use the one of any email provider (GMAIL, OUTLOOK, etc.).
 
 **Send Email address:** your journal club email
 
 **Sender Name:** Name associated to the email address
 
-**Email host:** SMTP host address (e.g. smtp.gmail.com if you are using a Gmail address).
+**Email host:** SMTP host address (e.g. smtp.gmail.com if you are using a GMAIL address).
 
 **SMTP access:** Security protocol (SSL/TLS/none).
 
@@ -165,11 +179,11 @@ Here are tutorials to automatically run PHP file:
 
 Once done, scheduled tasks can be managed from the Journal Club Manager (Admin>Scheduled Tasks).
 
-![](./media/image4.png)
+![Scheduled tasks manager](./media/cron.png)
 
 From there, you can  install/uninstall, activate/deactivate tasks, modify their running time and options.
 
-List of built-in scheduled tasks:
+###List of built-in scheduled tasks:
 **Mailing:** send weekly digest including the last news, details about the upcoming session, the list of the future sessions and the list of the newest wishes.
 
 **Notification**: Send list of last submissions by email.
@@ -193,6 +207,8 @@ Submission
 -----------
 
 Accessible from the submission menu on the Home page.
+
+![Submission](./media/submit.png)
 
 ### Submit a new publication
 
@@ -241,17 +257,18 @@ Here, you can find all the previous presentations and download the associated fi
 
 Contact
 -------
+![Contact page](./media/contact.png)
 
 Here you can find information relative to the journal club (address, time, map) and contact the organizers by email.
 
 My profile
 ----------
+![Profile](./media/profile.png)
 
 Every user can access his/her own profile page and manage his/her account and submissions.
 
 Admin interface
 ---------------
-
 This interface is only accessible to admins and organizers.
 
 ### Settings (requires admin level)
@@ -260,15 +277,16 @@ Here are all configurable settings of the website
 
 #### Site parameters:
 
-![](./media/image5.png)
+![Application settings](./media/settings.png)
 
+**Status:** Turn the application on or off
 **Site title:** Title of the website
-
-**Site url:** web path to the application folder (e.g. <http://www.mydomain.com/Pjc/>).
+**Allowed file types:** Types of files than can be uploaded by users (comma-separated)
+**Maximum file size:** Maximum size of uploads (in KB)
 
 #### Lab Information
 
-![](./media/image6.png)
+![Lab information](./media/lab_info.png)
 
 Here you may precise your lab’s name and address.
 
@@ -278,21 +296,11 @@ Here you may precise your lab’s name and address.
 
 2.  Still on the Google Map website, look for the settings icon at the bottom right of the page (the little gray wheel), click on it and go to “Share or integrate the map”, then “Integrate the map”.
 
-![](./media/image7.png)
+![Setup of Google Maps](./media/googlemap.png)
 
 1.  Choose the “Small size” and copy the address (as shown below). Then only paste the actual url starting with https://www.google.com/maps.... (\*without the HTML tags) to the Google Map’s URL field of the Journal Club Manager.
 
-#### Email notifications
-
-![](./media/image8.png)
-
-**Notification day:** day at which the system has to send the weekly digest to the users.
-
-**Reminder:** day at which the system has to send a reminder (-1 = 1 day before the session)
-
 #### Email host information
-
-![](./media/image9.png)
 
 Please, refer to the 3<sup>rd</sup> installation step above.
 
@@ -302,19 +310,18 @@ Here you can change users’ status (admin/organizer/member), deactivate, activa
 
 ### Mailing
 
-Here you can send an email notification to the mailing list. Your “special header” (email title) and “special message” will be automatically added to the usual notification email.
+Here you can send an email notification to the mailing list.
 
 ### Posts
 
-Here you can add/edit a news that will appear on the website’s homepage.
+Here you can add/edit news and choose whether they should appear on the home page.
 
 ### Sessions
+Here you can manage the journal club sessions, change their type, time, etc.
 
-*Here you can manage the journal club sessions, change their type, time, etc.*
+![Session manager](./media/session.png)
 
 #### Journal Club parameters
-
-![](./media/image10.png)
 
 **Room:** Room of the journal club
 
@@ -326,13 +333,9 @@ Here you can add/edit a news that will appear on the website’s homepage.
 
 #### Session/Presentation
 
-![](./media/image11.png)
-
 Here, you can set the default type of session and add or delete types of sessions and presentations.
 
 #### Manage sessions
-
-![](./media/image12.png)
 
 Here, you can manage the sessions individually: modify the type, time or speakers.
 
@@ -344,9 +347,11 @@ Registration procedure
 ======================
 
 1.  The new user must fill up all the fields (First name, last name, username, password, email, academic position).
+![Registration 1](./media/registration1.png)
 
 2.  An email is sent to the admin/organizers for verification (click on authorize or deny accordingly):
 
-> ![](./media/image13.png)
+![Registration 2](./media/registration2.png)
 
-1.  Finally, the user receives a confirmation email if his/her registration has been confirmed.
+3.  Finally, the user receives a confirmation email if his/her registration has been confirmed.
+![Registration 3](./media/registration3.png)

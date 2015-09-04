@@ -31,7 +31,7 @@ $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
 $assignStatus = ($user->assign == 1) ? "Yes":"No";
 $result = "
     <h1>Hello $user->fullname!</h1>
-    <div class='operation_button'><a rel='leanModal' href='#modal' class='modal_trigger' id='user_delete'>Delete my account</a></div>
+    <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
 
     <div class='section_container'>
             <section>

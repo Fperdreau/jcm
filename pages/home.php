@@ -39,15 +39,15 @@ $wishlist = $presentations->getwishlist(10,true);
     $submitMenu = "
     <div class='submitMenu'>
         <div class='submitMenuSection'>
-            <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='submit'>
+            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='submit'>
                Submit</a>
         </div>
         <div class='submitMenuSection'>
-            <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='suggest'>
+            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
            Make a wish</a>
         </div>
         <div class='submitMenuSection'>
-            <a href='#modal' class='modal_trigger' id='modal_trigger_newpub' rel='leanModal' data-type='select'>
+            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='select'>
            Select a wish</a>
         </div>
     </div>";

@@ -105,13 +105,14 @@ echo "
             <form id='confirmdeleteuser'>
                 <div class='formcontrol'>
                     <label for='del_username'>Username</label>
-                    <input type='text' id='del_username' name='del_username' value=''/></br>
+                    <input type='text' id='del_username' name='del_username' value='' required/>
                 </div>
                 <div class='formcontrol'>
-                    <label for='del_password'>Password</label><input type='password' id='del_password' name='del_password' value=''/></br>
+                    <label for='del_password'>Password</label>
+                    <input type='password' id='del_password' name='del_password' value='' required/>
                 </div>
                 <div class='action_btns'>
-                    <div class='one_half last'><input type='submit' class='confirmdeleteuser' value='Change'></div>
+                    <input type='submit' class='confirmdeleteuser' value='Change'>
                 </div>
             </form>
         </div>
