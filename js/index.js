@@ -153,38 +153,6 @@ var logout = function() {
     });
 };
 
-/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Modal windows
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-var modalpubform = $('.modal_section#submission_form');
-
-/**
- * Close modal window
- * @param modal_id
- */
-var close_modal = function(modal_id) {
-    $("#lean_overlay").fadeOut(200);
-    $(modal_id).css({"display":"none"});
-    $("modal_section#submission_form").empty();
-};
-
-/**
- * Show the targeted modal section and hide the others
- * @param sectionid
- */
-var showmodal = function(sectionid) {
-    var title = $(".modal_section#"+sectionid).attr('data-title');
-    $(".popupHeader").text(title);
-    $('.modal_section').each(function() {
-        var thisid = $(this).attr('id');
-        if (thisid === sectionid) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-    });
-};
-
 /**
  * Automatically show login window on start (if user is not already logged in)
  */
@@ -196,13 +164,18 @@ function showLogin() {
         success: function(data) {
             var json = jQuery.parseJSON(data);
             if (json === false) {
-                $('.modal_trigger#user_login')
+                $('.leanModal#user_login')
                     .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
                     .click();
             }
         }
     });
 }
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Modal windows
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+var modalpubform = $('.modal_section#submission_form');
 
 /**
  * Display presentation's information in a modal window
@@ -240,18 +213,6 @@ function realWidth(obj){
     var width = clone.outerWidth();
     clone.remove();
     return width;
-}
-
-function modArray(data,prop,value) {
-    var i;
-    // Find and replace `content` if there
-    for (i = 0; i < data.length; ++i) {
-        if (data[i].name == prop) {
-            data[i].value = value;
-            break;
-        }
-    }
-    return data;
 }
 
 $( document ).ready(function() {
@@ -611,7 +572,15 @@ $( document ).ready(function() {
             $(".dlmenu").toggle();
         })
 
-         // Select submission type
+        // Show uploaded file
+        .on('click','.link_name',function() {
+            var uplname = $(this).attr('id');
+            var url = "uploads/"+uplname;
+            window.open(url,'_blank');
+        })
+
+
+        // Select submission type
          .on('change','select#type',function(e) {
             e.preventDefault();
             var guestField = $('.submission #guest');
@@ -672,31 +641,8 @@ $( document ).ready(function() {
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         FORMS
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click','.processform',function(e) {
-            e.preventDefault();
-            var input = $(this);
-            var form = input.length > 0 ? $(input[0].form) : $();
-            processForm(form);
-        })
-
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Modal triggers
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-		// Trigger modal dialog box for log in/sign up
-        .on('mouseover',"a[rel*=leanModal]",function(e) {
-            e.preventDefault();
-            $(this).leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" });
-        })
-
-        // Dialog log in
-        .on('click',".modal_trigger",function(e){
-            e.preventDefault();
-            var section  = $(this).attr('id');
-            showmodal(section);
-        })
-
         // Log out
         .on('click',"#logout",function(e){
             e.preventDefault();
@@ -707,7 +653,6 @@ $( document ).ready(function() {
         .on('click','#modal_trigger_pubcontainer',function(e){
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
-            showmodal('submission_form');
             displaypub(id_pres,modalpubform);
         })
 
@@ -716,14 +661,12 @@ $( document ).ready(function() {
             e.preventDefault();
             var id_pres = $(this).data('id');
             var date = $(this).data('date');
-            showmodal('submission_form');
             showpubform(modalpubform,id_pres,'submit',date);
         })
 
         .on('click','#modal_trigger_newpub',function(e){
             e.preventDefault();
             var type = $(this).data('type');
-            showmodal('submission_form');
             showpubform(modalpubform,false,type);
         })
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -733,7 +676,6 @@ $( document ).ready(function() {
         .on('click','.modify_ref',function(e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            showmodal('submission_form');
             showpubform(modalpubform,id_pres,'submit');
         })
 
@@ -741,13 +683,13 @@ $( document ).ready(function() {
         .on('click',".delete_ref",function(e){
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            showmodal('pub_delete');
+            show_section('pub_delete');
             $("#pub_delete").append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
         })
 
         // Going back to publication
         .on('click',".pub_back_btn",function(){
-            showmodal('submission_form');
+            show_section('submission_form');
         })
 
         // Confirm delete publication
@@ -768,24 +710,24 @@ $( document ).ready(function() {
         // Dialog change password
         .on('click',".modal_trigger_changepw",function(e){
             e.preventDefault();
-            showmodal('user_changepw');
+            show_section('user_changepw');
         })
 
         // Going back to Login Forms
         .on('click',".back_btn",function(e){
             e.preventDefault();
-            showmodal('user_login');
+            show_section('user_login');
             return false;
         })
 
         // Go to sign up form
         .on('click','.gotoregister',function(e) {
             e.preventDefault();
-            showmodal('user_register');
+            show_section('user_register');
         })
 
         // Delete user account confirmation form
-        .on('click',"#confirmdeleteuser",function(e) {
+        .on('click',".confirmdeleteuser",function(e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();

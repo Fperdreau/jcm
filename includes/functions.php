@@ -246,77 +246,6 @@ function browse($dir, $dirsNotToSaveArray = array()) {
 }
 
 /**
- * Export target table to xls file
- * @param $tablename
- * @return string
- */
-function exportdbtoxls($tablename) {
-    global $db;
-    /***** EDIT BELOW LINES *****/
-    $DB_TBLName = $db->dbprefix.$tablename; // MySQL AppTable Name
-    $xls_filename = 'backup/export_'.$tablename.date('Y-m-d_H-i-s').'.xls'; // Define Excel (.xls) file name
-	$out = "";
-
-    $sql = "SELECT * FROM $DB_TBLName";
-    $result = $db->send_query($sql);
-
-    // Header info settings
-    header("Content-Type: application/xls");
-    header("Content-Disposition: attachment; filename=$xls_filename");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    /***** Start of Formatting for Excel *****/
-    // Define separator (defines columns in excel &amp; tabs in word)
-    $sep = "\t"; // tabbed character
-
-    // Start of printing column names as names of MySQL fields
-    for ($i = 0; $i<mysql_num_fields($result); $i++) {
-        $out .= mysql_field_name($result, $i) . "\t";
-    }
-    $out .= "\n";
-    // End of printing column names
-
-    // Start while loop to get data
-    while($row = mysql_fetch_row($result)) {
-        $schema_insert = "";
-        for($j=0; $j<mysql_num_fields($result); $j++)
-        {
-            if(!isset($row[$j])) {
-                $schema_insert .= "NULL".$sep;
-            }
-            elseif ($row[$j] != "") {
-                $schema_insert .= "$row[$j]".$sep;
-            }
-            else {
-                $schema_insert .= "".$sep;
-            }
-        }
-        $schema_insert = str_replace($sep."$", "", $schema_insert);
-        $schema_insert = preg_replace("/\r\n|\n\r|\n|\r/", " ", $schema_insert);
-        $schema_insert .= "\t";
-        $out .= trim($schema_insert);
-        $out .=  "\n";
-    }
-
-	if ($fp = fopen(PATH_TO_APP.$xls_filename, "w+")) {
-        if (fwrite($fp, $out) == true) {
-            fclose($fp);
-        } else {
-            $result = "Impossible to write";
-	        echo json_encode($result);
-			exit;
-        }
-    } else {
-        $result = "Impossible to open the file";
-        echo json_encode($result);
-        exit;
-    }
-
-    return $xls_filename;
-}
-
-/**
  * Backup database and save it as a *.sql file. Clean backup folder (remove oldest versions) at the end.
  * @param $nbVersion: Number of previous backup versions to keep on the server (the remaining will be removed)
  * @return string : Path to *.sql file
@@ -343,7 +272,7 @@ function backupDb($nbVersion){
 
     $return = "";
     //cycle through
-	foreach($allTables as $table)
+    foreach($allTables as $table)
     {
         $result = $db->send_query('SELECT * FROM '.$table);
         $num_fields = mysqli_num_fields($result);
@@ -361,7 +290,7 @@ function backupDb($nbVersion){
                 for($j=0; $j<$num_fields; $j++)
                 {
                     $row[$j] = addslashes($row[$j]);
-                    $row[$j] = ereg_replace("\n","\\n",$row[$j]);
+                    $row[$j] = preg_replace("/\n/","\\n",$row[$j]);
                     if (isset($row[$j])) { $return.= '"'.$row[$j].'"' ; } else { $return.= '""'; }
                     if ($j<($num_fields-1)) { $return.= ','; }
                 }

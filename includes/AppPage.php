@@ -131,8 +131,8 @@ class AppPage extends AppTable {
             if ($this->status > -1) {
                 $result['msg'] = "
 		    <div id='content'>
-        		<p id='warning'>You must <a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'>
-        		Sign In</a> or <a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'>
+        		<p id='warning'>You must <a class='leanModal' id='user_login' href='' data-section='user_login'>
+        		Sign In</a> or <a class='leanModal' id='user_register' href='' data-section='user_register'>
         		Sign Up</a> in order to access this page!</p>
 		    </div>
 		    ";

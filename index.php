@@ -68,8 +68,8 @@ require_once('includes/boot.php');
                     <?php
                     if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
                         $showlogin = "
-                    <div><a rel='leanModal' id='user_login' href='#modal' class='modal_trigger'><img src='images/login.png' alt='login'></a></div>
-                    <div><a rel='leanModal' id='user_register' href='#modal' class='modal_trigger'><img src='images/signup.png' alt='signup'></a></div>
+                    <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login.png' alt='login'></div>
+                    <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup.png' alt='signup'></div>
                      ";
                     } else {
                         $showlogin = "
@@ -107,7 +107,7 @@ require_once('includes/boot.php');
         <script type="text/javascript" src="js/form.js"></script>
         <script type="text/javascript" src="js/plugins.js"></script>
         <script type="text/javascript" src="js/Myupload.js"></script>
-        <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
+        <script type="text/javascript" src="js/jquery.leanModal.js"></script>
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>

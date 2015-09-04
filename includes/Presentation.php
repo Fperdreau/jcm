@@ -435,7 +435,7 @@ class Presentation extends Presentations {
         $date = date('d M',strtotime($this->date));
         return "
         <div class='pub_container' id='$this->id_pres'>
-        <a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>
+        <a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>
             <div class='list-container'>
                 <div class='pub_date'>$date</div>
                 <div class='pub_title warp'>$this->title</div>
@@ -456,7 +456,7 @@ class Presentation extends Presentations {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-date='$date'>FREE</a>";
+            $show_but = "<a href='' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-date='$date'>FREE</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
@@ -467,7 +467,7 @@ class Presentation extends Presentations {
             if ($opt == 'mail') {
                 $show_but = "$this->title";
             } else {
-                $show_but = "<a href='#modal' class='modal_trigger' id='modal_trigger_pubcontainer' rel='leanModal' data-id='$this->id_pres'>$this->title</a>";
+                $show_but = "<a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>$this->title</a>";
             }
             $type = ucfirst($this->type);
         }
@@ -569,9 +569,7 @@ class Presentation extends Presentations {
     public function showwish($show) {
         /** @var AppConfig $config */
         $config = new AppConfig($this->db);
-
-        $url = ($show == false) ? $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres":"#modal";
-
+        $url = $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres";
         $uploader = new User($this->db,$this->username);
         $update = date('d M y',strtotime($this->up_date));
         return "
@@ -580,7 +578,7 @@ class Presentation extends Presentations {
                 $update
             </div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-               <a href='$url' class='modal_trigger' id='modal_trigger_pubmod' rel='leanModal' data-id='$this->id_pres'>
+               <a href='$url' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-id='$this->id_pres'>
                     <div>$this->title</div>
                     <div style='font-style: italic; color: #000000;'>Suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
                 </a>
@@ -603,14 +601,14 @@ class Presentation extends Presentations {
         if (!(empty($this->link))) {
             if ($show) {
                 // Show files list as a dropdown menu
-                $download_button = "<div class='dl_btn pub_btn' id='$this->id_pres'><a href='#'>Download</a></div>";
+                $download_button = "<div class='dl_btn pub_btn' id='$this->id_pres'>Download</div>";
                 $filelist = $this->link;
                 $dlmenu = "<div class='dlmenu'>";
                 foreach ($filelist as $fileid=>$info) {
                     $dlmenu .= "
                 <div class='dl_info'>
                     <div class='dl_type'>".strtoupper($info['type'])."</div>
-                    <div class='upl_name dl_name' id='".$info['filename']."'>$fileid</div>
+                    <div class='link_name dl_name' id='".$info['filename']."'>$fileid</div>
                 </div>";
                 }
                 $dlmenu .= "</div>";
