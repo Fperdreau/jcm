@@ -234,11 +234,6 @@ class Groups extends AppPlugins {
                                 $pubcontent
                             </div>
                         </div>
-
-                        <div style='width: 100%; margin: auto;'>
-                            <p>Cheers,</p>
-                            <p style='font-style: italic; font-weight: 500;'>The Journal Club Team</p>
-                        </div>
                     </div>
                     ";
 
