@@ -146,6 +146,16 @@ var checkform = function(el) {
             thisField = false;
         }
 
+        if ($(this).attr('maxlength') && $(this).val().length > $(this).attr('maxlength')) {
+            thisField = false;
+            msg = 'Exceeds Maximum length ('+$(this).attr('maxlength')+')';
+        }
+
+        if ($(this).attr('minlength') && $(this).val().length > $(this).attr('minlength')) {
+            thisField = false;
+            msg = 'Too short! (minimum: '+$(this).attr('minlength')+')';
+        }
+
         // Check if provided email is valid
         if ($(this).attr('type') == 'email' && !checkemail($(this).val())) {
             msg = "Invalid email";
