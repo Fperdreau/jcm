@@ -29,8 +29,8 @@ require_once('includes/boot.php');
     <head>
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <META NAME="viewport" CONTENT="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, user-scalable=yes">
-        <META NAME="description" CONTENT="Journal Club Manager. Organization. Submit or suggest a presentation. Archives.">
-        <META NAME="keywords" CONTENT="Journal Club">
+        <META NAME="description" CONTENT="Journal Club Manager - an efficient way of organizing journal clubs">
+        <META NAME="keywords" CONTENT="Journal Club, application">
 
         <!-- Stylesheets -->
         <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
@@ -41,7 +41,7 @@ require_once('includes/boot.php');
         <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
         <script type="text/javascript" src="js/loading.js"></script>
         <script type="text/javascript" src="js/jquery-ui.js"></script>
-        <title><?php echo $AppConfig->sitetitle; ?></title>
+        <title>Journal Club Manager - Organize your journal club efficiently</title>
     </head>
 
     <body class="mainbody">
@@ -55,7 +55,8 @@ require_once('includes/boot.php');
 
                 <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
              --><div id="sitetitle">
-                    <?php echo $AppConfig->sitetitle;?>
+                    <span style="font-size: 30px; font-weight: 400;">JCM</span>
+                    <span style="font-size: 25px; color: rgba(200,200,200,.8);">anager</span>
                 </div><!--
             Menu section -->
                 <div class="menu">
