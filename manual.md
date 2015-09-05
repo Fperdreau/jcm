@@ -118,10 +118,6 @@ Otherwise, you will also have the option of updating a previous installation. Do
 
 ![Installation - Application settings](./media/install3.png)
 
-#### Journal Club Manager - Website
-
-**Site title:** title of the website (it will appear in the website’s header: e.g. “My Lab Journal Club”).
-
 #### Journal Club Manager – Mailing service
 An (optional) feature of the *Journal Club Manager* allows to send notifications, reminders or assignment to users by 
 
@@ -191,7 +187,9 @@ From there, you can  install/uninstall, activate/deactivate tasks, modify their 
 **Reminder**: send reminder for the upcoming session.
 
 **AssignSpeakers**: automatically assigned speakers to each presentation by pseudo-randomly picking up one organizer. 
+
 The simple rule is that all organizers must have been a chair once for this particular session type (e.g. journal club, 
+
 group meeting, etc.) before an organizer can be selected again as a chair.
 
 **MakeGroup**: Split users into groups for one session (1 group per presentation)
@@ -257,12 +255,14 @@ Here, you can find all the previous presentations and download the associated fi
 
 Contact
 -------
+
 ![Contact page](./media/contact.png)
 
 Here you can find information relative to the journal club (address, time, map) and contact the organizers by email.
 
 My profile
 ----------
+
 ![Profile](./media/profile.png)
 
 Every user can access his/her own profile page and manage his/her account and submissions.
@@ -279,9 +279,10 @@ Here are all configurable settings of the website
 
 ![Application settings](./media/settings.png)
 
-**Status:** Turn the application on or off
-**Site title:** Title of the website
-**Allowed file types:** Types of files than can be uploaded by users (comma-separated)
+**Status:** Turn the application on or off.
+
+**Allowed file types:** Types of files than can be uploaded by users (comma-separated).
+
 **Maximum file size:** Maximum size of uploads (in KB)
 
 #### Lab Information
@@ -317,6 +318,7 @@ Here you can send an email notification to the mailing list.
 Here you can add/edit news and choose whether they should appear on the home page.
 
 ### Sessions
+
 Here you can manage the journal club sessions, change their type, time, etc.
 
 ![Session manager](./media/session.png)
@@ -346,12 +348,14 @@ From this section, you can set access levels to the different parts of the Journ
 Registration procedure
 ======================
 
-1.  The new user must fill up all the fields (First name, last name, username, password, email, academic position).
+1.  The new user must fill up all the fields (First name, last name, username, password, email, academic position)
+
 ![Registration 1](./media/registration1.png)
 
-2.  An email is sent to the admin/organizers for verification (click on authorize or deny accordingly):
+2.  An email is sent to the admin/organizers for verification (click on authorize or deny accordingly)
 
 ![Registration 2](./media/registration2.png)
 
 3.  Finally, the user receives a confirmation email if his/her registration has been confirmed.
+
 ![Registration 3](./media/registration3.png)
