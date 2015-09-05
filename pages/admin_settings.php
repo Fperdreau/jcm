@@ -48,10 +48,6 @@ $result = "
                         </select>
                     </div>
                     <div class='formcontrol'>
-                        <label>Site title</label>
-                        <input type='text' name='sitetitle' value='$AppConfig->sitetitle'>
-                    </div>
-                    <div class='formcontrol'>
                         <label>Allowed file types (upload)</label>
                         <input type='text' name='upl_types' value='$AppConfig->upl_types'>
                     </div>
