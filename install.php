@@ -484,15 +484,9 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='install_db'/>
-
                 <input type='hidden' name='site_url' value='$AppConfig->site_url'/>
-                <h3>Journal Club Manager - Website</h3>
-                <div class='formcontrol'>
-                    <label for='sitetitle'>Site title</label>
-                    <input name='sitetitle' type='text' value='$AppConfig->sitetitle' required autocomplete='on'>
-                </div>
 
-                <h3>Journal Club Manager - Mailing service</h3>
+                <h3>Mailing service</h3>
                 <div class='formcontrol'>
                     <label for='mail_from'>Sender Email address</label>
                     <input name='mail_from' type='email' value='$AppConfig->mail_from'>
