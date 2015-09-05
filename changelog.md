@@ -1,5 +1,11 @@
 # Journal Club Manager &copy; 2014
 
+## Release: 1.4.2
+### Changes
+- Notify user by email if he/she has been manually assigned to a session by an organizer
+- Removed signature from the email sent by the Group plugin.
+- Removed the possibility to change the website title. This avoids styling issues in the mobile version.
+
 ## Release: 1.4.1
 ### Changes
 - fixed bugs in scheduled task execution
