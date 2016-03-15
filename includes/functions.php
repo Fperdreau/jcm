@@ -101,7 +101,6 @@ function uploader($links=array()) {
     	   </div>
             <div class='upl_filelist'>$filesList</div>
         </div>";
-
     return $result;
 }
 

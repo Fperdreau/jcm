@@ -291,12 +291,12 @@ class Media extends Uploads {
 
                 // Move file to the upload folder
                 $dest = $this->directory.$newname;
-                $results['error'] = move_uploaded_file($tmp,$dest);
+                $result['error'] = move_uploaded_file($tmp,$dest);
 
-                if ($results['error'] == false) {
+                if ($result['error'] == false) {
                     $result['error'] = "Uploading process failed";
                 } else {
-                    $results['error'] = true;
+                    $result['error'] = true;
                     $result['status'] = $newname;
                 }
             }

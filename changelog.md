@@ -1,5 +1,12 @@
 # Journal Club Manager &copy; 2014
 
+## Next Release 1.4.3
+- Check on randomization
+- Check on emails (room number)
+- Mailing: Add possibility to select emails
+- Add possibility to not receive any emails. Maybe, simplify the email notifications options
+- Removed signature from the emails.
+
 ## Release: 1.4.2
 ### Changes
 - Notify user by email if he/she has been manually assigned to a session by an organizer
@@ -42,5 +49,3 @@ New design, improved installer and new features!
 - Possibility to assign a chairman to each presentation either on each submission or via an automatic preplanning.
 - Possibility to access the history of Posts, to edit/delete them and choose to add them to the homepage.
 - The Configuration and the Admin tools are now only accessible by user with an admin status.
-
-
