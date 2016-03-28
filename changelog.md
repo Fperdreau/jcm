@@ -3,16 +3,16 @@
 ## Release: 1.4.2
 ### Changes
 - Updated TinyMCE version to 4.3.8
-- Check on assignment randomization
-- Check on emails (room number)
-- Mailing: Add possibility to select emails
-- Add possibility to not receive any emails. Maybe, simplify the email notifications options
+- Mailing tool: Add possibility to select recipients
 - Removed signature from the emails. OK
-- Notify user by email if he/she has been manually assigned to a session by an organizer
-- Removed signature from the email sent by the Group plugin.
-- Removed the possibility to change the website title. This avoids styling issues in the mobile version.
 - Added an option on the profile page to let the user the possibility to inform the system if he/she is available
  and can be automatically assigned to presentations or groups.
+- Removed the possibility to change the website title. This avoids styling issues in the mobile version.
+
+- Display list of user's assignment on its profile page
+- Check on assignment randomization
+- Check on emails (room number)
+- Notify user by email if he/she has been manually assigned to a session by an organizer
 
 ## Release: 1.4.1
 ### Changes
