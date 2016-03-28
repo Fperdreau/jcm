@@ -8,8 +8,8 @@
 - Added an option on the profile page to let the user the possibility to inform the system if he/she is available
  and can be automatically assigned to presentations or groups.
 - Removed the possibility to change the website title. This avoids styling issues in the mobile version.
-
 - Display list of user's assignment on its profile page
+
 - Check on assignment randomization
 - Check on emails (room number)
 - Notify user by email if he/she has been manually assigned to a session by an organizer
