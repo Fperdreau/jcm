@@ -629,14 +629,53 @@ Mailing
 if (!empty($_POST['mailing_send'])) {
     $content['body'] = $_POST['spec_msg'];
     $content['subject'] = $_POST['spec_head'];
+    $ids = explode(',',$_POST['emails']);
+    $user = new User($db);
+
+    // Get emails from the provided list of IDs
+    $mailing_list = array();
+    foreach ($ids as $id) {
+        $data = $user->getById($id);
+        $mailing_list[] = $data['email'];
+    }
+
     $body = $AppMail -> formatmail($content['body']);
     $subject = $content['subject'];
-    if ($AppMail_result = $AppMail->send_to_mailinglist($subject,$body)) {
+    if ($AppMail->send_mail($mailing_list, $subject, $body, 'notification')) {
         $result['status'] = true;
         $result['msg'] = "Your message has been sent!";
     } else {
         $result['status'] = false;
     };
+    echo json_encode($result);
+    exit;
+}
+
+// Add emails to mailing list
+if (!empty($_POST['add_emails'])) {
+    $id = htmlspecialchars($_POST['add_emails']);
+    $icon = "images/close.png";
+    $user = new User($db);
+    if (strtolower($id) === 'all') {
+        $users = $user->all();
+        $content = "";
+        $ids = array();
+        foreach ($users as $key=>$info) {
+            $ids[] = $info['id'];
+            $content .= "
+            <div class='added_email' id='{$info['id']}'><div class='added_email_name'>{$info['fullname']}</div><div class='added_email_delete' id='{$info['id']}'><img src='{$icon}'></div></div>
+            ";
+        }
+        $result['ids'] = implode(',', $ids);
+    } else {
+        $info = $user->getById($id);
+        $content = "
+            <div class='added_email' id='{$info['id']}'><div class='added_email_name'>{$info['fullname']}</div><div class='added_email_delete' id='{$info['id']}'><img src='{$icon}'></div></div>
+        ";
+        $result['ids'] = $id;
+    }
+    $result['content'] = $content;
+    $result['status'] = true;
     echo json_encode($result);
     exit;
 }

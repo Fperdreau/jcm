@@ -29,6 +29,9 @@ require_once(PATH_TO_LIBS."html2text-0.2.2/html2text.php");
 require_once(PATH_TO_LIBS.'PHPMailer-master/class.phpmailer.php');
 require_once(PATH_TO_LIBS.'PHPMailer-master/class.smtp.php');
 
+/**
+ * Class AppMail
+ */
 class AppMail {
     /**
      * @inject $db
@@ -94,16 +97,16 @@ class AppMail {
      * @return array
      */
     function get_mailinglist($type=null) {
-        $sql = "select username,email from $this->tablename where active=1";
+        $sql = "select fullname,email from $this->tablename where active=1";
         if (null!=$type) {
-            $sql .= " and $type=1";
+            $sql .= " AND $type=1";
         }
+        $sql .= " ORDER BY fullname";
 
         $req = $this->db->send_query($sql);
         $mailing_list = array();
         while ($data = mysqli_fetch_array($req)) {
-            $cur_mail = $data['email'];
-            $mailing_list[] = $cur_mail;
+            $mailing_list[$data['fullname']] = $data['email'];
         }
         return $mailing_list;
     }
@@ -133,11 +136,11 @@ class AppMail {
      * @param null $attachment
      * @return bool
      * @throws Exception
-     * @throws phpmailerException
+     * @throws PHPMailer
      */
     function send_mail($to,$subject,$body,$attachment = NULL) {
         $mail = new PHPMailer();
-
+        $mail->CharSet = 'UTF-8';
         $mail->IsSMTP();                                      // set mailer to use SMTP
         $mail->SMTPDebug  = $this->SMTPDebug;         // enables SMTP debug information (for testing)
 
@@ -191,7 +194,7 @@ class AppMail {
 
     /**
      * Format email (html)
-     * @param $content
+     * @param string $content
      * @return string
      */
     function formatmail($content) {
@@ -201,22 +204,16 @@ class AppMail {
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
                     <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; font-size: 2em; line-height: 40px; height: 40px; text-align: center;'>
-                        $sitetitle
+                        {$sitetitle}
                     </div>
 
                     <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; text-align: justify;'>
-                        $content
-
-                        <!-- Signature -->
-                        <div style='width: 100%; margin: auto;'>
-                            <p>Cheers,</p>
-                            <p style='font-style: italic; font-weight: 500;'>The Journal Club Team</p>
-                        </div>
+                        {$content}
                     </div>
 
                     <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
                         This email has been sent automatically. You can choose to no longer receive notification emails from your
-                        <a href='$profile_url' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
+                        <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
                     </div>
                 </div>
             </div>";

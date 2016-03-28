@@ -1,14 +1,13 @@
 # Journal Club Manager &copy; 2014
 
-## Next Release 1.4.3
-- Check on randomization
+## Release: 1.4.2
+### Changes
+- Updated TinyMCE version to 4.3.8
+- Check on assignment randomization
 - Check on emails (room number)
 - Mailing: Add possibility to select emails
 - Add possibility to not receive any emails. Maybe, simplify the email notifications options
-- Removed signature from the emails.
-
-## Release: 1.4.2
-### Changes
+- Removed signature from the emails. OK
 - Notify user by email if he/she has been manually assigned to a session by an organizer
 - Removed signature from the email sent by the Group plugin.
 - Removed the possibility to change the website title. This avoids styling issues in the mobile version.

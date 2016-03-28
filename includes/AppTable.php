@@ -40,6 +40,8 @@ class AppTable {
      * Constructor
      * @param AppDb $db
      * @param $tablename
+     * @param $table_data
+     * @param bool $plugin
      */
     function __construct(AppDb $db, $tablename, $table_data, $plugin=False) {
         $this->db = $db;
@@ -49,7 +51,8 @@ class AppTable {
             $this->tablename = $db->tablesname[$tablename];
         }
         $this->table_data = $table_data;
-        if (!$this->db->tableExists($this->tablename)) {
+        $correct_config = $this->db->testdb($this->db->get_config());
+        if ($correct_config['status'] && !$this->db->tableExists($this->tablename)) {
             $this->setup();
         }
     }

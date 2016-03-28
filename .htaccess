@@ -1,4 +1,16 @@
-## contr�le du cache navigateur - Expire headers
+# Allow compression
+<IfModule mod_deflate.c>
+    <filesMatch "\.(js|css|html|php)$">
+        SetOutputFilter DEFLATE
+    </filesMatch>
+</IfModule>
+
+#
+# associate .js with "text/javascript" type (if not present in mime.conf)
+#
+AddType text/javascript .js
+
+## Expire headers
 <IfModule mod_expires.c>
 	ExpiresActive On
 	ExpiresDefault "access plus 7200 seconds"
@@ -11,7 +23,7 @@
 	ExpiresByType image/ico 			"access plus 1 week"
 	ExpiresByType image/icon 			"access plus 1 week"
 	ExpiresByType image/x-icon 			"access plus 1 week"
-	ExpiresByType text/css 				"access plus 1 day"
+	ExpiresByType text/css 				"access plus 1 week"
 	ExpiresByType text/javascript 		"access plus 1 week"
 	ExpiresByType text/html 			"access plus 7200 seconds"
 	ExpiresByType application/xhtml+xml 	"access plus 7200 seconds"
@@ -20,17 +32,20 @@
 	ExpiresByType application/x-shockwave-flash "access plus 1 week"
 </IfModule>
 
+#
+# configure mod_headers
+#
+# URL: http://httpd.apache.org/docs/2.2/mod/mod_headers.html
+#
 <IfModule mod_headers.c>
-
-<FilesMatch "\\.(ico|jpe?g|png|gif|swf)$">
-Header set Cache-Control "max-age=2592000, public"
-</FilesMatch>
-
-<FilesMatch "\\.(x?html?|php)$">
-Header set Cache-Control "max-age=600, private, must-revalidate"
-</FilesMatch>
-
+    <FilesMatch "\\.(ico|jpe?g|png|gif|swf|css|js)$">
+        Header set Cache-Control "max-age=2692000, public"
+    </FilesMatch>
+    <FilesMatch "\\.(x?html?|php)$">
+        Header set Cache-Control "max-age=600, private, must-revalidate"
+    </FilesMatch>
+    Header unset ETag
+    Header unset Last-Modified
 </IfModule>
 
 Options -Indexes
-

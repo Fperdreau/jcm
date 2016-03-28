@@ -1186,6 +1186,83 @@ h3 {
 }
 
 /* *********************************************************************/
+/* Admin - Mailing
+/* *********************************************************************/
+.select_emails_list {
+    height: auto;
+    padding: 5px;
+    margin: 10px auto;
+    background-color: rgba(255,255,255,1);
+    border: 2px dashed rgba(200, 200, 200, .5);
+    border-radius: 5px;
+    box-sizing: border-box;
+    min-height: 50px;
+}
+
+.select_emails_list>div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.added_email {
+    padding: 5px 5px;
+    margin: 2px;
+    background: rgba(240, 240, 240, 1);
+    color: black;
+    border-radius: 5px;
+    border: 1px solid rgba(200, 200, 200, 1);
+    font-weight: 500;
+}
+
+.added_email_name {
+    font-size: 11px;
+}
+
+.added_email>div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.added_email img {
+    width: 12px;
+    height: 12px;
+    vertical-align: middle;
+}
+
+.added_email_delete {
+    text-align: center;
+    height: 20px;
+    width: 20px;
+    line-height: 20px;
+    background: white;
+    border-radius: 50%;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.added_email_delete:hover {
+    background: rgba(200, 200, 200, 1);
+}
+
+button.addBtn {
+    font-weight: 500;
+    box-sizing: border-box;
+    height: 28px;
+    width: 28px;
+    font-size: 20px;
+    border:  none;
+    vertical-align: middle;
+    border-radius: 50%;
+    cursor: pointer;
+    color: rgba(50, 50, 50, 1);
+}
+
+button.addBtn:hover {
+    background: rgba(50, 50, 50, 1);
+    color: white;
+}
+
+/* *********************************************************************/
 /* Admin - session/presentation management
 /* *********************************************************************/
 .type_list {

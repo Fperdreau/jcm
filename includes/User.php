@@ -83,7 +83,7 @@ class Users extends AppTable {
      * @return array
      */
     public function getUsers($assign = false) {
-        $sql = "SELECT username FROM $this->tablename WHERE notification=1 and active=1 and status!='admin'";
+        $sql = "SELECT * FROM $this->tablename WHERE notification=1 and active=1 and status!='admin'";
         $sql = ($assign == true) ? $sql." and assign=1":$sql;
         $req = $this->db->send_query($sql);
         $users = array();
@@ -93,6 +93,16 @@ class Users extends AppTable {
         return $users;
     }
 
+    /**
+     * @return array|null
+     */
+    public function all() {
+        $sql = "SELECT * FROM $this->tablename WHERE notification=1 and active=1 and status!='admin' ORDER BY fullname";
+        $req = $this->db->send_query($sql);
+        $data = mysqli_fetch_all($req, MYSQLI_ASSOC);
+        return $data;
+    }
+    
     /**
      * Generate and show list of users
      * @param null $filter
@@ -334,6 +344,16 @@ class User extends Users{
     }
 
     /**
+     * @param $id
+     * @return array|null
+     */
+    public function getById($id) {
+        $sql = "SELECT * FROM $this->tablename WHERE id='{$id}'";
+        $req = $this->db -> send_query($sql);
+        return mysqli_fetch_assoc($req);
+    }
+
+    /**
      * Get the number of presentations submitted by the user
      * @return int
      */
@@ -368,7 +388,7 @@ class User extends Users{
      * @return bool
      */
     public function user_exist($prov_username) {
-        $userslist = $this->db -> getinfo($this->tablename,'username');
+        $userslist = $this->db->getinfo($this->tablename,'username');
         $active = $this->db->getinfo($this->tablename,'active',array('username'),array("'$prov_username'"));
         if (in_array($prov_username,$userslist) && $active == 1) {
             return true;

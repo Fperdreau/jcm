@@ -53,7 +53,7 @@ include_once(PATH_TO_INCLUDES.'AppDb.php');
 include_once(PATH_TO_INCLUDES.'AppTable.php');
 $includeList = scandir(PATH_TO_INCLUDES);
 foreach ($includeList as $includeFile) {
-    if (!in_array($includeFile,array('.','..','boot.php'))) {
+    if (!in_array($includeFile,array('.','..','boot.php','functions.php'))) {
         require_once(PATH_TO_INCLUDES.$includeFile);
     }
 }
@@ -92,28 +92,6 @@ function browsecontent($dir,$foldertoexclude=array(),$filestoexclude=array()) {
         closedir($handle);
     }
     return $content;
-}
-
-/**
- * Check release integrity (presence of folders/files and file content)
- * @return bool
- */
-function check_release_integrity() {
-    $releasefolder = PATH_TO_APP.'/jcm/';
-    $releasecontentfile = PATH_TO_APP.'/jcm/content.json';
-    if (is_dir($releasefolder)) {
-        require $releasecontentfile;
-        $release_content = json_decode($content);
-        $foldertoexclude = array('config','uploads','dev');
-        $copied_release_content = browsecontent($releasefolder,$foldertoexclude);
-        $diff = array_diff_assoc($release_content,$copied_release_content);
-        $result['status'] = empty($diff) ? true:false;
-        $result['msg'] = "";
-    } else {
-        $result['status'] = false;
-        $result['msg'] = "<p id='warning'>The jcm folder containing the new release files should be placed at the root of your website</p>";
-    }
-    return json_encode($result);
 }
 
 /**
