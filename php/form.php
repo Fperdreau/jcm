@@ -651,7 +651,7 @@ if (!empty($_POST['mailing_send'])) {
     exit;
 }
 
-// Add emails to mailing list
+// Add emails to recipients list
 if (!empty($_POST['add_emails'])) {
     $id = htmlspecialchars($_POST['add_emails']);
     $icon = "images/close.png";

@@ -697,4 +697,26 @@ class User extends Users{
         }
         return $content;
     }
+
+    /**
+     * Gets user's assignments list
+     * @return string
+     */
+    public function getAssignments() {
+        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='{$this->username}' AND date>CURDATE()";
+        $req = $this->db->send_query($sql);
+        $content = "
+            <div class='list-container list-heading' style='font-size: 12px;'>
+                <div style='width: 20%;'>Date</div>
+                <div style='width: 70%;'>Title</div>
+            </div>
+        ";
+        while ($row = mysqli_fetch_assoc($req)) {
+            $pubid = $row['id_pres'];
+            /** @var Presentation $pub */
+            $pub = new Presentation($this->db,$pubid);
+            $content .= $pub->show(true);
+        }
+        return $content;
+    }
 }

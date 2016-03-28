@@ -26,6 +26,7 @@ require('../includes/boot.php');
 $user = new User($db,$_SESSION['username']);
 $Presentation = new Presentation($db);
 $publication_list = $user->getpublicationlist(null);
+$assignments = $user->getAssignments();
 $notifStatus = ($user->notification == 1) ? "Yes":"No";
 $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
 $assignStatus = ($user->assign == 1) ? "Yes":"No";
@@ -119,6 +120,11 @@ $result = "
         <section>
             <h2>My submissions</h2>
             $publication_list
+        </section>
+        
+        <section>
+            <h2>My assignments</h2>
+            {$assignments}
         </section>
         <div class='plugins'></div>
     </div>
