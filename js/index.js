@@ -216,6 +216,7 @@ function realWidth(obj){
 }
 
 $( document ).ready(function() {
+    var previous;
 
     $('body').ready(function() {
         showLogin();
@@ -569,13 +570,19 @@ $( document ).ready(function() {
             };
             processAjax(div,data,callback);
         })
-
+            
         // Modify speaker
-        .on('change','.modSpeaker',function(e) {
+        .on('focus','.modSpeaker', function () {
+            // Store the current value on focus and on change
+            previous = $(this).val();
+        })
+
+        .on('change', '.modSpeaker', function() {
+            // Do something with the previous value after the change
             var speaker = $(this).val();
             var container = $(this).closest('.pres_container');
             var presid = container.attr('id');
-            var data = {modSpeaker: speaker, presid: presid};
+            var data = {modSpeaker: speaker, previous: previous, presid: presid};
             processAjax(container,data);
         })
 

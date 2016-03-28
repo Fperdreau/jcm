@@ -9,10 +9,11 @@
  and can be automatically assigned to presentations or groups.
 - Removed the possibility to change the website title. This avoids styling issues in the mobile version.
 - Display list of user's assignment on its profile page
+- Notify user by email if he/she has been manually assigned to a session or if his/her presentation has been canceled
+ by an organizer
 
 - Check on assignment randomization
 - Check on emails (room number)
-- Notify user by email if he/she has been manually assigned to a session by an organizer
 
 ## Release: 1.4.1
 ### Changes

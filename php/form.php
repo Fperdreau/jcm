@@ -824,14 +824,24 @@ if (!empty($_POST['modSession'])) {
 if (!empty($_POST['modSpeaker'])) {
     $speaker = $_POST['modSpeaker'];
     $presid = $_POST['presid'];
+    $previous = $_POST['previous'];
+    $previous = new User($db, $_POST['previous']);
     $speaker = new User($db,$speaker);
-
     $pres = new Presentation($db,$presid);
-    if ($pres->update(array('orator'=>$speaker->username))) {
-        $result['msg'] = "$speaker->fullname is the new speaker!";
-        $result['status'] = true;
-    } else {
-        $result['status'] = false;
+    $session = new Session($db, $pres->date);
+    $info['type'] = $session->type;
+    $info['date'] = $session->date;
+    $result['status'] = $session->notify_session_update($previous, $info, false);
+    if ($result['status']) {
+        $result['status'] = $session->notify_session_update($speaker, $info, true);
+        if ($result['status']) {
+            if ($pres->update(array('orator'=>$speaker->username))) {
+                $result['msg'] = "$speaker->fullname is the new speaker!";
+                $result['status'] = true;
+            } else {
+                $result['status'] = false;
+            }
+        }
     }
     echo json_encode($result);
     exit;

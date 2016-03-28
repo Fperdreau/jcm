@@ -286,6 +286,45 @@ class Sessions extends AppTable {
         }
         return $content;
     }
+    
+    /**
+     * @param User $user
+     * @param $info
+     * @return mixed
+     */
+    public function notify_session_update($user, $info, $assigned=true) {
+        global $AppMail;
+
+        $sessionType = $info['type'];
+        $date = $info['date'];
+        $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
+        $AppConfig = new AppConfig($this->db);
+        $contactURL = $AppConfig->site_url."index.php?page=contact";
+        if ($assigned) {
+            $content['body'] = "
+            <div style='width: 100%; margin: auto;'>
+                <p>Hello $user->fullname,</p>
+                <p>You have been automatically invited to present at a <span style='font-weight: 500'>$sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
+                <p>Please, submit your presentation on the Journal Club Manager before the <span style='font-weight: 500'>$dueDate</span>.</p>
+                <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> the organizers as soon as possible.</p>
+            </div>
+        ";
+            $content['subject'] = "Invitation to present on the $date";
+        } else {
+            $content['body'] = "
+            <div style='width: 100%; margin: auto;'>
+                <p>Hello $user->fullname,</p>
+                <p>Your presentation planned on {$date} has been manually canceled. You are no longer required to give a presentation on this day.</p>
+                <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
+            </div>
+        ";
+            $content['subject'] = "Your presentation ($date) has been canceled";
+        }
+
+        $body = $AppMail->formatmail($content['body']);
+        $subject = $content['subject'];
+        return $AppMail->send_mail($user->email,$subject, $body);
+    }
 }
 
 

@@ -261,4 +261,27 @@ class AssignSpeakers extends AppCron {
         $content['subject'] = "Invitation to present on the $date";
         return $content;
     }
+
+    /**
+     * @param $user
+     * @param $info
+     * @return mixed
+     */
+    public function sessionUpdatedN($user, $info) {
+        $sessionType = $info['type'];
+        $date = $info['date'];
+        $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
+        $AppConfig = new AppConfig($this->db);
+        $contactURL = $AppConfig->site_url."index.php?page=contact";
+        $content['body'] = "
+            <div style='width: 100%; margin: auto;'>
+                <p>Hello $user->fullname,</p>
+                <p>You have been automatically invited to present at a <span style='font-weight: 500'>$sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
+                <p>Please, submit your presentation on the Journal Club Manager before the <span style='font-weight: 500'>$dueDate</span>.</p>
+                <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> on the organizers as soon as possible.</p>
+            </div>
+        ";
+        $content['subject'] = "Invitation to present on the $date";
+        return $content;
+    }
 }
