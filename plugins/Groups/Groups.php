@@ -42,13 +42,12 @@ class Groups extends AppPlugins {
     );
     protected $tablename;
     public $name = "Groups";
-    public $version = "0.9";
+    public $version = "1.0.1";
     public $page = 'profile';
     public $status = 'Off';
     public $installed = False;
     public $options = array(
-        "width"=>200,
-        "room"=>array("B.2.15","B.1.38")
+        "room"=>""
     );
 
     /**
@@ -177,6 +176,7 @@ class Groups extends AppPlugins {
      */
     function mailing($assigned_groups) {
         global $Sessions, $db, $AppMail, $AppConfig;
+        $rooms = explode(',', $this->options['room']);
 
         // Declare classes
         $nextdate = $Sessions->getsessions(1);
@@ -188,7 +188,7 @@ class Groups extends AppPlugins {
         for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
             $groupinfo = $assigned_groups[$i];
             $presid = $groupinfo['presid'];
-            $room = (isset($this->options['room'][$i])) ? $this->options['room'][$i]:'TBA';
+            $room = (isset($rooms[$i])) ? $rooms[$i]:'TBA';
 
             /** @var Presentation $pres */
             $pres = new Presentation($db,$presid);
@@ -305,9 +305,8 @@ class Groups extends AppPlugins {
                 $u++;
             }
         }
-        $width = $this->options['width']."px";
         return "
-            <section style='min-width: $width;'>
+            <section>
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>YOUR GROUP</div>
                 <div style='text-align: justify;'>
                     $content
