@@ -68,21 +68,21 @@ class AssignSpeakers extends AppCron {
 
     /**
      * Get list of previous Speakers for a given session type
-     * @param $usersList: List of users (excluding admins)
-     * @param $type: Session's type
-     * @return array
+     * @param array $usersList: List of users (excluding admins)
+     * @param string $type: Session's type
+     * @return array $list
      */
     public function getPreviousSpeakers($usersList, $type) {
         $Presentation = new Presentation($this->db);
-        $sql = "SELECT orator,date FROM $Presentation->tablename ORDER BY date ASC";
+        $sql = "SELECT * FROM {$Presentation->tablename} ORDER BY date ASC";
         $req = $this->db->send_query($sql);
         $list = array();
 
         while ($row=mysqli_fetch_assoc($req)) {
             $speaker = $row['orator'];
-            $session = new Session($this->db,$row['date']);
-            if ($session->type == $type) {
-                if (!in_array($speaker, $list) && $speaker != "TBA") {
+            $session = new Session($this->db, $row['date']);
+            if ($session->type === $type) {
+                if (!in_array($speaker, $list) && $speaker !== "TBA") {
                     $list[] = $speaker;
                 }
                 $diff = array_values(array_diff($usersList,$list));
@@ -97,14 +97,14 @@ class AssignSpeakers extends AppCron {
 
     /**
      * Pseudo randomly choose a chairman
-     * @param $sessionid
+     * @param $session_id
      * @return string
      */
-    public function getSpeaker($sessionid) {
+    public function getSpeaker($session_id) {
         set_time_limit(10);
 
         /** @var Session $session */
-        $session = new Session($this->db,$sessionid);
+        $session = new Session($this->db, $session_id);
 
         // Get speakers planned for this session
         $speakers = $session->speakers;
@@ -115,17 +115,16 @@ class AssignSpeakers extends AppCron {
         $usersList = $Users->getUsers(true);
 
         // get possible speakers for this session type
-        $previousSpeakers = $this->getPreviousSpeakers($usersList,$session->type);
+        $previousSpeakers = $this->getPreviousSpeakers($usersList, $session->type);
 
         // add previous speakers to the exclude list
-        $exclude = array_merge($exclude,$previousSpeakers);
+        $exclude = array_merge($exclude, $previousSpeakers);
 
         // exclude the already assigned speakers for this session from the list of possible speakers
         $possibleSpeakers = array_values(array_diff($usersList,$exclude));
 
         if (empty($usersList)) {
-            /** If no users, the speaker is to be announced.*/
-            /** To Be Announced as a default */
+            /** If there are no users registered yet, the speaker is to be announced.*/
             $newSpeaker = 'TBA';
         } else {
             /** We randomly pick a speaker among organizers who have not chaired a session yet,
@@ -149,18 +148,23 @@ class AssignSpeakers extends AppCron {
         return $newSpeaker;
     }
 
+    /**
+     * Assigns speakers to the n next sessions
+     * @return mixed
+     */
     public function assign() {
         global $db, $Sessions;
         $this->get();
 
-        // Get sessions dates
+        // Get future sessions dates
         $jc_days = $Sessions->getjcdates(intval($this->options['nbsessiontoplan']));
+
         $created = 0;
         $updated = 0;
         $assignedSpeakers = array();
         foreach ($jc_days as $day) {
 
-            // If session does not exist yet, let's create it
+            // If session does not exist yet, we create a new one
             $session = new Session($db, $day);
             if (!$session->dateexists($day)) {
                 $session->make();
@@ -201,15 +205,16 @@ class AssignSpeakers extends AppCron {
 
     /**
      * Run scheduled task: assign speaker to the next sessions
+     * @param bool $notify: should we notify assigned users
      * @return bool|string
      */
-    public function run() {
+    public function run($notify=true) {
 
         // Assign speakers
         $result = $this->assign();
 
         // Notify speakers of their assignments
-        if (!empty($result['content'])) {
+        if (!empty($result['content']) && $notify) {
             $result .= $this->noticing($result['content']);
         }
         return $result['msg'];

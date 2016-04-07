@@ -127,7 +127,8 @@ class AppDb {
             "Media" => $this->dbprefix."_media",
             "Plugins" => $this->dbprefix."_plugins",
             "Pages" => $this->dbprefix."_pages",
-            "Crons" => $this->dbprefix."_crons"
+            "Crons" => $this->dbprefix."_crons",
+            "MailManager" => $this->dbprefix."_mailmanager"
         );
     }
 
@@ -404,12 +405,12 @@ class AppDb {
 
     /**
      * Update a row
-     * @param $table_name
-     * @param $content
+     * @param string $table_name
+     * @param array $content
      * @param array $reference
      * @return bool
      */
-    public function updatecontent($table_name,$content,$reference=array()) {
+    public function updatecontent($table_name, array $content,$reference=array()) {
 
         # Parse conditions
         $nb_ref = count($reference);

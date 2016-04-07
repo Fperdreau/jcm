@@ -21,25 +21,26 @@
  */
 
 require('../includes/boot.php');
+if (!empty($_GET['id'])) {
+    if (isset($_SESSION['username'])) {
+        $user = new User($db, $_SESSION['username']);
+    } elseif (!empty($_GET['user'])) {
+        $user = new User($db, $_GET['user']);
+    } else {
+        $user = false;
+    }
 
-// Declare classes
-$user = new User($db,$_SESSION['username']);
+    $Presentation = new Presentation($db, htmlspecialchars($_GET['id']));
+    if ($user != false) {
+        $content = $Presentation->displayform($user, $Presentation);
+    } else {
+        $content = $Presentation->displaypub();
+    }
 
-// Cronjobs settings
-$AppCron = new AppCron($db);
+} else {
+    $content = "Nothing to show here";
+}
 
-$cronOpt = $AppCron->show();
-$result = "
-    <h1>Scheduled tasks</h1>
-    <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
-    Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
-    either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
-    <div class='feedback'></div>
-    <section>
-        <h2>Tasks list</h2>
-        $cronOpt
-    </section>
-";
+$content = "<section>{$content}</section>";
 
-echo json_encode($result);
-exit;
+echo json_encode($content);

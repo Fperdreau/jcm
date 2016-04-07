@@ -54,8 +54,8 @@ class AppConfig extends AppTable {
      * Session info
      *
      */
-    public $jc_day = "thursday";
-    public $room = "H432";
+    public $jc_day = "";
+    public $room = "";
     public $jc_time_from = "17:00";
     public $jc_time_to = "18:00";
     public $max_nb_session = 2;

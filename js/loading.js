@@ -106,7 +106,6 @@ function loadPageContent(page,urlparam) {
             } else if (json.status === true) {
                 displayPage(page,json.pageName,urlparam);
             } else {
-                console.log(json);
                 $('#pagecontent')
                     .html(json.msg)
                     .fadeIn(200);

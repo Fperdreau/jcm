@@ -21,25 +21,11 @@
  */
 
 require('../includes/boot.php');
+if (!empty($_GET['mail_id'])) {
+    $MailManager = new MailManager($db);
+    $content = $MailManager->show(htmlspecialchars($_GET['mail_id']));
+} else {
+    $content = "Nothing to show here";
+}
 
-// Declare classes
-$user = new User($db,$_SESSION['username']);
-
-// Cronjobs settings
-$AppCron = new AppCron($db);
-
-$cronOpt = $AppCron->show();
-$result = "
-    <h1>Scheduled tasks</h1>
-    <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
-    Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
-    either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
-    <div class='feedback'></div>
-    <section>
-        <h2>Tasks list</h2>
-        $cronOpt
-    </section>
-";
-
-echo json_encode($result);
-exit;
+echo ($content);

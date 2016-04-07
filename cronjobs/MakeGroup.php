@@ -45,24 +45,24 @@ class MakeGroup extends AppCron {
     public $hour;
     public $options;
 
+    /**
+     * MakeGroup constructor.
+     * @param AppDb $db
+     */
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
         $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
-
-    public function install() {
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
-
+    
+    /**
+     * Run scheduled task
+     * @return array|string
+     */
     public function run() {
         global $db;
-        // run cron job
         $groups = new Groups($db);
-        $result = $groups->run();
-        return $result;
+        return $groups->run();
     }
 }
 

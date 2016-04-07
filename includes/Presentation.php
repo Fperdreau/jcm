@@ -291,7 +291,6 @@ class Presentation extends Presentations {
             }
 
             $content = $this->parsenewdata($class_vars, $post, array("link","chair"));
-
             // Add publication to the database
             if ($this->db->addcontent($this->tablename,$content)) {
                 return $this->id_pres;
@@ -321,7 +320,7 @@ class Presentation extends Presentations {
             // Get associated files
             $this->get_uploads();
 
-            return true;
+            return $this;
         } else {
             return false;
         }
@@ -452,7 +451,7 @@ class Presentation extends Presentations {
      * @param $date
      * @return string
      */
-    public function showinsession($opt=false,$date) {
+    public function showinsession($opt=false, $date) {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
@@ -476,16 +475,18 @@ class Presentation extends Presentations {
         if ($opt == 'admin' && $opt != 'mail') {
             /** Get list of organizers */
             $Users = new Users($this->db);
-            $organizers = $Users->getUsers();
-            $organizers[] = 'TBA';
+            $organizers = array('TBA');
+            foreach ($Users->getUsers() as $key=>$user) {
+                $organizers[] = $user['username'];
+            }
 
             $speakerOpt = "";
             foreach ($organizers as $organizer) {
-                if ($speaker == 'TBA') {
+                if ($organizer == 'TBA') {
                     $speakerOpt .= "<option value='TBA' selected>TBA</option>";
                 } else {
                     $orga = new User($this->db,$organizer);
-                    $selectOpt = ($orga->fullname == $speaker) ? 'selected':"";
+                    $selectOpt = ($orga->fullname == $speaker) ? 'selected':null;
                     $speakerOpt .= "<option value='$orga->username' $selectOpt>$orga->fullname</option>";
                 }
             }
@@ -668,5 +669,103 @@ class Presentation extends Presentations {
         $filediv
         ";
         return $result;
+    }
+
+    /**
+     * Generate submission form and automatically fill it up with data provided by Presentation object.
+     * @param User $user
+     * @param bool $Presentation
+     * @param string $submit
+     * @param bool $type
+     * @param bool $date
+     * @return string
+     */
+    public static function displayform(User $user, $Presentation=false, $submit="submit", $type=false, $date=false) {
+        global $AppConfig, $db;
+
+        if ($Presentation == false) {
+            $Presentation = new self($db);
+        }
+        $date = ($date != false) ? $date:$Presentation->date;
+        $type = ($type != false) ? $type:$Presentation->type;
+
+        // Get files associated to this publication
+        $links = $Presentation->link;
+        $uploader = uploader($links);
+
+        // Presentation ID
+        $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres:'false';
+        $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
+
+        // Show date input only for submissions and updates
+        $dateinput = ($submit != "suggest") ? "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>":"";
+
+        $authors = ($type !== 'minute') ? "<div class='formcontrol'>
+                <label>Authors </label>
+                <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
+            </div>":"";
+
+        $selectopt = ($submit === "select") ? $Presentation->generate_selectwishlist():"";
+
+        // Make submission's type selection list
+        $typeoptions = "";
+        $pres_type = explode(',', $AppConfig->pres_type);
+        foreach ($pres_type as $types) {
+            if ($types == $type) {
+                $typeoptions .= "<option value='$types' selected>$types</option>";
+            } else {
+                $typeoptions .= "<option value='$types'>$types</option>";
+            }
+        }
+
+        // Text of the submit button
+        $submitxt = ucfirst($submit);
+        $form = ($submit !== "select") ? "<div class='feedback'></div>
+        <form method='post' action='' enctype='multipart/form-data' id='submit_form'>
+            <div class='submit_btns'>
+                <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
+            </div>
+            <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
+            <input type='hidden' name='$submit' value='true'/>
+            <input type='hidden' name='username' value='$user->username'/>
+            $idPresentation
+
+            <div class='formcontrol'>
+                <label>Type</label>
+                <select name='type' id='type' required>
+                    $typeoptions
+                </select>
+            </div>
+
+            <div class='formcontrol'>
+                $dateinput
+            </div>
+
+            <div class='formcontrol' id='guest' style='display: none;'>
+                <label>Speaker</label>
+                <input type='text' id='orator' name='orator' required>
+            </div>
+
+            <br><div class='formcontrol'>
+                <label>Title </label>
+                <input type='text' id='title' name='title' value='$Presentation->title' required/>
+            </div>
+
+            $authors
+
+            <div class='formcontrol'>
+                <label>Abstract</label>
+                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+            </div>
+        </form>
+
+        $uploader":"";
+
+        return "
+    <div>$selectopt</div>
+    <div class='submission'>
+        $form
+    </div>
+	";
     }
 }

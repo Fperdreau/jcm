@@ -42,12 +42,19 @@ class Reminder extends AppCron {
     public $hour;
     public $options;
 
+    /**
+     * Reminder constructor.
+     * @param AppDb $db
+     */
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
         $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
+    /**
+     * @return bool|mysqli_result
+     */
     public function install() {
         // Register the plugin in the db
         $class_vars = get_class_vars($this->name);
@@ -65,15 +72,14 @@ class Reminder extends AppCron {
 
         // Declare classes
         global $AppMail;
+        $MailManager = new MailManager($this->db);
 
         // Number of users
-        $nusers = count($AppMail->get_mailinglist("reminder"));
+        $mailing_list = $AppMail->get_mailinglist("reminder");
 
         $content = $this->makeMail();
-        $body = $AppMail->formatmail($content['body']);
-        $subject = $content['subject'];
-        if ($AppMail->send_to_mailinglist($subject, $body, "reminder")) {
-            $result = "message sent successfully to $nusers users.";
+        if ($MailManager->send($content, $mailing_list)) {
+            $result = "message sent successfully to " . count($mailing_list) ." users.";
         } else {
             $result = "ERROR message not sent.";
         }

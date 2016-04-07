@@ -31,10 +31,6 @@ require('../includes/boot.php');
  * Scheduled task that creates backup of the database and store them in backup/mysql.
  */
 class DbBackup extends AppCron {
-    /**
-     * Assign chairmen for the next n sessions
-     * @return bool
-     */
 
     public $name = 'DbBackup';
     public $path;

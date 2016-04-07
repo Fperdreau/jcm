@@ -118,14 +118,18 @@ class Groups extends AppPlugins {
         $session = new Session($db,$nextdate[0]);
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max($AppConfig->max_nb_session,count($session->presids));
+        $ngroups = max($AppConfig->max_nb_session, count($session->presids));
 
         // Get users list
         $Users = new Users($this->db);
-        $users = $Users->getUsers();
+        $users = array();
+        foreach ($Users->getUsers(true) as $key=>$user) {
+            $users[] = $user['username'];
+        }
+
         $nusers = count($users); // total nb of users
 
-        if ($nusers <= $ngroups || $session->type == "none") {return false; }
+        if ($nusers < $ngroups || $session->type == "none") {return false; }
 
         $excludedusers = array();
         $pregroups = array();
@@ -134,14 +138,14 @@ class Groups extends AppPlugins {
             $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
             $excludedusers[] = $speaker;
         }
-        $remainusers = array_values(array_diff($users,$excludedusers));
+        $remainusers = array_values(array_diff($users, $excludedusers));
 
         // Shuffle the remaining users
         shuffle($remainusers);
 
         // Make groups
         $qtity = ceil(count($remainusers)/$ngroups); // nb of users per group
-        $groups = array_chunk($remainusers,$qtity);
+        $groups = array_chunk($remainusers, $qtity);
 
         // Assign presentation
         $assigned_groups = array();
@@ -155,43 +159,43 @@ class Groups extends AppPlugins {
 
             // Add to the table
             foreach ($group as $mbr) {
-                $content = array(
+                $this->db->addcontent($this->tablename, array(
                     'groups' => $i,
                     'username' => $mbr['member'],
                     'role' => $mbr['role'],
                     'presid' => $presid,
                     'date' => $session->date
-                );
-                $this->db->addcontent($this->tablename, $content);
+                ));
             }
         }
 
         return $assigned_groups;
     }
 
-    // Execute cron job
     /**
+     * Make and send email notification about group information
      * @param $assigned_groups
      * @return string
      */
     function mailing($assigned_groups) {
-        global $Sessions, $db, $AppMail, $AppConfig;
+        global $Sessions, $AppConfig;
+        $MailManager = new MailManager($this->db);
+
         $rooms = explode(',', $this->options['room']);
 
         // Declare classes
         $nextdate = $Sessions->getsessions(1);
-        $session = new Session($db,$nextdate[0]);
+        $session = new Session($this->db, $nextdate[0]);
 
         // Make email
         $nsent = 0;
         $string = "";
-        for ($i=0;$i<$AppConfig->max_nb_session;$i++) {
+        for ($i=0; $i<$AppConfig->max_nb_session; $i++) {
             $groupinfo = $assigned_groups[$i];
             $presid = $groupinfo['presid'];
-            $room = (isset($rooms[$i])) ? $rooms[$i]:'TBA';
+            $data['room'] = (isset($rooms[$i])) ? $rooms[$i]:'TBA';
 
-            /** @var Presentation $pres */
-            $pres = new Presentation($db,$presid);
+            $pres = new Presentation($this->db, $presid);
             $type = ($pres->type !== '') ? ucfirst($pres->type):'TBA';
             $group = $groupinfo['group'];
 
@@ -202,10 +206,10 @@ class Groups extends AppPlugins {
                 $submit_url = $AppConfig->site_url.'index.php?page=submission&op=new';
                 $presentation_desc = "
                 <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
-                There is no presentation assigned to your group yet. <a href='$submit_url' target='_blank'>Be the first!</a></div>";
+                There is no presentation assigned to your group yet. <a href='{$submit_url}' target='_blank'>Be the first!</a></div>";
             }
 
-            $pubcontent = "
+            $data['publication'] = "
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
                     YOUR GROUP PRESENTATION
                 </div>
@@ -213,43 +217,55 @@ class Groups extends AppPlugins {
                     $presentation_desc
                  </div>";
 
+            // Send to every member individually
             foreach($group as $mbr) {
                 $username = $mbr['member'];
                 if (empty($username) || $username == 'TBA') continue; // We do not send emails to fake users
+
                 // Get the user's group
-                $groupcontent = $this->show($username);
+                $data['group'] = $this->show($username);
 
-                $user = new User($db,$username);
-                $content = "
-                    <div style='width: 100%; margin: auto;'>
-                        <p>Hello <span style='font-weight: 600;'>$user->firstname</span>,</p>
-                        <p>Here is your assignment for our next journal club session that will be held on the
-                        $session->date in room <b>$room</b>.</p>
+                $user = new User($this->db,$username);
+                $content = self::makeMail($session, $user, $data);
 
-                        <div style='display: block; vertical-align: top; margin: auto;'>
-                            <div style='display: inline-block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                                $groupcontent
-                            </div>
-                            <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; max-width: 60%; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                                $pubcontent
-                            </div>
-                        </div>
-                    </div>
-                    ";
-
-                $AppMail = new AppMail($db,$AppConfig);
-                $body = $AppMail -> formatmail($content);
-                $subject = "Your group assignment - $session->date";
-                if ($AppMail->send_mail($user->email,$subject,$body)) {
+                if ($MailManager->send($content, array($user->email))) {
                     $nsent += 1;
                 } else {
-                    $string .= "ERROR message not sent to $user->email.";
+                    $string .= "ERROR message not sent to {$user->email}.";
                 }
             }
         }
 
-        $string .= "Message sent to $nsent users.";
+        $string .= "Message sent to {$nsent} users.";
         return $string;
+    }
+
+    /**
+     * Renders Email notification
+     * @param Session $session
+     * @param User $user
+     * @param array $content
+     * @return mixed
+     */
+    public static function makeMail(Session $session, User $user, array $content) {
+        $result['body'] = "
+            <div style='width: 100%; margin: auto;'>
+                <p>Hello <span style='font-weight: 600;'>$user->firstname</span>,</p>
+                <p>Here is your assignment for our next journal club session that will be held on the
+                $session->date in room <b> " . $content['room'] . "</b>.</p>
+    
+                <div style='display: block; vertical-align: top; margin: auto;'>
+                    <div style='display: inline-block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+                        " . $content['group'] . "
+                    </div>
+                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; max-width: 60%; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+                         " . $content['publication'] . "
+                    </div>
+                </div>
+            </div>
+            ";
+        $result['subject'] = "Your group assignment - $session->date";
+        return $result;
     }
 
     /**

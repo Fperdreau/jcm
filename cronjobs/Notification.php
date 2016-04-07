@@ -70,29 +70,37 @@ class Notification extends AppCron {
         // Declare classes
         global $AppMail;
 
+        $MailManager = new MailManager($this->db);
+
         // Number of users
-        $nusers = count($AppMail->get_mailinglist("notification"));
+        $mailing_list = $AppMail->get_mailinglist("notification");
+        $nusers = count($mailing_list);
 
         // Get presentation list
         $presentation = new Presentations($this->db);
         $presentationList = $presentation->getLatest();
 
         if (!empty($presentationList)) {
-            $content = $this->makeMail($presentationList);
-            $body = $AppMail->formatmail($content['body']);
-            $subject = $content['subject'];
-            if ($AppMail->send_to_mailinglist($subject, $body, "notification")) {
-                $result = "message sent successfully to $nusers users.";
+            $result = false;
+            foreach ($mailing_list as $fullname=>$email) {
+                $content = $this->makeMail($presentationList, $fullname);
 
-                // Tell to the db that notifications have been sent about the new presentations
-                foreach ($presentationList as $presid) {
-                    $pres = new Presentation($this->db, $presid);
-                    $pres->notified = 1;
-                    $pres->update();
+                if ($result = $MailManager->send($content, array($email))) {
+
+                    // Tell to the db that notifications have been sent about the new presentations
+                    foreach ($presentationList as $presid) {
+                        $pres = new Presentation($this->db, $presid);
+                        $pres->notified = 1;
+                        $pres->update();
+                    }
+
+                } else {
+                    $result = false;
                 }
-            } else {
-                $result = "ERROR message not sent.";
             }
+
+            $result = $result ? "message sent successfully to $nusers users." : "ERROR message not sent.";
+
             return $result;
         } else {
             return "No new presentations";
@@ -102,9 +110,10 @@ class Notification extends AppCron {
     /**
      * Make reminder notification email (including only information about the upcoming session)
      * @param $presentationList
+     * @param string $fullname
      * @return mixed
      */
-    public function makeMail($presentationList) {
+    public function makeMail($presentationList, $fullname) {
         // Get latest submitted presentation
         $nbpres = count($presentationList);
         $list = "";
@@ -114,7 +123,7 @@ class Notification extends AppCron {
         }
         $content['body'] = "
         <div style='width: 100%; margin: auto;'>
-            <p>Hello,</p>
+            <p>Hello $fullname,</p>
             <p>New presentations have been recently submitted!</p>
         </div>
 

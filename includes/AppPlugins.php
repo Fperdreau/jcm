@@ -121,7 +121,7 @@ class AppPlugins extends AppTable {
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return: object
+     * @return AppPlugins
      */
     public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/plugins/';
@@ -149,6 +149,9 @@ class AppPlugins extends AppTable {
         $plugins = array();
         foreach ($pluginList as $pluginfile) {
             if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
+                /**
+                 * @var AppPlugins $thisPlugin
+                 */
                 $thisPlugin = $this->instantiate($pluginfile);
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
@@ -160,7 +163,7 @@ class AppPlugins extends AppTable {
                     'options'=>$thisPlugin->options,
                     'version'=>$thisPlugin->version);
 
-                $plugins[$pluginfile]['display'] = ($thisPlugin->isInstalled()) ? $thisPlugin->show():'';
+                $plugins[$pluginfile]['display'] = ($thisPlugin->isInstalled() && $page !== false) ? $thisPlugin->show():'';
 
             }
         }

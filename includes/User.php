@@ -83,14 +83,10 @@ class Users extends AppTable {
      * @return array
      */
     public function getUsers($assign = false) {
-        $sql = "SELECT * FROM $this->tablename WHERE notification=1 and active=1 and status!='admin'";
+        $sql = "SELECT * FROM $this->tablename WHERE active=1 and status!='admin'";
         $sql = ($assign == true) ? $sql." and assign=1":$sql;
         $req = $this->db->send_query($sql);
-        $users = array();
-        while ($row = mysqli_fetch_assoc($req)) {
-            $users[] = $row['username'];
-        }
-        return $users;
+        return $req->fetch_all(MYSQLI_ASSOC);
     }
 
     /**

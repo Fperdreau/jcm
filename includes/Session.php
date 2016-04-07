@@ -100,9 +100,9 @@ class Sessions extends AppTable {
      */
 
     public function dateexists($date) {
-        $dates = $this->getsessions();
-        if ($dates === false) {$dates = array();}
-        return in_array($date,$dates);
+        $sql = "SELECT * FROM {$this->tablename} WHERE date='{$date}'";
+        $data = $this->db->send_query($sql)->fetch_assoc();
+        return !is_null($data);
     }
 
     /**
@@ -140,7 +140,7 @@ class Sessions extends AppTable {
         }
 
         $content = "";
-        if (self::dateexists($date)) {
+        if ($this->dateexists($date)) {
             $session = new Session($this->db,$date);
         } else {
             $session = new Session($this->db);
@@ -286,20 +286,22 @@ class Sessions extends AppTable {
         }
         return $content;
     }
-    
+
     /**
+     * Renders email notifying presentation assignment
      * @param User $user
-     * @param $info
+     * @param array $info
+     * @param bool $assigned
      * @return mixed
      */
-    public function notify_session_update($user, $info, $assigned=true) {
-        global $AppMail;
-
+    public function notify_session_update(User $user, array $info, $assigned=true) {
+        $MailManager = new MailManager($this->db);
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $AppConfig = new AppConfig($this->db);
         $contactURL = $AppConfig->site_url."index.php?page=contact";
+        $editUrl = $AppConfig->site_url."index.php?page=presentation&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
@@ -307,6 +309,9 @@ class Sessions extends AppTable {
                 <p>You have been automatically invited to present at a <span style='font-weight: 500'>$sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
                 <p>Please, submit your presentation on the Journal Club Manager before the <span style='font-weight: 500'>$dueDate</span>.</p>
                 <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> the organizers as soon as possible.</p>
+                <div>
+                    You can edit your presentation from this link: <a href='{$editUrl}'>{$editUrl}</a>
+                </div>
             </div>
         ";
             $content['subject'] = "Invitation to present on the $date";
@@ -321,9 +326,7 @@ class Sessions extends AppTable {
             $content['subject'] = "Your presentation ($date) has been canceled";
         }
 
-        $body = $AppMail->formatmail($content['body']);
-        $subject = $content['subject'];
-        return $AppMail->send_mail($user->email,$subject, $body);
+        return $MailManager->send($content, array($user->email));
     }
 }
 
@@ -365,15 +368,15 @@ class Session extends Sessions {
      */
     public function make($post=array()) {
         $this->date = (!empty($post['date'])) ? $post['date']:$this->date;
-        if (!$this::dateexists($this->date)) {
+        if (!$this->dateexists($this->date)) {
             $class_vars = get_class_vars("Session");
             $content = $this->parsenewdata($class_vars, $post, array('presids','speakers'));
 
             // Add session to the database
             return $this->db->addcontent($this->tablename,$content);
         } else {
-            self::get($this->date);
-            return self::update($post);
+            $this->get($this->date);
+            return $this->update($post);
         }
     }
 
@@ -416,7 +419,7 @@ class Session extends Sessions {
                     $this->$varname = htmlspecialchars_decode($value);
                 }
             }
-            return self::updatestatus();
+            return $this->updatestatus();
         } else {
             return false;
         }

@@ -211,6 +211,7 @@ input[type='button'].addBtn {
     box-sizing: border-box;
     line-height: 28px;
     font-size: 20px;
+    margin-top: 0;
 }
 
 /* Semi-transparent layer added on top of a form in order to show a feedback */
@@ -1103,7 +1104,7 @@ h3 {
 .plugLeft {
     display: inline-block;
     vertical-align: top;
-    width: 150px;
+    width: 200px;
 }
 
 .plugName {

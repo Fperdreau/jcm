@@ -87,10 +87,10 @@ if (!empty($_POST['modOpt'])) {
     $thisApp = $App->instantiate($name);
     $thisApp->get();
     if ($thisApp->update(array('options'=>$data))) {
-        $result['stauts'] = true;
+        $result['status'] = true;
         $result['msg'] = "$name's settings successfully updated!";
     } else {
-        $result['stauts'] = true;
+        $result['status'] = true;
     }
     echo json_encode($result);
     exit;
@@ -283,7 +283,8 @@ Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Logout
 if (!empty($_POST['logout'])) {
-    session_unset();
+    $_SESSION = array();
+    unset($_SESSION);
     session_destroy();
     echo json_encode(true);
     exit;
@@ -505,7 +506,7 @@ if (!empty($_POST['getpubform'])) {
         $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
 
         $user = new User($db,$_SESSION['username']);
-        $result = displayform($user,$pub,$type,$prestype,$date);
+        $result = Presentation::displayform($user,$pub,$type,$prestype,$date);
     } else {
         $result = "<p id='warning'>You must sign in to access this page!</p>";
     }
@@ -536,7 +537,7 @@ if (!empty($_POST['mod_pub'])) {
     $id_Presentation = $_POST['mod_pub'];
     $user = new User($db,$_SESSION['username']);
     $pub = new Presentation($db,$id_Presentation);
-    $form = displayform($user,$pub,'update');
+    $form = Presentation::displayform($user,$pub,'update');
     echo json_encode($form);
     exit;
 }
@@ -544,7 +545,7 @@ if (!empty($_POST['mod_pub'])) {
 if (!empty($_POST['getform'])) {
     $pub = new Presentation($db);
     $user = new User($db,$_SESSION['username']);
-    $form = displayform($user,$pub,'submit');
+    $form = Presentation::displayform($user,$pub,'submit');
     echo json_encode($form);
     exit;
 }
@@ -630,7 +631,9 @@ if (!empty($_POST['mailing_send'])) {
     $content['body'] = $_POST['spec_msg'];
     $content['subject'] = $_POST['spec_head'];
     $ids = explode(',',$_POST['emails']);
+
     $user = new User($db);
+    $MailManager = new MailManager($db);
 
     // Get emails from the provided list of IDs
     $mailing_list = array();
@@ -638,17 +641,12 @@ if (!empty($_POST['mailing_send'])) {
         $data = $user->getById($id);
         $mailing_list[] = $data['email'];
     }
+    
+    $result = $MailManager->send($content, $mailing_list);
 
-    $body = $AppMail -> formatmail($content['body']);
-    $subject = $content['subject'];
-    if ($AppMail->send_mail($mailing_list, $subject, $body, 'notification')) {
-        $result['status'] = true;
-        $result['msg'] = "Your message has been sent!";
-    } else {
-        $result['status'] = false;
-    };
     echo json_encode($result);
     exit;
+
 }
 
 // Add emails to recipients list
@@ -824,13 +822,23 @@ if (!empty($_POST['modSession'])) {
 if (!empty($_POST['modSpeaker'])) {
     $speaker = $_POST['modSpeaker'];
     $presid = $_POST['presid'];
-    $previous = $_POST['previous'];
+    $date = $_POST['date'];
     $previous = new User($db, $_POST['previous']);
-    $speaker = new User($db,$speaker);
-    $pres = new Presentation($db,$presid);
-    $session = new Session($db, $pres->date);
+    $speaker = new User($db, $speaker);
+    $Presentation = new Presentation($db);
+    if (empty($presid)) {
+        $presid = $Presentation->make(array(
+            'title'=>'TBA',
+            'date'=>$date,
+            'orator'=>$speaker->username,
+            'username'=>$speaker->username,
+            'type'=>'paper'));
+    }
+    $pres = $Presentation->get($presid);
+    $session = new Session($db, $date);
     $info['type'] = $session->type;
     $info['date'] = $session->date;
+    $info['presid'] = $presid;
     $result['status'] = $session->notify_session_update($previous, $info, false);
     if ($result['status']) {
         $result['status'] = $session->notify_session_update($speaker, $info, true);

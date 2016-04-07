@@ -98,19 +98,20 @@ function browsecontent($dir,$foldertoexclude=array(),$filestoexclude=array()) {
  * Patching database tables for version older than 1.2.
  */
 function patching() {
+    global $db;
+    $version = (float)$_SESSION['installed_version'];
+    if ($version <= 1.2) {
 
-    $version = $_SESSION['installed_version'];
-    if ($version < 1.2) {
         // Patch Presentation table
         // Set username of the uploader
-        $sql = 'SELECT id_pres,username,orator,summary,authors,title,notified FROM ' . $this->tablename;
-        $req = $this->db->send_query($sql);
+        $sql = 'SELECT * FROM ' . $db->tablesname['Presentation'];
+        $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
-            $pub = new Presentation($this->db, $row['id_pres']);
+            $pub = new Presentation($db, $row['id_pres']);
             $userid = $row['orator'];
-            $pub->summary = str_replace('\\', '', htmlspecialchars($row['summary']));
-            $pub->authors = str_replace('\\', '', htmlspecialchars($row['authors']));
-            $pub->title = str_replace('\\', '', htmlspecialchars($row['title']));
+            $pub->summary = str_replace('\\', '', htmlspecialchars_decode($row['summary']));
+            $pub->authors = str_replace('\\', '', htmlspecialchars_decode($row['authors']));
+            $pub->title = str_replace('\\', '', htmlspecialchars_decode($row['title']));
 
             // If publication's submission date is past, we assume it has already been notified
             if ($pub->up_date < date('Y-m-d H:i:s', strtotime('-2 days', strtotime(date('Y-m-d H:i:s'))))) {
@@ -119,8 +120,8 @@ function patching() {
             }
 
             if (empty($row['username']) || $row['username'] == "") {
-                $sql = "SELECT username FROM " . $this->db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
-                $userreq = $this->db->send_query($sql);
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname LIKE '%$userid%'";
+                $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
                 if (!empty($data)) {
                     $pub->orator = $data['username'];
@@ -131,33 +132,33 @@ function patching() {
         }
 
         // Patch POST table
-        // Give ids to posts that do not have one yet (compatibility with older verions)
-        $post = new Posts($this->db);
-        $sql = "SELECT postid,date,username FROM " . $this->tablename;
-        $req = $this->db->send_query($sql);
+        // Give ids to posts that do not have one yet (compatibility with older versions)
+        $post = new Posts($db);
+        $sql = "SELECT postid,date,username FROM " . $db->tablesname['Posts'];
+        $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $date = $row['date'];
             if (empty($row['postid']) || $row['postid'] == "NULL") {
                 // Get uploader username
                 $userid = $row['username'];
-                $sql = "SELECT username FROM " . $this->db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
-                $userreq = $this->db->send_query($sql);
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
+                $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
 
                 $username = $data['username'];
                 $post->date = $date;
                 $postid = $post->makeID();
-                $this->db->updatecontent($this->tablename, array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
+                $db->updatecontent($db->tablesname['Posts'], array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
             }
         }
 
         // Patch MEDIA table
         // Write previous uploads to this new table
-        $columns = $this->db->getcolumns($this->db->tablesname['Presentation']);
-        $filenames = $this->db->getinfo($this->tablename, 'filename');
+        $columns = $db->getcolumns($db->tablesname['Presentation']);
+        $filenames = $db->getinfo($db->tablesname['Media'], 'filename');
         if (in_array('link', $columns)) {
-            $sql = "SELECT up_date,id_pres,link FROM " . $this->db->tablesname['Presentation'];
-            $req = $this->db->send_query($sql);
+            $sql = "SELECT up_date,id_pres,link FROM " . $db->tablesname['Presentation'];
+            $req = $db->send_query($sql);
             while ($row = mysqli_fetch_assoc($req)) {
                 $links = explode(',', $row['link']);
                 if (!empty($links)) {
@@ -177,7 +178,7 @@ function patching() {
                                     'presid' => $row['id_pres'],
                                     'type' => $type
                                 );
-                                $this->db->addcontent($this->db->tablesname['Media'], $content);
+                                $db->addcontent($db->tablesname['Media'], $content);
                             }
                         }
                     }
@@ -305,6 +306,10 @@ if (!empty($_POST['operation'])) {
         // Create Media table
         $Media = new Uploads($db);
         $Media->setup($op);
+
+        // Create MailManager table
+        $MailManager = new MailManager($db);
+        $MailManager->setup($op);
 
         // Create Presentation table
         $Presentations = new Presentations($db);

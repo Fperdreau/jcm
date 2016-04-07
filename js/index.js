@@ -582,7 +582,13 @@ $( document ).ready(function() {
             var speaker = $(this).val();
             var container = $(this).closest('.pres_container');
             var presid = container.attr('id');
-            var data = {modSpeaker: speaker, previous: previous, presid: presid};
+            var date = $(this).closest('.session_div').data('id');
+            var data = {
+                modSpeaker: speaker, 
+                previous: previous, 
+                presid: presid, 
+                date:date
+            };
             processAjax(container,data);
         })
 

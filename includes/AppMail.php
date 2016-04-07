@@ -54,10 +54,10 @@ class AppMail {
      * @param AppDb $db
      * @param AppConfig $config
      */
-    function __construct(AppDb $db, AppConfig $config) {
+    function __construct(AppDb $db, AppConfig $config=null) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname['User'];
-        $this->config = $config;
+        $this->config = (!is_null($config)) ? $config : new AppConfig($db);
     }
 
     /**
@@ -195,9 +195,13 @@ class AppMail {
     /**
      * Format email (html)
      * @param string $content
+     * @param null $email_id
      * @return string
      */
-    function formatmail($content) {
+    function formatmail($content, $email_id=null) {
+        $show_in_browser = (is_null($email_id)) ? null:
+            "<a href='" . $this->config->site_url."pages/mail.php?mail_id={$email_id}"
+            . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
         $profile_url = $this->config->site_url.'index.php?page=profile';
         $sitetitle = $this->config->sitetitle;
         $body = "
@@ -212,8 +216,11 @@ class AppMail {
                     </div>
 
                     <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
-                        This email has been sent automatically. You can choose to no longer receive notification emails from your
+                        <div style='text-align: center;'>{$show_in_browser}</div>
+                        <div style='border-top: 1px solid #e0e0e0;'>This email has been sent automatically. You can choose to no longer receive notification
+                        emails from us by going to
                         <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
+                        </div>
                     </div>
                 </div>
             </div>";

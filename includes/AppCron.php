@@ -77,6 +77,15 @@ class AppCron extends AppTable {
     }
 
     /**
+     * Register scheduled task into the database
+     * @return bool|mysqli_result
+     */
+    public function install() {
+        $class_vars = get_class_vars($this->name);
+        return $this->make($class_vars);
+    }
+
+    /**
      * Register cronjobs to the table
      * @param array $post
      * @return bool|mysqli_result
@@ -88,7 +97,7 @@ class AppCron extends AppTable {
     }
 
     /**
-     * Get info from the cronjobs table
+     * Get info from the scheduled tasks table
      */
     public function get() {
         $sql = "SELECT * FROM $this->tablename WHERE name='$this->name'";
@@ -247,7 +256,7 @@ class AppCron extends AppTable {
         $cronList = scandir($folder);
         $jobs = array();
         foreach ($cronList as $cronFile) {
-            if (!empty($cronFile) && !in_array($cronFile,array('.','..','run.php','logs'))) {
+            if (!empty($cronFile) && !in_array($cronFile,array('.','..','test_assignment.php','run.php','logs'))) {
                 $name = explode('.',$cronFile);
                 $name = $name[0];
                 $thisPlugin = $this->instantiate($name);
@@ -304,6 +313,7 @@ class AppCron extends AppTable {
      */
     public function show() {
         $jobsList = $this->getJobs();
+
         $cronList = "";
         foreach ($jobsList as $cronName => $info) {
             $installed = $info['installed'];
