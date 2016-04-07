@@ -84,6 +84,10 @@ class Assignment extends AppPlugins {
      */
     private static $session;
 
+    public static $description = "Automatically assigns members of the JCM (who agreed upon being assigned by settings 
+    the corresponding option on their profile page) as speakers to the future sessions. 
+    The number of sessions to plan in advance can be set in the plugin's settings.";
+
     /**
      * Constructor
      * @param AppDb $db

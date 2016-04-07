@@ -50,6 +50,10 @@ class Groups extends AppPlugins {
         "room"=>""
     );
 
+    public static $description = "Automatically creates groups of users based on the number of presentations scheduled 
+    for the upcoming session. Users will be notified by email about their group's information. If the different groups are
+    meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
+
     /**
      * Constructor
      * @param AppDb $db

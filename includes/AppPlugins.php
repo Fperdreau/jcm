@@ -38,14 +38,17 @@ class AppPlugins extends AppTable {
         "page"=>array("CHAR(20)",false),
         "status"=>array("CHAR(3)",false),
         "options"=>array("TEXT",false),
+        "description"=>array("TEXT",false),
         "primary"=>'id'
     );
+
     public $name;
     public $version;
     public $page;
     public $status;
     public $installed;
     public $options;
+    public static $description;
 
     /**
      * Constructor
@@ -140,12 +143,9 @@ class AppPlugins extends AppTable {
             $pluginList = scandir($folder);
         } else {
             $sql = "SELECT * FROM $this->tablename WHERE page='$page'";
-            $req = $this->db->send_query($sql);
-            $pluginList = array();
-            while ($row = mysqli_fetch_assoc($req)) {
-                $pluginList[] = $row['name'];
-            }
+            $pluginList = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
         }
+
         $plugins = array();
         foreach ($pluginList as $pluginfile) {
             if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
@@ -161,7 +161,9 @@ class AppPlugins extends AppTable {
                     'status' => $thisPlugin->status,
                     'page'=>$thisPlugin->page,
                     'options'=>$thisPlugin->options,
-                    'version'=>$thisPlugin->version);
+                    'version'=>$thisPlugin->version,
+                    'description'=>$thisPlugin::$description
+                );
 
                 $plugins[$pluginfile]['display'] = ($thisPlugin->isInstalled() && $page !== false) ? $thisPlugin->show():'';
 
@@ -209,6 +211,7 @@ class AppPlugins extends AppTable {
         $plugin_list = "";
         foreach ($pluginsList as $pluginName => $info) {
             $installed = $info['installed'];
+            $pluginDescription = (!empty($info['description'])) ? $info['description']:null;
             if ($installed) {
                 $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='plugin' data-op='uninstall' data-name='$pluginName'></div>";
             } else {
@@ -220,7 +223,6 @@ class AppPlugins extends AppTable {
             <div class='plugDiv' id='plugin_$pluginName'>
                 <div class='plugLeft'>
                     <div class='plugName'>$pluginName</div>
-                    <div class='plugTime'>" . $info['version'] . "</div>
                     <div class='optbar'>
                         <div class='optShow workBtn settingsBtn' data-op='plugin' data-name='$pluginName'></div>
                         $install_btn
@@ -228,27 +230,35 @@ class AppPlugins extends AppTable {
                 </div>
 
                 <div class='plugSettings'>
-                    <div class='optbar'>
-                        <div class='formcontrol'>
-                            <label>Status</label>
-                            <select class='select_opt modSettings' data-op='plugin' data-option='status' data-name='$pluginName'>
-                            <option value='$status' selected>$status</option>
-                            <option value='On'>On</option>
-                            <option value='Off'>Off</option>
-                            </select>
-                        </div>
+                    <div class='description'>
+                        <div class='version'>Version: {$info['version']}</div>
+                        {$pluginDescription}
                     </div>
-
-                    <div class='settings'>
-                        <div class='formcontrol'>
-                            <label>Page</label>
-                            <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "' style='width: 20%'/>
+                    
+                    <div>
+                        <div class='optbar'>
+                            <div class='formcontrol'>
+                                <label>Status</label>
+                                <select class='select_opt modSettings' data-op='plugin' data-option='status' data-name='$pluginName'>
+                                <option value='$status' selected>$status</option>
+                                <option value='On'>On</option>
+                                <option value='Off'>Off</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class='plugOpt' id='$pluginName'></div>
+    
+                        <div class='settings'>
+                            <div class='formcontrol'>
+                                <label>Page</label>
+                                <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "' style='width: 20%'/>
+                            </div>
+                        </div>
+                        
+                        <div class='plugOpt' id='$pluginName'></div>
+                        </div>
 
                 </div>
+                
             </div>
             ";
         }

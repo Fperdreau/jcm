@@ -1127,8 +1127,21 @@ h3 {
 }
 
 .plugSettings {
+    min-width: 300px;
+    max-width: 60%;
     display: inline-block;
     margin-bottom: 10px;
+}
+
+.plugSettings .description {
+    font-size: 12px;
+    padding: 5px;
+    border: 1px solid rgba(100, 100, 100, .5);
+}
+
+.plugSettings .description .version {
+    font-weight: 600;
+    margin-bottom: 5px;
 }
 
 .plugOpt {
