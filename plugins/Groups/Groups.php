@@ -121,6 +121,11 @@ class Groups extends AppPlugins {
         $nextdate = $Sessions->getsessions(true);
         $session = new Session($db,$nextdate[0]);
 
+        // Do not make group if there is no session planned on the next journal club day
+        if ($session->type == 'none') {
+            return false;
+        }
+
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
         $ngroups = max($AppConfig->max_nb_session, count($session->presids));
 

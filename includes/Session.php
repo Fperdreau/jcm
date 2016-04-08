@@ -58,7 +58,7 @@ class Sessions extends AppTable {
      */
     public function getsessions($opt=null) {
         $sql = "SELECT date FROM $this->tablename";
-        if ($opt == true || $opt == null) {
+        if ($opt == true || is_null($opt)) {
             $sql .= " WHERE date>CURDATE()";
         } elseif ($opt !== null) {
             $sql .= " WHERE date>=$opt";
