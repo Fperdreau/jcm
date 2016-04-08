@@ -31,6 +31,9 @@
  */
 class Users extends AppTable {
 
+    /**
+     * @var array $table_data: Table schema
+     */
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "date" => array("DATETIME", false),
@@ -52,10 +55,12 @@ class Users extends AppTable {
         "last_login" => array("DATETIME NOT NULL"),
         "primary" => "id");
 
+
     /**
-     * @param $db
+     * Users constructor.
+     * @param AppDb $db
      */
-    function __construct($db) {
+    function __construct(AppDb $db) {
         parent::__construct($db, 'User', $this->table_data);
     }
 
