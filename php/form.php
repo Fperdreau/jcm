@@ -105,11 +105,7 @@ if (!empty($_POST['modStatus'])) {
     $thisApp = $App->instantiate($name);
     $thisApp->get();
     $thisApp->status = $status;
-    if ($thisApp->isInstalled()) {
-        $result = $thisApp->update();
-    } else {
-        $result = False;
-    }
+    $result = $thisApp->isInstalled() ? $thisApp->update() : False;
     echo json_encode($result);
     exit;
 }
