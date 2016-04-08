@@ -101,6 +101,7 @@ class Assignment extends AppPlugins {
     }
 
     /**
+     * Beautify session type name
      * @param $string
      * @param bool $encode
      * @return mixed
@@ -114,6 +115,7 @@ class Assignment extends AppPlugins {
     }
 
     /**
+     * Adds session type to Assignment table
      * @return bool
      */
     private function addSessionType() {
