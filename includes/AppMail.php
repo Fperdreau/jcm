@@ -68,18 +68,19 @@ class AppMail {
      * @return bool
      */
     function send_verification_mail($hash,$user_mail,$username) {
+        $MailManager = new MailManager($this->db);
         $Users = new Users($this->db);
         $admins = $Users->getadmin('admin');
         $to = array();
-        for ($i=0; $i<count($admins); $i++) {
-            $to[] = $admins[$i]['email'];
+        foreach ($admins as $key=>$admin) {
+            $to[] = $admin['email'];
         }
 
-        $subject = 'Signup | Verification'; // Give the email a subject
+        $content['subject'] = 'Signup | Verification'; // Give the email a subject
         $authorize_url = $this->config->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
         $deny_url = $this->config->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
 
-        $content = "
+        $content['body'] = "
         Hello,<br><br>
         <p><b>$username</b> wants to create an account.</p>
         <p><a href='$authorize_url'>Authorize</a></p>
@@ -87,8 +88,7 @@ class AppMail {
         <p><a href='$deny_url'>Deny</a></p>
         ";
 
-        $body = self::formatmail($content);
-        return self::send_mail($to,$subject,$body);
+        return $MailManager->send($content, $to);
     }
 
     /**
