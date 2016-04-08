@@ -24,9 +24,9 @@ require('../includes/boot.php');
 
 // Declare classes
 $user = new User($db,$_SESSION['username']);
-
-// Cronjobs settings
 $AppCron = new AppCron($db);
+
+$notify_admin_task = ($AppConfig->notify_admin_task) ? "Yes":"No";
 
 $cronOpt = $AppCron->show();
 $result = "
@@ -34,7 +34,26 @@ $result = "
     <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
     Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
     either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
+    
+    <section>
+        <h2>General settings</h2>
+        <form method='post' action='' class='form' id='config_form_site'>
+            <input type='hidden' name='config_modify' value='true'/>
+            <div class='formcontrol'>
+                <label>Get notified by email</label>
+                <select name='notify_admin_task'>
+                    <option value={$AppConfig->notify_admin_task} selected>{$notify_admin_task}</option>
+                    <option value=True>Yes</option>
+                    <option value=False>No</option>
+                </select>
+            </div>
+            <input type='submit' name='modify' value='Modify' class='processform'>
+            <div class='feedback' id='feedback_site'></div>
+        </form>
+    </section>
+    
     <div class='feedback'></div>
+
     <section>
         <h2>Tasks list</h2>
         $cronOpt

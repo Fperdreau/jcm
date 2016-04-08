@@ -82,11 +82,17 @@ function run() {
  * @return bool
  */
 function mailLogs($logs) {
-    global $db, $AppMail;
+    global $db, $AppConfig;
+    $MailManager = new MailManager($db);
+
+    // Only notify admins if asked
+    if (!$AppConfig->notify_admin_task) {
+        return false;
+    }
 
     // Get admins email
     $adminMails = $db->getinfo($db->tablesname['User'],'email',array('status'),array("'admin'"));
-    $content = "
+    $content['body'] = "
             <p>Hello, </p>
             <p>Please find below the logs of the scheduled tasks.</p>
             <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
@@ -97,9 +103,8 @@ function mailLogs($logs) {
                     $logs
                 </div>
             </div>";
-    $body = $AppMail -> formatmail($content);
-    $subject = "Scheduled tasks logs";
-    if ($AppMail->send_mail($adminMails,$subject,$body)) {
+    $content['subject'] = "Scheduled tasks logs";
+    if ($MailManager->send($content, $adminMails)) {
         return true;
     } else {
         return false;

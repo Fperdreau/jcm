@@ -58,11 +58,10 @@ class AppConfig extends AppTable {
     public $room = "";
     public $jc_time_from = "17:00";
     public $jc_time_to = "18:00";
-    public $max_nb_session = 2;
+    public $max_nb_session = 1;
     public $session_type = array(
-        "Journal Club"=>array('TBA'),
-        'Business Meeting'=>array('TBA'),
-        'No group meeting'=>array('TBA'));
+        "Journal Club"=>array('TBA')
+    );
     public $session_type_default = "Journal Club";
     public $pres_type = "paper,research,methodology,guest,minute";
 
@@ -81,14 +80,14 @@ class AppConfig extends AppTable {
      * Mail host information
      *
      */
-    public $mail_from = "jc@journalclub.com";
-    public $mail_from_name = "Journal Club";
-    public $mail_host = "smtp.gmail.com";
-    public $mail_port = "465";
+    public $mail_from = "jcm@jcm.com";
+    public $mail_from_name = "Journal Club Manager";
+    public $mail_host = "";
+    public $mail_port = "";
     public $mail_username = "";
     public $mail_password = "";
     public $SMTP_secure = "ssl";
-    public $pre_header = "[Journal Club]";
+    public $pre_header = "[JCM]";
 
     /**
      * Uploads settings
@@ -96,6 +95,11 @@ class AppConfig extends AppTable {
      */
     public $upl_types = "pdf,doc,docx,ppt,pptx,opt,odp";
     public $upl_maxsize = 10000000;
+
+    /**
+     * Scheduled tasks
+     */
+    public $notify_admin_task = False;
 
     /**
      * Constructor
@@ -122,6 +126,16 @@ class AppConfig extends AppTable {
             $this->$varname = $value;
         }
         return true;
+    }
+
+    /**
+     * Gets config value
+     * @param string $variable
+     * @return array
+     */
+    public function getConfig($variable) {
+        $sql = "SELECT * FROM {$this->tablename} WHERE variable='{$variable}'";
+        return $this->db->send_query($sql)->fetch_assoc();
     }
 
     /**
