@@ -11,7 +11,7 @@ Summary
 =======
 1. [Introduction](#introduction)
 2. [License](#license)
-3. [System Requirements] (#system-requirements)
+3. [System Requirements](#system-requirements)
 4. [Installation](#installation)
 5. [Sections](#sections)
 6. [Registration](#registration-procedure)
