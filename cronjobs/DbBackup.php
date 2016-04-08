@@ -41,6 +41,9 @@ class DbBackup extends AppCron {
     public $dayNb;
     public $hour;
     public $options=array("nb_version"=>10);
+    public static $description = "Makes backup of the database, saves it into the backup/mysql folder that can be found
+    at the root of the JCM application, and sends a copy by email to the admin. It also automatically delete older versions.
+    The number of versions to store can be defined in the task's settings";
 
     /**
      * Constructor

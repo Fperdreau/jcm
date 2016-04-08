@@ -47,6 +47,9 @@ class FullBackup extends AppCron {
     public $dayNb;
     public $hour;
     public $options=array("nb_version"=>10);
+    public static $description = "Make a backup of the whole application (files and database), saves into the 
+    backup/complete folder and automatically clean older backups. The number of version to store can be defined in the
+    task's settings";
 
     public function __construct(AppDb $db) {
         parent::__construct($db);

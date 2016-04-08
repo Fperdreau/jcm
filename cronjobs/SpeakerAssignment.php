@@ -48,6 +48,9 @@ class SpeakerAssignment extends AppCron {
     public $dayNb;
     public $hour;
     public $options=array('nbsessiontoplan'=>10);
+    public static $description = "Automatically assigns speakers to the future sessions. Speaker are pseudo-randomly 
+    selected, with priority given to members with the least number of presentations given so far.";
+
 
     /**
      * Constructor

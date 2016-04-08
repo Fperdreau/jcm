@@ -41,6 +41,8 @@ class Reminder extends AppCron {
     public $dayNb;
     public $hour;
     public $options;
+    public static $description = "Sends a reminder regarding the upcoming session to members who agreed upon receiving 
+    email notifications and reminders (which can be set on their profile page).";
 
     /**
      * Reminder constructor.

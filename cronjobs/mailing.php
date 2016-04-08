@@ -43,6 +43,7 @@ class Mailing extends AppCron {
     public $dayNb=0;
     public $hour=0;
     public $options;
+    public static $description = "Sends notifications (digests) to JCM members.";
 
     public function __construct(AppDb $db) {
         parent::__construct($db);

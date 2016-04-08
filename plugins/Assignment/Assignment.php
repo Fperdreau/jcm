@@ -55,7 +55,7 @@ class Assignment extends AppPlugins {
     /**
      * @var string
      */
-    public $version = "1.0.0";
+    public $version = "1.1";
 
     /**
      * @var string

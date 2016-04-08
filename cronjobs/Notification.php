@@ -42,6 +42,7 @@ class Notification extends AppCron {
     public $dayNb;
     public $hour;
     public $options;
+    public static $description = "Sends a email notification to members with the list of the last submitted presentations";
 
     /**
      * Constructor

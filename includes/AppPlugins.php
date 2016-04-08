@@ -38,16 +38,43 @@ class AppPlugins extends AppTable {
         "page"=>array("CHAR(20)",false),
         "status"=>array("CHAR(3)",false),
         "options"=>array("TEXT",false),
-        "description"=>array("TEXT",false),
         "primary"=>'id'
     );
 
+    /**
+     * @var string $name: plugin name
+     */
     public $name;
+
+    /**
+     * @var string $version: plugin version
+     */
     public $version;
+
+    /**
+     * @var string $page: page on which the plugin is displayed
+     */
     public $page;
+
+    /**
+     * @var string $status: plugin status ('On' or 'Off')
+     */
     public $status;
+
+    /**
+     * @var bool $installed: is the plugin registered into the database?
+     */
     public $installed;
+
+    /**
+     * @var array $options: plugins options (saved as JSON format into the database)
+     * e.g. $options = array('option_name'=>$option_value)
+     */
     public $options;
+
+    /**
+     * @var string $description: plugins description
+     */
     public static $description;
 
     /**
@@ -70,7 +97,7 @@ class AppPlugins extends AppTable {
      */
     public function make($post=array()) {
         $class_vars = get_class_vars('AppPlugins');
-        $content = $this->parsenewdata($class_vars,$post, array('installed'));
+        $content = $this->parsenewdata($class_vars,$post, array('installed', 'description'));
         return $this->db->addcontent($this->db->tablesname['Plugins'],$content);
     }
 

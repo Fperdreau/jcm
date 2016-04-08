@@ -44,6 +44,8 @@ class MakeGroup extends AppCron {
     public $dayNb;
     public $hour;
     public $options;
+    public static $description = "Creates groups of members for the upcoming session with one group per presentation. 
+    This task is calling the Group plugin.";
 
     /**
      * MakeGroup constructor.

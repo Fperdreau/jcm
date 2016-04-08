@@ -85,6 +85,10 @@ class MailSender extends AppCron {
      */
     private $Manager;
 
+    public static $description = "Checks whether all emails have been sent and sends them otherwise. It also cleans the
+    mailing database by deleting the oldest emails. The number of days of email storage can be defined in the task's 
+    settings (default is 10 days).";
+
     /**
      * Constructor
      * @param AppDb $db

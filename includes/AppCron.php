@@ -60,6 +60,7 @@ class AppCron extends AppTable {
     public $status;
     public $installed;
     public $options=array();
+    public static $description;
 
     /**
      * Constructor
@@ -92,7 +93,7 @@ class AppCron extends AppTable {
      */
     public function make($post=array()) {
         $class_vars = get_class_vars('AppCron');
-        $content = $this->parsenewdata($class_vars,$post,array('installed','daysNames','daysNbs','hours'));
+        $content = $this->parsenewdata($class_vars,$post,array('installed', 'daysNames', 'daysNbs', 'hours', 'description'));
         return $this->db->addcontent($this->tablename,$content);
     }
 
@@ -259,10 +260,16 @@ class AppCron extends AppTable {
             if (!empty($cronFile) && !in_array($cronFile,array('.','..','test_assignment.php','run.php','logs'))) {
                 $name = explode('.',$cronFile);
                 $name = $name[0];
+                
+                /**
+                 * @var AppCron $thisPlugin
+                 */
                 $thisPlugin = $this->instantiate($name);
+                
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
                 }
+                
                 $jobs[$name] = array(
                     'installed' => $thisPlugin->isInstalled(),
                     'status' => $thisPlugin->status,
@@ -271,7 +278,9 @@ class AppCron extends AppTable {
                     'dayName'=>$thisPlugin->dayName,
                     'dayNb'=>$thisPlugin->dayNb,
                     'hour'=>$thisPlugin->hour,
-                    'options'=>$thisPlugin->options);
+                    'options'=>$thisPlugin->options,
+                    'description'=>$thisPlugin::$description
+                );
             }
         }
         return $jobs;
@@ -317,6 +326,8 @@ class AppCron extends AppTable {
         $cronList = "";
         foreach ($jobsList as $cronName => $info) {
             $installed = $info['installed'];
+            $pluginDescription = (!empty($info['description'])) ? $info['description']:null;
+
             if ($installed) {
                 $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='cron' data-op='uninstall' data-name='$cronName'></div>";
             } else {
@@ -367,40 +378,46 @@ class AppCron extends AppTable {
                 </div>
 
                 <div class='plugSettings'>
-                    <div class='optbar'>
-                        <div class='formcontrol'>
-                            <label>Status</label>
-                            <select class='select_opt modSettings' data-op='cron' data-option='status' data-name='$cronName'>
-                            <option value='$status' selected>$status</option>
-                            <option value='On'>On</option>
-                            <option value='Off'>Off</option>
-                            </select>
-                        </div>
+                    <div class='description'>
+                        {$pluginDescription}
                     </div>
+                    <div>
+                        <div class='optbar'>
+                            <div class='formcontrol'>
+                                <label>Status</label>
+                                <select class='select_opt modSettings' data-op='cron' data-option='status' data-name='$cronName'>
+                                <option value='$status' selected>$status</option>
+                                <option value='On'>On</option>
+                                <option value='Off'>Off</option>
+                                </select>
+                            </div>
+                        </div>
+    
+                        <div class='settings'>
+                            <div class='formcontrol'>
+                                <label>Day</label>
+                                <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayName'>
+                                    $dayName_list
+                                </select>
+                            </div>
+                            <div class='formcontrol'>
+                                <label>Date</label>
+                                <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayNb'>
+                                    $dayNb_list
+                                </select>
+                            </div>
+                            <div class='formcontrol'>
+                               <label>Time</label>
+                                <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='hour'>
+                                    $hours_list
+                                </select>
+                            </div>
+                        </div>
+    
+                        <div class='plugOpt' id='$cronName'></div>
 
-                    <div class='settings'>
-                        <div class='formcontrol'>
-                            <label>Day</label>
-                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayName'>
-                                $dayName_list
-                            </select>
-                        </div>
-                        <div class='formcontrol'>
-                            <label>Date</label>
-                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayNb'>
-                                $dayNb_list
-                            </select>
-                        </div>
-                        <div class='formcontrol'>
-                           <label>Time</label>
-                            <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='hour'>
-                                $hours_list
-                            </select>
-                        </div>
                     </div>
-
-                    <div class='plugOpt' id='$cronName'></div>
-
+                    
                 </div>
             </div>
             ";
