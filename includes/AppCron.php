@@ -119,7 +119,7 @@ class AppCron extends AppTable {
      */
     public function update($post=array()) {
         $class_vars = get_class_vars('AppCron');
-        $content = $this->parsenewdata($class_vars,$post,array('installed','daysNames','daysNbs','hours'));
+        $content = $this->parsenewdata($class_vars,$post,array('installed','daysNames','daysNbs','hours', 'description'));
         return $this->db->updatecontent($this->tablename,$content,array("name"=>$this->name));
     }
 
