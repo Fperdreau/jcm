@@ -144,7 +144,7 @@ class AppPlugins extends AppTable {
      */
     public function update($post=array()) {
         $class_vars = get_class_vars('AppPlugins');
-        $content = $this->parsenewdata($class_vars,$post,array('installed'));
+        $content = $this->parsenewdata($class_vars,$post,array('installed', 'description'));
         return $this->db->updatecontent($this->db->tablesname['Plugins'],$content,array("name"=>$this->name));
     }
 
