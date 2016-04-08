@@ -41,12 +41,7 @@ class Assignment extends AppPlugins {
         "username"=>array("CHAR(255)",false),
         "primary"=>'id'
     );
-
-    /**
-     * @var string
-     */
-    protected $tablename;
-
+    
     /**
      * @var string
      */
@@ -56,22 +51,7 @@ class Assignment extends AppPlugins {
      * @var string
      */
     public $version = "1.1";
-
-    /**
-     * @var string
-     */
-    public $page;
-
-    /**
-     * @var string
-     */
-    public $status = 'Off';
-
-    /**
-     * @var bool
-     */
-    public $installed = False;
-
+    
     /**
      * @var array
      */
@@ -343,20 +323,5 @@ class Assignment extends AppPlugins {
         $result['msg'] = "$created chair(s) created<br>$updated chair(s) updated";
         return $result;
     }
-
-    /**
-     * Check whether this cron job is registered to the database
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Create corresponding table
-        $table = new AppTable($this->db, $this->name, $this->table_data, strtolower($this->name));
-        $table->setup();
-
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
-
-
+    
 }

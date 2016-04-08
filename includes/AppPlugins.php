@@ -31,6 +31,9 @@
  */
 class AppPlugins extends AppTable {
 
+    /**
+     * @var array $table_data: Table schema
+     */
     protected $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "name"=>array("CHAR(20)",false),
@@ -38,8 +41,14 @@ class AppPlugins extends AppTable {
         "page"=>array("CHAR(20)",false),
         "status"=>array("CHAR(3)",false),
         "options"=>array("TEXT",false),
+        "description"=>array("TEXT",false),
         "primary"=>'id'
     );
+
+    /**
+     * @var string $tablename: Table name
+     */
+    protected $tablename;
 
     /**
      * @var string $name: plugin name
@@ -59,12 +68,12 @@ class AppPlugins extends AppTable {
     /**
      * @var string $status: plugin status ('On' or 'Off')
      */
-    public $status;
+    public $status = 'Off';
 
     /**
      * @var bool $installed: is the plugin registered into the database?
      */
-    public $installed;
+    public $installed = False;
 
     /**
      * @var array $options: plugins options (saved as JSON format into the database)
@@ -290,5 +299,19 @@ class AppPlugins extends AppTable {
             ";
         }
         return $plugin_list;
+    }
+
+    /**
+     * Registers plugin into the database
+     * @return bool|mysqli_result
+     */
+    public function install() {
+        // Create corresponding table
+        $table = new AppTable($this->db, $this->name, $this->table_data, strtolower($this->name));
+        $table->setup();
+
+        // Register the plugin in the db
+        $class_vars = get_class_vars($this->name);
+        return $this->make($class_vars);
     }
 }
