@@ -1,5 +1,5 @@
 # Journal Club Manager
-Version 1.4.1 | Copyright © 2014 Florian Perdreau
+Version 1.4.2 | Copyright © 2014 Florian Perdreau
 
 ![Computer version](./media/computer.png)
 *Computer version*
