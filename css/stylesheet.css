@@ -1285,6 +1285,33 @@ button.addBtn:hover {
 }
 
 /* *********************************************************************/
+/* Admin - DigestMaker
+/* *********************************************************************/
+.digest_section {
+    border-bottom: 1px solid rgba(50, 50, 50, 1);
+}
+
+.digest_section #name {
+    vertical-align: top;
+    width: 200px;
+    font-weight: 600;
+    font-size: 1.2em;
+}
+
+.digest_section>div {
+    display: inline-block;
+}
+
+.digest_section #form form>div {
+    display: inline-block;
+    max-width: 300px;
+    min-width: 100px;
+}
+
+.digest_section #submit {
+    margin-left: 15px;
+}
+/* *********************************************************************/
 /* Admin - session/presentation management
 /* *********************************************************************/
 .type_list {

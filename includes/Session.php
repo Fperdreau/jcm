@@ -328,6 +328,18 @@ class Sessions extends AppTable {
 
         return $MailManager->send($content, array($user->email));
     }
+
+    /**
+     *
+     * @return mixed
+     */
+    public function makeMail() {
+        // Get future presentations
+        //$pres_list = $this->showfuturesession(4,'mail');
+        $content['body'] = $this->shownextsession(true);;
+        $content['title'] = 'Next session';
+        return $content;
+    }
 }
 
 

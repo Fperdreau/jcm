@@ -128,7 +128,8 @@ class AppDb {
             "Plugins" => $this->dbprefix."_plugins",
             "Pages" => $this->dbprefix."_pages",
             "Crons" => $this->dbprefix."_crons",
-            "MailManager" => $this->dbprefix."_mailmanager"
+            "MailManager" => $this->dbprefix."_mailmanager",
+            "DigestMaker" => $this->dbprefix."_digestmaker"
         );
     }
 

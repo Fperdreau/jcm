@@ -256,4 +256,21 @@ class Posts extends AppTable {
         $result['content'] = $post->content;
         return $result;
     }
+
+    /**
+     * 
+     * @return mixed
+     */
+    public function makeMail() {
+        $last = $this->getlastnews();
+        $last_news = new self($this->db,$last);
+        $today = date('Y-m-d');
+        if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
+            $last_news->content = "No recent news this week";
+        }
+        
+        $content['body'] = $last_news->content;
+        $content['title'] = 'Last News';
+        return $content;
+    }
 }

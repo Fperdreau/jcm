@@ -53,6 +53,7 @@ echo "
         <li><a href='index.php?page=pages' class='menu-section' id='pages'>Pages</a></li>
         <li><a href='index.php?page=plugins' class='menu-section' id='plugins'>Plugins</a></li>
         <li><a href='index.php?page=tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
+        <li><a href='index.php?page=digest' class='menu-section' id='digest'>Digest</a></li>
     </ul>
 </nav>
 ";

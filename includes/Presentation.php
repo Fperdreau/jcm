@@ -226,6 +226,16 @@ class Presentations extends AppTable {
         return $publicationList;
     }
 
+    /**
+     * Renders digest section (called by DigestMaker)
+     * @return mixed
+     */
+    public function makeMail() {
+        $content['body'] = $this->getwishlist(4,true);
+        $content['title'] = "Wish list";
+        return $content;
+    }
+
 }
 
 

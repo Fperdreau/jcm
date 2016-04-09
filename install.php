@@ -332,6 +332,10 @@ if (!empty($_POST['operation'])) {
         $AppPage->setup($op);
         $AppPage->getPages();
 
+        // Digest table
+        $DigestMaker = new DigestMaker($db);
+        $DigestMaker->setup($op);
+        
         // Apply patch if required
         if ($op == false) {
             patching();
