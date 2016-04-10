@@ -247,6 +247,6 @@ $(document).ready(function() {
         var input = $(this);
         var form = input.length > 0 ? $(input[0].form) : $();
         processForm(form);
-    })
+    });
 
 });

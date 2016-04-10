@@ -108,12 +108,12 @@ $(document).ready(function() {
                         input.addClass('valid_input');
                         setTimeout(function(){
                             input.removeClass('valid_input');
-                        }, 500)
+                        }, 500);
                     } else {
                         input.addClass('wrong_input');
                         setTimeout(function(){
                             input.removeClass('wrong_input');
-                        }, 500)
+                        }, 500);
                     }
                 }
             });

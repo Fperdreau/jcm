@@ -55,12 +55,12 @@ var tinymcesetup = function() {
  * @param urlparam
  */
 function getPage(page, urlparam) {
-    if (page == undefined) {
+    if (page === undefined) {
         var params = getParams();
-        page = (params.page == undefined) ? 'home':params.page;
+        page = (params.page === undefined) ? 'home':params.page;
     }
 
-    urlparam = (urlparam == undefined) ? parseurl():urlparam;
+    urlparam = (urlparam === undefined) ? parseurl():urlparam;
     urlparam = (urlparam === false || urlparam === "") ? false: urlparam;
 
     jQuery.ajax({
@@ -79,7 +79,7 @@ function getPage(page, urlparam) {
                 loadPageContent(page,urlparam);
             }
         }
-    })
+    });
 }
 
 /**
@@ -111,7 +111,7 @@ function loadPageContent(page,urlparam) {
                     .fadeIn(200);
             }
         }
-    })
+    });
 }
 
 /**
@@ -181,7 +181,7 @@ getParams = function() {
         params[paramTuple[0]] = paramTuple[1];
     }
     return params;
-}
+};
 
 /**
  * Display loading animation during AJAX request
@@ -254,6 +254,6 @@ $( document ).ready(function() {
         // Automatically parse url and load the corresponding page
         getPage();
         adapt();
-    })
+    });
 
 });

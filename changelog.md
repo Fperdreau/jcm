@@ -11,9 +11,8 @@
 - Display list of user's assignment on its profile page
 - Notify user by email if he/she has been manually assigned to a session or if his/her presentation has been canceled
  by an organizer
-- Check on emails (room number)
-
-- Check on assignment randomization
+- Improved assignment randomization
+- New feature: With the DigestMaker, now you can customize the weekly digest that will be sent to JCM members.
 
 ## Release: 1.4.1
 ### Changes

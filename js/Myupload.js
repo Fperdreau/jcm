@@ -134,12 +134,12 @@ function AnimateBack(el) {
      * Start Animation
      */
     this.start = function() {
-        if (this.timer == null) {
+        if (this.timer === null) {
             this.timer = setInterval(
                 (function(self) {
                     return function() {
                         self.anim();
-                    }
+                    };
                 })(this),
                 this.time_interval
             );

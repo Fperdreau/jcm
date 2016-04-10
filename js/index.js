@@ -33,10 +33,10 @@
  * @param prestype
  */
 var showpubform = function(formel,idpress,type,date,prestype) {
-    if (idpress == undefined) {idpress = false;}
-    if (type == undefined) {type = "submit";}
-    if (date == undefined) {date = false;}
-    if (prestype == undefined) {prestype = false;}
+    if (idpress === undefined) {idpress = false;}
+    if (type === undefined) {type = "submit";}
+    if (date === undefined) {date = false;}
+    if (prestype === undefined) {prestype = false;}
     var data = {
         getpubform: idpress,
             type: type,
@@ -183,7 +183,7 @@ var modalpubform = $('.modal_section#submission_form');
  * @param formel
  */
 var displaypub = function(idpress,formel) {
-    idpress = (idpress == undefined) ? false:idpress;
+    idpress = (idpress === undefined) ? false:idpress;
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -349,7 +349,7 @@ $( document ).ready(function() {
             if (!checkform(form)) {return false;}
             var data = form.serialize();
             var callback = function(result) {
-                if (result.status == true) {
+                if (result.status === true) {
                     setTimeout(logout,2000);
                 }
             };
@@ -586,7 +586,7 @@ $( document ).ready(function() {
             };
             processAjax(div,data,callback);
         })
-            
+
         // Modify speaker
         .on('focus','.modSpeaker', function () {
             // Store the current value on focus and on change
@@ -600,9 +600,9 @@ $( document ).ready(function() {
             var presid = container.attr('id');
             var date = $(this).closest('.session_div').data('id');
             var data = {
-                modSpeaker: speaker, 
-                previous: previous, 
-                presid: presid, 
+                modSpeaker: speaker,
+                previous: previous,
+                presid: presid,
                 date:date
             };
             processAjax(container,data);
@@ -711,7 +711,7 @@ $( document ).ready(function() {
             var data = form.serialize();
             var callback = function(result) {
                 var subform = $('section#submission_form, .modal_section#submission_form');
-                if (result.status == true) {
+                if (result.status === true) {
                     showpubform(subform,false);
                 }
             };
@@ -777,7 +777,7 @@ $( document ).ready(function() {
             var data = {del_pub:id_pres};
             var el = $('.modal_section#pub_delete');
             var callback = function(result) {
-                if (result.status == true) {
+                if (result.status === true) {
                     close_modal('.modalContainer');
                     $('#' + id_pres).remove();
                 }
