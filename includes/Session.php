@@ -49,6 +49,15 @@ class Sessions extends AppTable {
         /** @var AppConfig $AppConfig */
         $AppConfig = new AppConfig($this->db);
         $this->max_nb_session = $AppConfig->max_nb_session;
+        $this->registerDigest();
+    }
+
+    /**
+     * Register into DigestMaker table
+     */
+    private function registerDigest() {
+        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker->register('Sessions');
     }
 
     /**
@@ -301,7 +310,7 @@ class Sessions extends AppTable {
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $AppConfig = new AppConfig($this->db);
         $contactURL = $AppConfig->site_url."index.php?page=contact";
-        $editUrl = $AppConfig->site_url."index.php?page=presentation&id={$info['presid']}&user={$user->username}";
+        $editUrl = $AppConfig->site_url."index.php?page=submission&op=mod_pub&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
@@ -331,9 +340,10 @@ class Sessions extends AppTable {
 
     /**
      *
+     * @param null $username
      * @return mixed
      */
-    public function makeMail() {
+    public function makeMail($username=null) {
         // Get future presentations
         //$pres_list = $this->showfuturesession(4,'mail');
         $content['body'] = $this->shownextsession(true);;

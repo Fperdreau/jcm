@@ -23,7 +23,8 @@
 require('../includes/boot.php');
 
 // Declare classes
-$user = new User($db,$_SESSION['username']);
+$username = (isset($_GET['user'])) ? $_GET['user']:$_SESSION['username'];
+$user = new User($db, $username);
 
 // Get options
 $op = htmlspecialchars($_GET['op']);
@@ -32,7 +33,7 @@ $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
 
 // Submit a new presentation
 if ($op == 'new') {
-    $submit_form = displayform($user,false,'submit',false,$date);
+    $submit_form = Presentation::displayform($user, false, 'submit', false, $date);
     $result = "
         <p class='page_description'>Book a Journal Club session to present a paper, your research, or a
         methodology topic. <br>
@@ -47,7 +48,7 @@ if ($op == 'new') {
 
 // Suggest a presentation
 } elseif ($op == 'suggest') {
-    $submit_form = displayform($user,false,"suggest");
+    $submit_form = Presentation::displayform($user, false, "suggest");
     $result = "
         <p class='page_description'>Here you can suggest a paper that somebody else could present at a Journal Club session.
          Fill up the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
@@ -69,7 +70,7 @@ if ($op == 'new') {
 
     $selectopt = $Presentations->generate_selectwishlist();
     if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
-        $submit_form = displayform($user,$Presentation,'submit');
+        $submit_form = Presentation::displayform($user, $Presentation,'submit');
     } else {
         $submit_form = "";
     }
@@ -90,7 +91,8 @@ if ($op == 'new') {
 
 // Modify a presentation
 } elseif ($op == 'mod_pub') {
-    $submit_form = displayform($user,$Presentation,'submit');
+    $Presentation = new Presentation($db, $_GET['id']);
+    $submit_form = Presentation::displayform($user, $Presentation, 'submit');
     $result = "
         <p class='page_description'>Here you can modify your submission. Please, check on the information before submitting your presentation</p>
         <h2>Modify a presentation</h2>

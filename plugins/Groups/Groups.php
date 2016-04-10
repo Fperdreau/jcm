@@ -21,7 +21,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
 
 /**
  * Class Groups
@@ -32,15 +31,16 @@ require('../includes/boot.php');
 class Groups extends AppPlugins {
 
     protected $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "groups"=>array("INT(2)",false),
-        "username"=>array("CHAR(15)",false),
-        "role"=>array("CHAR(10)",false),
-        "presid"=>array("BIGINT(15)",false),
-        "date"=>array("DATE",false),
+        "id"=>array("INT NOT NULL AUTO_INCREMENT", false),
+        "groups"=>array("INT(2)", false),
+        "username"=>array("CHAR(15)", false),
+        "role"=>array("CHAR(10)", false),
+        "presid"=>array("BIGINT(15)", false),
+        "date"=>array("DATE", false),
+        "room"=>array("CHAR(10)", false),
         "primary"=>'id'
     );
-    protected $tablename;
+
     public $name = "Groups";
     public $version = "1.0.1";
     public $page = 'profile';
@@ -62,6 +62,7 @@ class Groups extends AppPlugins {
         parent::__construct($db);
         $this->installed = $this->isInstalled();
         $this->tablename = $this->db->dbprefix.'_groups';
+        $this->registerDigest();
         if ($this->installed) {
             if ($this->db->tableExists($this->tablename)) {
                 $this->get();
@@ -69,6 +70,14 @@ class Groups extends AppPlugins {
                 $this->delete();
             }
         }
+    }
+
+    /**
+     * Register into DigestMaker table
+     */
+    private function registerDigest() {
+        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker->register($this->name);
     }
 
     /**
@@ -96,9 +105,6 @@ class Groups extends AppPlugins {
         // 2: Assign groups
         $result = $this->makegroups(); // Make groups
 
-        // 3: If new groups have been assigned, we send an email to every user
-        if ($result !== false)
-            $result = $this->mailing($result);
         return $result;
     }
 
@@ -121,6 +127,8 @@ class Groups extends AppPlugins {
         $nextdate = $Sessions->getsessions(true);
         $session = new Session($db,$nextdate[0]);
 
+        $rooms = explode(',', $this->options['room']);
+
         // Do not make group if there is no session planned on the next journal club day
         if ($session->type == 'none') {
             return false;
@@ -138,7 +146,7 @@ class Groups extends AppPlugins {
 
         $nusers = count($users); // total nb of users
 
-        if ($nusers < $ngroups || $session->type == "none") {return false; }
+        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {return false; }
 
         $excludedusers = array();
         $pregroups = array();
@@ -159,6 +167,7 @@ class Groups extends AppPlugins {
         // Assign presentation
         $assigned_groups = array();
         for ($i=0;$i<$ngroups;$i++) {
+            $room = (!empty($rooms[$i])) ? $rooms[$i] : 'TBA';
             $presid = (isset($session->presids[$i])) ? $session->presids[$i]:'TBA';
             $group = $pregroups[$i];
             foreach ($groups[$i] as $mbr) {
@@ -168,17 +177,20 @@ class Groups extends AppPlugins {
 
             // Add to the table
             foreach ($group as $mbr) {
-                $this->db->addcontent($this->tablename, array(
+                if(!$this->db->addcontent($this->tablename, array(
                     'groups' => $i,
                     'username' => $mbr['member'],
                     'role' => $mbr['role'],
                     'presid' => $presid,
-                    'date' => $session->date
-                ));
+                    'date' => $session->date,
+                    'room' => $room
+                ))) {
+                    return false;
+                };
             }
         }
 
-        return $assigned_groups;
+        return "{$ngroups} groups created.";
     }
 
     /**
@@ -250,30 +262,67 @@ class Groups extends AppPlugins {
     }
 
     /**
-     * Renders Email notification
-     * @param Session $session
-     * @param User $user
-     * @param array $content
+     *
+     * @param null $username
      * @return mixed
      */
-    public static function makeMail(Session $session, User $user, array $content) {
+    public function makeMail($username=null) {
+        $data = $this->getGroup($username);
+        $data['group'] = $this->show($username);
+        $publication = new Presentation($this->db, $data['presid']);
+        $data['publication'] = $publication->showDetails(true);
+        $content['body'] = self::renderSection($data);
+        $content['title'] = 'Your Group assignment';
+        return $content;
+    }
+
+    /**
+     * Renders group information to be displayed in emails
+     * @param array $data
+     * @return string
+     */
+    public static function renderSection(array $data) {
+        return "
+        <p>Here is your group assignment for the session held on <b>{$data['date']}</b>.</p>
+        <p>Your group will meet in room {$data['room']}.</p>
+        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
+            " . $data['group'] . "
+        </div>
+        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+                Your group presentation
+            </div>
+            <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
+                {$data['publication']}
+            </div>
+        </div>
+        ";
+    }
+
+    /**
+     * Renders Email notification
+     * @param User $user
+     * @param array $data
+     * @return mixed
+     */
+    public static function renderMail($data, User $user) {
         $result['body'] = "
             <div style='width: 100%; margin: auto;'>
-                <p>Hello <span style='font-weight: 600;'>$user->firstname</span>,</p>
+                <p>Hello <span style='font-weight: 600;'>{$user->firstname}/span>,</p>
                 <p>Here is your assignment for our next journal club session that will be held on the
-                $session->date in room <b> " . $content['room'] . "</b>.</p>
+                {$data['date']} in room <b> {$data['room']}</b>.</p>
     
                 <div style='display: block; vertical-align: top; margin: auto;'>
-                    <div style='display: inline-block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                        " . $content['group'] . "
+                    <div style='display: inline-block; padding: 10px; margin: 0 30px 20px 0;background-color: rgba(255,255,255,1);'>
+                        " . $data['group'] . "
                     </div>
-                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; max-width: 60%; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                         " . $content['publication'] . "
+                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; max-width: 60%; background-color: rgba(255,255,255,1);'>
+                         " . $data['publication'] . "
                     </div>
                 </div>
             </div>
             ";
-        $result['subject'] = "Your group assignment - $session->date";
+        $result['subject'] = "Your group assignment - {$data['date']}";
         return $result;
     }
 
@@ -283,15 +332,15 @@ class Groups extends AppPlugins {
      * @return array
      */
     public function getGroup($username) {
-        $sql = "SELECT groups FROM $this->tablename WHERE username='$username'";
-        $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_assoc($req);
-        $groupusrs = array();
+        $sql = "SELECT * FROM $this->tablename WHERE username='$username'";
+        $data = $this->db->send_query($sql)->fetch_assoc();
+        $groupusrs['room'] = $data['room'];
+        $groupusrs['date'] = $data['date'];
+        $groupusrs['presid'] = $data['presid'];
         if (!empty($data)) {
-            $sql = "SELECT groups,username,role FROM $this->tablename WHERE groups='".$data['groups']."'";
-            $req = $this->db->send_query($sql);
-            while ($row = mysqli_fetch_assoc($req)) {
-                $groupusrs[$row['username']] = array('groups'=>$row['groups'],'role'=>$row['role']);
+            $sql = "SELECT * FROM $this->tablename WHERE groups='".$data['groups']."'";
+            foreach ($this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC) as $key=>$row) {
+                $groupusrs['members'][$row['username']] = $row;
             }
         }
         return $groupusrs;
@@ -312,7 +361,7 @@ class Groups extends AppPlugins {
         } else {
             $u = 0;
             $content = "";
-            foreach($group as $grpmember=>$info) {
+            foreach($group['members'] as $grpmember=>$info) {
                 if ($grpmember == 'TBA') continue; // We do not send emails to fake users
                 $role = $info['role'];
                 $grpuser = new User($this->db,$grpmember);
@@ -331,12 +380,13 @@ class Groups extends AppPlugins {
             }
         }
         return "
-            <section>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>YOUR GROUP</div>
-                <div style='text-align: justify;'>
-                    $content
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+                    Your group
                 </div>
-            </section>";
+                <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
+                    {$content}
+                </div>
+            ";
     }
 }
 

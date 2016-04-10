@@ -175,20 +175,25 @@ class AppPlugins extends AppTable {
      */
     public function getPlugins($page=False) {
         $folder = PATH_TO_APP.'/plugins/';
-        if ($page === False) {
-            $pluginList = scandir($folder);
+        if ($page == False) {
+            $pluginList = array_diff(scandir($folder), array('.', '..'));
         } else {
             $sql = "SELECT * FROM $this->tablename WHERE page='$page'";
-            $pluginList = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+            $pluginList = array();
+            foreach ($this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC) as $key=>$item) {
+                $pluginList[] = $item['name'];
+            }
         }
 
         $plugins = array();
-        foreach ($pluginList as $pluginfile) {
+        foreach ($pluginList as $key=>$pluginfile) {
             if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
                 /**
                  * @var AppPlugins $thisPlugin
                  */
+
                 $thisPlugin = $this->instantiate($pluginfile);
+
                 if ($thisPlugin->isInstalled()) {
                     $thisPlugin->get();
                 }
@@ -202,7 +207,6 @@ class AppPlugins extends AppTable {
                 );
 
                 $plugins[$pluginfile]['display'] = ($thisPlugin->isInstalled() && $page !== false) ? $thisPlugin->show():'';
-
             }
         }
         return $plugins;

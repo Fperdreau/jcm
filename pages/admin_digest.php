@@ -27,12 +27,17 @@ $DigestMaker = new DigestMaker($db);
 $content = $DigestMaker->edit();
 // Send mail
 $result = "
-    <h1>Mailing</h1>
-    <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
+    <h1>Digest Maker</h1>
+    <p class='page_description'>Here you can customize and preview the weekly digest that will be sent to the JCM members.</p>
     <section>
+        <h2>Digests Sections</h2>
         {$content}
-        <button type='submit' class='mail_preview'>Preview</button>
-    </section>";
+        <div class='submit_btns'>
+        <input type='submit' value='Preview' class='mail_preview' />
+        </div>
+    </section>
+    <section class='mail_preview_container' style='display: none;'>
+    </section> ";
 
 echo json_encode($result);
 exit;

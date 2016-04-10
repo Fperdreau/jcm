@@ -51,7 +51,6 @@ class DigestMaker extends AppTable {
      */
     public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'DigestMaker', $this->table_data);
-        $this->getSections();
         if ($name !== False) {
             $this->name = $name;
             $this->get($name);
@@ -96,6 +95,15 @@ class DigestMaker extends AppTable {
     }
 
     /**
+     * @param $name
+     */
+    public function register($name) {
+        if (!$this->get($name)) {
+            $this->add(array('name'=>$name, 'display'=>0, 'position'=>0));
+        }
+    }
+    
+    /**
      * Update info
      * @param array $post
      * @param $name
@@ -118,24 +126,26 @@ class DigestMaker extends AppTable {
     
     
     // CONTROLLER
-    
+
     /**
      * Renders digest email
+     * @param string $username
      * @return mixed
      */
-    public function makeDigest() {
+    public function makeDigest($username) {
+        $user = new User($this->db, $username);
         $string = "";
         $data = $this->all();
         foreach ($data as $key=>$item) {
             if ($item['display'] == 1) {
-                $section = new $item['name']();
-                $string .= self::showSection($section->makeMail());
+                $section = new $item['name']($this->db);
+                $string .= self::showSection($section->makeMail($username));
             }
         }
 
         $content['body'] = "
                 <div style='width: 100%; margin: auto;'>
-                    <p>Hello,</p>
+                    <p>Hello {$user->firstname},</p>
                     <p>This is your Journal Club weekly digest.</p>
                 </div>
                 {$string}
@@ -146,32 +156,7 @@ class DigestMaker extends AppTable {
     }
 
     /**
-     * Gets sections
-     */
-    public function getSections() {
-        $content = array_diff(
-            array_merge(scandir(PATH_TO_INCLUDES), scandir(PATH_TO_APP.'/plugins')), array('.', '..'));
-        foreach ($content as $class_name=>$fullpath) {
-            $class_name = str_replace('.php','', $class_name);
-            include $fullpath;
-            if (method_exists($class_name, 'makeMail')) {
-                $class = new $class_name($this->db);
-                if (!$this->get($class_name)) {
-                    $this->add(array('name'=>$class_name, 'display'=>0, 'position'=>0));
-                }
-                if ($class->makeMail() === false) {
-                    $this->update(array('display'=>0), $class_name);
-                }
-
-            }
-        }
-    }
-
-    public function browseDir($dir) {
-
-    }
-
-    /**
+     * Show form
      * @return string
      */
     public function edit() {
@@ -180,7 +165,23 @@ class DigestMaker extends AppTable {
     }
     
     // VIEW
-    
+
+    /**
+     * Renders positions input
+     * @param array $data
+     * @param $position
+     * @return string
+     */
+    private static function getPositions(array $data, $position) {
+        $nb_sections = count($data);
+        $content = "";
+        for ($i=0; $i<$nb_sections; $i++) {
+            $selected = ($i == $position) ? "selected":null;
+            $content .= "<option value='{$i}' {$selected}>{$i}</option>";
+        }
+        return $content;
+    }
+
     /**
      * Renders digest section
      * @param array $data
@@ -188,7 +189,7 @@ class DigestMaker extends AppTable {
      */
     public static function showSection(array $data) {
         return "
-           <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+           <div style='display: block; padding: 10px; margin: 0 auto 20px auto; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
                     {$data['title']}
                 </div>
@@ -208,24 +209,30 @@ class DigestMaker extends AppTable {
     public static function form(array $data) {
         $content = "";
         foreach ($data as $key=>$info) {
-            
+            $positions = self::getPositions($data, $info['position']);
+            $display = "";
+            $opt = array('Yes'=>1, 'No'=>0);
+            foreach ($opt as $label=>$value) {
+                $selected = ($value == $info['display']) ? "selected":null;
+                $display .= "<option value='{$value}' {$selected}>{$label}</option>";
+            }
             $content .= "
             <div class='digest_section'>
                 <div id='name'>{$info['name']}</div>
                 <div id='form'>
                     <form method='post' action=''>
                         <input type='hidden' name='modDigest' value='true'>
+                        <input type='hidden' name='name' value='{$info['name']}'>
                         <div class='formcontrol'>
                             <label for='display'>Display</label>
                             <select name='display'>
-                                <option value='1'>Yes</option>
-                                <option value='0'>No</option>
+                                {$display}
                             </select>
                         </div>
                         <div class='formcontrol'>
                             <label for='position'>Position</label>
                             <select name='position'>
-                                <option value='1'>1</option>
+                                {$positions}
                             </select>
                         </div>
                         <div id='submit'>

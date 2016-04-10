@@ -57,10 +57,19 @@ class Posts extends AppTable {
      */
     public function __construct(AppDb $db,$postid=null) {
         parent::__construct($db,'Posts', $this->table_data);
+        $this->registerDigest();
         if (null !== $postid) {
             self::get($postid);
         }
         $this->postid = $postid;
+    }
+
+    /**
+     * Register into DigestMaker table
+     */
+    private function registerDigest() {
+        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker->register('Posts');
     }
 
     /**
@@ -258,10 +267,11 @@ class Posts extends AppTable {
     }
 
     /**
-     * 
+     *
+     * @param null $username
      * @return mixed
      */
-    public function makeMail() {
+    public function makeMail($username=null) {
         $last = $this->getlastnews();
         $last_news = new self($this->db,$last);
         $today = date('Y-m-d');

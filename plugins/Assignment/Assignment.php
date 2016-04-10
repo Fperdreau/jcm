@@ -23,7 +23,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
-require('../includes/boot.php');
 
 
 /**
@@ -79,6 +78,7 @@ class Assignment extends AppPlugins {
         $this->tablename = $this->db->dbprefix . '_' . strtolower($this->name);
 
         if ($this->installed) {
+            $this->registerDigest();
             if ($this->db->tableExists($this->tablename)) {
                 $this->get();
                 $this->getSession();
@@ -90,6 +90,14 @@ class Assignment extends AppPlugins {
         }
     }
 
+    /**
+     * Register into DigestMaker table
+     */
+    public function registerDigest() {
+        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker->register($this->name);
+    }
+    
     /**
      * Get session instance
      */
@@ -183,7 +191,7 @@ class Assignment extends AppPlugins {
             INNER JOIN ".$this->db->tablesname['User']." u
             ON a.username=u.username
             WHERE (a.$session_type<$max)
-                AND u.assign=1
+                AND u.assign=1 AND u.status!='admin'
             ");
         return $data->fetch_all(MYSQLI_ASSOC);
     }
@@ -324,6 +332,18 @@ class Assignment extends AppPlugins {
         $result['content'] = $assignedSpeakers;
         $result['msg'] = "$created chair(s) created<br>$updated chair(s) updated";
         return $result;
+    }
+
+    /**
+     *
+     * @param null $username
+     * @return mixed
+     */
+    public function makeMail($username=null) {
+        $user = new User($this->db, $username);
+        $content['body'] = $user->getAssignments(true, $username);;
+        $content['title'] = 'Your assignments';
+        return $content;
     }
     
 }

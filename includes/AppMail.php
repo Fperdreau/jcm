@@ -97,7 +97,7 @@ class AppMail {
      * @return array
      */
     function get_mailinglist($type=null) {
-        $sql = "select fullname,email from $this->tablename where active=1";
+        $sql = "select fullname, username, email from $this->tablename where active=1";
         if (null!=$type) {
             $sql .= " AND $type=1";
         }
@@ -106,7 +106,7 @@ class AppMail {
         $req = $this->db->send_query($sql);
         $mailing_list = array();
         while ($data = mysqli_fetch_array($req)) {
-            $mailing_list[$data['fullname']] = $data['email'];
+            $mailing_list[$data['fullname']] = array('email'=>$data['email'], 'username'=>$data['username']);
         }
         return $mailing_list;
     }
@@ -120,7 +120,10 @@ class AppMail {
      * @return bool
      */
     function send_to_mailinglist($subject,$body,$type=null,$attachment = NULL) {
-        $to = $this->get_mailinglist($type);
+        $to = array();
+        foreach ($this->get_mailinglist($type) as $fullname=>$data) {
+            $to[] = $data['email'];
+        }
         if ($this->send_mail($to,$subject,$body,$attachment)) {
             return true;
         } else {

@@ -63,21 +63,20 @@ class Mailing extends AppCron {
      */
     public function run() {
         global $AppMail;
+        $MailManager = new MailManager($this->db);
+        $DigestMaker = new DigestMaker($this->db);
 
         // Count number of users
-        $nusers = count($AppMail->get_mailinglist("notification"));
-
-        $content = $this->makeMail();
-        $body = $AppMail -> formatmail($content['body']);
-
-        $subject = $content['subject'];
-        if ($AppMail->send_to_mailinglist($subject,$body,"notification")) {
-            $result = "message sent successfully to $nusers users.";
-        } else {
-            $result = "ERROR message not sent.";
+        $users = $AppMail->get_mailinglist("notification");
+        $nusers = count($users);
+        $sent = 0;
+        foreach ($users as $username=>$user) {
+            $content = $DigestMaker->makeDigest($user['username']);
+            if ($MailManager->send($content, array($user['email']))) {
+                $sent += 1;
+            }
         }
-
-        return $result;
+        return "message sent successfully to {$sent}/{$nusers} users.";
     }
     
 }

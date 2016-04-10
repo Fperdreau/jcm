@@ -53,6 +53,15 @@ class Presentations extends AppTable {
      */
     function __construct(AppDb $db){
         parent::__construct($db, "Presentation", $this->table_data);
+        $this->registerDigest();
+    }
+
+    /**
+     * Register into DigestMaker table
+     */
+    private function registerDigest() {
+        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker->register('Presentations');
     }
 
     /**
@@ -228,9 +237,10 @@ class Presentations extends AppTable {
 
     /**
      * Renders digest section (called by DigestMaker)
+     * @param null|string $username
      * @return mixed
      */
-    public function makeMail() {
+    public function makeMail($username=null) {
         $content['body'] = $this->getwishlist(4,true);
         $content['title'] = "Wish list";
         return $content;
@@ -434,24 +444,31 @@ class Presentation extends Presentations {
      * @param bool $user: adapt the display for the profile page
      * @return string
      */
-    public function show($user=false) {
+    public function show($user=false, $username=null) {
+        global $AppConfig;
         if (!$user) {
-            $speaker = new User($this->db,$this->orator);
+            $speaker = new User($this->db, $this->orator);
             $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
         } else {
             $speakerDiv = "";
         }
         $date = date('d M',strtotime($this->date));
+        $username = (is_null($username)) ? $_SESSION['username']:$username;
+        $url = $AppConfig->site_url . "index.php?page=submission&op=mod_pub&id={$this->id_pres}&user={$username}";
         return "
-        <div class='pub_container' id='$this->id_pres'>
-        <a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>
-            <div class='list-container'>
-                <div class='pub_date'>$date</div>
-                <div class='pub_title warp'>$this->title</div>
-                $speakerDiv
+            <div style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
+            padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
+                <div style='display: table-cell; width: 10%; vertical-align: top; text-align: left; 
+                min-width: 50px; font-weight: bold;'>$date</div>
+                
+                <div style='display: table-cell; vertical-align: top; text-align: left; 
+                width: 60%; overflow: hidden; text-overflow: ellipsis;'>
+                    <a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>
+                        $this->title
+                    </a>
+                </div>
+                {$speakerDiv}
             </div>
-        </a>
-        </div>
         ";
     }
 
@@ -533,7 +550,7 @@ class Presentation extends Presentations {
                 $urllink = $AppConfig->site_url."uploads/".$info['filename'];
                 $filecontent .= "
                         <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
-                                    margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                                    margin: 5px 2px 0 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold; border-radius: 5px;'>
                             <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
                         </div>";
             }
@@ -555,7 +572,7 @@ class Presentation extends Presentations {
                     <div style='font-weight: bold; font-size: 16px;'>$this->title</div>
                 </div>
             </div>
-            <div style='width: 95%; text-align: justify; margin: auto; padding: 5px 10px 0 10px; background-color: rgba(250,250,250,1); border-bottom: 5px solid rgba(207,81,81,.5);'>
+            <div style='width: 95%; text-align: justify; margin: auto; padding: 5px 10px 0 10px; background-color: rgba(250,250,250,1); box-sizing: border-box; border-bottom: 5px solid rgba(207,81,81,.5);'>
                 <div style='display: inline-block; margin-left: 0; font-size: 15px; font-weight: 300; width: 50%;'>
                     <b>Authors:</b> $this->authors
                 </div>

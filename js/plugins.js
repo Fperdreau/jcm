@@ -59,7 +59,7 @@ function showPlugins(page, result) {
         if (plugin.page == page) {
             $(".plugins")
                 .fadeOut(200)
-                .append(plugin.display)
+                .append("<section>"+plugin.display+"</section>")
                 .fadeIn(200);
         }
     }

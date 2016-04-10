@@ -1027,6 +1027,7 @@ h3 {
 }
 
 .pub_container {
+    display: table-row;
     background: rgba(240,240,240,.5);
     margin: 0 auto 5px auto;
     cursor: pointer;

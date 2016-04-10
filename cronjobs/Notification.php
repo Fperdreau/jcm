@@ -83,10 +83,10 @@ class Notification extends AppCron {
 
         if (!empty($presentationList)) {
             $result = false;
-            foreach ($mailing_list as $fullname=>$email) {
+            foreach ($mailing_list as $fullname=>$data) {
                 $content = $this->makeMail($presentationList, $fullname);
 
-                if ($result = $MailManager->send($content, array($email))) {
+                if ($result = $MailManager->send($content, array($data['email']))) {
 
                     // Tell to the db that notifications have been sent about the new presentations
                     foreach ($presentationList as $presid) {

@@ -24,7 +24,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 require('../includes/boot.php');
-require('../plugins/Assignment/Assignment.php');
 
 /**
  * Class SpeakerAssignment

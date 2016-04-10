@@ -68,24 +68,19 @@ class Reminder extends AppCron {
      * @return string
      */
     public function run() {
-        /**
-         * Run cron job
-         */
-
-        // Declare classes
         global $AppMail;
         $MailManager = new MailManager($this->db);
 
         // Number of users
         $mailing_list = $AppMail->get_mailinglist("reminder");
-
-        $content = $this->makeMail();
-        if ($MailManager->send($content, $mailing_list)) {
-            $result = "message sent successfully to " . count($mailing_list) ." users.";
-        } else {
-            $result = "ERROR message not sent.";
+        $sent = 0;
+        foreach ($mailing_list as $fullname=>$data) {
+            if ($MailManager->send($this->makeMail($fullname), array($data['email']))) {
+                $sent += 1;
+            }
         }
-        return $result;
+
+        return "message sent successfully to " . $sent ."/" . count($mailing_list) . " users.";
 
     }
 
@@ -93,7 +88,7 @@ class Reminder extends AppCron {
      * Make reminder notification email (including only information about the upcoming session)
      * @return mixed
      */
-    public function makeMail() {
+    public function makeMail($fullname) {
         $sessions = new Sessions($this->db);
         $dates = $sessions->getsessions();
         $session = new Session($this->db,$dates[0]);
@@ -102,7 +97,7 @@ class Reminder extends AppCron {
 
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
-                <p>Hello,</p>
+                <p>Hello {$fullname},</p>
                 <p>This is a reminder for the next Journal Club session.</p>
             </div>
 

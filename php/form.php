@@ -139,6 +139,27 @@ if (!empty($_POST['modSettings'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DigestMaker
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['modDigest'])) {
+    $name = htmlspecialchars($_POST['name']);
+    $display = htmlspecialchars($_POST['display']);
+    $position = htmlspecialchars($_POST['position']);
+
+    $DigestMaker = new DigestMaker($db);
+    $result['status'] = $DigestMaker->update($_POST, $name);
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['preview'])) {
+    $DigestMaker = new DigestMaker($db);
+    $result = $DigestMaker->makeDigest($_SESSION['username']);
+    echo json_encode($result);
+    exit;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Scheduled Tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Modify cron job

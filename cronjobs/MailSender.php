@@ -117,7 +117,7 @@ class MailSender extends AppCron {
      * Sends emails
      */
     public function run() {
-        $result['status'] = false;
+        $result = false;
 
         // Clean DB
         $this->clean();
@@ -125,15 +125,18 @@ class MailSender extends AppCron {
         // Get Mail API
         $this->getMailer();
 
+        $sent = 0;
         foreach ($this->Manager->all(0) as $key=>$email) {
             $recipients = explode(',', $email['recipients']);
             if (self::$AppMail->send_mail($recipients, $email['subject'], $email['content'], $email['attachments'])) {
-                $result['status'] = $this->Manager->update(array('status'=>1), $email['mail_id']);
+                $result = $this->Manager->update(array('status'=>1), $email['mail_id']);
+                $sent += 1;
             } else {
-                $result['status'] = false;
+                $result = false;
             }
         }
-        return $result;
+
+        return "{$sent} emails have been sent.";
     }
 
     /**
