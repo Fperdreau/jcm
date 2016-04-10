@@ -155,9 +155,9 @@ class Presentations extends AppTable {
             <section>
                 <h2 class='section_header'>$year</h2>
                 <div class='list-container list-heading'>
-                    <div style='width: 5%;'>Date</div>
-                    <div style='width: 60%;'>Title</div>
-                    <div style='width: 25%;'>Speakers</div>
+                    <div>Date</div>
+                    <div>Title</div>
+                    <div>Speakers</div>
                 </div>
                 $yearcontent
             </section>";
@@ -456,7 +456,7 @@ class Presentation extends Presentations {
         $username = (is_null($username)) ? $_SESSION['username']:$username;
         $url = $AppConfig->site_url . "index.php?page=submission&op=mod_pub&id={$this->id_pres}&user={$username}";
         return "
-            <div style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
+            <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
                 <div style='display: table-cell; width: 10%; vertical-align: top; text-align: left; 
                 min-width: 50px; font-weight: bold;'>$date</div>

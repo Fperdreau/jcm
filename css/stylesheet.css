@@ -1011,6 +1011,7 @@ h3 {
 
 .list-heading {
     height: auto;
+    display: table-row;
 }
 
 .list-heading>div {
@@ -1019,6 +1020,7 @@ h3 {
     margin: auto;
     font-weight: bold;
     text-align: center;
+    display: table-cell;
     text-transform: uppercase;
 }
 
