@@ -150,18 +150,30 @@ class DigestMaker extends AppTable {
      */
     public function getSections() {
         $content = array_diff(
-            array_merge(scandir(PATH_TO_INCLUDES), scandir(PATH_TO_APP.'/plugins')),
-        array('.', '..'));
-        foreach ($content as $class_name) {
+            array_merge(scandir(PATH_TO_INCLUDES), scandir(PATH_TO_APP.'/plugins')), array('.', '..'));
+        foreach ($content as $class_name=>$fullpath) {
             $class_name = str_replace('.php','', $class_name);
+            include $fullpath;
             if (method_exists($class_name, 'makeMail')) {
+                $class = new $class_name($this->db);
                 if (!$this->get($class_name)) {
                     $this->add(array('name'=>$class_name, 'display'=>0, 'position'=>0));
                 }
+                if ($class->makeMail() === false) {
+                    $this->update(array('display'=>0), $class_name);
+                }
+
             }
         }
     }
-    
+
+    public function browseDir($dir) {
+
+    }
+
+    /**
+     * @return string
+     */
     public function edit() {
         $data = $this->all();
         return self::form($data);
@@ -191,6 +203,7 @@ class DigestMaker extends AppTable {
     /**
      * Renders Edit form
      * @param array $data
+     * @return string
      */
     public static function form(array $data) {
         $content = "";
