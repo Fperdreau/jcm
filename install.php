@@ -471,7 +471,7 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='version' value='$AppConfig->version'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='install_db'/>
-                <input type='hidden' name='site_url' value='$AppConfig->site_url'/>
+                <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
 
                 <h3>Mailing service</h3>
                 <div class='formcontrol'>
