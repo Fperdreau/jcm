@@ -443,20 +443,20 @@ class Presentation extends Presentations {
 
     /**
      * Show this presentation (in archives)
-     * @param bool $user: adapt the display for the profile page
+     * @param bool $user : adapt the display for the profile page
+     * @param null $username
      * @return string
      */
     public function show($user=false, $username=null) {
-        global $AppConfig;
         if (!$user) {
             $speaker = new User($this->db, $this->orator);
             $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
         } else {
             $speakerDiv = "";
         }
-        $date = date('d M',strtotime($this->date));
+        $date = date('d M y',strtotime($this->date));
         $username = (is_null($username)) ? $_SESSION['username']:$username;
-        $url = $AppConfig->site_url . "index.php?page=submission&op=mod_pub&id={$this->id_pres}&user={$username}";
+        $url = AppConfig::getAppUrl() . "index.php?page=submission&op=mod_pub&id={$this->id_pres}&user={$username}";
         return "
             <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
@@ -624,14 +624,13 @@ class Presentation extends Presentations {
      */
     public function displaypub($user=false, $show=false) {
         $user = ($user == false) ? new User($this->db):$user;
-        $AppConfig = new AppConfig($this->db);
         $download_button = "";
         $dlmenu = "";
         $filediv = "";
         if (!(empty($this->link))) {
             if ($show) {
                 // Show files list as a dropdown menu
-                $download_button = "<div class='dl_btn pub_btn' id='$this->id_pres'>Download</div>";
+                $download_button = "<div class='dl_btn pub_btn icon_btn' id='$this->id_pres'><img src='".AppConfig::$site_url."images/download.png'></div>";
                 $filelist = $this->link;
                 $dlmenu = "<div class='dlmenu'>";
                 foreach ($filelist as $fileid=>$info) {
@@ -646,7 +645,7 @@ class Presentation extends Presentations {
                 // Show files list as links
                 $filecontent = "";
                 foreach ($this->link as $fileid=>$info) {
-                    $urllink = $AppConfig->site_url."uploads/".$info['filename'];
+                    $urllink = AppConfig::$site_url."uploads/".$info['filename'];
                     $filecontent .= "
                     <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
                                 margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>

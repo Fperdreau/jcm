@@ -676,7 +676,7 @@ class User extends Users{
      */
     function getpublicationlist($filter = NULL) {
 
-        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='$this->username'";
+        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='$this->username' and date<CURDATE()";
         if (null != $filter) {
             $sql .= " AND YEAR(date)=$filter";
         }
@@ -707,17 +707,20 @@ class User extends Users{
     public function getAssignments($show=true, $username=null) {
         $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='{$this->username}' AND date>CURDATE()";
         $req = $this->db->send_query($sql);
-        $content = "
-            <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
-                <div style='width: 20%; display: table-cell;'>Date</div>
-                <div style='width: 75%; display: table-cell;'>Title</div>
-            </div>
-        ";
+        $content = "";
         while ($row = mysqli_fetch_assoc($req)) {
             $pubid = $row['id_pres'];
             $pub = new Presentation($this->db, $pubid);
             $content .= $pub->show($show, $username);
         }
-        return $content;
+        return "
+            <div class='table_container' style='display: table; width: 100%;'>
+                <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
+                    <div style='width: 10%; display: table-cell;'>Date</div>
+                    <div style='width: 75%; display: table-cell;'>Title</div>
+                </div>
+            {$content}
+            </div>
+        ";;
     }
 }

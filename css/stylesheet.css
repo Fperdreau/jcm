@@ -897,7 +897,7 @@ h3 {
 /* Downloads
 /* *********************************************************************/
 .dl_btn {
-    width: 100px;
+    width: 20px;
     text-align: center;
     cursor: pointer;
     color:#444;
@@ -923,28 +923,28 @@ h3 {
     font-size: 0;
     height: 30px;
     line-height: 30px;
-    margin: 0;
+    margin: 5px auto 0 auto;
     padding: 0;
     cursor: pointer;
-    background-color: rgba(200,200,200,.5);
-    border-bottom: 1px solid rgba(207,81,81,1);
 }
 
-.dl_info:hover {
-    background-color:rgba(207,81,81,1);
+.dl_info:hover > .dl_name {
+    color:rgba(207,81,81,1);
 }
 
-.dl_info:active {
-    background-color: rgba(34,34,34,.5);
+.dl_info:active > .dl_name {
+    color: rgba(34,34,34,.5);
 }
 
 .dl_name {
     display: inline-block;
     font-size: 12px;
     line-height: 30px;
+    padding-left: 10px;
     width: 80px;
     white-space: pre-wrap;
     font-weight: bold;
+    border-bottom: 1px solid rgba(207,81,81,1);
 }
 
 .dl_name:hover {
@@ -960,6 +960,7 @@ h3 {
     font-weight: bold;
     background-color: #555555;
     color: #EEEEEE;
+    border-radius: 100%;
 }
 
 /* *********************************************************************/
@@ -1015,7 +1016,7 @@ h3 {
 
 .pub_speaker {
     text-align: left;
-    max-width: 20%;
+    max-width: 80%;
 }
 
 .list-heading {
