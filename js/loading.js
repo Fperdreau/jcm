@@ -24,7 +24,7 @@
 /**
  * Set up tinyMCE (rich-text textarea)
  */
-var tinymcesetup = function() {
+var tinymcesetup = function () {
     tinymce.init({
         mode: "textareas",
         selector: ".tinymce",
@@ -50,6 +50,23 @@ var tinymcesetup = function() {
 };
 
 /**
+ * Load JCM calendar
+ */
+var loadCalendar = function() {
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: true,
+        data: {get_calendar_param: true},
+        success: function (data) {
+            var result = jQuery.parseJSON(data);
+            var selected_date = $('input[type="date"]').val();
+            inititdatepicker(result,selected_date);
+        }
+    });
+};
+
+/**
  * Parse url and get page content accordingly
  * @param page
  * @param urlparam
@@ -57,58 +74,52 @@ var tinymcesetup = function() {
 function getPage(page, urlparam) {
     if (page === undefined) {
         var params = getParams();
-        page = (params.page === undefined) ? 'home':params.page;
+        page = (params.page === undefined) ? 'home' : params.page;
     }
 
-    urlparam = (urlparam === undefined) ? parseurl():urlparam;
-    urlparam = (urlparam === false || urlparam === "") ? false: urlparam;
+    urlparam = (urlparam === undefined) ? parseurl() : urlparam;
+    urlparam = (urlparam === false || urlparam === "") ? false : urlparam;
 
-    jQuery.ajax({
-        url: 'php/form.php',
-        data: {get_app_status: true},
-        type: 'POST',
-        async: true,
-        success: function(data) {
-            var json = jQuery.parseJSON(data);
-            if (json === 'Off' && page != 'admin') {
-                $('#pagecontent')
-                    .html("<div id='content'><div style='vertical-align: middle; margin-top: 20%; text-align: center;'>" +
-                    "<div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div><div> the website is currently under maintenance.</div></div></div>")
-                    .fadeIn(200);
-            } else {
-                loadPageContent(page,urlparam);
-            }
-        }
-    });
-}
-
-/**
- * Retrieve and display page content
- * @param page
- * @param urlparam
- */
-function loadPageContent(page,urlparam) {
     jQuery.ajax({
         url: 'php/form.php',
         data: {getPage: page},
         type: 'POST',
         async: true,
-        success: function(data) {
+        success: function (data) {
             var json = jQuery.parseJSON(data);
-            if (json.pageName === null) {
+
+            // Change url and push it to history
+            var stateObj = { page: json.pageName };
+            var url = (urlparam === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + urlparam;
+            history.pushState(stateObj, json.pageName, url);
+
+            if (json.AppStatus === 'Off' && page !== 'admin') {
                 $('#pagecontent')
-                    .html("<div id='nopage'>If you were looking for the answer to the question:" +
-                    "<p style='font-size: 1.4em; text-align: center;'>What is the universe?</p> " +
-                    "I can tell you it is 42. " +
-                    "<p>But since you were looking for a page that does not exist, then I can tell you:</p>" +
-                    "<p style='font-size: 2em; text-align: center;'>ERROR 404</p></div>")
+                    .html("<div id='content'><div style='vertical-align: middle; margin-top: 20%; text-align: center;'>" +
+                    "<div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div><div> the website is currently under maintenance.</div></div></div>")
                     .fadeIn(200);
-            } else if (json.status === true) {
-                displayPage(page,json.pageName,urlparam);
             } else {
-                $('#pagecontent')
-                    .html(json.msg)
-                    .fadeIn(200);
+                if (json.pageName === null) {
+                    $('#pagecontent')
+                        .html("<div id='nopage'>If you were looking for the answer to the question:" +
+                            "<p style='font-size: 1.4em; text-align: center;'>What is the universe?</p> " +
+                            "I can tell you it is 42. " +
+                            "<p>But since you were looking for a page that does not exist, then I can tell you:</p>" +
+                            "<p style='font-size: 2em; text-align: center;'>ERROR 404</p></div>")
+                        .fadeIn(200);
+                } else {
+                    if (json.status) {
+                        displayPage(page, json.pageName, urlparam, json.plugins);
+
+                    } else {
+                        $('#pagecontent')
+                            .html(json.msg)
+                            .fadeIn(200);
+                        $('.leanModal#user_login')
+                            .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
+                            .click();
+                    }
+                }
             }
         }
     });
@@ -120,34 +131,42 @@ function loadPageContent(page,urlparam) {
  * @param page
  * @param pagetoload
  * @param param
+ * @param plugins
  */
-var displayPage = function(page,pagetoload,param) {
+var displayPage = function (page, pagetoload, param, plugins) {
     var stateObj = { page: pagetoload };
-    var url = (param === false) ? "index.php?page="+page:"index.php?page="+page+"&"+param;
+    var url = (param === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + param;
     var el = $('#pagecontent');
     jQuery.ajax({
-        url: 'pages/'+pagetoload+'.php',
+        url: 'pages/' + pagetoload + '.php',
         type: 'GET',
         async: true,
         data: param,
-        beforeSend: function() {
+        beforeSend: function () {
             loadingDiv(el);
         },
         complete: function () {
             removeLoading(el);
         },
-        success: function(data){
+        success: function (data) {
             var json = jQuery.parseJSON(data);
             history.pushState(stateObj, pagetoload, url);
 
             el.hide().html(json);
 
-            $("section").each(function() {
+            $("section").each(function () {
                 $(this).fadeIn(200);
             });
+
+            // Display Plugins
+            showPlugins(page, plugins);
+
+            // Load TinyMCE
             tinymcesetup();
-            var callback = showPlugins;
-            getPlugins(pagetoload, callback);
+
+            // Load JCM calendar
+            loadCalendar();
+
         }
     });
 };
@@ -156,10 +175,10 @@ var displayPage = function(page,pagetoload,param) {
  * Parse URL
  * @returns {Array}
  */
-var parseurl = function() {
+var parseurl = function () {
     var query = window.location.search.substring(1);
     var vars = query.split("&");
-    vars = vars.slice(1,vars.length);
+    vars = vars.slice(1, vars.length);
     vars = vars.join("&");
     return vars;
 };
@@ -168,15 +187,15 @@ var parseurl = function() {
  * Get URL parameters ($_GET)
  * @returns {{}}
  */
-getParams = function() {
+getParams = function () {
     var url = window.location.href;
     var splitted = url.split("?");
-    if(splitted.length === 1) {
+    if (splitted.length === 1) {
         return {};
     }
     var paramList = decodeURIComponent(splitted[1]).split("&");
     var params = {};
-    for(var i = 0; i < paramList.length; i++) {
+    for (var i = 0; i < paramList.length; i++) {
         var paramTuple = paramList[i].split("=");
         params[paramTuple[0]] = paramTuple[1];
     }
@@ -244,13 +263,13 @@ function adapt() {
 
 }
 
-$( document ).ready(function() {
+$( document ).ready(function () {
 
     $(window).resize(function () {
         adapt();
     });
 
-    $('body').ready(function() {
+    $('body').ready(function () {
         // Automatically parse url and load the corresponding page
         getPage();
         adapt();

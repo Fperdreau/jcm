@@ -32,25 +32,28 @@
  * @param date: presentation's date
  * @param prestype
  */
-var showpubform = function(formel,idpress,type,date,prestype) {
-    if (idpress === undefined) {idpress = false;}
-    if (type === undefined) {type = "submit";}
-    if (date === undefined) {date = false;}
-    if (prestype === undefined) {prestype = false;}
+var showpubform = function (formel, idpress, type, date, prestype) {
+    if (idpress === undefined) {idpress = false; }
+    if (type === undefined) {type = "submit"; }
+    if (date === undefined) {date = false; }
+    if (prestype === undefined) {prestype = false; }
     var data = {
         getpubform: idpress,
-            type: type,
-            date: date,
-            prestype: prestype
+        type: type,
+        date: date,
+        prestype: prestype
     };
     // First we remove any existing submission form
-    var callback = function(result) {
+    var callback = function (result) {
         formel
             .html(result)
             .fadeIn(200);
 
     };
-    processAjax(formel,data,callback);
+    processAjax(formel, data, callback);
+
+    // Load JCM calendar
+    loadCalendar();
 
 };
 
@@ -58,11 +61,11 @@ var showpubform = function(formel,idpress,type,date,prestype) {
  * Display form to post a news
  * @param postid
  */
-var showpostform = function(postid) {
+var showpostform = function (postid) {
     var el = $('.postcontent');
-    var data = {post_show: true,postid: postid};
-    var callback = function(result) {
-        var txtarea = "<textarea name='content' id='post_content' class='tinymce'>"+result.content+"</textarea>";
+    var data = {post_show: true, postid: postid};
+    var callback = function (result) {
+        var txtarea = "<textarea name='content' id='post_content' class='tinymce'>" + result.content + "</textarea>";
         $('.postcontent')
             .empty()
             .html(result.form)
@@ -74,7 +77,7 @@ var showpostform = function(postid) {
         window.tinymce.dom.Event.domLoaded = true;
         tinymcesetup();
     };
-    processAjax(el,data,callback);
+    processAjax(el, data, callback);
 };
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,7 +88,7 @@ var showpostform = function(postid) {
  * @param jcdays: associative array providing journal club sessions and their information
  * @param selected: Currently selected day
  */
-var inititdatepicker = function(jcdays,selected) {
+var inititdatepicker = function (jcdays, selected) {
 
     $('#datepicker').datepicker({
         defaultDate: selected,
@@ -93,35 +96,35 @@ var inititdatepicker = function(jcdays,selected) {
         dateFormat: 'yy-mm-dd',
         inline: true,
         showOtherMonths: true,
-        beforeShowDay: function(date) {
+        beforeShowDay: function (date) {
             var day = date.getDay();
-            var days = new Array("sunday","monday","tuesday","wednesday","thursday","friday","saturday");
-            var cur_date = $.datepicker.formatDate('dd-mm-yy',date);
+            var days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            var cur_date = $.datepicker.formatDate('dd-mm-yy', date);
             var today = new Date();
-            if (days[day] == jcdays.jc_day) {
+            if (days[day] === jcdays.jc_day) {
                 //var css = (date >= today) ? "activeday":"pastday";
                 var css = "activeday";
                 var find = $.inArray(cur_date,jcdays.booked);
                 var status = jcdays.status[find];
                 //var clickable = (date >= today && status != 'none' && status != 'Booked out');
-                var clickable = (status != 'none');
+                var clickable = (status !== 'none');
                 // If the date is booked
                 if (find > -1) {
                     var type = jcdays.sessiontype[find];
-                    var rem = jcdays.max_nb_session-jcdays.nb[find]; // Number of presentations available that day
-                    var msg = type+": ("+rem+" presentation(s) available)";
-                    if (status == 'Free') {
-                        return [clickable,"jcday "+css,msg];
-                    } else if (status == 'Booked') {
-                        return [clickable,"jcday_rem "+css,msg];
+                    var rem = jcdays.max_nb_session - jcdays.nb[find]; // Number of presentations available that day
+                    var msg = type + ": (" + rem + " presentation(s) available)";
+                    if (status === 'Free') {
+                        return [clickable, "jcday " + css, msg];
+                    } else if (status === 'Booked') {
+                        return [clickable, "jcday_rem " + css, msg];
                     } else {
-                        return [clickable,"bookedday "+css,type+": Booked out"];
+                        return [clickable, "bookedday " + css, type + ": Booked out"];
                     }
                 } else {
-                    return [clickable,"jcday "+css,jcdays.max_nb_session+" presentation(s) available"];
+                    return [clickable, "jcday " + css, jcdays.max_nb_session + " presentation(s) available"];
                 }
             } else if (days[day] !== jcdays.jc_day) {
-                return [false,"","Not a journal club day"];
+                return [false, "", "Not a journal club day"];
             }
         }
     });
@@ -133,44 +136,26 @@ var inititdatepicker = function(jcdays,selected) {
 /**
  * Log out the user and trigger a modal window informing the user he/she has been logged out
  */
-var logout = function() {
+var logout = function () {
     $('.warningmsg').remove();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         data: {logout: true},
-        success: function() {
+        success: function (data) {
+            var json = jQuery.parseJSON(data);
             $('.mainbody').append("<div class='logoutWarning'>You have been logged out!</div>");
             $('.logoutWarning').fadeIn(200);
-            setTimeout(function() {
+            setTimeout(function () {
                 $('.logoutWarning')
                     .fadeOut(200)
                     .empty()
                     .hide();
-                location.reload();
-            },3000);
+                window.location = json;
+            }, 3000);
         }
     });
 };
-
-/**
- * Automatically show login window on start (if user is not already logged in)
- */
-function showLogin() {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        data: {isLogged: true},
-        success: function(data) {
-            var json = jQuery.parseJSON(data);
-            if (json === false) {
-                $('.leanModal#user_login')
-                    .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
-                    .click();
-            }
-        }
-    });
-}
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Modal windows
@@ -182,8 +167,8 @@ var modalpubform = $('.modal_section#submission_form');
  * @param idpress
  * @param formel
  */
-var displaypub = function(idpress,formel) {
-    idpress = (idpress === undefined) ? false:idpress;
+var displaypub = function (idpress, formel) {
+    idpress = (idpress === undefined) ? false : idpress;
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -191,12 +176,15 @@ var displaypub = function(idpress,formel) {
         data: {
             show_pub: idpress
         },
-        success: function(data){
+        success: function (data) {
             var result = jQuery.parseJSON(data);
             formel
                 .hide()
                 .html(result)
                 .fadeIn(200);
+
+            // Load JCM calendar
+            loadCalendar();
         }
     });
 };
@@ -206,21 +194,17 @@ var displaypub = function(idpress,formel) {
  * @param obj (DOM element)
  * @returns {*}
  */
-function realWidth(obj){
+function realWidth(obj) {
     var clone = obj.clone();
-    clone.css("visibility","hidden");
+    clone.css("visibility", "hidden");
     $('body').append(clone);
     var width = clone.outerWidth();
     clone.remove();
     return width;
 }
 
-$( document ).ready(function() {
+$(document).ready(function () {
     var previous;
-
-    $('body').ready(function() {
-        showLogin();
-    });
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Main body
@@ -231,7 +215,7 @@ $( document ).ready(function() {
          Header menu/Sub-menu
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Dropdown menu
-        .on('click','#float_menu',function() {
+        .on('click','#float_menu',function () {
             var position = $(this).position();
             var height = $(this).outerHeight();
             $('.sideMenu')
@@ -243,7 +227,7 @@ $( document ).ready(function() {
         })
 
         // Display submenu
-        .on('click','.submenu_trigger',function(e) {
+        .on('click','.submenu_trigger',function (e) {
             e.preventDefault();
             var menuEl = $(this).parent('li');
             var absPos = menuEl.offset();
@@ -275,7 +259,7 @@ $( document ).ready(function() {
         })
 
         // Main menu sections
-        .on('click',".menu-section",function(e){
+        .on('click',".menu-section",function (e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -296,7 +280,7 @@ $( document ).ready(function() {
         })
 
         // Hide dropdown menus when not clicked
-        .on('click',function(e) {
+        .on('click',function (e) {
             var nav = $("nav");
             var sideMenu = $('.sideMenu');
             if (!$('#float_menu').is(e.target)&& $('#float_menu').has(e.target).length === 0) {
@@ -314,26 +298,16 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          JQuery_UI Calendar
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('mouseenter','#core, .submission',function(e) {
+        .on('mouseenter','#core, .submission',function (e) {
             e.preventDefault();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {get_calendar_param: true},
-                success: function(data){
-                    var result = jQuery.parseJSON(data);
-                    var selected_date = $('input[type="date"]').val();
-                    inititdatepicker(result,selected_date);
-                }
-            });
+            
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          User Profile
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Send a verification email to the user if a change of password is requested
-        .on('click',".change_pwd",function(e){
+        .on('click',".change_pwd",function (e) {
             e.preventDefault();
             var form = $(this).closest('form');
             var email = $(this).attr("id");
@@ -342,13 +316,13 @@ $( document ).ready(function() {
         })
 
 		// Password change form (email + new password)
-        .on('click',".conf_changepw",function(e){
+        .on('click',".conf_changepw",function (e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
             if (!checkform(form)) {return false;}
             var data = form.serialize();
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     setTimeout(logout,2000);
                 }
@@ -360,7 +334,7 @@ $( document ).ready(function() {
          Admin tools
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // User management tool: sort users
-		.on('click','.user_select',function(e) {
+		.on('click','.user_select',function (e) {
             e.preventDefault();
             var filter = $(this).data('filter');
             jQuery.ajax({
@@ -370,7 +344,7 @@ $( document ).ready(function() {
                 data: {
                     user_select: filter
                     },
-                success: function(data){
+                success: function (data) {
                     var result = jQuery.parseJSON(data);
 					$('#user_list').html(result);
                 }
@@ -379,14 +353,14 @@ $( document ).ready(function() {
         })
 
         // User Management tool: Modify user status
-        .on('change','.modify_status',function(e) {
+        .on('change','.modify_status',function (e) {
             e.preventDefault();
             var div = $('#user_list');
             var username = $(this).attr("data-user");
             var option = $(this).val();
             var data = {modify_status: true,username: username,option: option};
-            var callback = function(result) {
-                setTimeout(function() {
+            var callback = function (result) {
+                setTimeout(function () {
                     $('#user_list').html(result.content);
                 },2000);
             };
@@ -397,7 +371,7 @@ $( document ).ready(function() {
          Admin - Mailing
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Add emails
-        .on('click', '.add_email', function(e) {
+        .on('click', '.add_email', function (e) {
             e.preventDefault();
             var input = $(this).prev('.select_emails_selector');
             var form = input.length > 0 ? $(input[0].form) : $();
@@ -411,7 +385,7 @@ $( document ).ready(function() {
                 data: {
                     add_emails: id
                 },
-                success: function(data) {
+                success: function (data) {
                     var json = jQuery.parseJSON(data);
                     if (json.status) {
                         if (email_input !== undefined && email_input.length > 0) {
@@ -428,7 +402,7 @@ $( document ).ready(function() {
             });
         })
 
-        .on('click', '.added_email_delete', function(e) {
+        .on('click', '.added_email_delete', function (e) {
             var form = $(this).closest('form');
             var id = $(this).attr('id');
             var div = $('.added_email#'+id);
@@ -446,7 +420,7 @@ $( document ).ready(function() {
         })
 
 		// Send an email to the mailing list
-        .on('click','.mailing_send',function(e) {
+        .on('click','.mailing_send',function (e) {
             e.preventDefault();
             var form = $(this).closest('#mailing_send');
             if (!checkform(form)) {return false;}
@@ -459,7 +433,7 @@ $( document ).ready(function() {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin - Digest Maker
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.mail_preview', function() {
+        .on('click', '.mail_preview', function () {
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'post',
@@ -476,24 +450,24 @@ $( document ).ready(function() {
          Admin - News
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select news to modify
-        .on('change','.select_post',function(e) {
+        .on('change','.select_post',function (e) {
             e.preventDefault();
             var postid = $(this).val();
             showpostform(postid);
         })
 
         // Add a new post
-        .on('click','.post_new',function(e) {
+        .on('click','.post_new',function (e) {
             e.preventDefault();
             showpostform(false);
         })
 
         // Delete a post
-        .on('click','.post_del',function(e) {
+        .on('click','.post_del',function (e) {
             e.preventDefault();
             var postid = $(this).attr('data-id');
             var data = {post_del: true, postid: postid};
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     showpostform(false);
                 }
@@ -502,11 +476,11 @@ $( document ).ready(function() {
         })
 
         // Add a news to the homepage
-        .on('click','.submit_post',function(e) {
+        .on('click','.submit_post',function (e) {
             e.preventDefault();
             var form = $(this).closest('#post_form');
             if (!checkform(form)) {return false;}
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     showpostform(false);
                 }
@@ -521,7 +495,7 @@ $( document ).ready(function() {
          Admin - Sessions
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Add a session/presentation type
-        .on('click','.type_add',function(e) {
+        .on('click','.type_add',function (e) {
             var classname = $(this).attr('data-class');
             var typename = $('input#new_'+classname+'_type').val();
 
@@ -532,7 +506,7 @@ $( document ).ready(function() {
                 data: {
                     add_type: classname,
                     typename: typename},
-                success: function(data){
+                success: function (data) {
                     var result = jQuery.parseJSON(data);
                     if (result !== false) {
                         $('.type_list#'+classname).html(result);
@@ -545,7 +519,7 @@ $( document ).ready(function() {
         })
 
         // Delete a session/presentation type
-        .on('click','.type_del',function(e) {
+        .on('click','.type_del',function (e) {
             var typename = $(this).attr('data-type');
             var classname = $(this).attr('data-class');
             jQuery.ajax({
@@ -555,7 +529,7 @@ $( document ).ready(function() {
                 data: {
                     del_type: classname,
                     typename: typename},
-                success: function(data){
+                success: function (data) {
                     var result = jQuery.parseJSON(data);
                     if (result !== false) {
                         $('.type_list#'+classname).html(result);
@@ -565,7 +539,7 @@ $( document ).ready(function() {
         })
 
         // Change default session type
-        .on('change','.session_type_default',function(e) {
+        .on('change','.session_type_default',function (e) {
             e.preventDefault();
             var div = $('#session_type');
             var type = $(this).val();
@@ -574,12 +548,12 @@ $( document ).ready(function() {
         })
 
         // Select session to show
-        .on('change','.selectSession',function(e) {
+        .on('change','.selectSession',function (e) {
             var nbsession = $(this).val();
             var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
             var data = {show_session: nbsession, status: status};
             var div = $('#sessionlist');
-            var callback = function(result) {
+            var callback = function (result) {
                 $('#sessionlist')
                     .html(result)
                     .fadeIn(200);
@@ -593,7 +567,7 @@ $( document ).ready(function() {
             previous = $(this).val();
         })
 
-        .on('change', '.modSpeaker', function() {
+        .on('change', '.modSpeaker', function () {
             // Do something with the previous value after the change
             var speaker = $(this).val();
             var container = $(this).closest('.pres_container');
@@ -605,11 +579,11 @@ $( document ).ready(function() {
                 presid: presid,
                 date:date
             };
-            processAjax(container,data);
+            processAjax($('body'),data);
         })
 
         // Modify session type
-        .on('change','.mod_session',function(e) {
+        .on('change','.mod_session',function (e) {
             e.preventDefault();
             var prop = $(this).attr('name');
             var value = $(this).val();
@@ -623,11 +597,11 @@ $( document ).ready(function() {
          Publication lists (Archives/user publications)
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Sort publications by years
-		.on('change','.archive_select',function(e) {
+		.on('change','.archive_select',function (e) {
             e.preventDefault();
             var year = $(this).val();
             var data = {select_year: year};
-            var callback = function(result) {
+            var callback = function (result) {
                 $('#archives_list').html(result);
             };
             var div = $('#archives_list');
@@ -638,7 +612,7 @@ $( document ).ready(function() {
          Presentation submission
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select a wish
-        .on('change','#select_wish',function(e) {
+        .on('change','#select_wish',function (e) {
             e.preventDefault();
             var presid = $(this).val();
             var form = $('.submission');
@@ -646,12 +620,12 @@ $( document ).ready(function() {
          })
 
         // Show download list
-        .on('click','.dl_btn',function() {
+        .on('click','.dl_btn',function () {
             $(".dlmenu").toggle();
         })
 
         // Show uploaded file
-        .on('click','.link_name',function() {
+        .on('click','.link_name',function () {
             var uplname = $(this).attr('id');
             var url = "uploads/"+uplname;
             window.open(url,'_blank');
@@ -659,7 +633,7 @@ $( document ).ready(function() {
 
 
         // Select submission type
-         .on('change','select#type',function(e) {
+         .on('change','select#type',function (e) {
             e.preventDefault();
             var guestField = $('.submission #guest');
             var type = $(this).val();
@@ -677,7 +651,7 @@ $( document ).ready(function() {
          })
 
         // Submit a presentation
-        .on('click','.submit_pres',function(e) {
+        .on('click','.submit_pres',function (e) {
             e.preventDefault();
             var operation = $(this).attr('name');
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
@@ -699,7 +673,7 @@ $( document ).ready(function() {
             var uploadInput = $('input.upl_link');
             if (uploadInput[0]) {
                 var links = new Array();
-                uploadInput.each(function(){
+                uploadInput.each(function () {
                     var link = $(this).val();
                     links.push(link);
                 });
@@ -709,7 +683,7 @@ $( document ).ready(function() {
 
             // Submit presentation
             var data = form.serialize();
-            var callback = function(result) {
+            var callback = function (result) {
                 var subform = $('section#submission_form, .modal_section#submission_form');
                 if (result.status === true) {
                     showpubform(subform,false);
@@ -722,27 +696,27 @@ $( document ).ready(function() {
          Modal triggers
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Log out
-        .on('click',"#logout",function(e){
+        .on('click',"#logout",function (e) {
             e.preventDefault();
             logout();
         })
 
         // Show publication information on click
-        .on('click','#modal_trigger_pubcontainer',function(e){
+        .on('click','#modal_trigger_pubcontainer',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
             displaypub(id_pres,modalpubform);
         })
 
         // Choose a wish
-        .on('click','#modal_trigger_pubmod',function(e){
+        .on('click','#modal_trigger_pubmod',function (e) {
             e.preventDefault();
             var id_pres = $(this).data('id');
             var date = $(this).data('date');
             showpubform(modalpubform,id_pres,'submit',date);
         })
 
-        .on('click','#modal_trigger_newpub',function(e){
+        .on('click','#modal_trigger_newpub',function (e) {
             e.preventDefault();
             var type = $(this).data('type');
             showpubform(modalpubform,false,type);
@@ -751,14 +725,14 @@ $( document ).ready(function() {
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Show publication modification form
-        .on('click','.modify_ref',function(e) {
+        .on('click','.modify_ref',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
             showpubform(modalpubform,id_pres,'submit');
         })
 
 		// Show publication deletion confirmation
-        .on('click',".delete_ref",function(e){
+        .on('click',".delete_ref",function (e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
             show_section('pub_delete');
@@ -766,17 +740,18 @@ $( document ).ready(function() {
         })
 
         // Going back to publication
-        .on('click',".pub_back_btn",function(){
+        .on('click',".pub_back_btn",function (e) {
+            e.preventDefault();
             show_section('submission_form');
         })
 
         // Confirm delete publication
-        .on('click',"#confirm_pubdel",function(e) {
+        .on('click',"#confirm_pubdel",function (e) {
             e.preventDefault();
             var id_pres = $("input#del_pub").val();
             var data = {del_pub:id_pres};
             var el = $('.modal_section#pub_delete');
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     close_modal('.modalContainer');
                     $('#' + id_pres).remove();
@@ -786,45 +761,43 @@ $( document ).ready(function() {
         })
 
         // Dialog change password
-        .on('click',".modal_trigger_changepw",function(e){
+        .on('click',".modal_trigger_changepw",function (e) {
             e.preventDefault();
             show_section('user_changepw');
         })
 
         // Going back to Login Forms
-        .on('click',".back_btn",function(e){
+        .on('click',".back_btn",function (e) {
             e.preventDefault();
             show_section('user_login');
             return false;
         })
 
         // Go to sign up form
-        .on('click','.gotoregister',function(e) {
+        .on('click','.gotoregister',function (e) {
             e.preventDefault();
             show_section('user_register');
         })
 
         // Delete user account confirmation form
-        .on('click',".confirmdeleteuser",function(e) {
+        .on('click',".confirmdeleteuser",function (e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     logout();
-                    window.location.href = "index.php?page=home";
-                    location.reload();
                 }
             };
             processForm(form,callback);
         })
 
         // Login form
-        .on('click',".login",function(e) {
+        .on('click',".login",function (e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     location.reload();
                 }
@@ -833,11 +806,11 @@ $( document ).ready(function() {
         })
 
         // Sign Up Form
-        .on('click',".register",function(e) {
+        .on('click',".register",function (e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var callback = function(result) {
+            var callback = function (result) {
                 if (result.status === true) {
                     close_modal('.modalContainer');
                 }

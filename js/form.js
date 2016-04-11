@@ -23,7 +23,6 @@
 
 /**
  * Collection of useful functions to process forms
- * @todo: make a plugin out of it
  */
 
 /**
@@ -34,10 +33,10 @@
  * @param url: path to the php-side file
  * @param timing: duration of feeback message
  */
-var processForm = function(el,callback,url,timing) {
-    if (!checkform(el)) { return false;}
+var processForm = function (el, callback, url, timing) {
+    if (!checkform(el)) { return false; }
     var data = el.serialize();
-    processAjax(el,data,callback,url,timing);
+    processAjax(el, data, callback, url, timing);
 };
 
 /**
@@ -48,22 +47,22 @@ var processForm = function(el,callback,url,timing) {
  * @param url: path to the php file
  * @param timing: duration of feeback message
  */
-var processAjax = function(formid,data,callback,url,timing) {
-    url = (url === undefined) ? 'php/form.php':url;
+var processAjax = function (formid, data, callback, url, timing) {
+    url = (url === undefined) ? 'php/form.php' : url;
     jQuery.ajax({
         url: url,
         type: 'POST',
         async: true,
         data: data,
-        beforeSend: function() {
+        beforeSend: function () {
             loadingDiv(formid);
         },
-        complete: function() {
+        complete: function () {
             removeLoading(formid);
         },
-        success: function(data) {
-            callback = (callback === undefined) ? false: callback;
-            validsubmitform(formid,data,callback,timing);
+        success: function (data) {
+            callback = (callback === undefined) ? false : callback;
+            validsubmitform(formid, data, callback, timing);
         }
     });
 };
@@ -76,10 +75,11 @@ var processAjax = function(formid,data,callback,url,timing) {
  * as it was)
  * @param timing: duration of feedback
  */
-var validsubmitform = function(el,data,callback,timing) {
+var validsubmitform = function (el, data, callback, timing) {
+    el = (el === undefined) ? $('body') : el;
     var result = jQuery.parseJSON(data);
-    callback = (callback === undefined) ? false: callback;
-    timing = (timing === undefined) ? 2000:timing;
+    callback = (callback === undefined) ? false : callback;
+    timing = (timing === undefined) ? 2000 : timing;
 
     // Format msg
     var msg = false;
@@ -97,13 +97,14 @@ var validsubmitform = function(el,data,callback,timing) {
         var width = el.width();
         var height = el.height();
         el.append("<div class='feedbackForm'></div>");
+
         var feedbackForm = $('.feedbackForm');
         feedbackForm
-            .css({width: width+'px', height: height+'px'})
+            .css({width: width + 'px', height: height + 'px'})
             .html(msg)
             .fadeIn(200);
 
-        setTimeout(function() {
+        setTimeout(function () {
             feedbackForm
                 .fadeOut(200)
                 .remove();
@@ -112,7 +113,7 @@ var validsubmitform = function(el,data,callback,timing) {
             if (callback !== false) {
                 callback(result);
             }
-        },timing);
+        }, timing);
     } else {
         // Run callback function
         if (callback !== false) {
@@ -127,7 +128,7 @@ var validsubmitform = function(el,data,callback,timing) {
  * @param el: DOM element
  * @returns {boolean}
  */
-var checkform = function(el) {
+var checkform = function (el) {
     var valid = true;
     el.find('.inputFeedback').hide();
     var msg = "* Required";
@@ -202,7 +203,7 @@ var checkform = function(el) {
  * @param email
  * @returns {boolean}
  */
-var checkemail = function(email) {
+var checkemail = function (email) {
     var pattern = new RegExp(/^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i);
     return pattern.test(email);
 };
@@ -213,7 +214,7 @@ var checkemail = function(email) {
  * @param selector: feeback div
  * @returns {boolean}
  */
-var showfeedback = function(message,selector) {
+var showfeedback = function (message,selector) {
     var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
     $(el)
         .html(message)
@@ -241,8 +242,8 @@ function modArray(data,prop,value) {
     return data;
 }
 
-$(document).ready(function() {
-    $('body').on('click','.processform',function(e) {
+$(document).ready(function () {
+    $('body').on('click','.processform',function (e) {
         e.preventDefault();
         var input = $(this);
         var form = input.length > 0 ? $(input[0].form) : $();

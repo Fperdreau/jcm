@@ -146,7 +146,7 @@ class Groups extends AppPlugins {
 
         $nusers = count($users); // total nb of users
 
-        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {return false; }
+        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {return "Not enough members to create groups"; }
 
         $excludedusers = array();
         $pregroups = array();
@@ -191,74 +191,6 @@ class Groups extends AppPlugins {
         }
 
         return "{$ngroups} groups created.";
-    }
-
-    /**
-     * Make and send email notification about group information
-     * @param $assigned_groups
-     * @return string
-     */
-    function mailing($assigned_groups) {
-        global $Sessions, $AppConfig;
-        $MailManager = new MailManager($this->db);
-
-        $rooms = explode(',', $this->options['room']);
-
-        // Declare classes
-        $nextdate = $Sessions->getsessions(1);
-        $session = new Session($this->db, $nextdate[0]);
-
-        // Make email
-        $nsent = 0;
-        $string = "";
-        for ($i=0; $i<$AppConfig->max_nb_session; $i++) {
-            $groupinfo = $assigned_groups[$i];
-            $presid = $groupinfo['presid'];
-            $data['room'] = (isset($rooms[$i])) ? $rooms[$i]:'TBA';
-
-            $pres = new Presentation($this->db, $presid);
-            $type = ($pres->type !== '') ? ucfirst($pres->type):'TBA';
-            $group = $groupinfo['group'];
-
-            // Display details about this presentation
-            if ($type !== 'TBA') {
-                $presentation_desc = $pres->displaypub(false,false);
-            } else {
-                $submit_url = $AppConfig->site_url.'index.php?page=submission&op=new';
-                $presentation_desc = "
-                <div style='width: 95%; text-align: justify; margin: auto; background-color: #eeeeee; padding: 10px;'>
-                There is no presentation assigned to your group yet. <a href='{$submit_url}' target='_blank'>Be the first!</a></div>";
-            }
-
-            $data['publication'] = "
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
-                    YOUR GROUP PRESENTATION
-                </div>
-                <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
-                    $presentation_desc
-                 </div>";
-
-            // Send to every member individually
-            foreach($group as $mbr) {
-                $username = $mbr['member'];
-                if (empty($username) || $username == 'TBA') continue; // We do not send emails to fake users
-
-                // Get the user's group
-                $data['group'] = $this->show($username);
-
-                $user = new User($this->db,$username);
-                $content = self::makeMail($session, $user, $data);
-
-                if ($MailManager->send($content, array($user->email))) {
-                    $nsent += 1;
-                } else {
-                    $string .= "ERROR message not sent to {$user->email}.";
-                }
-            }
-        }
-
-        $string .= "Message sent to {$nsent} users.";
-        return $string;
     }
 
     /**
@@ -334,6 +266,7 @@ class Groups extends AppPlugins {
     public function getGroup($username) {
         $sql = "SELECT * FROM $this->tablename WHERE username='$username'";
         $data = $this->db->send_query($sql)->fetch_assoc();
+        $groupusrs['members'] = array();
         $groupusrs['room'] = $data['room'];
         $groupusrs['date'] = $data['date'];
         $groupusrs['presid'] = $data['presid'];
@@ -343,6 +276,7 @@ class Groups extends AppPlugins {
                 $groupusrs['members'][$row['username']] = $row;
             }
         }
+
         return $groupusrs;
     }
 
@@ -356,7 +290,7 @@ class Groups extends AppPlugins {
             $username = $_SESSION['username'];
         }
         $group = $this->getGroup($username);
-        if (empty($group)) {
+        if (empty($group['members'])) {
             $content = 'No group has been made yet';
         } else {
             $u = 0;

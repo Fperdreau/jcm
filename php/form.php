@@ -232,12 +232,20 @@ Pages Management
 // Get Pages
 if (!empty($_POST['getPage'])) {
     $page = htmlspecialchars($_POST['getPage']);
-    $Page = new AppPage($db,$page);
-    $result = $Page->check_login();
-    $result['pageName'] = $Page->filename;
-    $result['title'] = $Page->meta_title;
-    $result['keywords'] = $Page->meta_keywords;
-    $result['description'] = $Page->meta_description;
+    $AppStatus = $AppConfig->status;
+    if ($AppStatus) {
+        $Page = new AppPage($db, $page);
+        $Plugins = new AppPlugins($db);
+
+        $result = $Page->check_login();
+
+        $result['plugins'] = $Plugins->getPlugins($page);
+        $result['pageName'] = $Page->filename;
+        $result['title'] = $Page->meta_title;
+        $result['keywords'] = $Page->meta_keywords;
+        $result['description'] = $Page->meta_description;
+    }
+    $result['AppStatus'] = $AppStatus;
     echo json_encode($result);
     exit;
 }
@@ -303,7 +311,7 @@ if (!empty($_POST['logout'])) {
     $_SESSION = array();
     unset($_SESSION);
     session_destroy();
-    echo json_encode(true);
+    echo json_encode(AppConfig::$site_url);
     exit;
 }
 

@@ -220,7 +220,6 @@ input[type='button'].addBtn {
     z-index : 1000;
     top : 0;
     left : 0;
-    display : inline-flex;
     text-align :center;
     min-width : 100%;
     min-height : 100%;
@@ -228,8 +227,10 @@ input[type='button'].addBtn {
     margin : auto;
 }
 
-.feedbackForm > div {
-    vertical-align: middle;
+.feedbackForm>p, .feedbackForm>div {
+    position: absolute;
+    top: 40%;
+    left: 40%;
 }
 
 /* Change background color of invalid fields */
@@ -239,7 +240,7 @@ input[type='button'].addBtn {
 
 /* Feedback div to display other messages */
 .feedbackSubmit {
-    margin: 0;
+    margin-top: 5px;
     box-sizing: border-box;
 
     padding: 8px 3px 9px 3px;
@@ -1462,25 +1463,28 @@ button.addBtn:hover {
 }
 
 #warning {
-    margin: auto;
-    color: #990000;
+    border-radius: 10px;
+    margin: 5px auto;
+    color: white;
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(127,0,0,.2); /* Add a background color to our status message   */
+    background-color: rgba(153, 48, 36, 1); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
 #status {
-    margin: auto;
-    color: #000099;
-    background-color: rgba(0,0,127,.2); /* Add a background color to our status message   */
+    border-radius: 10px;
+    margin: 5px auto;
+    color: white;
+    background-color: rgba(77, 124, 153, .9); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
 #success {
-    margin: auto;
-    color: #009900;
+    border-radius: 10px;
+    margin: 5px auto;
+    color: white;
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(0,127,0,.2); /* Add a background color to our status message   */
+    background-color: rgba(79, 165, 79, .9); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
@@ -1651,6 +1655,7 @@ input.dateinput {
     text-align: center;
     text-transform: uppercase;
     transition: all 0.3s ease 0s;
+    cursor: pointer;
 }
 
 .icon_btn {
