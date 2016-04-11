@@ -179,8 +179,9 @@ class AppPlugins extends AppTable {
             $pluginList = array_diff(scandir($folder), array('.', '..'));
         } else {
             $sql = "SELECT * FROM $this->tablename WHERE page='$page'";
+            $req = $this->db->send_query($sql);
             $pluginList = array();
-            foreach ($this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC) as $key=>$item) {
+            while ($item = $req->fetch_assoc()) {
                 $pluginList[] = $item['name'];
             }
         }

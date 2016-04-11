@@ -272,7 +272,13 @@ class Groups extends AppPlugins {
         $groupusrs['presid'] = $data['presid'];
         if (!empty($data)) {
             $sql = "SELECT * FROM $this->tablename WHERE groups='".$data['groups']."'";
-            foreach ($this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC) as $key=>$row) {
+            $req = $this->db->send_query($sql);
+            $rows = array();
+            while ($row = $req->fetch_assoc()) {
+                $rows[] = $row;
+            }
+            
+            foreach ($rows as $key=>$row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
         }

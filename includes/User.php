@@ -91,7 +91,11 @@ class Users extends AppTable {
         $sql = "SELECT * FROM $this->tablename WHERE active=1 and status!='admin'";
         $sql = ($assign == true) ? $sql." and assign=1":$sql;
         $req = $this->db->send_query($sql);
-        return $req->fetch_all(MYSQLI_ASSOC);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
     }
 
     /**
@@ -100,7 +104,10 @@ class Users extends AppTable {
     public function all() {
         $sql = "SELECT * FROM $this->tablename WHERE notification=1 and active=1 and status!='admin' ORDER BY fullname";
         $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_all($req, MYSQLI_ASSOC);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
         return $data;
     }
     

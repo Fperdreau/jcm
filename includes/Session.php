@@ -467,11 +467,20 @@ class Session extends Sessions {
      */
     public function clean_duplicates() {
         $sql = "SELECT * FROM {$this->tablename}";
-        $data = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        
         if (!empty($data)) {
             foreach ($data as $key=>$info) {
                 $sql = "SELECT * FROM {$this->tablename} WHERE date='{$info['date']}'";
-                $sessions = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+                $req = $this->db->send_query($sql);
+                $sessions = array();
+                while ($row = $req->fetch_assoc()) {
+                    $sessions[] = $row;
+                }
                 if (count($sessions) > 1) {
                     $sessions = array_slice($sessions, 1);
                     foreach ($sessions as $id=>$row) {

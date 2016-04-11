@@ -177,7 +177,11 @@ class Assignment extends AppPlugins {
     public function getPresentations() {
         $Session = new Session($this->db);
         $sql = "SELECT * FROM " . $this->db->tablesname['Presentation'];
-        $data = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
 
         // Get number of presentations for every member and session type
         $list = array();
@@ -214,8 +218,14 @@ class Assignment extends AppPlugins {
         }
 
         // Get list of users currently registered into the assignment table
+        $req = $this->db->send_query("SELECT username FROM {$this->tablename}");
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+
         $AssignUsers = array();
-        foreach ($this->db->send_query("SELECT username FROM {$this->tablename}")->fetch_all(MYSQLI_ASSOC) as $key=>$user) {
+        foreach ($data as $key=>$user) {
             $AssignUsers[] = $user['username'];
         }
 
@@ -237,7 +247,7 @@ class Assignment extends AppPlugins {
      * @return mixed
      */
     private function getAssignable($session_type, $max) {
-        $data = $this->db->send_query("
+        $req = $this->db->send_query("
             SELECT * 
             FROM {$this->tablename} a
             INNER JOIN ".$this->db->tablesname['User']." u
@@ -245,7 +255,11 @@ class Assignment extends AppPlugins {
             WHERE (a.$session_type<$max)
                 AND u.assign=1 AND u.status!='admin'
             ");
-        return $data->fetch_all(MYSQLI_ASSOC);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
     }
 
     /**

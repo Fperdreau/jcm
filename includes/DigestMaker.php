@@ -64,7 +64,12 @@ class DigestMaker extends AppTable {
      */
     public function all() {
         $sql = "SELECT * FROM {$this->tablename} ORDER BY position ASC";
-        return $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
     }
 
     /**

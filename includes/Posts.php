@@ -102,7 +102,7 @@ class Posts extends AppTable {
      * @return bool
      */
     public function get($postid) {
-        $sql = "SELECT * FROM $this->tablename WHERE postid='$postid'";
+        $sql = "SELECT * FROM {$this->tablename} WHERE postid='{$postid}'";
         $req = $this->db->send_query($sql);
         $row = mysqli_fetch_assoc($req);
         if (!empty($row)) {
@@ -167,7 +167,11 @@ class Posts extends AppTable {
         $sql = "SELECT postid from $this->tablename";
         if ($homepage == true) $sql .= " WHERE homepage='1'";
         $sql .= " ORDER BY date DESC";
-        $data = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
         if (!empty($data)) {
             $post_ids = array();
             foreach ($data as $key=>$info) {
@@ -269,7 +273,7 @@ class Posts extends AppTable {
      */
     public function makeMail($username=null) {
         $last = $this->getlastnews();
-        $last_news = new self($this->db,$last);
+        $last_news = new self($this->db, $last[0]);
         $today = date('Y-m-d');
         if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
             $last_news->content = "No recent news this week";
