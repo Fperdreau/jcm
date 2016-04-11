@@ -114,7 +114,7 @@ class AppPlugins extends AppTable {
      * Get plugin info from the Plugin table
      */
     public function get() {
-        $sql = "SELECT name,version,page,status,options FROM ".$this->db->tablesname['Plugins']." WHERE name='$this->name'";
+        $sql = "SELECT * FROM ".$this->db->tablesname['Plugins']." WHERE name='$this->name'";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_assoc($req);
         if (!empty($data)) {

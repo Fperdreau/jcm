@@ -25,17 +25,11 @@ $last_news = new Posts($db);
 $sessions = new Sessions($db);
 $presentations = new Presentations($db);
 
-/** @var $news Sessions */
-$news = $last_news->show();
-
-/** @var $futurepres Sessions */
+$news = $last_news->show(true);
 $futurepres = $sessions->showfuturesession(4);
-
-/** @var $wishlist Sessions */
 $wishlist = $presentations->getwishlist(10,true);
 
 // Submission menu
-
     $submitMenu = "
     <div class='submitMenu'>
         <div class='submitMenuSection'>
@@ -57,7 +51,7 @@ $result = "
     $submitMenu
 
     <section>
-        <h2>News</h2>
+        <h2>Last News</h2>
         <div class='news'>
                 $news
         </div>

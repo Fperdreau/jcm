@@ -34,6 +34,7 @@ for ($i=0; $i<count($admin); $i++) {
         $organizers .= "<div>$admin_name</div>";
     }
 }
+
 $admin_contact = "$organizers";
 $jc_day = ucfirst($AppConfig->jc_day);
 // Lab information

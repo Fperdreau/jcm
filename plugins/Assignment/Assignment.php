@@ -91,6 +91,29 @@ class Assignment extends AppPlugins {
     }
 
     /**
+     * Registers plugin into the database
+     * @return bool|mysqli_result
+     */
+    public function install() {
+        // Create corresponding table
+        $table = new AppTable($this->db, $this->name, $this->table_data, strtolower($this->name));
+        $table->setup();
+
+        // Register the plugin in the db
+        $class_vars = get_class_vars($this->name);
+        if ($this->make($class_vars)) {
+            $this->get();
+            $this->getSession();
+            $this->addSessionType();
+            $this->addUsers();
+            $this->getPresentations();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Register into DigestMaker table
      */
     public function registerDigest() {
@@ -146,6 +169,35 @@ class Assignment extends AppPlugins {
             }
         }
         return true;
+    }
+
+    /**
+     * Update members' presentation number based on presentations registered in the Presentation table
+     */
+    public function getPresentations() {
+        $Session = new Session($this->db);
+        $sql = "SELECT * FROM " . $this->db->tablesname['Presentation'];
+        $data = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+
+        // Get number of presentations for every member and session type
+        $list = array();
+        foreach ($data as $key=>$info) {
+            $Session->get($info['date']);
+            if ($Session->type === 'none' || empty($info['username'])) continue;
+            if (!isset($list[$info['username']][$Session->type])) {
+                $list[$info['username']][$Session->type] = 0;
+            } else {
+                $list[$info['username']][$Session->type] += 1;
+            }
+        }
+
+        // Step 2: update table
+        foreach ($list as $username=>$info) {
+            foreach ($info as $type=>$value) {
+                $type = $this->prettyName($type, true);
+                $this->db->updatecontent($this->tablename, array($type=>$value), array('username'=>$username));
+            }
+        }
     }
 
     /**

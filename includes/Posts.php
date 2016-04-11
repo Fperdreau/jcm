@@ -167,16 +167,11 @@ class Posts extends AppTable {
         $sql = "SELECT postid from $this->tablename";
         if ($homepage == true) $sql .= " WHERE homepage='1'";
         $sql .= " ORDER BY date DESC";
-        $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_array($req);
+        $data = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
         if (!empty($data)) {
-            if ($homepage == true) {
-                $post_ids = array($data[0]);
-                while ($row = mysqli_fetch_array($req)) {
-                    $post_ids[] = $row[0];
-                }
-            } else {
-                $post_ids = $data[0];
+            $post_ids = array();
+            foreach ($data as $key=>$info) {
+                $post_ids[] = $info['postid'];
             }
             return $post_ids;
         } else {
@@ -186,10 +181,11 @@ class Posts extends AppTable {
 
     /**
      * Show post on the homepage
+     * @param bool $homepage: only display news for homepage
      * @return string
      */
-    public function show() {
-        $posts_ids = self::getlastnews(true);
+    public function show($homepage=false) {
+        $posts_ids = self::getlastnews($homepage);
         if ($posts_ids !== false) {
             $news = "";
             foreach ($posts_ids as $id) {

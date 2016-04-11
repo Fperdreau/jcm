@@ -463,6 +463,26 @@ class Session extends Sessions {
     }
 
     /**
+     * Removes duplicate sessions
+     */
+    public function clean_duplicates() {
+        $sql = "SELECT * FROM {$this->tablename}";
+        $data = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+        if (!empty($data)) {
+            foreach ($data as $key=>$info) {
+                $sql = "SELECT * FROM {$this->tablename} WHERE date='{$info['date']}'";
+                $sessions = $this->db->send_query($sql)->fetch_all(MYSQLI_ASSOC);
+                if (count($sessions) > 1) {
+                    $sessions = array_slice($sessions, 1);
+                    foreach ($sessions as $id=>$row) {
+                        $this->db->deletecontent($this->tablename, 'id', $row['id']);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Update session info
      * @param array $post
      * @return bool

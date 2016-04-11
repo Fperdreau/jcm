@@ -186,6 +186,10 @@ function patching() {
             }
         }
     }
+
+    // Clean session duplicates
+    $Session = new Session($db);
+    $Session->clean_duplicates();
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -575,7 +579,7 @@ if (!empty($_POST['getpagecontent'])) {
     <META NAME="description" CONTENT="Journal Club Manager. The easiest way to manage your lab's journal club.">
     <META NAME="keywords" CONTENT="Journal Club Manager">
     <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-    <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
+    <link type='text/css' rel='stylesheet' href="css/stylesheet.min.css"/>
 
     <style type="text/css">
         .box {
