@@ -108,8 +108,12 @@ class AppConfig extends AppTable {
      */
     public function __construct(AppDb $db,$get=true) {
         parent::__construct($db, 'AppConfig',$this->table_data);
-        self::getAppUrl();
-        
+
+        // Get App URL if not running in command line
+        if (php_sapi_name() !== "cli") {
+            self::getAppUrl();
+        }
+
         if ($get) {
             self::get();
         }
