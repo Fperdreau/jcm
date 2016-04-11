@@ -92,6 +92,7 @@ function mailLogs($logs) {
 
     // Get admins email
     $adminMails = $db->getinfo($db->tablesname['User'],'email',array('status'),array("'admin'"));
+    if (!is_array($adminMails)) $adminMails = array($adminMails);
     $content['body'] = "
             <p>Hello, </p>
             <p>Please find below the logs of the scheduled tasks.</p>
