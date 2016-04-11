@@ -460,7 +460,7 @@ class Presentation extends Presentations {
         return "
             <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
-                <div style='display: table-cell; width: 10%; vertical-align: top; text-align: left; 
+                <div style='display: table-cell; vertical-align: top; text-align: left; 
                 min-width: 50px; font-weight: bold;'>$date</div>
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 

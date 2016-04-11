@@ -716,7 +716,7 @@ class User extends Users{
         return "
             <div class='table_container' style='display: table; width: 100%;'>
                 <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
-                    <div style='width: 10%; display: table-cell;'>Date</div>
+                    <div style='width: 20%; display: table-cell;'>Date</div>
                     <div style='width: 75%; display: table-cell;'>Title</div>
                 </div>
             {$content}

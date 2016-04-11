@@ -88,15 +88,15 @@ $result = "
                     <input type='text' name='email' value='$user->email'/>
                 </div><br>
                 <div class='formcontrol'>
-                    <label for='notification'>Email notifications</label>
+                    <label for='notification'>I want to receive Email notifications</label>
                     <select name='notification' class='select_opt'>
                         <option value='$user->notification' selected>$notifStatus</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
-                </div><br>
+                </div>
                 <div class='formcontrol'>
-                    <label for='reminder'>Reminders</label>
+                    <label for='reminder'>I want to receive reminders</label>
                     <select name='reminder' class='select_opt'>
                         <option value='$user->reminder' selected>$reminderStatus</option>
                         <option value='1'>Yes</option>
@@ -104,7 +104,7 @@ $result = "
                     </select>
                 </div>
                 <div class='formcontrol'>
-                    <label for='reminder'>Assignment</label>
+                    <label for='reminder'>I want to be assigned as speaker</label>
                     <select name='assign' class='select_opt'>
                         <option value='$user->assign' selected>$assignStatus</option>
                         <option value='1'>Yes</option>
