@@ -1467,7 +1467,7 @@ button.addBtn:hover {
     margin: 5px auto;
     color: white;
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(153, 48, 36, 1); /* Add a background color to our status message   */
+    background-color: rgb(188, 54, 0); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
@@ -1484,7 +1484,7 @@ button.addBtn:hover {
     margin: 5px auto;
     color: white;
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(79, 165, 79, .9); /* Add a background color to our status message   */
+    background-color: rgba(109, 187, 74, 0.9); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
