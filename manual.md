@@ -65,6 +65,17 @@ System Requirements
 Installation
 ============
 
+Updating from version 1.2.1 or earlier
+----------------------------------
+The Journal Club Manager has sensibly changed since its very first versions. If you are running with one of these versions,
+you can upgrade to the newest version of the JCM but you will need to follow a specific procedure:
+1. Overwrite all the JCM's folders already present on your server EXCEPT the "uploads" folder.
+2. Copy your previous config file (path_to_JCM/admin/config/config.php) to the new config folder
+(path_to_JCM/config/config.php).
+3. Update your JCM version by running <http://www.mydomain.com/jcm/install.php> and follow the steps described in the
+next sections.
+4. Congrats!
+
 Step 1: Upload files on the server
 ----------------------------------
 
@@ -157,14 +168,28 @@ For security reasons, you must delete installation files from your web-server. G
 
 -   Delete the “install.php” file located at the root of the “jcm” folder.
 
-Step 5 (optional): Set automatic jobs (e.g. email notification)
----------------------------------------------------------------
-Journal Club Manager relies on scheduled tasks in order to automatically send notifications, reminders or assignments by email, 
+Step 5 (optional): Set plugins
+------------------------------
+![Plugins](./media/plugins.png)
 
+Go to Admin>Plugins. Here you can install JCM plugins and modify their settings.
+
+### List of built-in plugins:
+
+**Assignment**: Automatically assigns members of the JCM (who agreed upon being assigned by settings the corresponding
+option on their profile page) as speakers to the future sessions. The number of sessions to plan in advance can be set
+in the plugin's settings.
+
+**Groups**: Automatically creates groups of users based on the number of presentations scheduled for the upcoming session.
+Users will be notified by email about their group's information. If the different groups are meeting in different rooms,
+then the rooms can be specified in the plugin's settings (rooms must be comma-separated).
+
+Step 6 (optional): Set automatic scheduled tasks (e.g. email notification)
+---------------------------------------------------------------
+Journal Club Manager relies on scheduled tasks in order to automatically send notifications, reminders or assignments by email,
 or simply to backup files and database.
 
 In order to do so, you need to set CRON jobs on your server (if your server is running on Linux) or scheduled tasks (if it’s running on MS Windows) pointing
-
 to the PHP script 'run.php' located in the 'jcm/cronjobs' folder and to make it run every hour.
 
 Here are tutorials to automatically run PHP file:
@@ -179,24 +204,28 @@ Once done, scheduled tasks can be managed from the Journal Club Manager (Admin>S
 
 From there, you can  install/uninstall, activate/deactivate tasks, modify their running time and options.
 
-###List of built-in scheduled tasks:
-**Mailing:** send weekly digest including the last news, details about the upcoming session, the list of the future sessions and the list of the newest wishes.
+### List of built-in scheduled tasks:
+**Mailing:** send weekly digest including the last news, details about the upcoming session, the list of the future
+sessions and the list of the newest wishes.
 
 **Notification**: Send list of last submissions by email.
 
 **Reminder**: send reminder for the upcoming session.
 
-**AssignSpeakers**: automatically assigned speakers to each presentation by pseudo-randomly picking up one organizer. 
-
-The simple rule is that all organizers must have been a chair once for this particular session type (e.g. journal club, 
-
+**SpeakerAssignment**: automatically assigned speakers to each presentation by pseudo-randomly picking up one organizer.
+The simple rule is that all organizers must have been a chair once for this particular session type (e.g. journal club,
 group meeting, etc.) before an organizer can be selected again as a chair.
 
 **MakeGroup**: Split users into groups for one session (1 group per presentation)
 
-**Db\_backup.php**: do a backup copy of the database and save it into a .sql file that can be found in “jcm/backup/mysql” folder.
+**DbBackup.php**: do a backup copy of the database and save it into a .sql file that can be found in “jcm/backup/mysql” folder.
 
-**Full\_backup**: do a backup copy of the database and of all the files and store it in an archive that can be found in “jcm/backup/complete” folder.
+**FullBackup**: do a backup copy of the database and of all the files and store it in an archive that can be found in
+“jcm/backup/complete” folder.
+
+**MailSender**: Checks whether all emails have been sent and sends them otherwise. It also cleans the mailing database
+by deleting the oldest emails. The number of days of email storage can be defined in the task's settings (default is 10 days).
+
 
 Sections
 ========
