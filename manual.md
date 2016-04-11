@@ -69,8 +69,9 @@ Updating from version 1.2.1 or earlier
 ----------------------------------
 The Journal Club Manager has sensibly changed since its very first versions. If you are running with one of these versions,
 you can upgrade to the newest version of the JCM but you will need to follow a specific procedure:
+0. Save your previous config file (path_to_JCM/admin/config/config.php) somewhere outside the application.
 1. Overwrite all the JCM's folders already present on your server EXCEPT the "uploads" folder.
-2. Copy your previous config file (path_to_JCM/admin/config/config.php) to the new config folder
+2. Copy your previous config file (the one you saved in step 0) to the new config folder
 (path_to_JCM/config/config.php).
 3. Update your JCM version by running <http://www.mydomain.com/jcm/install.php> and follow the steps described in the
 next sections.
