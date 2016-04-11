@@ -953,9 +953,10 @@ h3 {
 
 .dl_type {
     display: inline-block;
-    width: auto;
-    font-size: 12px;
-    padding: 0 5px 0 5px;
+    font-size: 10px;
+    text-align: center;
+    width: 30px;
+    height: 30px;
     margin: 0;
     font-weight: bold;
     background-color: #555555;
