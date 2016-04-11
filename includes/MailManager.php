@@ -103,7 +103,7 @@ class MailManager extends AppTable {
      */
     public function all($status=null) {
         $where = (!is_null($status)) ? "WHERE status=0":null;
-        $req = "SELECT * FROM {$this->tablename} {$where} ORDER BY date";
+        $req = $this->db->send_query("SELECT * FROM {$this->tablename} {$where} ORDER BY date");
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
