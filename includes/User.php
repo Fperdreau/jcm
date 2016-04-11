@@ -119,12 +119,12 @@ class Users extends AppTable {
         $req = $this->db->send_query($sql);
         $result =  "
             <div class='list-container list-heading'>
-                <div class='user_select' data-filter='firstname'>First Name</div>
-                <div class='user_select' data-filter='lastname'>Last Name</div>
-                <div class='user_select' data-filter='email'>Email</div>
-                <div class='warp user_select' data-filter='active'>Activated</div>
-                <div class='warp user_select' data-filter='nbpres'>Submissions</div>
-                <div class='user_select' data-filter='status'>Status</div>
+                <div class='user_select user_firstname' data-filter='firstname'>First Name</div>
+                <div class='user_select user_lastname' data-filter='lastname'>Last Name</div>
+                <div class='user_select user_email' data-filter='email'>Email</div>
+                <div class='user_select user_small' data-filter='active'>Activated</div>
+                <div class='user_select user_small' data-filter='nbpres'>Submissions</div>
+                <div class='user_select user_op' data-filter='status'>Status</div>
             </div>
         ";
 
@@ -156,13 +156,12 @@ class Users extends AppTable {
 
             $result .= "
             <div class='list-container' id='section_$user->username'>
-                <div>$user->firstname</div>
-                <div>$user->lastname</div>
-                <div class='warp'>$user->email</div>
-                <div class='warp'>$cur_trage</div>
-                <div style='width: 5%'>$nbpres</div>
-
-                <div >
+                <div class='user_firstname'>$user->firstname</div>
+                <div class='user_lastname'>$user->lastname</div>
+                <div class='user_email'>$user->email</div>
+                <div class='user_small'>$cur_trage</div>
+                <div class='user_small'>$nbpres</div>
+                <div class='user_op'>
                     <select name='status' id='status' data-user='$user->username' class='modify_status' style='max-width: 75%;'>
                         <option value='$user->status' selected='selected'>$user->status</option>
                         <option value='member'>Member</option>

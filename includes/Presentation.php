@@ -154,12 +154,14 @@ class Presentations extends AppTable {
             $content.= "
             <section>
                 <h2 class='section_header'>$year</h2>
+                <div class='table_container'>
                 <div class='list-container list-heading'>
                     <div>Date</div>
                     <div>Title</div>
                     <div>Speakers</div>
                 </div>
                 $yearcontent
+                </div>
             </section>";
         }
         return $content;
@@ -661,8 +663,8 @@ class Presentation extends Presentations {
 
         // Add a delete link (only for admin and organizers or the authors)
         if ($user->status != 'member' || $this->orator == $user->username) {
-            $delete_button = "<div class='pub_btn'><a href='#' data-id='$this->id_pres' class='delete_ref'>Delete</a></div>";
-            $modify_button = "<div class='pub_btn'><a href='#' data-id='$this->id_pres' class='modify_ref'>Modify</a></div>";
+            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='$this->id_pres' class='delete_ref'><img src='".AppConfig::$site_url."images/trash.png'></a></div>";
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='$this->id_pres' class='modify_ref'><img src='".AppConfig::$site_url."images/edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
             $modify_button = "<div style='width: 100px'></div>";

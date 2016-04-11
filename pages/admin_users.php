@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright © 2014, Florian Perdreau
+Copyright ï¿½ 2014, Florian Perdreau
 This file is part of Journal Club Manager.
 
 Journal Club Manager is free software: you can redistribute it and/or modify
@@ -29,9 +29,9 @@ $result = "
 <h1>Manage Users</h1>
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 <section>
-    <h2>Manage users</h2>
+    <h2>Users List</h2>
     <div class='feedback'></div>
-    <div id='user_list'>
+    <div class='table_container' id='user_list'>
         $userlist
     </div>
 </section>";

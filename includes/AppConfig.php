@@ -47,7 +47,7 @@ class AppConfig extends AppTable {
     public $author = "Florian Perdreau"; // Application's authors
     public $repository = "https://github.com/Fperdreau/jcm"; // Application's sources
     public $sitetitle = "Journal Club Manager"; //
-    public $site_url; // Web path to application
+    public static $site_url; // Web path to application
     public $max_nb_attempt = 5; // Maximum nb of login attempt
 
     /**
@@ -108,6 +108,8 @@ class AppConfig extends AppTable {
      */
     public function __construct(AppDb $db,$get=true) {
         parent::__construct($db, 'AppConfig',$this->table_data);
+        self::getAppUrl();
+        
         if ($get) {
             self::get();
         }
@@ -136,6 +138,30 @@ class AppConfig extends AppTable {
     public function getConfig($variable) {
         $sql = "SELECT * FROM {$this->tablename} WHERE variable='{$variable}'";
         return $this->db->send_query($sql)->fetch_assoc();
+    }
+
+    /**
+     * This function gets App's URL to root
+     * @param null $lang: language
+     * @return string
+     */
+    public static function getAppUrl($lang=null) {
+        if (is_null(self::$site_url) || !is_null($lang)) {
+            $root = explode('/',  dirname($_SERVER['PHP_SELF']));
+            $root = '/' . $root[1];
+            self::$site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' )
+                . $_SERVER['HTTP_HOST'] . $root .'/';
+
+            if(substr(self::$site_url, -2) == '//') {
+                self::$site_url = substr(self::$site_url, 0, -1);
+            }
+
+            if (!(is_null($lang))) {
+                self::$site_url .= $lang.'/';
+            }
+        }
+        $_SESSION['BASE_URL'] = self::$site_url;
+        return self::$site_url;
     }
 
     /**
