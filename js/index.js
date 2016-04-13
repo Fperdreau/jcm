@@ -300,7 +300,6 @@ $(document).ready(function () {
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         .on('mouseenter','#core, .submission',function (e) {
             e.preventDefault();
-            
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -422,11 +421,17 @@ $(document).ready(function () {
 		// Send an email to the mailing list
         .on('click','.mailing_send',function (e) {
             e.preventDefault();
-            var form = $(this).closest('#mailing_send');
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
             if (!checkform(form)) {return false;}
             var data = form.serializeArray();
             var content = tinyMCE.get('spec_msg').getContent();
+            var attachments = [];
+            form.find('input.upl_link').each(function() {
+                attachments.push($(this).val());
+            });
+            attachments = attachments.join(',');
             data = modArray(data,'spec_msg',content);
+            data = modArray(data, 'attachments', attachments);
             processAjax(form,data);
         })
 
@@ -675,7 +680,7 @@ $(document).ready(function () {
             // Check if files have been uploaded and attach them to this presentation
             var uploadInput = $('input.upl_link');
             if (uploadInput[0]) {
-                var links = new Array();
+                var links = [];
                 uploadInput.each(function () {
                     var link = $(this).val();
                     links.push(link);

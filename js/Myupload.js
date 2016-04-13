@@ -65,9 +65,9 @@ var processUpl = function (data) {
             var error = result.error;
             if (error === true) {
                 var name = result.name;
-                $('#submit_form').append('<input type="hidden" class="upl_link" id="'+name+'" value="'+status+'" />');
-                $('.upl_filelist').append("<div class='upl_info' id='upl_"+name+"'><div class='upl_name' id='"+status+"'>"
-                    +status+"</div><div class='del_upl' id='"+status+"' data-upl='"+name+"'></div></div>");
+                $('#submit_form').append('<input type="hidden" class="upl_link" id="' + name + '" value="' + status + '" />');
+                $('.upl_filelist').append("<div class='upl_info' id='upl_" + name + "'><div class='upl_name' id='" + status + "'>" + 
+                status + "</div><div class='del_upl' id='"+status+"' data-upl='" + name + "'></div></div>");
             } else {
                 el.find('.upl_errors').html(error).show();
             }
@@ -218,12 +218,12 @@ $(document).ready(function() {
         // Delete uploaded file
         .on('click','.del_upl',function() {
             var uplfilename = $(this).attr('id');
-            var data = {del_upl: true,uplname: uplfilename};
+            var data = {del_upl: true, uplname: uplfilename};
             var el = $('.upl_container');
             var callback = function(result) {
                 if (result.status === true) {
                     $('.upl_info#upl_'+result.uplname).remove();
-                    $('.upl_link#upl_'+result.uplname).remove();
+                    $('.upl_link#'+result.uplname).remove();
                 }
             };
             sendAjax(el,data,callback);

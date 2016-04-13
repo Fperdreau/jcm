@@ -1524,8 +1524,8 @@ button.addBtn:hover {
     margin: 5px auto;
     color: rgb(113, 57, 56);;
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(201, 135, 117, 1); /* Add a background color to our status message   */
-    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+    background-color: rgba(226,186,176,1); /* Add a background color to our status message   */
+    border: 1px solid rgb(154, 125, 118); /* Add a border arround our status message   */
 }
 
 #status {
@@ -1533,7 +1533,7 @@ button.addBtn:hover {
     margin: 5px auto;
     color: rgba(41, 53, 82, 1);;
     background-color: rgba(77, 124, 153, 1); /* Add a background color to our status message   */
-    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+    border: 1px solid rgb(61, 94, 123); /* Add a border arround our status message   */
 }
 
 #success {
@@ -1541,8 +1541,8 @@ button.addBtn:hover {
     margin: 5px auto;
     color: rgba(45, 72, 33, 1);
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(109, 187, 74, 1); /* Add a background color to our status message   */
-    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+    background-color: rgba(164, 216, 141, 1); /* Add a background color to our status message   */
+    border: 1px solid rgb(117, 154, 100); /* Add a border arround our status message   */
 }
 
 /* *********************************************************************/

@@ -180,8 +180,10 @@ class AppMail {
         $mail->AltBody= @convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
 
         if($attachment != null){
-            if (!$mail->AddAttachment($attachment)) {
-                return false;
+            if (!is_array($attachment)) $attachment = array($attachment);
+            foreach ($attachment as $path) {
+                $file_name = end(explode('/', $path));
+                $mail->AddAttachment($path, $file_name);
             }
         }
 

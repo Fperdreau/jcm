@@ -104,7 +104,7 @@ require_once('includes/boot.php');
 
 
         <!-- Bunch of jQuery functions -->
-        <script type="text/javascript" src="js/index.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/form.min.js"></script>
         <script type="text/javascript" src="js/plugins.js"></script>
         <script type="text/javascript" src="js/Myupload.min.js"></script>

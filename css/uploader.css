@@ -79,6 +79,7 @@
 }
 
 .upl_errors {
+    box-sizing: border-box;
     display: none;
     width: 100%;
     color: #990000;

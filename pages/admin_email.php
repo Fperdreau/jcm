@@ -30,19 +30,28 @@ foreach ( $user->all() as $key=>$info) {
     if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}'>{$info['fullname']}</option>";
 }
 
+// Upload
+$uploader = Media::uploader();
+
 // Send mail
 $result = "
     <h1>Mailing</h1>
     <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
     <section>
         <h2>Send an email</h2>
-        <form id='mailing_send'>
+        <div class='mailing_attachment'>
+            <h3>Attach a file</h3>
+            {$uploader}
+        </div>
+        <form method='post' id='submit_form'>
             <input type='hidden' name='mailing_send' value='true'>
+            <input type='hidden' name='attachments' value=''>
             <div class='submit_btns'>
                 <input type='submit' name='send' value='Send' class='mailing_send'>
             </div>
             
             <div class='select_emails_container'>
+                <h3>Select recipients</h3>
                 <div>
                     <select class='select_emails_selector' required>
                         <option value='' disabled selected>Select emails</option>
@@ -53,7 +62,8 @@ $result = "
                 </div>
                 <div class='select_emails_list'></div>
             </div>
-            
+                        
+            <h3>Write your message</h3>
             <div class='formcontrol'>
                 <label>Subject:</label>
                 <input type='text' name='spec_head' placeholder='Subject' required/>

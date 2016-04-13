@@ -468,6 +468,22 @@ if (!empty($_POST['user_modify'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Media/Upload
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['add_upload'])) {
+    $upload = new Media($db);
+    $result = $upload->make($_FILES['file']);
+    $result['name'] = false;
+    if ($result['error'] == true) {
+        $name = explode('.',$result['status']);
+        $name = $name[0];
+        $result['name'] = $name;
+    }
+    echo json_encode($result);
+    exit;
+}
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process submissions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get file list (download list)
@@ -713,6 +729,13 @@ if (!empty($_POST['mailing_send'])) {
     $content['body'] = $_POST['spec_msg'];
     $content['subject'] = $_POST['spec_head'];
     $ids = explode(',',$_POST['emails']);
+
+    if (!empty($_POST['attachments'])) {
+        $content['attachments'] = array();
+        foreach (explode(',', $_POST['attachments']) as $file_name) {
+            $content['attachments'][] = PATH_TO_APP . '/uploads/' . $file_name;
+        }
+    }
 
     $user = new User($db);
     $MailManager = new MailManager($db);
