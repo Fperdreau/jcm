@@ -1336,21 +1336,24 @@ h3 {
 }
 
 button.addBtn {
-    font-weight: 500;
-    box-sizing: border-box;
-    height: 28px;
-    width: 28px;
-    font-size: 20px;
-    border:  none;
+    outline: none;
+    padding: 3px;
+    border: 2px solid rgba(207,81,81,1);
+    background: white;
     vertical-align: middle;
-    border-radius: 50%;
     cursor: pointer;
     color: rgba(50, 50, 50, 1);
 }
 
 button.addBtn:hover {
-    background: rgba(50, 50, 50, 1);
+    background: rgba(207,81,81,1);
     color: white;
+}
+
+button.addBtn>img {
+    width: 20px;
+    height: 20px;
+    vertical-align: bottom;
 }
 
 /* *********************************************************************/

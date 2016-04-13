@@ -58,7 +58,7 @@ $result = "
                         <option value='all'>All</option>
                         {$mailing_list}
                     </select>
-                    <button type='submit' class='add_email addBtn'>+</input>
+                    <button type='submit' class='add_email addBtn'><img src='" . AppConfig::$site_url . 'images/add.png' . "'></button>
                 </div>
                 <div class='select_emails_list'></div>
             </div>
