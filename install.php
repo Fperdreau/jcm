@@ -339,6 +339,10 @@ if (!empty($_POST['operation'])) {
         // Digest table
         $DigestMaker = new DigestMaker($db);
         $DigestMaker->setup($op);
+
+        // Reminder table
+        $DigestMaker = new ReminderMaker($db);
+        $DigestMaker->setup($op);
         
         // Apply patch if required
         if ($op == false) {

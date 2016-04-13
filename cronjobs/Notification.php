@@ -34,14 +34,8 @@ require('../includes/boot.php');
 class Notification extends AppCron {
 
     public $name = 'Notification';
-    public $path;
     public $status = 'Off';
     public $installed = False;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
-    public $options;
     public static $description = "Sends a email notification to members with the list of the last submitted presentations";
 
     /**

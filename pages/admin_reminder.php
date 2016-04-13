@@ -23,17 +23,17 @@
 // Declare classes
 require('../includes/boot.php');
 
-$DigestMaker = new DigestMaker($db);
-$content = $DigestMaker->edit();
+$Reminder = new ReminderMaker($db);
+$content = $Reminder->edit();
 // Send mail
 $result = "
-    <h1>Digest Maker</h1>
-    <p class='page_description'>Here you can customize and preview the weekly digest that will be sent to the JCM members.</p>
+    <h1>Reminder Maker</h1>
+    <p class='page_description'>Here you can customize and preview the reminder email that will be sent to the JCM members.</p>
     <section>
-        <h2>Digests Sections</h2>
+        <h2>Reminder Sections</h2>
         {$content}
         <div class='submit_btns'>
-        <input type='submit' value='Preview' class='mail_preview' id='digest'/>
+        <input type='submit' value='Preview' class='mail_preview' id='reminder' />
         </div>
     </section>
     <section class='mail_preview_container' style='display: none;'>

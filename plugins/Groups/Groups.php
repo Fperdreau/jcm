@@ -46,10 +46,12 @@ class Groups extends AppPlugins {
     public $page = 'profile';
     public $status = 'Off';
     public $installed = False;
+    
     public $options = array(
-        "room"=>""
+        'room'=>array(
+            'options'=>array(),
+            'value'=>'')
     );
-
     public static $description = "Automatically creates groups of users based on the number of presentations scheduled 
     for the upcoming session. Users will be notified by email about their group's information. If the different groups are
     meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
@@ -63,6 +65,7 @@ class Groups extends AppPlugins {
         $this->installed = $this->isInstalled();
         $this->tablename = $this->db->dbprefix.'_groups';
         $this->registerDigest();
+        $this->registerReminder();
         if ($this->installed) {
             if ($this->db->tableExists($this->tablename)) {
                 $this->get();
@@ -78,6 +81,14 @@ class Groups extends AppPlugins {
     private function registerDigest() {
         $DigestMaker = new DigestMaker($this->db);
         $DigestMaker->register($this->name);
+    }
+
+    /**
+     * Register into Reminder table
+     */
+    private function registerReminder() {
+        $reminder = new ReminderMaker($this->db);
+        $reminder->register($this->name);
     }
 
     /**
@@ -190,7 +201,7 @@ class Groups extends AppPlugins {
             }
         }
 
-        return "{$ngroups} groups created.";
+        return "{$ngroups} groups have been created.";
     }
 
     /**
@@ -208,6 +219,21 @@ class Groups extends AppPlugins {
         return $content;
     }
 
+    /**
+     *
+     * @param null $username
+     * @return mixed
+     */
+    public function makeReminder($username=null) {
+        $data = $this->getGroup($username);
+        $data['group'] = $this->show($username);
+        $publication = new Presentation($this->db, $data['presid']);
+        $data['publication'] = $publication->showDetails(true);
+        $content['body'] = self::renderSection($data);
+        $content['title'] = 'Your Group assignment';
+        return $content;
+    }
+    
     /**
      * Renders group information to be displayed in emails
      * @param array $data

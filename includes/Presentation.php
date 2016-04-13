@@ -328,7 +328,7 @@ class Presentation extends Presentations {
     /**
      * Get publication's information from the database
      * @param $id_pres
-     * @return bool
+     * @return bool|Presentation
      */
     public function get($id_pres) {
         $sql = "SELECT * FROM $this->tablename WHERE id_pres='$id_pres'";

@@ -33,14 +33,8 @@ require('../includes/boot.php');
 class Reminder extends AppCron {
 
     public $name = 'Reminder';
-    public $path;
     public $status = 'Off';
     public $installed = False;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
-    public $options;
     public static $description = "Sends a reminder regarding the upcoming session to members who agreed upon receiving 
     email notifications and reminders (which can be set on their profile page).";
 
@@ -64,24 +58,25 @@ class Reminder extends AppCron {
     }
 
     /**
-     * Run scheduled task: send a reminder a email to users
+     * Run scheduled task
      * @return string
      */
     public function run() {
         global $AppMail;
         $MailManager = new MailManager($this->db);
+        $DigestMaker = new DigestMaker($this->db);
 
-        // Number of users
-        $mailing_list = $AppMail->get_mailinglist("reminder");
+        // Count number of users
+        $users = $AppMail->get_mailinglist("reminder");
+        $nusers = count($users);
         $sent = 0;
-        foreach ($mailing_list as $fullname=>$data) {
-            if ($MailManager->send($this->makeMail($fullname), array($data['email']))) {
+        foreach ($users as $username=>$user) {
+            $content = $DigestMaker->makeDigest($user['username']);
+            if ($MailManager->send($content, array($user['email']))) {
                 $sent += 1;
             }
         }
-
-        return "message sent successfully to " . $sent ."/" . count($mailing_list) . " users.";
-
+        return "message sent successfully to {$sent}/{$nusers} users.";
     }
 
     /**

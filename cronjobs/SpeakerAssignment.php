@@ -1,6 +1,6 @@
 <?php
 /**
- * File for class AssignSpeakers
+ * File for class SpeakerAssignment
  *
  * PHP version 5
  *
@@ -39,13 +39,8 @@ class SpeakerAssignment extends AppCron {
      */
 
     public $name = 'SpeakerAssignment';
-    public $path;
     public $status = 'Off';
     public $installed = False;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
     public static $description = "Automatically assigns speakers to the future sessions. Speaker are pseudo-randomly 
     selected, with priority given to members with the least number of presentations given so far.";
 
@@ -81,17 +76,19 @@ class SpeakerAssignment extends AppCron {
 
         return $result['msg'];
     }
-    
+
     /**
      * Make reminder notification email (including only information about the upcoming session)
+     * @param User $user
+     * @param array $info
      * @return mixed
      */
-    public function makeMail($user, $info) {
+    public function makeMail(User $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig->site_url."index.php?page=contact";
+        $contactURL = $AppConfig::$site_url."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
@@ -104,17 +101,17 @@ class SpeakerAssignment extends AppCron {
         return $content;
     }
 
-    /**
-     * @param $user
-     * @param $info
+    /** Notify user about session update
+     * @param User $user
+     * @param array $info
      * @return mixed
      */
-    public function sessionUpdatedN($user, $info) {
+    public function sessionUpdatedN(User $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig->site_url."index.php?page=contact";
+        $contactURL = $AppConfig::$site_url."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>

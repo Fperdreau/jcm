@@ -37,6 +37,7 @@ $result = "
     
     <section>
         <h2>General settings</h2>
+        <p>You have the possibility to receive logs by email every time a task is executed.</p>
         <form method='post' action='' class='form' id='config_form_site'>
             <input type='hidden' name='config_modify' value='true'/>
             <div class='formcontrol'>

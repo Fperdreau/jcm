@@ -862,6 +862,32 @@ h3 {
     background: rgba(207,81,81,1);
 }
 
+.submitMenuSection>.icon_container {
+    display: inline-block;
+}
+
+.submitMenuSection .icon_container>div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.submitMenuSection .icon_container .icon {
+    border: 2px solid #CF5151;
+    border-radius: 100%;
+    padding: 5px;
+    background: white;
+    text-align: center;
+    text-transform: uppercase;
+    transition: all 0.3s ease 0s;
+    cursor: pointer;
+}
+
+.submitMenuSection .icon_container .icon>img{
+    width: 20px;
+    height: 20px;
+    vertical-align: bottom;
+}
+
 /* *********************************************************************/
 /* Buttons
 /* *********************************************************************/
@@ -1167,6 +1193,18 @@ h3 {
     width: 100%;
 }
 
+.plugLog {
+    margin-top: 5px;
+    padding: 5px;
+    background: rgba(100,100,100,1);
+    color: white;
+    font-size: 12px;
+    overflow-y: auto;
+    max-height: 300px;
+    border: 1px solid rgba(50, 50, 50, .5);
+
+}
+
 .workBtn {
     display:inline-block;
     cursor: pointer;
@@ -1175,6 +1213,7 @@ h3 {
     padding: 2px;
     background-color: rgba( 255, 255, 255, 1);
     border: 2px solid rgba(207,81,81,1);
+    border-radius: 100%;
 }
 
 .workBtn:hover{
@@ -1201,6 +1240,22 @@ h3 {
 .uninstallBtn {
     background: rgba( 255, 255, 255, 1)
     url('../images/delete.png')
+    50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+}
+
+.activateBtn {
+    background: rgba( 255, 255, 255, 1)
+    url('../images/on.png')
+    50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+}
+
+.deactivateBtn {
+    background: rgba( 255, 255, 255, 1)
+    url('../images/off.png')
     50% 50%
     no-repeat;
     background-size: 20px 20px;
@@ -1467,26 +1522,26 @@ button.addBtn:hover {
 #warning {
     border-radius: 10px;
     margin: 5px auto;
-    color: white;
+    color: rgb(113, 57, 56);;
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgb(188, 54, 0); /* Add a background color to our status message   */
+    background-color: rgba(201, 135, 117, 1); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
 #status {
     border-radius: 10px;
     margin: 5px auto;
-    color: white;
-    background-color: rgba(77, 124, 153, .9); /* Add a background color to our status message   */
+    color: rgba(41, 53, 82, 1);;
+    background-color: rgba(77, 124, 153, 1); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 
 #success {
     border-radius: 10px;
     margin: 5px auto;
-    color: white;
+    color: rgba(45, 72, 33, 1);
     padding: 10px; /* Some padding to make some more space for our text  */
-    background-color: rgba(109, 187, 74, 0.9); /* Add a background color to our status message   */
+    background-color: rgba(109, 187, 74, 1); /* Add a background color to our status message   */
     border: 1px solid #DFDFDF; /* Add a border arround our status message   */
 }
 

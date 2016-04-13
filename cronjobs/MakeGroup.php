@@ -43,9 +43,13 @@ class MakeGroup extends AppCron {
     public $dayName;
     public $dayNb;
     public $hour;
-    public $options;
+    public $options = array(
+        'send'=>array(
+            'options'=>array('Yes'=>1,'No'=>0),
+            'value'=>0)
+    );
     public static $description = "Creates groups of members for the upcoming session with one group per presentation. 
-    This task is calling the Group plugin.";
+    This task is calling the Group plugin that must be installed. You can choose to notify users in MakeGroup's settings";
 
     /**
      * MakeGroup constructor.
@@ -64,7 +68,33 @@ class MakeGroup extends AppCron {
     public function run() {
         global $db;
         $groups = new Groups($db);
-        return $groups->run();
+        $result = $groups->run();
+        if ($this->options['send']) {
+            $result .= $this->notify();
+        }
+        return $result;
+    }
+
+    /**
+     * Run scheduled task
+     * @return string
+     */
+    public function notify() {
+        global $AppMail;
+        $MailManager = new MailManager($this->db);
+        $Group = new Groups($this->db);
+
+        // Count number of users
+        $users = $AppMail->get_mailinglist("notification");
+        $nusers = count($users);
+        $sent = 0;
+        foreach ($users as $username=>$user) {
+            $content = $Group->makeMail($user['username']);
+            if ($MailManager->send($content, array($user['email']))) {
+                $sent += 1;
+            }
+        }
+        return "Message sent successfully to {$sent}/{$nusers} users.";
     }
 }
 

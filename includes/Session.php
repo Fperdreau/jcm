@@ -39,6 +39,8 @@ class Sessions extends AppTable {
         "nbpres" => array("INT(2)", 0),
         "primary" => "id");
 
+    public $max_nb_session;
+
     /**
      * Constructor
      * @param AppDb $db
@@ -50,6 +52,15 @@ class Sessions extends AppTable {
         $AppConfig = new AppConfig($this->db);
         $this->max_nb_session = $AppConfig->max_nb_session;
         $this->registerDigest();
+        $this->registerReminder();
+    }
+
+    /**
+     * Register into Reminder table
+     */
+    private function registerReminder() {
+        $reminder = new ReminderMaker($this->db);
+        $reminder->register(get_class());
     }
 
     /**
@@ -57,7 +68,7 @@ class Sessions extends AppTable {
      */
     private function registerDigest() {
         $DigestMaker = new DigestMaker($this->db);
-        $DigestMaker->register('Sessions');
+        $DigestMaker->register(get_class());
     }
 
     /**
@@ -120,7 +131,6 @@ class Sessions extends AppTable {
      * @return string
      */
     public function isbooked($date) {
-        /** @var Session $session */
         $session = new Session($this->db,$date);
 
         if ($session === false) {
@@ -309,8 +319,8 @@ class Sessions extends AppTable {
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig->site_url."index.php?page=contact";
-        $editUrl = $AppConfig->site_url."index.php?page=submission&op=mod_pub&id={$info['presid']}&user={$user->username}";
+        $contactURL = $AppConfig::$site_url."index.php?page=contact";
+        $editUrl = $AppConfig::$site_url."index.php?page=submission&op=mod_pub&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
@@ -349,6 +359,52 @@ class Sessions extends AppTable {
         $content['body'] = $this->shownextsession(true);;
         $content['title'] = 'Next session';
         return $content;
+    }
+
+    /**
+     *
+     * @param null $username
+     * @return mixed
+     */
+    public function makeReminder($username=null) {
+        // Get future presentations
+        $content['body'] = $this->shownextsession(true);;
+        $content['title'] = 'Next session';
+        return $content;
+    }
+
+    /**
+     * Cancel session (when session type is set to none)
+     * @param Session $session
+     * @return bool
+     */
+    public function cancelSession(Session $session) {
+        $assignment = new Assignment($this->db);
+        $result = true;
+        
+        // Loop over presentations scheduled for this session
+        foreach ($session->presids as $id_pres) {
+            $pres = new Presentation($this->db, $id_pres);
+            $speaker = new User($this->db, $pres->orator);
+
+            // Delete presentation and notify speaker that his/her presentation has been canceled
+            if ($result = $pres->delete_pres($id_pres)) {
+                $info = array(
+                    'speaker'=>$speaker->username,
+                    'type'=>$session->type,
+                    'presid'=>$pres->id_pres,
+                    'date'=>$session->date
+                );
+                // Notify speaker
+                $result = $assignment->updateAssignment($speaker, $info, false, true);
+            }
+        }
+        
+        // Update session information
+        if ($result) {
+            $result = $session->update(array('nbpres'=>0, 'status'=>'Free', 'type'=>'none'));
+        }
+        return $result;
     }
 }
 
@@ -392,7 +448,7 @@ class Session extends Sessions {
         $this->date = (!empty($post['date'])) ? $post['date']:$this->date;
         if (!$this->dateexists($this->date)) {
             $class_vars = get_class_vars("Session");
-            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers'));
+            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers', 'max_nb_session'));
 
             // Add session to the database
             return $this->db->addcontent($this->tablename,$content);
@@ -406,7 +462,7 @@ class Session extends Sessions {
      * Update session status
      * @return bool
      */
-    function updatestatus() {
+    public function updatestatus() {
         $this->nbpres = count($this->presids);
         if ($this->type=="none") {
             $status = "Booked out";
@@ -500,7 +556,7 @@ class Session extends Sessions {
         $this->status = parent::isbooked($this->date);
 
         $class_vars = get_class_vars("Session");
-        $content = $this->parsenewdata($class_vars,$post, array('speakers','presids'));
+        $content = $this->parsenewdata($class_vars,$post, array('speakers','presids', 'max_nb_session'));
         if (!$this->db->updatecontent($this->tablename,$content,array('date'=>$this->date))) {
             return false;
         }

@@ -55,9 +55,11 @@ class Assignment extends AppPlugins {
      * @var array
      */
     public $options = array(
-        'nbsessiontoplan' => 20
+        'nbsessiontoplan'=>array(
+            'options'=>array(),
+            'value'=>10)
     );
-    
+
     /**
      * @var Session
      */
@@ -290,7 +292,7 @@ class Assignment extends AppPlugins {
         $max = $this->getMax($session_type);
 
         // Get speakers planned for this session
-        $speakers = $session->speakers;
+        $speakers = array_diff($session->speakers, array('TBA'));
 
         // Get assignable users
         $assignable_users = array();
@@ -319,15 +321,48 @@ class Assignment extends AppPlugins {
         }
 
         // Update the assignment table
-        $value = $this->db->send_query("SELECT {$session_type} 
-                                        FROM {$this->tablename} 
-                                        WHERE username='{$newSpeaker}'")->fetch_array();
-        $value = (int)$value[$session_type]+1;
-        if (!$this->db->updatecontent($this->tablename, array($session_type=>$value), array("username"=>$newSpeaker))) {
+        if (!$this->updateTable($session_type, $newSpeaker, true)) {
             return false;
         }
 
         return $newSpeaker;
+    }
+
+    /**
+     * Update user's number of presentations
+     * @param $session_type
+     * @param $speaker
+     * @param bool $add: if true, then increase the number of presentations by 1, or decrease by 1 if false
+     * @return bool
+     */
+    private function updateTable($session_type, $speaker, $add=true) {
+        if ($session_type === 'none') return true;
+        $inc = ($add) ? 1:-1; // increase or decrease number of presentations
+        $value = $this->db->send_query("SELECT {$session_type} 
+                                        FROM {$this->tablename} 
+                                        WHERE username='{$speaker}'")->fetch_array();
+        $value = (int)$value[$session_type] + $inc;
+        return $this->db->updatecontent($this->tablename, array($session_type=>$value), array("username"=>$speaker));
+    }
+
+    /**
+     * Update speaker assignment: update assignment table and notify user
+     * @param User $user
+     * @param array $info
+     * @param bool $assign : assign (true) or unassign (false) user
+     * @param bool $notify: notify user by email
+     * @return bool
+     */
+    public function updateAssignment(User $user, array $info, $assign=true, $notify=false) {
+        $session = new Session($this->db, $info['date']);
+        if ($this->updateTable(self::prettyName($session->type, true), $user->username, $assign)) {
+            if ($notify) {
+                $session->notify_session_update($user, $info, $assign);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -336,7 +371,7 @@ class Assignment extends AppPlugins {
      */
     public function assign($nb_session=null) {
         $this->get();
-        $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']:$nb_session;
+        $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         // Get future sessions dates
         $jc_days = self::getSession()->getjcdates(intval($nb_session));
@@ -344,7 +379,7 @@ class Assignment extends AppPlugins {
         $created = 0;
         $updated = 0;
         $assignedSpeakers = array();
-        
+
         // Loop over sessions
         foreach ($jc_days as $day) {
 
@@ -357,27 +392,51 @@ class Assignment extends AppPlugins {
             // Do nothing if nothing is planned on that day
             if ($session->type === "none") continue;
 
-            // If a session is planned for this day, we assign X speakers (1 speaker by presentation)
-            for ($p = $session->nbpres; $p < self::$session->max_nb_session; $p++) {
-                // Get speaker
+            // If a session is planned for this day, we assign 1 speaker by presentation
+            for ($p=0; $p<self::$session->max_nb_session; $p++) {
+
+                // If there is already a presentation planned for this day, check if the speaker is a real member, otherwise
+                // we will assign a new one
+                if (isset($session->presids[$p])) {
+                    $Presentation = new Presentation($this->db, $session->presids[$p]);
+                    $doAssign = $Presentation->orator === 'TBA';
+                    $new = false;
+                } else {
+                    $Presentation = new Presentation($this->db);
+                    $doAssign = true;
+                    $new = true;
+                }
+
+                if (!$doAssign) { continue; }
+
+                // Get & assign new speaker
                 if (!$Newspeaker = $this->getSpeaker($session)) {
                     return false;
                 }
+
+                // Get speaker information
                 $speaker = new User($this->db, $Newspeaker);
 
-                // Assign a presentation to the new speaker
-                $Presentation = new Presentation($this->db);
-                $post = array(
-                    'title'=>'TBA',
-                    'date'=>$day,
-                    'type'=>'paper',
-                    'username'=>$speaker->username,
-                    'orator'=>$speaker->username);
-
-                // Create presentation
-                $presid = $Presentation->make($post);
-
-                $updated += 1;
+                // Create/Update presentation
+                if ($new) {
+                    $post = array(
+                        'title'=>'TBA',
+                        'date'=>$day,
+                        'type'=>'paper',
+                        'username'=>$speaker->username,
+                        'orator'=>$speaker->username);
+                    if ($presid = $Presentation->make($post)) {
+                        $created += 1;
+                    }
+                } else {
+                    $post = array(
+                        'date'=>$day,
+                        'username'=>$speaker->username,
+                        'orator'=>$speaker->username);
+                    if ($Presentation->update($post)) {
+                        $updated += 1;
+                    }
+                }
 
                 // Update session info
                 $session->get();
@@ -386,7 +445,7 @@ class Assignment extends AppPlugins {
                 $info = array(
                     'speaker'=>$speaker->username, 
                     'type'=>$session->type, 
-                    'presid'=>$presid,
+                    'presid'=>$Presentation->id_pres,
                     'date'=>$session->date
                 );
                 $session->notify_session_update($speaker, $info);

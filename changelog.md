@@ -1,5 +1,15 @@
 # Journal Club Manager &copy; 2014
 
+## Release: 1.4.3
+### Changes
+- Corrected minor bugs introduced with JCM 1.4.2
+- Improved handling of plugins/scheduled tasks options
+- Added possibility to display or delete scheduled tasks logs from Admin>Scheduled task page
+- Added possibility to attach files to emails (Admin>Mailing page)
+- Corrected issue with automatic assignment
+- Improved styling of submission menu
+- New feature: Organizers can select what to display into the reminder emails (admin>reminder)
+
 ## Release: 1.4.2
 ### Changes
 - Updated TinyMCE version to 4.3.8

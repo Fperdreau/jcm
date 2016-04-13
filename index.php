@@ -34,7 +34,7 @@ require_once('includes/boot.php');
 
         <!-- Stylesheets -->
         <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-        <link type='text/css' rel='stylesheet' href="css/stylesheet.min.css"/>
+        <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
         <link type='text/css' rel='stylesheet' href="css/uploader.min.css"/>
 
         <!-- JQuery -->
@@ -106,7 +106,7 @@ require_once('includes/boot.php');
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.min.js"></script>
         <script type="text/javascript" src="js/form.min.js"></script>
-        <script type="text/javascript" src="js/plugins.min.js"></script>
+        <script type="text/javascript" src="js/plugins.js"></script>
         <script type="text/javascript" src="js/Myupload.min.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.js"></script>
 

@@ -33,14 +33,17 @@ require('../includes/boot.php');
 class DbBackup extends AppCron {
 
     public $name = 'DbBackup';
-    public $path;
+    
     public $status = 'Off';
+    
     public $installed = False;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
-    public $options=array("nb_version"=>10);
+    
+    public $options = array(
+        'nb_version'=>array(
+            'options'=>array(),
+            'value'=>10)
+    );    
+    
     public static $description = "Makes backup of the database, saves it into the backup/mysql folder that can be found
     at the root of the JCM application, and sends a copy by email to the admin. It also automatically delete older versions.
     The number of versions to store can be defined in the task's settings";

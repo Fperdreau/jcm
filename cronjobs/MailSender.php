@@ -73,7 +73,11 @@ class MailSender extends AppCron {
     /**
      * @var array: task's settings
      */
-    public $options=array("nb_version"=>10);
+    public $options = array(
+        'nb_version'=>array(
+            'options'=>array(),
+            'value'=>10)
+    );
 
     /**
      * @var AppMail
@@ -85,7 +89,7 @@ class MailSender extends AppCron {
      */
     private $Manager;
 
-    public static $description = "Checks whether all emails have been sent and sends them otherwise. It also cleans the
+    public static $description = "Checks that all emails have been sent and sends them otherwise. It also cleans the
     mailing database by deleting the oldest emails. The number of days of email storage can be defined in the task's 
     settings (default is 10 days).";
 

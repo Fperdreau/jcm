@@ -66,6 +66,22 @@ if (!empty($_POST['installDep'])) {
     exit;
 }
 
+// Install/uninstall cron jobs
+if (!empty($_POST['activateDep'])) {
+    $name = $_POST['activateDep'];
+    $op = $_POST['op'];
+    $type = $_POST['type'];
+    $App = ($type === 'plugin') ? new AppPlugins($db):new AppCron($db);
+    $thisApp = $App->instantiate($name);
+
+    $result['status'] = $thisApp->update(array('status'=>$op));
+    if ($result['status']) {
+        $result['msg'] = ($op === 'On') ? "{$name} has been activated!":"{$name} has been deactivated";
+    }
+    echo json_encode($result);
+    exit;
+}
+
 // Get settings
 if (!empty($_POST['getOpt'])) {
     $name = htmlspecialchars($_POST['getOpt']);
@@ -86,7 +102,10 @@ if (!empty($_POST['modOpt'])) {
     $App = ($op == 'plugin') ? new AppPlugins($db): new AppCron($db);
     $thisApp = $App->instantiate($name);
     $thisApp->get();
-    if ($thisApp->update(array('options'=>$data))) {
+    foreach ($data as $key=>$settings) {
+        $thisApp->options[$settings['name']]['value'] = $settings['value'];
+    }
+    if ($thisApp->update(array('options'=>$thisApp->options))) {
         $result['status'] = true;
         $result['msg'] = "$name's settings successfully updated!";
     } else {
@@ -110,6 +129,7 @@ if (!empty($_POST['modStatus'])) {
     exit;
 }
 
+// Update settings
 if (!empty($_POST['modSettings'])) {
     $name = htmlspecialchars($_POST['modSettings']);
     $option = htmlspecialchars($_POST['option']);
@@ -138,9 +158,27 @@ if (!empty($_POST['modSettings'])) {
     exit;
 }
 
+// Get scheduled task's logs
+if (!empty($_POST['showLog'])) {
+    $name = htmlspecialchars($_POST['showLog']);
+    $result = AppCron::showLog($name);
+    if (is_null($result)) $result = 'Nothing to display';
+    echo json_encode($result);
+    exit;
+}
+
+// Delete scheduled task's logs
+if (!empty($_POST['deleteLog'])) {
+    $name = htmlspecialchars($_POST['deleteLog']);
+    $result['status'] = AppCron::deleteLog($name);
+    echo json_encode($result);
+    exit;
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DigestMaker
+DigestMaker/ReminderMaker
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Update DigestMaker sections
 if (!empty($_POST['modDigest'])) {
     $name = htmlspecialchars($_POST['name']);
     $display = htmlspecialchars($_POST['display']);
@@ -152,9 +190,28 @@ if (!empty($_POST['modDigest'])) {
     exit;
 }
 
+// Update ReminderMaker sections
+if (!empty($_POST['modReminder'])) {
+    $name = htmlspecialchars($_POST['name']);
+    $display = htmlspecialchars($_POST['display']);
+    $position = htmlspecialchars($_POST['position']);
+
+    $reminderMaker = new ReminderMaker($db);
+    $result['status'] = $reminderMaker->update($_POST, $name);
+    echo json_encode($result);
+    exit;
+}
+
 if (!empty($_POST['preview'])) {
-    $DigestMaker = new DigestMaker($db);
-    $result = $DigestMaker->makeDigest($_SESSION['username']);
+    $operation = htmlspecialchars($_POST['preview']);
+    if ($operation === 'digest') {
+        $DigestMaker = new DigestMaker($db);
+        $result = $DigestMaker->makeDigest($_SESSION['username']);
+    } else {
+        $DigestMaker = new ReminderMaker($db);
+        $result = $DigestMaker->makeDigest($_SESSION['username']);
+    }
+
     echo json_encode($result);
     exit;
 }
@@ -826,16 +883,21 @@ if (!empty($_POST['modSession'])) {
     $sessionid = htmlspecialchars($_POST['session']);
     $prop = htmlspecialchars($_POST['prop']);
     $value = htmlspecialchars($_POST['value']);
-    $session = new Session($db,$sessionid);
-    if (in_array($prop,array('time_to','time_from'))) {
-        $time = explodecontent(',',$session->time);
-        $value = ($prop == 'time_to') ? $time[0].','.$value:$value.','.$time[1];
+    $session = new Session($db, $sessionid);
+    if (in_array($prop, array('time_to','time_from'))) {
+        $time = explodecontent(',', $session->time);
+        $value = ($prop == 'time_to') ? $time[0] . ',' . $value : $value . ',' . $time[1];
         $prop = 'time';
     }
+
     $post = array($prop=>$value);
-    if ($session->update($post)) {
-        $result['status'] = true;
-        $result['msg'] = "Session has been modified";
+    if ($result['status'] = $session->update($post)) {
+        /* If session type is set to none, we notify the assigned speakers of this session that their session
+        has been canceled */
+        if ($prop === 'type' && $value === 'none') {
+            $result['status'] = $session->cancelSession($session);
+        }
+        if ($result['status']) $result['msg'] = "Session has been modified";
     } else {
         $result['status'] = false;
     }
@@ -851,6 +913,7 @@ if (!empty($_POST['modSpeaker'])) {
     $previous = new User($db, $_POST['previous']);
     $speaker = new User($db, $speaker);
     $Presentation = new Presentation($db);
+    $Assignment = new Assignment($db);
     if (empty($presid)) {
         $presid = $Presentation->make(array(
             'title'=>'TBA',
@@ -864,9 +927,19 @@ if (!empty($_POST['modSpeaker'])) {
     $info['type'] = $session->type;
     $info['date'] = $session->date;
     $info['presid'] = $presid;
-    $result['status'] = $session->notify_session_update($previous, $info, false);
+    if (!is_null($previous->username)) {
+        // Only send notification to real users
+        $result['status'] = $Assignment->updateAssignment($previous, $info, false, true);
+    } else {
+        $result['status'] = true;
+    }
     if ($result['status']) {
-        $result['status'] = $session->notify_session_update($speaker, $info, true);
+        if (!is_null($speaker->username)) {
+            // Only send notification to real users
+            $result['status'] = $Assignment->updateAssignment($speaker, $info, true, true);
+        } else {
+            $result['status'] = true;
+        }
         if ($result['status']) {
             if ($pres->update(array('orator'=>$speaker->username))) {
                 $result['msg'] = "$speaker->fullname is the new speaker!";

@@ -51,15 +51,49 @@ class AppCron extends AppTable {
     public $daysNames = array('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','All');
     public $daysNbs;
     public $hours;
-    public $name;
     public $time;
     public $dayName;
     public $dayNb;
     public $hour;
     public $path;
+
+    /**
+     * Task's name
+     * @var string $name
+     */
+    public $name;
+
+    /**
+     * Task's activation status
+     * @var string $status
+     */
     public $status;
+
+    /**
+     * Is this task registered into the database?
+     * @var bool $installed
+     */
     public $installed;
+
+    /**
+     * Task's settings
+     * Must be formatted as follows:
+     *     $options = array(
+*                       'setting_name'=>array(
+     *                     'options'=>array(),
+     *                     'value'=>0)
+     *                );
+     *     'options': if not an empty array, then the settings will be displayed as select input. In this case, options
+     * must be an associative array: e.g. array('Yes'=>1, 'No'=>0). If it is empty, then it will be displayed as a text
+     * input.
+     * @var array $options
+     */
     public $options=array();
+
+    /**
+     * Task's description
+     * @var string $description
+     */
     public static $description;
 
     /**
@@ -220,7 +254,7 @@ class AppCron extends AppTable {
         } else {
             $fp = fopen($cronlog,"a+");
         }
-        $string = "[" . date('Y-m-d H:i:s') . "]: $string.\r\n";
+        $string = "\r\n[" . date('Y-m-d H:i:s') . "]: $string.\r\n";
 
         try {
             fwrite($fp,$string);
@@ -291,31 +325,73 @@ class AppCron extends AppTable {
      * @return string
      */
     public function displayOpt() {
-        $opt = "<div style='font-weight: 600;'>Options</div>";
+        $content = "<div style='font-weight: 600;'>Options</div>";
         if (!empty($this->options)) {
-            foreach ($this->options as $optName => $settings) {
-                if (count($settings) > 1) {
-                    $optProp = "";
-                    foreach ($settings as $prop) {
-                        $optProp .= "<option value='$prop'>$prop</option>";
+            $opt = '';
+            foreach ($this->options as $optName=>$settings) {
+                if (isset($settings['options']) && !empty($settings['options'])) {
+                    $options = "";
+                    foreach ($settings['options'] as $prop=>$value) {
+                        $options .= "<option value='{$value}'>{$prop}</option>";
                     }
-                    $optProp = "<select name='$optName'>$optProp</select>";
+                    $optProp = "<select name='{$optName}'>{$options}</select>";
                 } else {
-                    $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
+                    $optProp = "<input type='text' name='$optName' value='{$settings['value']}' style='width: auto;'/>";
                 }
                 $opt .= "
-                <div class='formcontrol'>
-                    <label for='$optName'>$optName</label>
-                    $optProp
-                </div>";
+                    <div class='formcontrol'>
+                        <label for='{$optName}'>{$optName}</label>
+                        {$optProp}
+                    </div>
+                ";
             }
-            $opt .= "<input type='submit' class='modOpt' data-op='cron' value='Modify'>";
+            $content .= "
+                <form method='post' action=''>
+                {$opt}
+                    <input type='submit' class='modOpt' data-op='cron' value='Modify'>
+                </form>
+                
+                ";
         } else {
-            $opt = "No settings are available for this job.";
+            $content = "No settings available for this task.";
         }
-        return $opt;
+        return $content;
     }
 
+    /** 
+     *  Display scheduled task's logs 
+     * @param string $name: Task's name
+     * @return null|string: logs
+     */
+    public static function showLog($name) {
+        $path = PATH_TO_APP . '/cronjobs/logs/'. $name . '.txt';
+        if (is_file($path)) {
+            $logs = '';
+            $fh = fopen($path,'r');
+            while ($line = fgets($fh)) {
+                $logs .= "{$line}<br>";
+            }
+            fclose($fh);
+        } else {
+            $logs = null;
+        }
+        return $logs;
+    }
+
+    /**
+     *  Delete scheduled task's logs
+     * @param string $name: Task's name
+     * @return null|string: logs
+     */
+    public static function deleteLog($name) {
+        $path = PATH_TO_APP . '/cronjobs/logs/'. $name . '.txt';
+        if (is_file($path)) {
+            return unlink($path);
+        } else {
+            return false;
+        }
+    }
+    
     /**
      * Display jobs list
      * @return string
@@ -333,9 +409,14 @@ class AppCron extends AppTable {
             } else {
                 $install_btn = "<div class='installDep workBtn installBtn' data-type='cron' data-op='install' data-name='$cronName'></div>";
             }
+            
+            if ($info['status'] === 'On') {
+                $activate_btn = "<div class='activateDep workBtn deactivateBtn' data-type='cron' data-op='Off' data-name='$cronName'></div>";
+            } else {
+                $activate_btn = "<div class='activateDep workBtn activateBtn' data-type='cron' data-op='On' data-name='$cronName'></div>";
+            }
 
             $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
-            $status = $info['status'];
             $time = $info['time'];
 
             $dayName_list = "";
@@ -364,7 +445,7 @@ class AppCron extends AppTable {
                     $hours_list .= "<option value='$i'>$i:00</option>";
                 }
             }
-
+            
             $cronList .= "
             <div class='plugDiv' id='cron_$cronName'>
                 <div class='plugLeft'>
@@ -374,6 +455,7 @@ class AppCron extends AppTable {
                         <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
                         $install_btn
                         $runBtn
+                        $activate_btn
                     </div>
                 </div>
 
@@ -382,16 +464,6 @@ class AppCron extends AppTable {
                         {$pluginDescription}
                     </div>
                     <div>
-                        <div class='optbar'>
-                            <div class='formcontrol'>
-                                <label>Status</label>
-                                <select class='select_opt modSettings' data-op='cron' data-option='status' data-name='$cronName'>
-                                <option value='$status' selected>$status</option>
-                                <option value='On'>On</option>
-                                <option value='Off'>Off</option>
-                                </select>
-                            </div>
-                        </div>
     
                         <div class='settings'>
                             <div class='formcontrol'>
@@ -415,6 +487,12 @@ class AppCron extends AppTable {
                         </div>
     
                         <div class='plugOpt' id='$cronName'></div>
+                        <div>
+                            <input type='submit' class='showLog' value='Show logs' id='{$cronName}' />
+                            <input type='submit' class='deleteLog' value='Delete logs' id='{$cronName}' />
+                        </div>
+
+                        <div class='plugLog' id='${cronName}' style='display: none'></div>
 
                     </div>
                     

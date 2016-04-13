@@ -76,10 +76,19 @@ class AppPlugins extends AppTable {
     public $installed = False;
 
     /**
-     * @var array $options: plugins options (saved as JSON format into the database)
-     * e.g. $options = array('option_name'=>$option_value)
+     * Plugin's settings
+     * Must be formatted as follows:
+     *     $options = array(
+     *                       'setting_name'=>array(
+     *                     'options'=>array(),
+     *                     'value'=>0)
+     *                );
+     *     'options': if not an empty array, then the settings will be displayed as select input. In this case, options
+     * must be an associative array: e.g. array('Yes'=>1, 'No'=>0). If it is empty, then it will be displayed as a text
+     * input.
+     * @var array $options
      */
-    public $options;
+    public $options=array();
 
     /**
      * @var string $description: plugins description
@@ -214,33 +223,41 @@ class AppPlugins extends AppTable {
     }
 
     /**
-     * Display job's settings
+     * Display Plugin's settings
      * @return string
      */
     public function displayOpt() {
-        $opt = "<div style='font-weight: 600;'>Options</div>";
+        $content = "<div style='font-weight: 600;'>Options</div>";
         if (!empty($this->options)) {
-            foreach ($this->options as $optName => $settings) {
-                if (count($settings) > 1) {
-                    $optProp = "";
-                    foreach ($settings as $prop) {
-                        $optProp .= "<option value='$prop'>$prop</option>";
+            $opt = '';
+            foreach ($this->options as $optName=>$settings) {
+                if (isset($settings['options']) && !empty($settings['options'])) {
+                    $options = "";
+                    foreach ($settings['options'] as $prop=>$value) {
+                        $options .= "<option value='{$value}'>{$prop}</option>";
                     }
-                    $optProp = "<select name='$optName'>$optProp</select>";
+                    $optProp = "<select name='{$optName}'>{$options}</select>";
                 } else {
-                    $optProp = "<input type='text' name='$optName' value='$settings' style='width: auto;'/>";
+                    $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
                 }
                 $opt .= "
-                <div class='formcontrol'>
-                    <label for='$optName'>$optName</label>
-                    $optProp
-                </div>";
+                    <div class='formcontrol'>
+                        <label for='{$optName}'>{$optName}</label>
+                        {$optProp}
+                    </div>
+                ";
             }
-            $opt .= "<input type='submit' class='modOpt' data-op='plugin' value='Modify'>";
+            $content .= "
+                <form method='post' action=''>
+                {$opt}
+                    <input type='submit' class='modOpt' data-op='plugin' value='Modify'>
+                </form>
+                
+                ";
         } else {
-            $opt = "No settings are available for this job.";
+            $content = "No settings available for this task.";
         }
-        return $opt;
+        return $content;
     }
 
     /**
@@ -258,7 +275,12 @@ class AppPlugins extends AppTable {
             } else {
                 $install_btn = "<div class='installDep workBtn installBtn' data-type='plugin' data-op='install' data-name='$pluginName'></div>";
             }
-            $status = $info['status'];
+
+            if ($info['status'] === 'On') {
+                $activate_btn = "<div class='activateDep workBtn deactivateBtn' data-type='plugin' data-op='Off' data-name='$pluginName'></div>";
+            } else {
+                $activate_btn = "<div class='activateDep workBtn activateBtn' data-type='plugin' data-op='On' data-name='$pluginName'></div>";
+            }
 
             $plugin_list .= "
             <div class='plugDiv' id='plugin_$pluginName'>
@@ -267,6 +289,7 @@ class AppPlugins extends AppTable {
                     <div class='optbar'>
                         <div class='optShow workBtn settingsBtn' data-op='plugin' data-name='$pluginName'></div>
                         $install_btn
+                        $activate_btn
                     </div>
                 </div>
 
@@ -277,17 +300,6 @@ class AppPlugins extends AppTable {
                     </div>
                     
                     <div>
-                        <div class='optbar'>
-                            <div class='formcontrol'>
-                                <label>Status</label>
-                                <select class='select_opt modSettings' data-op='plugin' data-option='status' data-name='$pluginName'>
-                                <option value='$status' selected>$status</option>
-                                <option value='On'>On</option>
-                                <option value='Off'>Off</option>
-                                </select>
-                            </div>
-                        </div>
-    
                         <div class='settings'>
                             <div class='formcontrol'>
                                 <label>Page</label>
@@ -296,7 +308,7 @@ class AppPlugins extends AppTable {
                         </div>
                         
                         <div class='plugOpt' id='$pluginName'></div>
-                        </div>
+                    </div>
 
                 </div>
                 

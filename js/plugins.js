@@ -162,6 +162,50 @@ $(document).ready(function() {
             });
         })
 
+
+        /**
+         * Activate/Deactivate plugin/scheduled task
+         */
+        .on('click','.activateDep',function(e) {
+            e.preventDefault();
+            var el = $(this);
+            var name = $(this).attr('data-name');
+            var op = $(this).attr('data-op');
+            var type = $(this).attr('data-type');
+            var div = $(this).closest('.plugDiv');
+            var callback = function(result) {
+                if (result.status === true) {
+                    var newClass = (op === 'On') ? 'deactivateBtn':'activateBtn';
+                    var newattr = (op === 'On') ? 'Off':'On';
+                    $(el)
+                        .attr('data-op',newattr)
+                        .addClass(newClass);
+                }
+            };
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'POST',
+                data: {
+                    activateDep: name,
+                    type: type,
+                    op: op
+                },
+                async: true,
+                beforeSend: function() {
+                    if (op == 'on') {
+                        $(el.removeClass('activateBtn'));
+                    } else {
+                        $(el.removeClass('deactivateBtn'));
+                    }
+                    $(el).addClass('loadBtn');
+                },
+                success: function(data) {
+                    validsubmitform(div,data,callback);
+                }
+
+            });
+        })
+
     /**
      * Display plugin/scheduled task options
      */
@@ -191,22 +235,53 @@ $(document).ready(function() {
      */
         .on('click','.modOpt',function(e) {
             e.preventDefault();
-            var name = $(this).parent('.plugOpt').attr('id');
+            var name = $(this).closest('.plugOpt').attr('id');
             var op = $(this).attr('data-op');
             var div = $(this).closest('.plugDiv');
-
-            // Parse options
-            var option = {};
-            $(".plugOpt#"+name).find('input').each(function() {
-                if ($(this).attr('type') != "submit") {
-                    option[$(this).attr('name')] = $(this).val();
-                }
-            });
-
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
+            var option = form.serializeArray();
             var data = {modOpt: name, op: op, data:option};
             processAjax(div,data);
         })
 
+        /**
+         * Show task's logs
+         */
+        .on('click', '.showLog', function(e) {
+            e.preventDefault();
+            var name = $(this).attr('id');
+            var div = $('.plugLog#' + name);
+            if (!div.is(':visible')) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'php/form.php',
+                    data: {showLog: name},
+                    success: function(data) {
+                        var json = jQuery.parseJSON(data);
+                        $('.plugLog#' + name).html(json).toggle();
+                    }
+                });
+            } else {
+                div.toggle();
+            }
+        })
+            
+        .on('click', '.deleteLog', function(e) {
+            e.preventDefault();
+            var name = $(this).attr('id');
+            var div = $(this).closest('.plugDiv');
+            jQuery.ajax({
+                type: 'post',
+                url: 'php/form.php',
+                data: {
+                    deleteLog: name
+                },
+                success: function(data) {
+                    validsubmitform(div,data);
+                }
+            });
+        })
+            
     /**
      * Run a scheduled task manually
      */
