@@ -54,12 +54,19 @@ class Assignment extends AppTable {
         parent::__construct($db, 'Assignment', $this->table_data);
 
         $this->registerDigest();
+        $this->check();
+
+    }
+
+    /**
+     * Check correspondences between table
+     */
+    public function check() {
         if ($this->db->tableExists($this->tablename)) {
             $this->getSession();
             $this->addSessionType();
             $this->addUsers();
         }
-
     }
 
     /**
