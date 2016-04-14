@@ -1620,7 +1620,7 @@ button.addBtn>img {
     border-radius: 10px;
     margin: 5px auto;
     color: rgba(41, 53, 82, 1);;
-    background-color: rgba(77, 124, 153, 1); /* Add a background color to our status message   */
+    background-color: rgba(150, 188, 212, 1); /* Add a background color to our status message   */
     border: 1px solid rgb(61, 94, 123); /* Add a border arround our status message   */
 }
 
