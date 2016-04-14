@@ -343,6 +343,10 @@ if (!empty($_POST['operation'])) {
         // Reminder table
         $DigestMaker = new ReminderMaker($db);
         $DigestMaker->setup($op);
+
+        // Assignment table
+        $Assignment = new Assignment($db);
+        $Assignment->setup($op);
         
         // Apply patch if required
         if ($op == false) {
