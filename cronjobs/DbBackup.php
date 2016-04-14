@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
-require('../includes/boot.php');
+
 
 /**
  * Class DbBackup
@@ -72,6 +72,7 @@ class DbBackup extends AppCron {
      * @return string
      */
     public function run() {
+        require PATH_TO_APP . "/includes/functions.php";
         // Run cron job
         $backupFile = backupDb($this->options['nb_version']);
         $fileLink = json_encode($backupFile);
