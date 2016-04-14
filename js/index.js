@@ -372,12 +372,15 @@ $(document).ready(function () {
         // Add emails
         .on('click', '.add_email', function (e) {
             e.preventDefault();
-            var input = $(this).prev('.select_emails_selector');
+            var input = $('.select_emails_selector');
             var form = input.length > 0 ? $(input[0].form) : $();
             var name = input.find('option:selected').html();
             var id = input.val();
-            var div = $(this).closest('.select_emails_container').find('.select_emails_list');
+            var div = $('.select_emails_container').find('.select_emails_list');
+            $('.select_emails_container').find('.select_emails_list').find('.mailing_recipients_empty').remove();
+
             var email_input = form.find("input[name='emails']");
+
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'post',
@@ -422,7 +425,18 @@ $(document).ready(function () {
         .on('click','.mailing_send',function (e) {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
+            var el = $('section#mailing_container');
+            // Check if recipients have been added
+            var div = $('.select_emails_container').find('.select_emails_list');
+            div.find('.mailing_recipients_empty').remove();
+            if (div.is(':empty')) {
+                div.html('<p class="mailing_recipients_empty" id="warning">You must select recipients before sending your email!</p>');
+                return false;
+            }
+
+            // Check if form has been filled in properly
             if (!checkform(form)) {return false;}
+
             var data = form.serializeArray();
             var content = tinyMCE.get('spec_msg').getContent();
             var attachments = [];
@@ -430,9 +444,10 @@ $(document).ready(function () {
                 attachments.push($(this).val());
             });
             attachments = attachments.join(',');
-            data = modArray(data,'spec_msg',content);
+            data = modArray(data, 'spec_msg', content);
             data = modArray(data, 'attachments', attachments);
-            processAjax(form,data);
+            
+            processAjax(el, data);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

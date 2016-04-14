@@ -46,7 +46,7 @@ class MailManager extends AppTable {
     public $mail_id; // Email unique id
     public $content; // Email body content
     public $subject; // Email header
-
+    public $attachments; // Attached files (comma-separated)
 
     /**
      * Constructor
@@ -128,7 +128,27 @@ class MailManager extends AppTable {
      */
     public function show($mail_id) {
         $data = $this->get($mail_id);
-        return htmlspecialchars_decode($data['content']);
+        $attachments = (!empty($data['attachments'])) ? explode(',', $data['attachments']):array();
+        return self::showEmail($data, $attachments);
+    }
+
+    /**
+     * Display email
+     * @param array $email: email information
+     * @param array $attachements: list of files name attached to this email
+     * @return string
+     */
+    public static function showEmail(array $email, array $attachements=array()) {
+        $file_list = "";
+        foreach ($attachements as $file_name) {
+            $file_list .= "<div class='email_file'><a href='" . AppConfig::$site_url . 'uploads/' . $file_name . "'>{$file_name}</a></div>";
+        }
+        $content = htmlspecialchars_decode($email['content']);
+        return "
+        <div class='email_files'><div class='email_header'>Files list:</div>{$file_list}</div>
+        <div class='email_title'><span class='email_header'>Subject:</span> {$email['subject']}</div>
+        <div class='email_content'>{$content}</div>
+        ";
     }
 
     /**
@@ -144,11 +164,20 @@ class MailManager extends AppTable {
 
         // Format email content
         $body = $AppMail->formatmail($content['body'], $data['mail_id']);
-        $attachments = isset($content['attachments']) ? $content['attachments'] : null;
 
         $data['content'] = $body;
         $data['subject'] = $content['subject'];
         $data['recipients'] = implode(',', $mailing_list);
+        $data['attachments'] = !empty($content['attachments']) ? $content['attachments'] : null;
+
+        if (!is_null($data['attachments'])) {
+            $attachments = array();
+            foreach (explode(',', $data['attachments']) as $file_name) {
+                $attachments[] = PATH_TO_APP . '/uploads/' . $file_name;
+            }
+        } else {
+            $attachments = null;
+        }
 
         // Add email to the MailManager table
         if ($this->add($data)) {

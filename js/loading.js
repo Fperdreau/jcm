@@ -28,7 +28,7 @@ var tinymcesetup = function () {
     tinymce.init({
         mode: "textareas",
         selector: ".tinymce",
-        width: "90%",
+        width: "100%",
         height: 300,
         plugins: [
             "advlist autolink lists charmap print preview hr spellchecker",

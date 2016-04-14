@@ -124,10 +124,9 @@ class Uploads extends AppTable{
             foreach ($links as $fileid=>$info) {
                 $filesList .=
                     "<div class='upl_info' id='upl_$fileid'>
-                <div class='upl_name' id='$fileid'>$fileid</div>
-                <div class='del_upl' id='$fileid' data-upl='$fileid'>
-                </div>
-            </div>";
+                        <div class='upl_name' id='$fileid'>$fileid</div>
+                        <div class='del_upl' id='$fileid' data-upl='$fileid'></div>
+                    </div>";
             }
         }
 
@@ -144,7 +143,7 @@ class Uploads extends AppTable{
                     </div>
                 </form>
     	   </div>
-            <div class='upl_filelist'>$filesList</div>
+           <div class='upl_filelist'>$filesList</div>
         </div>";
         return $result;
     }

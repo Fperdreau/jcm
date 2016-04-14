@@ -28,4 +28,23 @@ if (!empty($_GET['mail_id'])) {
     $content = "Nothing to show here";
 }
 
-echo ($content);
+?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <META NAME="viewport" CONTENT="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, user-scalable=yes">
+    <META NAME="description" CONTENT="Journal Club Manager - an efficient way of organizing journal clubs">
+    <META NAME="keywords" CONTENT="Journal Club, application">
+
+    <!-- Stylesheets -->
+    <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link type='text/css' rel='stylesheet' href="../css/stylesheet.min.css"/>
+
+    <title>Journal Club Manager - Organize your journal club efficiently</title>
+</head>
+<body>
+<?php echo $content; ?>
+</body>
+</html>

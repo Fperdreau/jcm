@@ -26,13 +26,14 @@
 /* Forms & Input field styles */
 .formcontrol {
     vertical-align: top;
-    margin: 5px;
+    box-sizing: border-box;
+    margin-top: 5px;
     font-size: 0;
-    min-width: 60%;
+    min-width: 300px;
     max-width: 100%;
 }
 
-.formcontrol>div.inputFeedback {
+.formcontrol>div.inputFeedback, .inputFeedback {
     display: inline-block;
     font-size: 25px;
     font-weight: 500;
@@ -43,7 +44,6 @@
     min-width: 0;
     text-align: center;
     height: 20px;
-    line-height: 20px;
     margin: 0;
     padding: 4px 4px 4px 4px;
     vertical-align: middle;
@@ -73,6 +73,8 @@
     position: relative;
     vertical-align: top;
     margin: 0;
+    width: 100%;
+    box-sizing: border-box;
 
     font-size: 12px;
     font-weight: 300;
@@ -843,6 +845,7 @@ h3 {
     text-align: center;
     text-transform: uppercase;
     transition: all 0.3s ease 0s;
+    cursor: pointer;
 }
 
 .submitMenuSection a {
@@ -1276,11 +1279,90 @@ h3 {
     background-size: 20px 20px;
 }
 
+.email_files {
+    width: 60%;
+    min-width: 320px;
+    margin: 10px auto;
+    border: 1px solid rgba(50, 50, 50 , 1);
+    padding: 10px;
+}
+
+.email_file {
+    display: inline-block;
+    padding: 5px;
+    background: rgba(200, 200, 200, 1);
+    margin: 5px;
+}
+
+.email_file>a {
+    color: black;
+}
+
+.email_title {
+    width: 60%;
+    min-width: 320px;
+    margin: 10px auto;
+    border-bottom: 1px solid rgba(50, 50, 50 , 1);
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.email_header {
+    font-weight: 600;
+}
+
+.email_content {
+    width: 60%;
+    min-width: 320px;
+    margin: 10px auto;
+    border-bottom: 1px solid rgba(50, 50, 50 , 1);
+    padding: 10px;
+}
+
 /* *********************************************************************/
 /* Admin - Mailing
 /* *********************************************************************/
+.mailing_upper_container {
+    box-sizing: border-box;
+    width: 100%;
+    text-align: justify;
+}
+
+.mailing_upper_container::after {
+    width: 100%;
+    content: "";
+    display:inline-block;
+}
+
+.mailing_block {
+    display: inline-block;
+    min-width: 300px;
+    width: 49%;
+    vertical-align: top;
+}
+
+.mailing_lower_container .mce-tinymce {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mailing_lower_container input[type='text'] {
+    min-width: 300px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 80%;
+    max-width: 100%;
+}
+
+#mailing_container form {
+    width: 100%;
+    display: initial;
+    position: relative;
+}
+
 .select_emails_list {
-    height: auto;
     padding: 5px;
     margin: 10px auto;
     background-color: rgba(255,255,255,1);
@@ -1288,6 +1370,9 @@ h3 {
     border-radius: 5px;
     box-sizing: border-box;
     min-height: 50px;
+    text-align: left;
+    height: 100px;
+    overflow-y: auto;
 }
 
 .select_emails_list>div {

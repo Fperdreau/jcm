@@ -141,7 +141,7 @@ class AppMail {
      * @throws Exception
      * @throws PHPMailer
      */
-    function send_mail($to,$subject,$body,$attachment = NULL) {
+    function send_mail($to,$subject,$body,$attachment = null) {
         $mail = new PHPMailer();
         $mail->CharSet = 'UTF-8';
         $mail->IsSMTP();                                      // set mailer to use SMTP
@@ -179,11 +179,13 @@ class AppMail {
         $mail->Body    = $body;
         $mail->AltBody= @convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
 
-        if($attachment != null){
+        if(!is_null($attachment)){
             if (!is_array($attachment)) $attachment = array($attachment);
             foreach ($attachment as $path) {
                 $file_name = end(explode('/', $path));
-                $mail->AddAttachment($path, $file_name);
+                if (!$mail->AddAttachment($path, $file_name)) {
+                    return false;
+                }
             }
         }
 

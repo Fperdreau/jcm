@@ -37,20 +37,17 @@ $uploader = Media::uploader();
 $result = "
     <h1>Mailing</h1>
     <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
-    <section>
-        <h2>Send an email</h2>
-        <div class='mailing_attachment'>
-            <h3>Attach a file</h3>
+    <section id='mailing_container'>
+                          
+        <!-- Upload form -->
+        <div class='mailing_block'>
+            <h3>Attach files (optional)</h3>
             {$uploader}
         </div>
+                
         <form method='post' id='submit_form'>
-            <input type='hidden' name='mailing_send' value='true'>
-            <input type='hidden' name='attachments' value=''>
-            <div class='submit_btns'>
-                <input type='submit' name='send' value='Send' class='mailing_send'>
-            </div>
-            
-            <div class='select_emails_container'>
+                 
+            <div class='mailing_block select_emails_container'>
                 <h3>Select recipients</h3>
                 <div>
                     <select class='select_emails_selector' required>
@@ -58,20 +55,29 @@ $result = "
                         <option value='all'>All</option>
                         {$mailing_list}
                     </select>
-                    <button type='submit' class='add_email addBtn'><img src='" . AppConfig::$site_url . 'images/add.png' . "'></button>
+                    <button type='submit' class='add_email addBtn'>
+                        <img src='" . AppConfig::$site_url . 'images/add.png' . "'>
+                    </button>
                 </div>
                 <div class='select_emails_list'></div>
             </div>
-                        
-            <h3>Write your message</h3>
-            <div class='formcontrol'>
-                <label>Subject:</label>
-                <input type='text' name='spec_head' placeholder='Subject' required/>
+            
+            <div class='mailing_lower_container'>
+                <h3>Write your message</h3>
+                <div class='submit_btns'>
+                    <input type='hidden' name='attachments' />
+                    <input type='hidden' name='mailing_send' value='true' />
+                    <input type='submit' name='send' value='Send' class='mailing_send' />
+                </div>
+                <div class='formcontrol'>
+                    <label>Subject:</label>
+                    <input type='text' name='spec_head' placeholder='Subject' required />
+                </div>
+                <div class='formcontrol'>
+                    <textarea name='spec_msg' id='spec_msg' class='tinymce' required></textarea>
+                </div>
             </div>
-            <div class='formcontrol'>
-                <label>Message</label>
-                <textarea name='spec_msg' id='spec_msg' class='tinymce' required></textarea>
-            </div>
+            
         </form>
     </section>";
 

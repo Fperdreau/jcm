@@ -729,14 +729,8 @@ if (!empty($_POST['mailing_send'])) {
     $content['body'] = $_POST['spec_msg'];
     $content['subject'] = $_POST['spec_head'];
     $ids = explode(',',$_POST['emails']);
-
-    if (!empty($_POST['attachments'])) {
-        $content['attachments'] = array();
-        foreach (explode(',', $_POST['attachments']) as $file_name) {
-            $content['attachments'][] = PATH_TO_APP . '/uploads/' . $file_name;
-        }
-    }
-
+    $content['attachments'] = $_POST['attachments'];
+    
     $user = new User($db);
     $MailManager = new MailManager($db);
 
