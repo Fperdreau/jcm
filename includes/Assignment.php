@@ -1,6 +1,6 @@
 <?php
 /**
- * File for class AssignSpeakers
+ * File for class Assignment
  *
  * PHP version 5
  *
@@ -27,10 +27,10 @@
 
 /**
  * Class Assignment
- * 
- * Plugins that handles speaker assignment routines
+ *
+ * Class that handles speaker assignment routines
  */
-class Assignment extends AppPlugins {
+class Assignment extends AppTable {
 
     /**
      * @var array
@@ -40,79 +40,36 @@ class Assignment extends AppPlugins {
         "username"=>array("CHAR(255)",false),
         "primary"=>'id'
     );
-    
-    /**
-     * @var string
-     */
-    public $name = "Assignment";
-
-    /**
-     * @var string
-     */
-    public $version = "1.1";
-    
-    /**
-     * @var array
-     */
-    public $options = array(
-        'nbsessiontoplan'=>array(
-            'options'=>array(),
-            'value'=>10)
-    );
 
     /**
      * @var Session
      */
     private static $session;
 
-    public static $description = "Automatically assigns members of the JCM (who agreed upon being assigned by settings 
-    the corresponding option on their profile page) as speakers to the future sessions. 
-    The number of sessions to plan in advance can be set in the plugin's settings.";
-
     /**
      * Constructor
      * @param AppDb $db
      */
     public function __construct(AppDb $db) {
-        parent::__construct($db);
+        parent::__construct($db, 'Assignment', $this->table_data);
 
-        $this->installed = $this->isInstalled();
-        $this->tablename = $this->db->dbprefix . '_' . strtolower($this->name);
-
-        if ($this->installed) {
-            $this->registerDigest();
-            if ($this->db->tableExists($this->tablename)) {
-                $this->get();
-                $this->getSession();
-                $this->addSessionType();
-                $this->addUsers();
-            } else {
-                $this->delete();
-            }
-        }
-    }
-
-    /**
-     * Registers plugin into the database
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Create corresponding table
-        $table = new AppTable($this->db, $this->name, $this->table_data, strtolower($this->name));
-        $table->setup();
-
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        if ($this->make($class_vars)) {
-            $this->get();
+        $this->registerDigest();
+        if ($this->db->tableExists($this->tablename)) {
             $this->getSession();
             $this->addSessionType();
             $this->addUsers();
-            $this->getPresentations();
-            return true;
-        } else {
-            return false;
         }
+
+    }
+
+    /**
+     * Get user's assignments
+     * @param $username
+     * @return array
+     */
+    public function get($username) {
+        $sql = "SELECT * FROM {$this->tablename} WHERE username='{$username}'";
+        return $this->db->send_query($sql)->fetch_assoc();
     }
 
     /**
@@ -120,9 +77,9 @@ class Assignment extends AppPlugins {
      */
     public function registerDigest() {
         $DigestMaker = new DigestMaker($this->db);
-        $DigestMaker->register($this->name);
+        $DigestMaker->register(get_class());
     }
-    
+
     /**
      * Get session instance
      */
@@ -139,7 +96,7 @@ class Assignment extends AppPlugins {
      * @param bool $encode
      * @return mixed
      */
-    private static function prettyName($string, $encode=true) {
+    public static function prettyName($string, $encode=true) {
         if ($encode) {
             return strtolower(str_replace(" ", "_", $string));
         } else {
@@ -152,11 +109,12 @@ class Assignment extends AppPlugins {
      * @return bool
      */
     private function addSessionType() {
-        global $AppConfig;
+        $AppConfig = new AppConfig($this->db);
+
         // Get session types
         $session_types = array();
         foreach ($AppConfig->session_type as $type=>$info) {
-            $session_types[] = $this->prettyName($type, true);
+            $session_types[] = self::prettyName($type, true);
         }
 
         $reg_types = $this->db->getcolumns($this->tablename);
@@ -166,7 +124,7 @@ class Assignment extends AppPlugins {
         if (!empty($diff)) {
             foreach ($diff as $type) {
                 if (!$this->db->addcolumn($this->tablename, $type, 'INT NOT NULL DEFAULT 0')) {
-                    return false;   
+                    return false;
                 }
             }
         }
@@ -200,7 +158,7 @@ class Assignment extends AppPlugins {
         // Step 2: update table
         foreach ($list as $username=>$info) {
             foreach ($info as $type=>$value) {
-                $type = $this->prettyName($type, true);
+                $type = self::prettyName($type, true);
                 $this->db->updatecontent($this->tablename, array($type=>$value), array('username'=>$username));
             }
         }
@@ -208,7 +166,7 @@ class Assignment extends AppPlugins {
 
     /**
      * Add users to assignment table
-     * 
+     *
      * @return bool
      */
     public function addUsers() {
@@ -241,14 +199,15 @@ class Assignment extends AppPlugins {
         return true;
     }
 
+
     /**
      * Get list of assignable users
-     * 
+     *
      * @param string $session_type: session type (pretty formatted: eg. "Journal Club" => "journal_club")
      * @param int $max: maximum number of presentations
      * @return mixed
      */
-    private function getAssignable($session_type, $max) {
+    public function getAssignable($session_type, $max) {
         $req = $this->db->send_query("
             SELECT * 
             FROM {$this->tablename} a
@@ -266,66 +225,14 @@ class Assignment extends AppPlugins {
 
     /**
      * Get Maximum number of presentations
-     * 
+     *
      * @param $session_type
      * @return mixed
      */
-    private function getMax($session_type) {
+    public function getMax($session_type) {
         $sql = "SELECT MAX($session_type) as maximum FROM $this->tablename";
         $data = $this->db->send_query($sql)->fetch_assoc();
         return (int)$data['maximum'];
-    }
-
-    /**
-     * Get new speaker
-     * 
-     * @param Session $session
-     * @return string
-     */
-    private function getSpeaker(Session $session) {
-        set_time_limit(10);
-
-        // Prettify session type
-        $session_type = $this->prettyName($session->type, true);
-
-        // Get maximum number of presentations
-        $max = $this->getMax($session_type);
-
-        // Get speakers planned for this session
-        $speakers = array_diff($session->speakers, array('TBA'));
-
-        // Get assignable users
-        $assignable_users = array();
-        while (empty($assignable_users)) {
-            $assignable_users = $this->getAssignable($session_type, $max);
-            $max += 1;
-        }
-
-        $usersList = array();
-        foreach ($assignable_users as $key=>$user) {
-            $usersList[] = $user['username'];
-        }
-
-        // exclude the already assigned speakers for this session from the list of possible speakers
-        $assignable = array_values(array_diff($usersList,$speakers));
-
-        if (empty($assignable)) {
-            // If there are no users registered yet, the speaker is to be announced.
-            $newSpeaker = 'TBA';
-        } else {
-            /* We randomly pick a speaker among organizers who have not chaired a session yet,
-             * apart from the other speakers of this session.
-             */
-            $ind = rand(0, count($assignable) - 1);
-            $newSpeaker = $assignable[$ind];
-        }
-
-        // Update the assignment table
-        if (!$this->updateTable($session_type, $newSpeaker, true)) {
-            return false;
-        }
-
-        return $newSpeaker;
     }
 
     /**
@@ -335,13 +242,13 @@ class Assignment extends AppPlugins {
      * @param bool $add: if true, then increase the number of presentations by 1, or decrease by 1 if false
      * @return bool
      */
-    private function updateTable($session_type, $speaker, $add=true) {
+    public function updateTable($session_type, $speaker, $add=true) {
         if ($session_type === 'none') return true;
         $inc = ($add) ? 1:-1; // increase or decrease number of presentations
         $value = $this->db->send_query("SELECT {$session_type} 
                                         FROM {$this->tablename} 
                                         WHERE username='{$speaker}'")->fetch_array();
-        $value = (int)$value[$session_type] + $inc;
+        $value = ((int)$value > 0) ? (int)$value[$session_type] + $inc: 0; // Assignment number can be negative
         return $this->db->updatecontent($this->tablename, array($session_type=>$value), array("username"=>$speaker));
     }
 
@@ -366,100 +273,6 @@ class Assignment extends AppPlugins {
     }
 
     /**
-     * @param null|int $nb_session: number of sessions
-     * @return mixed
-     */
-    public function assign($nb_session=null) {
-        $this->get();
-        $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
-
-        // Get future sessions dates
-        $jc_days = self::getSession()->getjcdates(intval($nb_session));
-
-        $created = 0;
-        $updated = 0;
-        $assignedSpeakers = array();
-
-        // Loop over sessions
-        foreach ($jc_days as $day) {
-
-            // If session does not exist yet, we create a new one
-            $session = new Session($this->db, $day);
-            if (!$session->dateexists($day)) {
-                $session->make();
-            }
-
-            // Do nothing if nothing is planned on that day
-            if ($session->type === "none") continue;
-
-            // If a session is planned for this day, we assign 1 speaker by presentation
-            for ($p=0; $p<self::$session->max_nb_session; $p++) {
-
-                // If there is already a presentation planned for this day, check if the speaker is a real member, otherwise
-                // we will assign a new one
-                if (isset($session->presids[$p])) {
-                    $Presentation = new Presentation($this->db, $session->presids[$p]);
-                    $doAssign = $Presentation->orator === 'TBA';
-                    $new = false;
-                } else {
-                    $Presentation = new Presentation($this->db);
-                    $doAssign = true;
-                    $new = true;
-                }
-
-                if (!$doAssign) { continue; }
-
-                // Get & assign new speaker
-                if (!$Newspeaker = $this->getSpeaker($session)) {
-                    return false;
-                }
-
-                // Get speaker information
-                $speaker = new User($this->db, $Newspeaker);
-
-                // Create/Update presentation
-                if ($new) {
-                    $post = array(
-                        'title'=>'TBA',
-                        'date'=>$day,
-                        'type'=>'paper',
-                        'username'=>$speaker->username,
-                        'orator'=>$speaker->username);
-                    if ($presid = $Presentation->make($post)) {
-                        $created += 1;
-                    }
-                } else {
-                    $post = array(
-                        'date'=>$day,
-                        'username'=>$speaker->username,
-                        'orator'=>$speaker->username);
-                    if ($Presentation->update($post)) {
-                        $updated += 1;
-                    }
-                }
-
-                // Update session info
-                $session->get();
-                
-                // Notify assigned user
-                $info = array(
-                    'speaker'=>$speaker->username, 
-                    'type'=>$session->type, 
-                    'presid'=>$Presentation->id_pres,
-                    'date'=>$session->date
-                );
-                $session->notify_session_update($speaker, $info);
-
-                $assignedSpeakers[$day][] = $info;
-            }
-
-        }
-        $result['content'] = $assignedSpeakers;
-        $result['msg'] = "$created chair(s) created<br>$updated chair(s) updated";
-        return $result;
-    }
-
-    /**
      *
      * @param null $username
      * @return mixed
@@ -470,5 +283,5 @@ class Assignment extends AppPlugins {
         $content['title'] = 'Your assignments';
         return $content;
     }
-    
+
 }

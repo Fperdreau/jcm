@@ -69,7 +69,7 @@ class SpeakerAssignment extends AppCron {
      * @return bool|string
      */
     public function run() {
-        $Assignment = new Assignment($this->db);
+        $Assignment = new autoAssignment($this->db);
 
         // Assign speakers
         $result = $Assignment->assign();

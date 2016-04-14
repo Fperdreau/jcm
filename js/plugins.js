@@ -265,7 +265,7 @@ $(document).ready(function() {
                 div.toggle();
             }
         })
-            
+
         .on('click', '.deleteLog', function(e) {
             e.preventDefault();
             var name = $(this).attr('id');
@@ -281,7 +281,7 @@ $(document).ready(function() {
                 }
             });
         })
-            
+
     /**
      * Run a scheduled task manually
      */
