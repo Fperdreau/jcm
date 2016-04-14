@@ -104,7 +104,7 @@ class AppPlugins extends AppTable {
         parent::__construct($db, 'Plugins', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
-            $this->get($name);
+            $this->get();
         }
     }
 
