@@ -347,6 +347,7 @@ if (!empty($_POST['operation'])) {
         // Assignment table
         $Assignment = new Assignment($db);
         $Assignment->setup($op);
+        $Assignment->getPresentations();
         
         // Apply patch if required
         if ($op == false) {
