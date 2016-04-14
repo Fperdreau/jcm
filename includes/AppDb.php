@@ -130,7 +130,8 @@ class AppDb {
             "Crons" => $this->dbprefix."_crons",
             "MailManager" => $this->dbprefix."_mailmanager",
             "DigestMaker" => $this->dbprefix."_digestmaker",
-            "ReminderMaker" => $this->dbprefix."_remindermaker"
+            "ReminderMaker" => $this->dbprefix."_remindermaker",
+            "Assignment" => $this->dbprefix."_assignment"
         );
     }
 
