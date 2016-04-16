@@ -131,7 +131,8 @@ class AppDb {
             "MailManager" => $this->dbprefix."_mailmanager",
             "DigestMaker" => $this->dbprefix."_digestmaker",
             "ReminderMaker" => $this->dbprefix."_remindermaker",
-            "Assignment" => $this->dbprefix."_assignment"
+            "Assignment" => $this->dbprefix."_assignment",
+            "Availability" => $this->dbprefix."_availability"
         );
     }
 
