@@ -349,6 +349,10 @@ if (!empty($_POST['operation'])) {
         $Assignment->setup($op);
         $Assignment->check();
         $Assignment->getPresentations();
+
+        // Availability table
+        $Availability = new Availability($db);
+        $Availability->setup($op);
         
         // Apply patch if required
         if ($op == false) {
