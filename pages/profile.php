@@ -116,6 +116,11 @@ $result = "
                 <div class='feedback' id='feedback_mail'></div>
             </form>
         </section>
+        
+        <section>
+            <h2>My availability</h2>
+            <div id='availability_calendar'></div>
+        </section>
 
         <section>
             <h2>My submissions</h2>
