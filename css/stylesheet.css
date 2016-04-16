@@ -360,30 +360,30 @@ header>div{
     cursor: pointer;
     padding: 0 4px 0 3px;
     margin: 0;
+    transition: all 0.3s ease 0s;
 }
 
 #login_box>div {
     display: inline-block;
-    margin: 0;
+    margin: 0 0 0 5px;
     background: rgba(207,81,81,1);
-    height: 30px;
-    width: 30px;
-    /* font-size: 0; */
-    line-height: 30px;
-    padding: 0;
+    border: 2px solid white;
+    line-height: 0;
+    padding: 5px;
     vertical-align: middle;
     text-align: center;
     border-radius: 50%;
 }
 
 #login_box img {
-    width: 22px;
+    width: 20px;
     vertical-align: middle;
-    height: 22px;
+    height: 20px;
 }
 
 #login_box>div:hover{
     background: rgba(255,255,255,1);
+    border: 2px solid rgba(207,81,81,1);
 }
 
 
@@ -1584,6 +1584,7 @@ button.addBtn>img {
     vertical-align: top;
 }
 
+
 /* *********************************************************************/
 /* Text/Messages
 /* *********************************************************************/
@@ -1923,10 +1924,13 @@ input.dateinput {
     padding: 5px 0;
     color: rgba(207,81,81,1);
     text-shadow: 1px 0px 0px #fff;
+    text-align: center;
 }
+
 .ui-datepicker tbody td {
     padding: 0;
 }
+
 .ui-datepicker tbody td:last-child {
     border-right: 0px;
 }
@@ -1941,10 +1945,12 @@ input.dateinput {
     display: inline-block;
     font-weight: bold;
     text-align: center;
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
+    width: 100%;
+    height: auto;
+    padding: 5px;
+    box-sizing: border-box;
     color: rgba(68,68,68,1);
+    cursor: pointer;
 }
 
 .ui-datepicker-calendar .ui-state-default {
@@ -1963,13 +1969,11 @@ input.dateinput {
 .jcday .ui-state-default {
     color: #3399FF;
     font-weight:bold;
-    font-size: 11pt;
 }
 
 .jcday_rem .ui-state-default{
     color: #FC7830;
     font-weight:bold;
-    font-size: 11pt;
 }
 
 .bookedday .ui-state-default{
