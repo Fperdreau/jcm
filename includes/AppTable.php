@@ -97,15 +97,33 @@ class AppTable {
 
     /**
      * Sanitize $_POST content
-     * @param $post
+     * @param array $post
+     * @return mixed
      */
-    public function sanitize($post) {
+    public function sanitize(array $post) {
         foreach ($post as $key=>$value) {
             if (!is_array($value)) {
                 $post[$key] = htmlspecialchars($value);
             }
         }
         return $post;
+    }
+
+    /**
+     * Gets whole table
+     * @return array
+     */
+    public function all() {
+        $sql = "SELECT p.*, u.fullname
+                FROM {$this->tablename} p
+                LEFT JOIN {$this->db->tablesname['User']} u
+                ON p.username=u.username";
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
     }
 
 }
