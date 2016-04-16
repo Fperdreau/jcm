@@ -52,10 +52,7 @@ class Assignment extends AppTable {
      */
     public function __construct(AppDb $db) {
         parent::__construct($db, 'Assignment', $this->table_data);
-
         $this->registerDigest();
-        $this->check();
-
     }
 
     /**
@@ -289,6 +286,62 @@ class Assignment extends AppTable {
         $content['body'] = $user->getAssignments(true, $username);;
         $content['title'] = 'Your assignments';
         return $content;
+    }
+
+    /**
+     * Returns all list of members with their corresponding number of assignments per sessions type
+     * (used in admin>assignments page)
+     * @return string
+     */
+    public function showAll() {
+        $data = $this->all();
+        return self::showList($data);
+    }
+
+    /**
+     * Renders members list and their corresponding number of assignments per sessions type
+     * @param array $data
+     * @return string
+     */
+    public static function showList(array $data) {
+        $content = "";
+        $headers = array_diff(array_keys($data[0]), array('id', 'fullname', 'username'));
+        foreach ($data as $key=>$info) {
+            $content .= self::showSingle($info, $headers);
+        }
+        
+        $headings = "";
+        foreach ($headers as $heading) {
+            $headings .= "<div>" . self::prettyName($heading, false) . "</div>";
+        }
+        
+        return "
+        <div class='table_container'>
+            <div class='list-heading'>
+                <div>Name</div>
+                {$headings}
+            </div>
+            {$content}
+        </div>
+        ";
+    }
+
+    /**
+     * Renders member's number of assignments per sessions type
+     * @param array $info
+     * @param array $session_types
+     * @return string
+     */
+    public static function showSingle(array $info, array $session_types) {
+        $session_type = "";
+        foreach ($session_types as $heading) {
+            $session_type .= "<div>{$info[$heading]}</div>";
+        }
+        return "
+            <div class='list-container'>
+                <div>{$info['fullname']}</div>   
+                {$session_type}
+            </div>";
     }
 
 }
