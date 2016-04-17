@@ -211,7 +211,7 @@ class Groups extends AppPlugins {
      */
     public function makeMail($username=null) {
         $data = $this->getGroup($username);
-        $data['group'] = $this->show($username);
+        $data['group'] = $this->showList($username);
         $publication = new Presentation($this->db, $data['presid']);
         $data['publication'] = $publication->showDetails(true);
         $content['body'] = self::renderSection($data);
@@ -226,7 +226,7 @@ class Groups extends AppPlugins {
      */
     public function makeReminder($username=null) {
         $data = $this->getGroup($username);
-        $data['group'] = $this->show($username);
+        $data['group'] = $this->showList($username);
         $publication = new Presentation($this->db, $data['presid']);
         $data['publication'] = $publication->showDetails(true);
         $content['body'] = self::renderSection($data);
@@ -317,7 +317,7 @@ class Groups extends AppPlugins {
      * @param bool $username
      * @return string
      */
-    public function show($username=False) {
+    public function showList($username=False) {
         if ($username === False) {
             $username = $_SESSION['username'];
         }
@@ -347,11 +347,30 @@ class Groups extends AppPlugins {
         }
         return "
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
-                    Your group
+                    Group members
                 </div>
                 <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
                     {$content}
                 </div>
+            ";
+    }
+
+    /**
+     * Display user's group (profile page or in email)
+     * @param bool $username
+     * @return string
+     */
+    public function show($username=False) {
+        if ($username === False) {
+            $username = $_SESSION['username'];
+        }
+        $data = $this->getGroup($username);
+        $content = $this->showList($username);
+
+        return "
+                <h2>Your group</h2>
+                <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
+                <div>{$content}</div>
             ";
     }
 }
