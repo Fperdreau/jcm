@@ -53,7 +53,7 @@ var showpubform = function (formel, idpress, type, date, prestype) {
     processAjax(formel, data, callback);
 
     // Load JCM calendar
-    loadCalendar();
+    loadCalendarSessions();
 
 };
 
@@ -130,6 +130,95 @@ var inititdatepicker = function (jcdays, selected) {
     });
 };
 
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ jQuery Availability calendar
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+var selected = new Date().getTime();
+
+/**
+ * Initialize jQuery-UI calendar
+ * @param data_availability: associative array providing journal club sessions and their information
+ */
+var initAvailabilityCalendar = function (data_availability) {
+    var formid = $('#availability_calendar');
+    formid.datepicker({
+        defaultDate: selected,
+        onSelect: function(dateText, inst) {
+            selected = $(this).datepicker('getDate').getTime();
+
+            jQuery.ajax({
+                url: "php/form.php",
+                type: "post",
+                data: {
+                    update_user_availability: true,
+                    date: dateText
+                },
+                success: function() {
+                    loadCalendarAvailability();
+                }
+            });
+        },
+        firstDay: 1,
+        dateFormat: 'yy-mm-dd',
+        inline: true,
+        showOtherMonths: true,
+        beforeShowDay: function(date) {
+            return renderCalendarCallback(date, data_availability);
+        }
+    });
+
+};
+
+function renderCalendarCallback(date, data) {
+    var day = date.getDay();
+    var days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    var cur_date = $.datepicker.formatDate('dd-mm-yy', date);
+    if (days[day] === data.jc_day) {
+        var css = "activeday";
+        var text = "";
+        var find = $.inArray(cur_date, data.jc_day);
+        var status = data.status[find];
+        var clickable = (status !== 'none');
+
+        // If the date is booked
+        if (find > -1) {
+            var type = jcdays.sessiontype[find];
+            var rem = jcdays.max_nb_session - jcdays.nb[find]; // Number of presentations available that day
+            text = type + ": (" + rem + " presentation(s) available)";
+            if (status === 'Free') {
+                css = "jcday " + css;
+            } else if (status === 'Booked') {
+                css = "jcday_rem " + css;
+            } else {
+                css = "bookedday " + css;
+                text = type + ": Booked out";
+            }
+            css = "bookedday " + css;
+        } else {
+            css = "jcday " + css;
+            text = data.max_nb_session + " presentation(s) available";
+        }
+
+        var isAvailable = $.inArray(cur_date, data.Availability);
+        if (isAvailable > -1) {
+            css = "not_available ";
+            text = "Not available";
+        }
+
+        var isAssigned = $.inArray(cur_date, data.Assignments);
+        if (isAssigned > -1) {
+            css = "assigned ";
+            text = "You are presenting this day";
+        }
+
+        return [clickable, css, text];
+
+    } else if (days[day] !== data.jc_day) {
+        return [false, "", "Not a journal club day"];
+    }
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Logout
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -184,7 +273,7 @@ var displaypub = function (idpress, formel) {
                 .fadeIn(200);
 
             // Load JCM calendar
-            loadCalendar();
+            loadCalendarSessions();
         }
     });
 };
@@ -300,6 +389,11 @@ $(document).ready(function () {
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         .on('mouseenter','#core, .submission',function (e) {
             e.preventDefault();
+        })
+
+        .on("change", "#availability_calendar", function () {
+            console.log('hello');
+            alert($(this).val());
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
