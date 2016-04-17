@@ -14,9 +14,19 @@ class Availability extends AppTable {
     protected $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
         "username"=>array("CHAR(255)",false),
-        "date"=>array("DATETIME NOT NULL", false),
+        "date"=>array("DATE NOT NULL", false),
         "primary"=>'id'
     );
+
+    /**
+     * @var string $date
+     */
+    public $date;
+
+    /**
+     * @var string $username
+     */
+    public $username;
 
     /**
      * @var Session
@@ -61,7 +71,8 @@ class Availability extends AppTable {
      * @return bool|mysqli_result
      */
     public function add($post) {
-        return $this->db->addcontent($this->tablename, $this->parsenewdata($post));
+        $class_vars = get_class_vars(get_class());
+        return $this->db->addcontent($this->tablename, $this->parsenewdata($class_vars, $post, array('session')));
     }
 
     /**
@@ -72,7 +83,7 @@ class Availability extends AppTable {
         if ($this->isexist($id)) {
             return $this->db->deletecontent($this->tablename, array_keys($id), array_values($id));
         } else {
-            return $this->db->addcontent($this->tablename, $this->parsenewdata($id));
+            return $this->add($id);
         }
     }
 
