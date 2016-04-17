@@ -207,11 +207,12 @@ class Assignment extends AppTable {
     /**
      * Get list of assignable users
      *
-     * @param string $session_type: session type (pretty formatted: eg. "Journal Club" => "journal_club")
-     * @param int $max: maximum number of presentations
+     * @param string $session_type : session type (pretty formatted: eg. "Journal Club" => "journal_club")
+     * @param int $max : maximum number of presentations
+     * @param $date: session date
      * @return mixed
      */
-    public function getAssignable($session_type, $max) {
+    public function getAssignable($session_type, $max, $date) {
         $req = $this->db->send_query("
             SELECT * 
             FROM {$this->tablename} a
@@ -220,9 +221,18 @@ class Assignment extends AppTable {
             WHERE (a.$session_type<$max)
                 AND u.assign=1 AND u.status!='admin'
             ");
+
+        // Check users availability for this day
+        $Availability = new Availability($this->db);
         $data = array();
         while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
+            $availability = array();
+            foreach ($Availability->get($row['username']) as $key=>$info) {
+                $availability[] = $info['date'];
+            }
+            if (empty($availability) || !in_array($date, $availability)) {
+                $data[] = $row;
+            }
         }
         return $data;
     }
