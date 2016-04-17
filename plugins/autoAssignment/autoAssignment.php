@@ -124,7 +124,7 @@ class autoAssignment extends AppPlugins {
         // Get assignable users
         $assignable_users = array();
         while (empty($assignable_users)) {
-            $assignable_users = self::$Assignment->getAssignable($session_type, $max);
+            $assignable_users = self::$Assignment->getAssignable($session_type, $max, $session->date);
             $max += 1;
         }
 
