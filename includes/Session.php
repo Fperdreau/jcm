@@ -309,7 +309,7 @@ class Sessions extends AppTable {
     /**
      * Renders email notifying presentation assignment
      * @param User $user
-     * @param array $info
+     * @param array $info: array('type'=>session_type,'date'=>session_date, 'presid'=>presentation_id)
      * @param bool $assigned
      * @return mixed
      */
@@ -341,11 +341,47 @@ class Sessions extends AppTable {
                 <p>Your presentation planned on {$date} has been manually canceled. You are no longer required to give a presentation on this day.</p>
                 <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
             </div>
-        ";
+            ";
             $content['subject'] = "Your presentation ($date) has been canceled";
         }
 
-        return $MailManager->send($content, array($user->email));
+        // Notify organizers of the cancellation
+        if (!$assigned) $this->notify_organizers($user, $info);
+
+        $result = $MailManager->send($content, array($user->email));
+        return $result;
+
+    }
+
+    /**
+     * Notify organizers that a presentation has been manually canceled
+     * @param User $user
+     * @param array $info
+     * @return mixed
+     */
+    public function notify_organizers(User $user, array $info) {
+        $MailManager = new MailManager($this->db);
+        $date = $info['date'];
+        $AppConfig = new AppConfig($this->db);
+        $url = $AppConfig::$site_url.'index.php?page=sessions';
+
+        foreach ($user->getadmin() as $key=>$info) {
+            $content['body'] = "
+                <div style='width: 100%; margin: auto;'>
+                    <p>Hello {$info['fullname']},</p>
+                    <p>This is to inform you that the presentation of <strong>{$user->fullname}</strong> planned on <strong>{$date}</strong> has been manually canceled. 
+                    You can either manually assign another speaker on this day in the <a href='{$url}'>Admin>Session</a> section or let the automatic 
+                    assignment select a member for you.</p>
+                </div>
+            ";
+            $content['subject'] = "A presentation ($date) has been canceled";
+
+            if (!$MailManager->send($content, array($info['email']))) {
+                return false;
+            }
+        }
+        return true;
+
     }
 
     /**
