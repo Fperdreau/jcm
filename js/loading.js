@@ -60,8 +60,7 @@ var loadCalendarSessions = function() {
         data: {get_calendar_param: true},
         success: function (data) {
             var result = jQuery.parseJSON(data);
-            var selected_date = $('input[type="date"]').val();
-            inititdatepicker(result,selected_date);
+            inititdatepicker(result);
         }
     });
 };
@@ -71,25 +70,28 @@ var loadCalendarSessions = function() {
  */
 var loadCalendarAvailability = function() {
     var formid = $('#availability_calendar');
-    formid.css({'position':'relative', 'min-height':'200px'});
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: true,
-        data: {get_user_availability: true},
-        beforeSend: function () {
-            loadingDiv(formid);
-        },
-        complete: function () {
-            removeLoading(formid);
-        },
-        success: function (data) {
-            if (formid.hasClass('hasDatepicker')) {
-                formid.datepicker('destroy');
+    if (formid.length>0 && formid !== undefined) {
+        formid.css({'position':'relative', 'min-height':'200px'});
+        jQuery.ajax({
+            url: 'php/form.php',
+            type: 'POST',
+            async: true,
+            data: {get_calendar_param: true},
+            beforeSend: function () {
+                loadingDiv(formid);
+            },
+            complete: function () {
+                removeLoading(formid);
+            },
+            success: function (data) {
+                if (formid.hasClass('hasDatepicker')) {
+                    formid.datepicker('destroy');
+                }
+                initAvailabilityCalendar(jQuery.parseJSON(data));
             }
-            initAvailabilityCalendar(jQuery.parseJSON(data));
-        }
-    });
+        });
+    }
+
 };
 
 /**

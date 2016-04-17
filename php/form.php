@@ -325,7 +325,7 @@ if (!empty($_POST['modPage'])) {
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
-if (!empty($_POST['get_calendar_param'])) {
+/*if (!empty($_POST['get_calendar_param'])) {
 	$booked = $Sessions->getsessions();// Get booked sessions
     if ($booked === false) {
         $booked = array();
@@ -358,13 +358,13 @@ if (!empty($_POST['get_calendar_param'])) {
         "sessiontype"=>$type);
 	echo json_encode($result);
     exit;
-}
+}*/
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
-if (!empty($_POST['get_user_availability'])) {
+if (!empty($_POST['get_calendar_param'])) {
 
     // Get planned sessions
     $booked = $Sessions->getsessions();
@@ -390,29 +390,35 @@ if (!empty($_POST['get_user_availability'])) {
         $formatdate[] = "$day-$month-$year";
     }
 
-    // Get user's availability
-    $username = $_SESSION['username'];
-    $Availability = new Availability($db);
-    $availabilities = array();
-    foreach ($Availability->get($username) as $info) {
-        // Format date
-        $fdate = explode("-", $info['date']);
-        $day = $fdate[2];
-        $month = $fdate[1];
-        $year = $fdate[0];
-        $availabilities[] = "$day-$month-$year";
-    }
+    // Get user's availability and assignments
+    if (isset($_SESSION['username'])) {
+        $username = $_SESSION['username'];
+        $Availability = new Availability($db);
+        $availabilities = array();
+        foreach ($Availability->get($username) as $info) {
+            // Format date
+            $fdate = explode("-", $info['date']);
+            $day = $fdate[2];
+            $month = $fdate[1];
+            $year = $fdate[0];
+            $availabilities[] = "$day-$month-$year";
+        }
 
-    // Get user's assignments
-    $Presentation = new Presentation($db);
-    $assignments = array();
-    foreach ($Presentation->getList($username) as $row=>$info) {
-        // Format date
-        $fdate = explode("-", $info['date']);
-        $day = $fdate[2];
-        $month = $fdate[1];
-        $year = $fdate[0];
-        $assignments[] = "$day-$month-$year";
+        // Get user's assignments
+        $Presentation = new Presentation($db);
+        $assignments = array();
+        foreach ($Presentation->getList($username) as $row=>$info) {
+            // Format date
+            $fdate = explode("-", $info['date']);
+            $day = $fdate[2];
+            $month = $fdate[1];
+            $year = $fdate[0];
+            $assignments[] = "$day-$month-$year";
+        }
+        
+    } else {
+        $assignments = array();
+        $availabilities = array();
     }
     
     $result = array(

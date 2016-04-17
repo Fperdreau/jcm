@@ -83,12 +83,13 @@ var showpostform = function (postid) {
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  jQuery DataPicker
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+var selected = new Date().getTime();
+
 /**
  * Initialize jQuery-UI calendar
- * @param jcdays: associative array providing journal club sessions and their information
- * @param selected: Currently selected day
+ * @param data_availability: associative array providing journal club sessions and their information
  */
-var inititdatepicker = function (jcdays, selected) {
+var inititdatepicker = function (data_availability) {
 
     $('#datepicker').datepicker({
         defaultDate: selected,
@@ -96,45 +97,11 @@ var inititdatepicker = function (jcdays, selected) {
         dateFormat: 'yy-mm-dd',
         inline: true,
         showOtherMonths: true,
-        beforeShowDay: function (date) {
-            var day = date.getDay();
-            var days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-            var cur_date = $.datepicker.formatDate('dd-mm-yy', date);
-            var today = new Date();
-            if (days[day] === jcdays.jc_day) {
-                //var css = (date >= today) ? "activeday":"pastday";
-                var css = "activeday";
-                var find = $.inArray(cur_date,jcdays.booked);
-                var status = jcdays.status[find];
-                //var clickable = (date >= today && status != 'none' && status != 'Booked out');
-                var clickable = (status !== 'none');
-                // If the date is booked
-                if (find > -1) {
-                    var type = jcdays.sessiontype[find];
-                    var rem = jcdays.max_nb_session - jcdays.nb[find]; // Number of presentations available that day
-                    var msg = type + ": (" + rem + " presentation(s) available)";
-                    if (status === 'Free') {
-                        return [clickable, "jcday " + css, msg];
-                    } else if (status === 'Booked') {
-                        return [clickable, "jcday_rem " + css, msg];
-                    } else {
-                        return [clickable, "bookedday " + css, type + ": Booked out"];
-                    }
-                } else {
-                    return [clickable, "jcday " + css, jcdays.max_nb_session + " presentation(s) available"];
-                }
-            } else if (days[day] !== jcdays.jc_day) {
-                return [false, "", "Not a journal club day"];
-            }
+        beforeShowDay: function(date) {
+            return renderCalendarCallback(date, data_availability);
         }
     });
 };
-
-
-/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- jQuery Availability calendar
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-var selected = new Date().getTime();
 
 /**
  * Initialize jQuery-UI calendar
