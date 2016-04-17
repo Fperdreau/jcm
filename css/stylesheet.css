@@ -1966,8 +1966,8 @@ input.dateinput {
     color: #b4b3b3;
 }
 
-.jcday .ui-state-default {
-    color: #3399FF;
+.jcday, .jcday .ui-state-default {
+    color: #00A1CB;
     font-weight:bold;
 }
 
@@ -1980,23 +1980,51 @@ input.dateinput {
     color: #b43d3d;
 }
 
-.activeday .ui-state-default{
+.activeday>.ui-state-default {
 }
 
-.pastday .ui-state-default{
+.assigned, .assigned>.ui-state-default {
+    background: #61AE24;
+    color: white;
+}
+
+.activeday>.ui-state-hover {
+    background: #01A4A4;
+    color: white;
+}
+
+.not_available, .not_available>.ui-state-default {
+    background: #E54028;
+    color: white;
+}
+
+.pastday>.ui-state-default{
     opacity: 0.5;
     background: #f4f4f4;
 }
 
 .ui-datepicker-calendar td:first-child .ui-state-active {
-    width: 29px;
+    background: #E54028;
     margin-left: 0;
 }
 .ui-datepicker-calendar td:last-child .ui-state-active {
-    width: 29px;
     margin-right: 0;
 }
 .ui-datepicker-calendar tr:last-child .ui-state-active {
-    height: 29px;
     margin-bottom: 0;
+}
+
+.calendar_legend {
+    max-width: 80%;
+    width: auto;
+    padding: 2px;
+    margin: 2px;
+    box-sizing: border-box;
+}
+
+.calendar_legend>div {
+    display: initial;
+    padding: 2px;
+    margin: 2px;
+    box-sizing: border-box;
 }
