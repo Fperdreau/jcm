@@ -259,7 +259,7 @@ class Assignment extends AppTable {
     /**
      * Update speaker assignment: update assignment table and notify user
      * @param User $user
-     * @param array $info
+     * @param array $info: array('type'=>session_type, 'date'=>session_date, 'presid'=>presentation_id)
      * @param bool $assign : assign (true) or unassign (false) user
      * @param bool $notify: notify user by email
      * @return bool
