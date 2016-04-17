@@ -361,6 +361,106 @@ if (!empty($_POST['get_calendar_param'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Datepicker (calendar)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+// Get booked dates for DatePicker Calendar
+if (!empty($_POST['get_user_availability'])) {
+
+    // Get planned sessions
+    $booked = $Sessions->getsessions();
+    if ($booked === false) {
+        $booked = array();
+    }
+
+    $formatdate = array();
+    $nb_pres = array();
+    $type = array();
+    $status = array();
+    foreach($booked as $date) {
+        // Count how many presentations there are for this day
+        $session = new Session($db, $date);
+        $nb_pres[] = $session->nbpres;
+        $type[] = $session->type;
+        $status[] = $session->status;
+        // Format date
+        $fdate = explode("-", $date);
+        $day = $fdate[2];
+        $month = $fdate[1];
+        $year = $fdate[0];
+        $formatdate[] = "$day-$month-$year";
+    }
+
+    // Get user's availability
+    $username = $_SESSION['username'];
+    $Availability = new Availability($db);
+    $availabilities = array();
+    foreach ($Availability->get($username) as $info) {
+        // Format date
+        $fdate = explode("-", $info['date']);
+        $day = $fdate[2];
+        $month = $fdate[1];
+        $year = $fdate[0];
+        $availabilities[] = "$day-$month-$year";
+    }
+
+    // Get user's assignments
+    $Presentation = new Presentation($db);
+    $assignments = array();
+    foreach ($Presentation->getList($username) as $row=>$info) {
+        // Format date
+        $fdate = explode("-", $info['date']);
+        $day = $fdate[2];
+        $month = $fdate[1];
+        $year = $fdate[0];
+        $assignments[] = "$day-$month-$year";
+    }
+    
+    $result = array(
+        "Assignments"=>$assignments,
+        "Availability"=>$availabilities,
+        "max_nb_session"=>$AppConfig->max_nb_session,
+        "jc_day"=>$AppConfig->jc_day,
+        "today"=>date('d-m-Y'),
+        "booked"=>$formatdate,
+        "nb"=>$nb_pres,
+        "status"=>$status,
+        "sessiontype"=>$type);
+    echo json_encode($result);
+    exit;
+}
+
+// Get booked dates for DatePicker Calendar
+if (!empty($_POST['update_user_availability'])) {
+    $username = $_SESSION['username'];
+    $date = $_POST['date'];
+    $Availability = new Availability($db);
+
+    $result['status'] = $Availability->edit(array('date'=>$date, 'username'=>$username));
+    if ($result['status']) {
+        // Check whether user has a presentation planned on this day, if yes, then we delete it and notify the user that
+        // this presentation has been canceled
+        $sql = "SELECT * FROM ". $db->tablesname['Presentation'] . " WHERE date='{$date}' and orator='{$username}'";
+        $data = $db->send_query($sql)->fetch_assoc();
+        if (!empty($data)) {
+            $speaker = new User($db, $username);
+            $Assignment = new Assignment($db);
+            $session = new Session($db, $date);
+            $Presentation = new Presentation($db, $data['id_pres']);
+            $info['type'] = $session->type;
+            $info['date'] = $session->date;
+            $info['presid'] = $data['id_pres'];
+            $result['status'] = $Presentation->delete_pres($data['id_pres']);
+            if ($result['status']) {
+                $result['status'] = $Assignment->updateAssignment($speaker, $info, false, true);
+            }
+        }
+    }
+    echo json_encode($result);
+    exit;
+}
+
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Logout
