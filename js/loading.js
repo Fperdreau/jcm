@@ -52,7 +52,7 @@ var tinymcesetup = function () {
 /**
  * Load JCM calendar
  */
-var loadCalendar = function() {
+var loadCalendarSessions = function() {
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
@@ -62,6 +62,32 @@ var loadCalendar = function() {
             var result = jQuery.parseJSON(data);
             var selected_date = $('input[type="date"]').val();
             inititdatepicker(result,selected_date);
+        }
+    });
+};
+
+/**
+ * Load JCM calendar
+ */
+var loadCalendarAvailability = function() {
+    var formid = $('#availability_calendar');
+    formid.css({'position':'relative', 'min-height':'200px'});
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: true,
+        data: {get_user_availability: true},
+        beforeSend: function () {
+            loadingDiv(formid);
+        },
+        complete: function () {
+            removeLoading(formid);
+        },
+        success: function (data) {
+            if (formid.hasClass('hasDatepicker')) {
+                formid.datepicker('destroy');
+            }
+            initAvailabilityCalendar(jQuery.parseJSON(data));
         }
     });
 };
@@ -165,7 +191,10 @@ var displayPage = function (page, pagetoload, param, plugins) {
             tinymcesetup();
 
             // Load JCM calendar
-            loadCalendar();
+            loadCalendarSessions();
+
+            // Load availability calendar
+            loadCalendarAvailability();
 
         }
     });
