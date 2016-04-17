@@ -56,6 +56,7 @@ echo "
         <li><a href='index.php?page=tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
         <li><a href='index.php?page=digest' class='menu-section' id='digest'>Digest</a></li>
         <li><a href='index.php?page=reminder' class='menu-section' id='reminder'>Reminder</a></li>
+        <li><a href='index.php?page=assignment' class='menu-section' id='assignment'>Assignments</a></li>
     </ul>
 </nav>
 ";
