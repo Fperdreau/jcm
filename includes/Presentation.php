@@ -103,6 +103,21 @@ class Presentations extends AppTable {
     }
 
     /**
+     * Get user's publications list
+     * @param string $username
+     * @return array
+     */
+    public function getList($username) {
+        $sql = "SELECT * FROM {$this->tablename} WHERE username='{$username}'";
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    /**
      * Get publication list by years
      * @param null $filter
      * @param null $user
