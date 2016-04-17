@@ -70,7 +70,7 @@ class Users extends AppTable {
      * @return array
      */
     public function getadmin($admin=null) {
-        $sql = "SELECT username,password,firstname,lastname,fullname,position,email,status FROM $this->tablename WHERE status='organizer'";
+        $sql = "SELECT * FROM $this->tablename WHERE status='organizer'";
         if (null != $admin) {
             $sql .= "or status='admin'";
         }
@@ -728,6 +728,6 @@ class User extends Users{
                 </div>
             {$content}
             </div>
-        ";;
+        ";
     }
 }
