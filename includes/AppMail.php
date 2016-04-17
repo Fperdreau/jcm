@@ -228,6 +228,7 @@ class AppMail {
                         notifications by going to your
                         <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
                         </div>
+                        <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='{$this->config->repository}' style='color: #CF5151; text-decoration: none;'>Journal Club Manager &copy 2014</a></div>
                     </div>
                 </div>
             </div>";
