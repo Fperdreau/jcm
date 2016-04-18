@@ -352,7 +352,9 @@ class Presentation extends Presentations {
         // IF not a guest presentation, the one who posted is the planned speaker
         if ($data['type'] !== "guest") {
             $data['orator'] = $_SESSION['username'];
-        } elseif ($data['type'] === 'minute') {
+        }
+
+        if ($data['type'] === 'minute') {
             $data['title'] = "Minutes of session held on {$data['date']}";
         }
 
@@ -539,12 +541,13 @@ class Presentation extends Presentations {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-date='$date'>FREE</a>";
+            $show_but = "<a href='' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' 
+                        data-date='$date'>FREE</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
-            $speaker = new User($this->db,$this->orator);
-            $speaker = $speaker->fullname;
+            $speaker = new User($this->db, $this->orator);
+            $speaker = (!empty($speaker->fullname)) ? $speaker->fullname : $this->orator;
 
             // Make "Show" button
             if ($opt == 'mail') {
