@@ -306,10 +306,10 @@ class Presentation extends Presentations {
 
     /**
      * Add a presentation to the database
-     * @param $post
+     * @param array $post
      * @return bool|string
      */
-    function make($post){
+    function make(array $post){
         $class_vars = get_class_vars("Presentation");
         if ($post['title'] == "TBA" || $this->pres_exist($post['title']) == false) {
 
@@ -338,6 +338,46 @@ class Presentation extends Presentations {
             $this->get($this->id_pres);
             return "exist";
         }
+    }
+
+    /**
+     * Edit Presentation
+     * @param array $data
+     * @return mixed
+     */
+    public function edit(array $data) {
+        // check entries
+        $presid = htmlspecialchars($data['id_pres']);
+
+        // IF not a guest presentation, the one who posted is the planned speaker
+        if ($data['type'] !== "guest") {
+            $data['orator'] = $_SESSION['username'];
+        } elseif ($data['type'] === 'minute') {
+            $data['title'] = "Minutes of session held on {$data['date']}";
+        }
+
+        // Create or update the presentation
+        if ($presid !== "false") {
+            $created = $this->update($data);
+        } else {
+            $created = $this->make($data);
+        }
+
+        $result['status'] = false;
+        if ($created !== false && $created !== 'exists') {
+            // Add to sessions table
+            $session = new Session($this->db);
+            if ($session->make(array("date"=>$data['date']))) {
+                $result['status'] = true;
+                $result['msg'] = "Thank you for your submission!";
+            } else {
+                $this->delete_pres($created);
+                $result['msg'] = "Sorry, we could not create/update the session";
+            }
+        } elseif ($created == "exists") {
+            $result['msg'] = "This presentation already exist in our database.";
+        }
+        return $result;
     }
 
     /**
