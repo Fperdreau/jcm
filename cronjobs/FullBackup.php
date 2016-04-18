@@ -24,7 +24,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
+require_once(PATH_TO_APP . '/includes/boot.php');
 
 /**
  * Class FullBackup
@@ -69,7 +69,7 @@ class FullBackup extends AppCron {
 
     public function run() {
         // db backup
-        $backupFile = backupDb($this->options['nb_version']); // backup database
+        $backupFile = backupDb($this->options['nb_version']['value']); // backup database
         mail_backup($backupFile); // Send backup file to admins
 
         // file backup

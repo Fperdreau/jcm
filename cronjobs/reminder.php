@@ -23,7 +23,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
-require('../includes/boot.php');
+
+require_once(PATH_TO_APP . '/includes/boot.php');
 
 /**
  * Class Reminder

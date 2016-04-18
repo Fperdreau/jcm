@@ -24,7 +24,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
+require_once(PATH_TO_APP . '/includes/boot.php');
 
 /**
  * Class Notification
@@ -95,7 +95,6 @@ class Notification extends AppCron {
             }
 
             $result = $result ? "message sent successfully to $nusers users." : "ERROR message not sent.";
-
             return $result;
         } else {
             return "No new presentations";

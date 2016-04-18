@@ -1,5 +1,4 @@
 <?php
-
 /**
  * File for class MailSender
  *
@@ -24,6 +23,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+require_once(PATH_TO_APP . '/includes/boot.php');
 
 /**
  * Class MailSender
@@ -149,7 +150,7 @@ class MailSender extends AppCron {
      * @return bool
      */
     public function clean($day=null) {
-        $day = (is_null($day)) ? $this->options['nb_version']: $day;
+        $day = (is_null($day)) ? $this->options['nb_version']['value']: $day;
         $date_limit = date('Y-m-d',strtotime("now - $day day"));
         $sql = "SELECT * FROM {$this->Manager->tablename} WHERE date>={$date_limit} and status='1'";
         $req = $this->db->send_query($sql);

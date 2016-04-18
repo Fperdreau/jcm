@@ -24,7 +24,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
+require_once(PATH_TO_APP . '/includes/boot.php');
 
 /**
  * Class Mailing
