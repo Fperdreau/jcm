@@ -159,7 +159,6 @@ class Assignment extends AppTable {
         foreach ($list as $username=>$info) {
             foreach ($info as $type=>$value) {
                 $type = self::prettyName($type, true);
-                var_dump($username, $type, $value);
                 $this->db->updatecontent($this->tablename, array($type=>$value), array('username'=>$username));
             }
         }
