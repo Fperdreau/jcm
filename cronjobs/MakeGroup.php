@@ -24,8 +24,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
-require_once('../plugins/Groups/Groups.php');
+require_once(PATH_TO_APP . '/includes/boot.php');
+require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
 
 /**
  * Class MakeGroup
@@ -69,10 +69,10 @@ class MakeGroup extends AppCron {
         global $db;
         $groups = new Groups($db);
         $result = $groups->run();
-        if ($this->options['send']) {
+        if ($result['status'] && $this->options['send']['value'] == 1) {
             $result .= $this->notify();
         }
-        return $result;
+        return $result['msg'];
     }
 
     /**
