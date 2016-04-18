@@ -414,7 +414,7 @@ class AppDb {
      * @param array $reference
      * @return bool
      */
-    public function updatecontent($table_name, array $content,$reference=array()) {
+    public function updatecontent($table_name, array $content, $reference=array()) {
 
         # Parse conditions
         $nb_ref = count($reference);
