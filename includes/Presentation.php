@@ -727,6 +727,7 @@ class Presentation extends Presentations {
             $modify_button = "<div style='width: 100px'></div>";
         }
         $orator = new User($this->db, $this->orator);
+        if (empty($orator->fullname)) $orator->fullname = $this->orator;
         $type = ucfirst($this->type);
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
@@ -734,7 +735,12 @@ class Presentation extends Presentations {
                 $type
             </div>
             <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>$this->title</div>
-            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
+            <div id='pub_date'>
+                <span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date 
+            </div>
+            <div id='pub_orator'>
+                <span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname
+            </div>
             <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
         </div>
 
