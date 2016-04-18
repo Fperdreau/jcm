@@ -634,42 +634,8 @@ if (!empty($_POST['del_pub'])) {
 
 // Submit a new presentation
 if (!empty($_POST['submit'])) {
-    // check entries
-    $presid = htmlspecialchars($_POST['id_pres']);
-    $user = new User($db,$_SESSION['username']);
-    $date = $_POST['date'];
-
-    if ($_POST['type'] != "guest") {
-        $_POST['orator'] = $user->username;
-    }
-    // Create or update the presentation
-    if ($presid !== "false") {
-        $pub = new Presentation($db,$presid);
-        $created = $pub->update($_POST);
-    } else {
-        $pub = new Presentation($db);
-        $created = $pub->make($_POST);
-    }
-
-    if ($created !== false && $created !== 'exists') {
-        // Add to sessions table
-        $postsession = array("date"=>$date);
-        $session = new Session($db);
-        if ($session->make($postsession)) {
-            $result['status'] = true;
-            $result['msg'] = "Thank you for your submission!";
-         } else {
-            $pub->delete_pres($created);
-            $result['status'] = false;
-            $result['msg'] = "Sorry, we could not create/update the session";
-         }
-    } elseif ($created == "exists") {
-        $result['status'] = false;
-        $result['msg'] = "This presentation already exist in our database.";
-    } else {
-        $result['status'] = false;
-    }
-
+    $Presentation = new Presentation($db);
+    $result = $Presentation->edit($_POST);
     echo json_encode($result);
     exit;
 }
