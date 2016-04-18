@@ -131,14 +131,14 @@ class Groups extends AppPlugins {
      * Randomly assign groups to users for the next session
      * @return array|bool
      */
-    function makegroups() {
+    public function makegroups() {
         global $Sessions, $db, $AppConfig;
 
         // Get presentations of the next session
         $nextdate = $Sessions->getsessions(true);
         $session = new Session($db,$nextdate[0]);
 
-        $rooms = explode(',', $this->options['room']);
+        $rooms = explode(',', $this->options['room']['value']);
 
         // Do not make group if there is no session planned on the next journal club day
         if ($session->type == 'none') {
@@ -157,7 +157,11 @@ class Groups extends AppPlugins {
 
         $nusers = count($users); // total nb of users
 
-        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {return "Not enough members to create groups"; }
+        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {
+            $result['status'] = false;
+            $result['msg'] = "Not enough members to create groups";
+            return $result;
+        }
 
         $excludedusers = array();
         $pregroups = array();
@@ -201,7 +205,9 @@ class Groups extends AppPlugins {
             }
         }
 
-        return "{$ngroups} groups have been created.";
+        $result['status'] = true;
+        $result['msg'] = "{$ngroups} groups have been created.";
+        return $result;
     }
 
     /**
@@ -216,6 +222,7 @@ class Groups extends AppPlugins {
         $data['publication'] = $publication->showDetails(true);
         $content['body'] = self::renderSection($data);
         $content['title'] = 'Your Group assignment';
+        $content['subject'] = "Your Group assignment: {$data['date']}";
         return $content;
     }
 
@@ -231,6 +238,7 @@ class Groups extends AppPlugins {
         $data['publication'] = $publication->showDetails(true);
         $content['body'] = self::renderSection($data);
         $content['title'] = 'Your Group assignment';
+        $content['subject'] = "Your Group assignment: {$data['date']}";
         return $content;
     }
     
