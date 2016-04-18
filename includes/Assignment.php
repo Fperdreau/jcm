@@ -139,7 +139,6 @@ class Assignment extends AppTable {
      * Update members' presentation number based on presentations registered in the Presentation table
      */
     public function getPresentations() {
-        $Session = new Session($this->db);
         $sql = "SELECT * FROM " . $this->db->tablesname['Presentation'];
         $req = $this->db->send_query($sql);
         $data = array();
@@ -150,7 +149,7 @@ class Assignment extends AppTable {
         // Get number of presentations for every member and session type
         $list = array();
         foreach ($data as $key=>$info) {
-            $Session->get($info['date']);
+            $Session = new Session($this->db, $info['date']);
             if ($Session->type === 'none' || empty($info['username'])) continue;
             if (!isset($list[$info['username']][$Session->type])) {
                 $list[$info['username']][$Session->type] = 0;
