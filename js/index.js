@@ -719,19 +719,42 @@ $(document).ready(function () {
         // Select submission type
          .on('change','select#type',function (e) {
             e.preventDefault();
-            var guestField = $('.submission #guest');
-            var type = $(this).val();
-            guestField.prop('required',false);
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
 
-            if (type == "guest") {
+            var guestField = form.find('#guest');
+            var titleField = form.find("input[name='title']").parent('.formcontrol');
+            var authorsField = form.find("input[name='authors']").parent('.formcontrol');
+            var type = $(this).val();
+            guestField.prop('required', false);
+
+             // Show/Hide Guest field depending on the selected presentation type
+            if (type === "guest") {
                 guestField
-                    .prop('required',true)
+                    .prop('required', true)
                     .fadeIn();
             } else {
                 guestField
-                    .prop('required',false)
+                    .prop('required', false)
                     .hide();
             }
+
+             // Show/Hide Guest field depending on the selected presentation type
+             if (type == "minute") {
+                 titleField
+                     .prop('required', true)
+                     .hide();
+                 authorsField
+                     .prop('required', true)
+                     .hide();
+             } else {
+                 titleField
+                     .prop('required', false)
+                     .fadeIn();
+                 authorsField
+                     .prop('required', false)
+                     .fadeIn();
+             }
+
          })
 
         // Submit a presentation
