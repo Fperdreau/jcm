@@ -139,22 +139,19 @@ class Assignment extends AppTable {
      * Update members' presentation number based on presentations registered in the Presentation table
      */
     public function getPresentations() {
+        // Step 1: get users' presentations sorted by session type
         $sql = "SELECT * FROM " . $this->db->tablesname['Presentation'];
         $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-
-        // Get number of presentations for every member and session type
         $list = array();
-        foreach ($data as $key=>$info) {
-            $Session = new Session($this->db, $info['date']);
-            if ($Session->type === 'none' || empty($info['username'])) continue;
-            if (!isset($list[$info['username']][$Session->type])) {
-                $list[$info['username']][$Session->type] = 0;
+
+        while ($row = $req->fetch_assoc()) {
+            $Session = new Session($this->db, $row['date']);
+            if ($Session->type === 'none' || empty($row['orator'])) continue;
+
+            if (!isset($list[$row['orator']][$Session->type])) {
+                $list[$row['orator']][$Session->type] = 1;
             } else {
-                $list[$info['username']][$Session->type] += 1;
+                $list[$row['orator']][$Session->type] += 1;
             }
         }
 
@@ -162,6 +159,7 @@ class Assignment extends AppTable {
         foreach ($list as $username=>$info) {
             foreach ($info as $type=>$value) {
                 $type = self::prettyName($type, true);
+                var_dump($username, $type, $value);
                 $this->db->updatecontent($this->tablename, array($type=>$value), array('username'=>$username));
             }
         }
