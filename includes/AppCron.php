@@ -428,6 +428,7 @@ class AppCron extends AppTable {
     
                         <div class='settings'>
                             <form method='post' action=''>
+                                <div>Date & Time</div>
                                 <div class='formcontrol'>
                                     <label>Date</label>
                                     <input type='date' name='date' value='{$date}'/>
@@ -459,7 +460,7 @@ class AppCron extends AppTable {
                                 </div>
                                 <div class='submit_btns'>
                                     <input type='hidden' name='modCron' value='{$cronName}'/> 
-                                    <input type='submit' class='modCron'/>
+                                    <input type='submit' value='Update' class='modCron'/>
                                 </div>
                             </form>
     

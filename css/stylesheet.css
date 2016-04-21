@@ -132,6 +132,10 @@ input[type='date'] {
     padding: 3px 2px 3px 10px;
 }
 
+input[type='time'] {
+    padding: 3px 2px 3px 10px;
+}
+
 select {
     -webkit-appearance: menulist-button;
     height: 30px;
@@ -1310,7 +1314,7 @@ h3 {
     background-size: 20px 20px;
 }
 
-.frequency_container>.formcontrol {
+.settings .formcontrol {
     display: inline-block;
 }
 
