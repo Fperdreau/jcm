@@ -125,7 +125,6 @@ if (!empty($_POST['modCron'])) {
         $thisApp->time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
         $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
         $thisApp->frequency = implode(',', $frequency);
-        $thisApp->time = AppCron::parseTime($thisApp->time, $frequency);
         if ($thisApp->update()) {
             $result = $thisApp->time;
         } else {
