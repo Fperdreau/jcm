@@ -90,6 +90,7 @@
  * @param modal_id
  */
 function close_modal(modal_id){
+    modal_id = (modal_id === undefined) ? '.modalContainer' : modal_id;
     $("#lean_overlay").fadeOut(200);
     $(modal_id).css({"display":"none"});
 }
