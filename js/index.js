@@ -486,7 +486,7 @@ $(document).ready(function () {
         .on('click','.mailing_send',function (e) {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
-            var el = $('section#mailing_container');
+            var el = $('.mailing_container');
             // Check if recipients have been added
             var div = $('.select_emails_container').find('.select_emails_list');
             div.find('.mailing_recipients_empty').remove();
@@ -507,7 +507,7 @@ $(document).ready(function () {
             attachments = attachments.join(',');
             data = modArray(data, 'spec_msg', content);
             data = modArray(data, 'attachments', attachments);
-            
+
             processAjax(el, data);
         })
 
@@ -719,19 +719,42 @@ $(document).ready(function () {
         // Select submission type
          .on('change','select#type',function (e) {
             e.preventDefault();
-            var guestField = $('.submission #guest');
-            var type = $(this).val();
-            guestField.prop('required',false);
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
 
-            if (type == "guest") {
+            var guestField = form.find('#guest');
+            var titleField = form.find("input[name='title']").parent('.formcontrol');
+            var authorsField = form.find("input[name='authors']").parent('.formcontrol');
+            var type = $(this).val();
+            guestField.prop('required', false);
+
+             // Show/Hide Guest field depending on the selected presentation type
+            if (type === "guest") {
                 guestField
-                    .prop('required',true)
+                    .prop('required', true)
                     .fadeIn();
             } else {
                 guestField
-                    .prop('required',false)
+                    .prop('required', false)
                     .hide();
             }
+
+             // Show/Hide Guest field depending on the selected presentation type
+             if (type == "minute") {
+                 titleField
+                     .prop('required', true)
+                     .hide();
+                 authorsField
+                     .prop('required', true)
+                     .hide();
+             } else {
+                 titleField
+                     .prop('required', false)
+                     .fadeIn();
+                 authorsField
+                     .prop('required', false)
+                     .fadeIn();
+             }
+
          })
 
         // Submit a presentation
@@ -748,7 +771,7 @@ $(document).ready(function () {
                 var date = $("input#datepicker").val();
                 if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
                     showfeedback('<p id="warning">You must choose a date!</p>');
-                    $("input#datepicker").focus();
+                    form.find("input#datepicker").focus();
                     return false;
                 }
             }
@@ -770,7 +793,8 @@ $(document).ready(function () {
             var callback = function (result) {
                 var subform = $('section#submission_form, .modal_section#submission_form');
                 if (result.status === true) {
-                    showpubform(subform,false);
+                    close_modal();
+                    //showpubform(subform,false);
                 }
             };
             processAjax(form,data,callback);
