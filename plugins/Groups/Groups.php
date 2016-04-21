@@ -42,7 +42,7 @@ class Groups extends AppPlugins {
     );
 
     public $name = "Groups";
-    public $version = "1.0.1";
+    public $version = "1.0.2";
     public $page = 'profile';
     public $status = 'Off';
     public $installed = False;
@@ -131,14 +131,14 @@ class Groups extends AppPlugins {
      * Randomly assign groups to users for the next session
      * @return array|bool
      */
-    function makegroups() {
+    public function makegroups() {
         global $Sessions, $db, $AppConfig;
 
         // Get presentations of the next session
         $nextdate = $Sessions->getsessions(true);
         $session = new Session($db,$nextdate[0]);
 
-        $rooms = explode(',', $this->options['room']);
+        $rooms = explode(',', $this->options['room']['value']);
 
         // Do not make group if there is no session planned on the next journal club day
         if ($session->type == 'none') {
@@ -157,7 +157,11 @@ class Groups extends AppPlugins {
 
         $nusers = count($users); // total nb of users
 
-        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {return "Not enough members to create groups"; }
+        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {
+            $result['status'] = false;
+            $result['msg'] = "Not enough members to create groups";
+            return $result;
+        }
 
         $excludedusers = array();
         $pregroups = array();
@@ -201,7 +205,9 @@ class Groups extends AppPlugins {
             }
         }
 
-        return "{$ngroups} groups have been created.";
+        $result['status'] = true;
+        $result['msg'] = "{$ngroups} groups have been created.";
+        return $result;
     }
 
     /**
@@ -216,6 +222,7 @@ class Groups extends AppPlugins {
         $data['publication'] = $publication->showDetails(true);
         $content['body'] = self::renderSection($data);
         $content['title'] = 'Your Group assignment';
+        $content['subject'] = "Your Group assignment: {$data['date']}";
         return $content;
     }
 
@@ -231,6 +238,7 @@ class Groups extends AppPlugins {
         $data['publication'] = $publication->showDetails(true);
         $content['body'] = self::renderSection($data);
         $content['title'] = 'Your Group assignment';
+        $content['subject'] = "Your Group assignment: {$data['date']}";
         return $content;
     }
     
@@ -366,9 +374,24 @@ class Groups extends AppPlugins {
         }
         $data = $this->getGroup($username);
         $content = $this->showList($username);
-
+        
+        if (!empty($data['members'])) {
+            $ids = array();
+            foreach($data['members'] as $grpmember=>$info) {
+                if ($grpmember == 'TBA') continue; // We do not send emails to fake users
+                $member = new User($this->db, $grpmember);
+                $ids[] = $member->id;
+            }
+            $ids = implode(',', $ids);
+            $groupContact = "
+                <div class='div_button'><a href='" . AppConfig::$site_url . 'index.php?page=email&recipients_list=' . $ids . "'>Contact my group</a></div>";
+        } else {
+            $groupContact = null;
+        }
+        
         return "
                 <h2>Your group</h2>
+                {$groupContact}
                 <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
                 <div>{$content}</div>
             ";
