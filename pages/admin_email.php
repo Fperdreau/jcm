@@ -22,63 +22,18 @@
 
 // Declare classes
 require('../includes/boot.php');
-$user = new User($db,$_SESSION['username']);
-$data = $user->all();
 
-$mailing_list = "";
-foreach ( $user->all() as $key=>$info) {
-    if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}'>{$info['fullname']}</option>";
-}
-
-// Upload
-$uploader = Media::uploader();
+// Get contact form
+$recipients_list = isset($_GET['recipients_list']) ? $_GET['recipients_list'] : null;
+$MailManager = new MailManager($db);
+$contactForm = $MailManager->getContactForm($recipients_list);
 
 // Send mail
 $result = "
     <h1>Mailing</h1>
     <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
-    <section id='mailing_container'>
-                          
-        <!-- Upload form -->
-        <div class='mailing_block'>
-            <h3>Attach files (optional)</h3>
-            {$uploader}
-        </div>
-                
-        <form method='post' id='submit_form'>
-                 
-            <div class='mailing_block select_emails_container'>
-                <h3>Select recipients</h3>
-                <div>
-                    <select class='select_emails_selector' required>
-                        <option value='' disabled selected>Select emails</option>
-                        <option value='all'>All</option>
-                        {$mailing_list}
-                    </select>
-                    <button type='submit' class='add_email addBtn'>
-                        <img src='" . AppConfig::$site_url . 'images/add.png' . "'>
-                    </button>
-                </div>
-                <div class='select_emails_list'></div>
-            </div>
-            
-            <div class='mailing_lower_container'>
-                <h3>Write your message</h3>
-                <div class='submit_btns'>
-                    <input type='hidden' name='attachments' />
-                    <input type='hidden' name='mailing_send' value='true' />
-                    <input type='submit' name='send' value='Send' class='mailing_send' />
-                </div>
-                <div class='formcontrol'>
-                    <label>Subject:</label>
-                    <input type='text' name='spec_head' placeholder='Subject' required />
-                </div>
-                <div class='formcontrol'>
-                    <textarea name='spec_msg' id='spec_msg' class='tinymce' required></textarea>
-                </div>
-            </div>
-            
-        </form>
+    <section>
+        {$contactForm}
     </section>";
 
 echo json_encode($result);
