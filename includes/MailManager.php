@@ -202,4 +202,117 @@ class MailManager extends AppTable {
 
     }
 
+    /**
+     * Gets contact form
+     * @param array|null $recipients : list of recipients
+     * @return string
+     */
+    public function getContactForm($recipients=null) {
+        $user = new User($this->db, $_SESSION['username']);
+
+        if (!is_null($recipients)) {
+            $recipients_list = array();
+            foreach (explode(',', $recipients) as $id) {
+                $user = new User($this->db);
+                $recipients_list[] = $user->getById($id);
+            }
+        } else {
+            $recipients_list = null;
+        }
+
+        $mailing_list = "";
+        foreach ( $user->all() as $key=>$info) {
+            $selected = (!is_null($recipients_list) && $info['fullname'] === $recipients_list[0]['fullname']) ? 'selected' : null;
+            if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
+        }
+
+        // Upload
+        $uploader = Media::uploader();
+        return self::contactForm($uploader, $mailing_list, $recipients_list);
+    }
+
+    /**
+     * Renders recipient icon
+     * @param array $info
+     * @return string
+     */
+    public static function showRecipient(array $info) {
+        return "
+            <div class='added_email' id='{$info['id']}'>
+                <div class='added_email_name'>{$info['fullname']}</div>
+                <div class='added_email_delete' id='{$info['id']}'><img src='images/close.png'></div>
+            </div>
+        ";
+    }
+
+    /**
+     * Renders contact form
+     * @param $uploader
+     * @param $mailing_list
+     * @param array|null $recipients
+     * @return string
+     */
+    public static function contactForm($uploader, $mailing_list, array $recipients=null) {
+
+        $recipients_list = "";
+        $emails_input = null;
+        if (!is_null($recipients)) {
+            $ids = array();
+            foreach ($recipients as $key=>$info) {
+                $ids[] = $info['id'];
+                $recipients_list .= self::showRecipient($info);
+            }
+            $ids = implode(',', $ids);
+            $emails_input = "<input name='emails' type='hidden' value='{$ids}'/>";
+        }
+
+        return "
+            <div class='mailing_container'>                 
+            <!-- Upload form -->
+            <div class='mailing_block'>
+                <h3>Attach files (optional)</h3>
+                {$uploader}
+            </div>
+                    
+            <form method='post' id='submit_form'>
+                     
+                <div class='mailing_block select_emails_container'>
+                    <h3>Select recipients</h3>
+                    <div>
+                        <select class='select_emails_selector' required>
+                            <option value='' disabled selected>Select emails</option>
+                            <option value='all'>All</option>
+                            {$mailing_list}
+                        </select>
+                        <button type='submit' class='add_email addBtn'>
+                            <img src='" . AppConfig::$site_url . 'images/add.png' . "'>
+                        </button>
+                    </div>
+                    <div class='select_emails_list'>
+                        {$recipients_list}
+                    </div>
+                </div>
+                
+                <div class='mailing_lower_container'>
+                    <h3>Write your message</h3>
+                    <div class='submit_btns'>
+                        <input type='hidden' name='attachments' />
+                        <input type='hidden' name='mailing_send' value='true' />
+                        {$emails_input}
+                        <input type='submit' name='send' value='Send' class='mailing_send' />
+                    </div>
+                    <div class='formcontrol'>
+                        <label>Subject:</label>
+                        <input type='text' name='spec_head' placeholder='Subject' required />
+                    </div>
+                    <div class='formcontrol'>
+                        <textarea name='spec_msg' id='spec_msg' class='tinymce' required></textarea>
+                    </div>
+                </div>
+                
+            </form>
+        </div>
+        ";
+    }
+
 }
