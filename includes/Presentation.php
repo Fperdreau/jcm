@@ -306,10 +306,10 @@ class Presentation extends Presentations {
 
     /**
      * Add a presentation to the database
-     * @param $post
+     * @param array $post
      * @return bool|string
      */
-    function make($post){
+    function make(array $post){
         $class_vars = get_class_vars("Presentation");
         if ($post['title'] == "TBA" || $this->pres_exist($post['title']) == false) {
 
@@ -338,6 +338,48 @@ class Presentation extends Presentations {
             $this->get($this->id_pres);
             return "exist";
         }
+    }
+
+    /**
+     * Edit Presentation
+     * @param array $data
+     * @return mixed
+     */
+    public function edit(array $data) {
+        // check entries
+        $presid = htmlspecialchars($data['id_pres']);
+
+        // IF not a guest presentation, the one who posted is the planned speaker
+        if ($data['type'] !== "guest") {
+            $data['orator'] = $_SESSION['username'];
+        }
+
+        if ($data['type'] === 'minute') {
+            $data['title'] = "Minutes of session held on {$data['date']}";
+        }
+
+        // Create or update the presentation
+        if ($presid !== "false") {
+            $created = $this->update($data);
+        } else {
+            $created = $this->make($data);
+        }
+
+        $result['status'] = false;
+        if ($created !== false && $created !== 'exists') {
+            // Add to sessions table
+            $session = new Session($this->db);
+            if ($session->make(array("date"=>$data['date']))) {
+                $result['status'] = true;
+                $result['msg'] = "Thank you for your submission!";
+            } else {
+                $this->delete_pres($created);
+                $result['msg'] = "Sorry, we could not create/update the session";
+            }
+        } elseif ($created == "exists") {
+            $result['msg'] = "This presentation already exist in our database.";
+        }
+        return $result;
     }
 
     /**
@@ -499,12 +541,13 @@ class Presentation extends Presentations {
 
         if ($this->id_pres === "") {
             $speaker = 'TBA';
-            $show_but = "<a href='' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-date='$date'>FREE</a>";
+            $show_but = "<a href='' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' 
+                        data-date='$date'>FREE</a>";
             $type = "TBA";
         } else {
             /** @var User $speaker */
-            $speaker = new User($this->db,$this->orator);
-            $speaker = $speaker->fullname;
+            $speaker = new User($this->db, $this->orator);
+            $speaker = (!empty($speaker->fullname)) ? $speaker->fullname : $this->orator;
 
             // Make "Show" button
             if ($opt == 'mail') {
@@ -684,6 +727,7 @@ class Presentation extends Presentations {
             $modify_button = "<div style='width: 100px'></div>";
         }
         $orator = new User($this->db, $this->orator);
+        if (empty($orator->fullname)) $orator->fullname = $this->orator;
         $type = ucfirst($this->type);
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
@@ -691,7 +735,12 @@ class Presentation extends Presentations {
                 $type
             </div>
             <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>$this->title</div>
-            <div id='pub_date'><span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date </div> <div id='pub_orator'><span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname</div>
+            <div id='pub_date'>
+                <span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date 
+            </div>
+            <div id='pub_orator'>
+                <span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname
+            </div>
             <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
         </div>
 

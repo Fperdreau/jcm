@@ -216,6 +216,33 @@ input[type='button'].addBtn {
     margin-top: 0;
 }
 
+.div_button {
+    display: inline-block;
+    clear: both;
+    width: auto;
+    cursor: pointer;
+    background-color: #BE4141;
+    padding: 5px 8px;
+    margin: 5px;
+    text-align: center;
+    color: #FFFFFF;
+    font-size: 0.8em;
+}
+
+.div_button>a {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.div_button:hover {
+    background-color: #CF5252;
+    color: #FFFFFF;
+}
+
+.div_button:hover>a {
+    color: #FFFFFF;
+}
+
 /* Semi-transparent layer added on top of a form in order to show a feedback */
 .feedbackForm {
     position : absolute;
@@ -1356,7 +1383,7 @@ h3 {
     max-width: 100%;
 }
 
-#mailing_container form {
+.mailing_container form {
     width: 100%;
     display: initial;
     position: relative;
@@ -1402,7 +1429,6 @@ h3 {
 .added_email img {
     width: 12px;
     height: 12px;
-    vertical-align: middle;
 }
 
 .added_email_delete {
@@ -1411,7 +1437,8 @@ h3 {
     width: 20px;
     line-height: 20px;
     background: white;
-    border-radius: 50%;
+    border: 1px solid rgba(200, 200, 200, 1);
+    border-radius: 100%;
     margin-left: 5px;
     cursor: pointer;
 }

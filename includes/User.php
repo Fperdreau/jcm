@@ -191,6 +191,12 @@ class Users extends AppTable {
  * Handle User information (username,password,etc.) and user-related routines (creation, update of user information).
  */
 class User extends Users{
+
+    /**
+     * @var int
+     */
+    public $id;
+    
     /** @var string  */
     public $date = "";
 
@@ -331,8 +337,7 @@ class User extends Users{
     function get($prov_username) {
         $class_vars = get_class_vars("User");
         $sql = "SELECT * FROM $this->tablename WHERE username='$prov_username'";
-        $req = $this->db -> send_query($sql);
-        $data = mysqli_fetch_assoc($req);
+        $data = $this->db -> send_query($sql)->fetch_assoc();
         if (!empty($data)) {
             foreach ($data as $varname=>$value) {
                 if (array_key_exists($varname,$class_vars)) {

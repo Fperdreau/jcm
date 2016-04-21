@@ -24,6 +24,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+require_once(PATH_TO_APP . '/includes/boot.php');
 
 /**
  * Class DbBackup
@@ -72,9 +73,8 @@ class DbBackup extends AppCron {
      * @return string
      */
     public function run() {
-        require PATH_TO_APP . "/includes/functions.php";
         // Run cron job
-        $backupFile = backupDb($this->options['nb_version']);
+        $backupFile = backupDb($this->options['nb_version']['value']);
         $fileLink = json_encode($backupFile);
 
         $result = "Backup successfully done: $fileLink";
