@@ -50,7 +50,7 @@ class DigestMaker extends AppTable {
      * @param bool $name
      */
     public function __construct(AppDb $db, $name=False) {
-        parent::__construct($db, 'ReminderMaker', $this->table_data);
+        parent::__construct($db, 'DigestMaker', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
             $this->get($name);
