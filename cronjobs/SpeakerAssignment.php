@@ -45,7 +45,6 @@ class SpeakerAssignment extends AppCron {
     public static $description = "Automatically assigns speakers to the future sessions. Speaker are pseudo-randomly 
     selected, with priority given to members with the least number of presentations given so far.";
 
-
     /**
      * Constructor
      * @param AppDb $db
@@ -53,7 +52,6 @@ class SpeakerAssignment extends AppCron {
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     /**

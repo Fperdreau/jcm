@@ -35,42 +35,7 @@ class MailSender extends AppCron {
      * @var string: Task name
      */
     public $name = 'MailSender';
-
-    /**
-     * @var string: Path to task class
-     */
-    public $path;
-
-    /**
-     * @var string: Class status
-     */
-    public $status = 'Off';
-
-    /**
-     * @var bool: is the task installed?
-     */
-    public $installed = False;
-
-    /**
-     * @var string: running time
-     */
-    public $time;
-
-    /**
-     * @var string: day's name (e.g. 'Monday')
-     */
-    public $dayName;
-
-    /**
-     * @var string: day's number (0-6)
-     */
-    public $dayNb;
-
-    /**
-     * @var string: hour (0-23)
-     */
-    public $hour;
-
+    
     /**
      * @var array: task's settings
      */
@@ -103,7 +68,7 @@ class MailSender extends AppCron {
         $this->Manager = new MailManager($db);
 
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
+        //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     /**

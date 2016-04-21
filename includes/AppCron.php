@@ -35,45 +35,55 @@
  */
 class AppCron extends AppTable {
 
+    /**
+     * @var array $table_data: Task table schema
+     */
     protected $table_data = array(
         "id"=>array('INT NOT NULL AUTO_INCREMENT',false),
         "name"=>array('CHAR(20)',false),
         "time"=>array('DATETIME',false),
-        "dayName"=>array('CHAR(15)',false),
-        "dayNb"=>array('INT(2)',false),
-        "hour"=>array('INT(2)',false),
+        "frequency"=>array('CHAR(15)',false),
         "path"=>array('VARCHAR(255)',false),
         "status"=>array('CHAR(3)',false),
         "options"=>array('TEXT',false),
         "primary"=>"id"
     );
 
-    public $daysNames = array('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','All');
-    public $daysNbs;
-    public $hours;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
-    public $path;
+    /**
+     * @var array $daysNames: list of days names
+     */
+    public static $daysNames = array('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','All');
 
     /**
-     * Task's name
-     * @var string $name
+     * @var string $name: Task's name
      */
     public $name;
 
     /**
-     * Task's activation status
-     * @var string $status
+     * @var datetime $time: running time
      */
-    public $status;
+    public $time = '1970-01-01 00:00:00';
+
+    /**
+     * @var string $frequency: running frequency (format: 'month,days,hours,minutes')
+     */
+    public $frequency = '0,0,0,0';
+
+    /**
+     * @var string $path: path to script
+     */
+    public $path;
+
+    /**
+     * @var int $status: Task's status (0=>Off, 1=>On)
+     */
+    public $status = 0;
 
     /**
      * Is this task registered into the database?
      * @var bool $installed
      */
-    public $installed;
+    public $installed = 0;
 
     /**
      * Task's settings
@@ -104,11 +114,12 @@ class AppCron extends AppTable {
     public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
-        $this->daysNbs = range(0,31,1);
-        $this->hours = range(0,23,1);
         if ($name !== False) {
-            $this->get($name);
+            $this->get();
         }
+
+        // If time is default, set time to now
+        $this->time = ($this->time === '1970-01-01 00:00:00') ? date('Y-m-d H:i:s', time()) : $this->time;
     }
 
     /**
@@ -187,41 +198,15 @@ class AppCron extends AppTable {
 
     /**
      * Get next running time from day number, day name and hour
-     * @param $dayNb
-     * @param $dayName
-     * @param $hour
-     * @return string
+     * @param string $time
+     * @param array $frequency
+     * @return string: updated running time
      */
-    static function parseTime($dayNb, $dayName, $hour) {
-        $today = date('Y-m-d');
-        $month = date('m');
-        $year = date('Y');
-        $day = date('d');
-        $todayName = date('l');
-        $thisHour = date('H');
-
-        $timestamp = mktime(0,0,0,$month,1,$year);
-        $maxday = date("t",$timestamp); // Last day of the current month
-        $dayNb = ($dayNb>$maxday) ? $maxday:$dayNb;
-
-        if ($dayNb > 0) {
-            // Run scheduled task on a particular date
-            $strday = ($dayNb < $day)
-                ? date('Y-m-d',strtotime("$year-$month-$dayNb + 1 month"))
-                :date('Y-m-d',strtotime("$year-$month-$dayNb"));
-        } elseif ($dayName !=='All') {
-            // Run scheduled task on a particular day in the week
-            if ($dayName == $todayName && $hour > $thisHour) {
-                $strday = $today;
-            } else {
-                $strday = date('Y-m-d',strtotime("next $dayName"));
-            }
-        } elseif ($dayName == 'All') {
-            $strday = ($thisHour < $hour) ? $today : date('Y-m-d',strtotime("$today + 1 day"));
-        }
-        $strtime = date('H:i:s',strtotime("$hour:00:00"));
-        $time = $strday.' '.$strtime;
-        return $time;
+    static function parseTime($time, array $frequency) {
+        $strtime = date('Y-m-d H:i:s', strtotime($time));
+        $date = new DateTime($strtime);
+        $date->add(new DateInterval("P{$frequency[0]}M{$frequency[1]}DT{$frequency[2]}H{$frequency[3]}M0S"));
+        return $date->format('Y-m-d H:i:s');
     }
 
     /**
@@ -229,7 +214,7 @@ class AppCron extends AppTable {
      * @return bool
      */
     function updateTime() {
-        $newTime = self::parseTime($this->dayNb,$this->dayName, $this->hour);
+        $newTime = self::parseTime($this->time, $this->frequency);
         if ($this->update(array('time'=>$newTime))) {
             $result['status'] = true;
             $result['msg'] = $newTime;
@@ -309,9 +294,7 @@ class AppCron extends AppTable {
                     'status' => $thisPlugin->status,
                     'path'=>$thisPlugin->path,
                     'time'=>$thisPlugin->time,
-                    'dayName'=>$thisPlugin->dayName,
-                    'dayNb'=>$thisPlugin->dayNb,
-                    'hour'=>$thisPlugin->hour,
+                    'frequency'=>$thisPlugin->frequency,
                     'options'=>$thisPlugin->options,
                     'description'=>$thisPlugin::$description
                 );
@@ -417,40 +400,18 @@ class AppCron extends AppTable {
             }
 
             $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
-            $time = $info['time'];
 
-            $dayName_list = "";
-            foreach ($this->daysNames as $day) {
-                if ($day == $info['dayName']) {
-                    $dayName_list .= "<option value='$day' selected>$day</option>";
-                } else {
-                    $dayName_list .= "<option value='$day'>$day</option>";
-                }
-            }
+            $datetime = $info['time'];
+            $date = date('Y-m-d', strtotime($datetime));
+            $time = date('H:i', strtotime($datetime));
 
-            $dayNb_list = "";
-            foreach ($this->daysNbs as $i) {
-                if ($i == $info['dayNb']) {
-                    $dayNb_list .= "<option value='$i' selected>$i</option>";
-                } else {
-                    $dayNb_list .= "<option value='$i'>$i</option>";
-                }
-            }
+            $frequency = (!empty($info['frequency'])) ? explode(',', $info['frequency']): array(0, 0, 0, 0);
 
-            $hours_list = "";
-            foreach ($this->hours as $i) {
-                if ($i == $info['hour']) {
-                    $hours_list .= "<option value='$i' selected>$i:00</option>";
-                } else {
-                    $hours_list .= "<option value='$i'>$i:00</option>";
-                }
-            }
-            
             $cronList .= "
             <div class='plugDiv' id='cron_$cronName'>
                 <div class='plugLeft'>
                     <div class='plugName'>$cronName</div>
-                    <div class='plugTime' id='cron_time_$cronName'>$time</div>
+                    <div class='plugTime' id='cron_time_$cronName'>$datetime</div>
                     <div class='optbar'>
                         <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
                         $install_btn
@@ -466,24 +427,42 @@ class AppCron extends AppTable {
                     <div>
     
                         <div class='settings'>
-                            <div class='formcontrol'>
-                                <label>Day</label>
-                                <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayName'>
-                                    $dayName_list
-                                </select>
-                            </div>
-                            <div class='formcontrol'>
-                                <label>Date</label>
-                                <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='dayNb'>
-                                    $dayNb_list
-                                </select>
-                            </div>
-                            <div class='formcontrol'>
-                               <label>Time</label>
-                                <select class='select_opt modSettings' data-name='$cronName' data-op='cron' data-option='hour'>
-                                    $hours_list
-                                </select>
-                            </div>
+                            <form method='post' action=''>
+                                <div class='formcontrol'>
+                                    <label>Date</label>
+                                    <input type='date' name='date' value='{$date}'/>
+                                </div>
+                                <div class='formcontrol'>
+                                    <label>Time</label>
+                                    <input type='time' name='time' value='{$time}' />
+                                </div>
+                                
+                                <div class='frequency_container'>
+        
+                                    <div>Frequency</div>
+                                    <div class='formcontrol'>
+                                        <label>Months</label>
+                                        <input name='months' type='number' value='{$frequency[0]}'/>
+                                    </div>
+                                    <div class='formcontrol'>
+                                        <label>Days</label>
+                                        <input name='days' type='number' value='{$frequency[1]}'/>
+                                    </div>
+                                    <div class='formcontrol'>
+                                        <label>Hours</label>
+                                        <input name='hours' type='number' value='{$frequency[2]}'/>
+                                    </div>
+                                    <div class='formcontrol'>
+                                        <label>Minutes</label>
+                                        <input name='minutes' type='number' value='{$frequency[3]}'/>
+                                    </div>
+                                </div>
+                                <div class='submit_btns'>
+                                    <input type='hidden' name='modCron' value='{$cronName}'/> 
+                                    <input type='submit' class='modCron'/>
+                                </div>
+                            </form>
+    
                         </div>
     
                         <div class='plugOpt' id='$cronName'></div>

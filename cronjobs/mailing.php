@@ -35,19 +35,15 @@ require_once(PATH_TO_APP . '/includes/boot.php');
 class Mailing extends AppCron {
 
     public $name='Mailing';
-    public $path;
     public $status='Off';
     public $installed=False;
-    public $time;
     public $dayName='Monday';
-    public $dayNb=0;
-    public $hour=0;
     public static $description = "Sends notifications (digests) to JCM members.";
 
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
+        //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     public function install() {

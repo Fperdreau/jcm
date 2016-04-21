@@ -56,7 +56,6 @@ class DbBackup extends AppCron {
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     /**
@@ -78,7 +77,6 @@ class DbBackup extends AppCron {
         $fileLink = json_encode($backupFile);
 
         $result = "Backup successfully done: $fileLink";
-        $this->time = AppCron::parseTime($this->dayNb,$this->dayName, $this->hour);
         return $result;
     }
 }

@@ -39,13 +39,8 @@ class FullBackup extends AppCron {
      */
 
     public $name = 'FullBackup';
-    public $path;
     public $status = 'Off';
     public $installed = False;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
     public $options = array(
         'nb_version'=>array(
             'options'=>array(),
@@ -58,7 +53,7 @@ class FullBackup extends AppCron {
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
+        //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     public function install() {

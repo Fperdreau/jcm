@@ -29,7 +29,7 @@
     box-sizing: border-box;
     margin-top: 5px;
     font-size: 0;
-    min-width: 300px;
+    min-width: 100px;
     max-width: 100%;
 }
 
@@ -62,7 +62,6 @@
     line-height: 20px;
     min-height: 20px;
 
-    min-width: 40%;
     border: 1px solid rgba(207, 81, 81, .3);
     color: #777;
 }
@@ -105,7 +104,8 @@ label{
     line-height: 20px;
 }
 
-input[type='text'], input[type='email'], input[type='password'], input[type='date'], .formcontrol select, textarea {
+input[type='text'], input[type='email'], input[type='password'], input[type='date'], input[type='datetime-local'],
+input[type='number'], input[type='time'],.formcontrol select, textarea {
     display: inline-block;
     position: relative;
     vertical-align: top;
@@ -122,6 +122,10 @@ input[type='text'], input[type='email'], input[type='password'], input[type='dat
     max-width: 50%;
     border: 1px solid rgba(207, 81, 81, .3);
     color: #777;
+}
+
+input[type='number'] {
+    width: 30px;
 }
 
 input[type='date'] {
@@ -1304,6 +1308,10 @@ h3 {
     50% 50%
     no-repeat;
     background-size: 20px 20px;
+}
+
+.frequency_container>.formcontrol {
+    display: inline-block;
 }
 
 .email_files {

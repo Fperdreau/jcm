@@ -36,13 +36,8 @@ require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
 class MakeGroup extends AppCron {
 
     public $name='MakeGroup';
-    public $path;
     public $status='Off';
     public $installed=False;
-    public $time;
-    public $dayName;
-    public $dayNb;
-    public $hour;
     public $options = array(
         'send'=>array(
             'options'=>array('Yes'=>1,'No'=>0),
@@ -58,7 +53,6 @@ class MakeGroup extends AppCron {
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
     
     /**

@@ -46,7 +46,6 @@ class Reminder extends AppCron {
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        $this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     /**
