@@ -214,7 +214,7 @@ class AppCron extends AppTable {
      * @return bool
      */
     function updateTime() {
-        $newTime = self::parseTime($this->time, $this->frequency);
+        $newTime = self::parseTime($this->time, explode(',', $this->frequency));
         if ($this->update(array('time'=>$newTime))) {
             $result['status'] = true;
             $result['msg'] = $newTime;
