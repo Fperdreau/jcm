@@ -3,12 +3,24 @@
 ## Release: 1.4.3
 ### Changes
 - Corrected minor bugs introduced with JCM 1.4.2
+- Improved styling of submission menu
+
+### Scheduled tasks
+Improved management of scheduled tasks.
 - Improved handling of plugins/scheduled tasks options
 - Added possibility to display or delete scheduled tasks logs from Admin>Scheduled task page
+
+### Mailing
 - Added possibility to attach files to emails (Admin>Mailing page)
-- Corrected issue with automatic assignment
-- Improved styling of submission menu
+
+### Assignments
+- Corrected bug in automatic assignment
+
+### ReminderMaker
 - New feature: Organizers can select what to display into the reminder emails (admin>reminder)
+
+### Group plugin
+- Added possibility to send an email to group members
 
 ## Release: 1.4.2
 ### Changes
