@@ -1061,13 +1061,6 @@ if (!empty($_POST['modSpeaker'])) {
     exit;
 }
 
-// Check db integrity
-if (!empty($_POST['db_check'])) {
-    $Sessions->checkcorrespondence();
-    echo json_encode(true);
-    exit;
-}
-
 // Modify defaut session type
 if (!empty($_POST['session_type_default'])) {
     if ($AppConfig->update($_POST)) {
