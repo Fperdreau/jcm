@@ -345,8 +345,8 @@ class Sessions extends AppTable {
             $content['subject'] = "Your presentation ($date) has been canceled";
         }
 
-        // Notify organizers of the cancellation
-        if (!$assigned) $this->notify_organizers($user, $info);
+        // Notify organizers of the cancellation but only for real users
+        if (!$assigned && !is_null($user->fullname)) $this->notify_organizers($user, $info);
 
         $result = $MailManager->send($content, array($user->email));
         return $result;
