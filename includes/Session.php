@@ -346,7 +346,7 @@ class Sessions extends AppTable {
         }
 
         // Notify organizers of the cancellation but only for real users
-        if (!$assigned && !is_null($user->fullname)) $this->notify_organizers($user, $info);
+        if (!$assigned && $user->username !== 'TBA') $this->notify_organizers($user, $info);
 
         $result = $MailManager->send($content, array($user->email));
         return $result;
