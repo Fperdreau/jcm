@@ -65,7 +65,7 @@ $result = "
         <section>
             <h2>Contact us</h2>
             <div class='feedback'></div>
-            <form id='contact_form'>
+            <form id='contact_form' method='post' action='php/form.php'>
                 <input type='hidden' name='contact_send' value='true'/>
                 <div class='submit_btns'>
                     <input type='submit' name='send' value='Send' class='processform'>

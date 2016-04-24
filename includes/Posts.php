@@ -236,7 +236,7 @@ class Posts extends AppTable {
             $homepage = "Yes";
         }
         $result['form'] = "
-            <form id='post_form'>
+            <form method='post' action='php/form.php' id='post_form'>
                 <div class='submit_btns'>
                     $del_btn
                     <input type='submit' name='$op' value='$submit' class='submit_post'/>

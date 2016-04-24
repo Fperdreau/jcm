@@ -248,8 +248,8 @@ class AppPlugins extends AppTable {
                 ";
             }
             $content .= "
-                <form method='post' action=''>
-                {$opt}
+                <form method='post' action='php/form.php'>
+                    {$opt}
                     <input type='submit' class='modOpt' data-op='plugin' value='Modify'>
                 </form>
                 

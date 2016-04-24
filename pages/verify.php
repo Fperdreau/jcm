@@ -28,7 +28,7 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $result = htmlspecialchars($_GET['result']);
     $user = new User($db);
     $valid = $user -> check_account_activation($hash,$email,$result);
-    $msg = ($valid['status']) ? "<div id='success'>".$valid['msg']."</div>":"<div id='warning'>".$valid['msg']."</div>";
+    $msg = ($valid['status']) ? "<div class='sys_msg success'>".$valid['msg']."</div>":"<div class='sys_msg warning'>".$valid['msg']."</div>";
     $result = "
         <section>
             <h2>Activation</h2>
@@ -38,7 +38,7 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $result = "
         <section>
             <h2>Activation</h2>
-            <div id='warning'>Incorrect email or hash id.</div>
+            <div class='sys_msg warning'>Incorrect email or hash id.</div>
     	</section>";
 }
 echo json_encode($result);

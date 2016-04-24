@@ -169,13 +169,13 @@ class Users extends AppTable {
                 <div class='user_small'>$cur_trage</div>
                 <div class='user_small'>$nbpres</div>
                 <div class='user_op'>
-                    <select name='status' id='status' data-user='$user->username' class='modify_status' style='max-width: 75%;'>
+                    <select name='status' class='user_status modify_status' data-user='$user->username' style='max-width: 75%;'>
                         <option value='$user->status' selected='selected'>$user->status</option>
                         <option value='member'>Member</option>
                         <option value='admin'>Admin</option>
                         <option value='organizer'>Organizer</option>
                         $option_active
-                        <option value='delete' style='background-color: rgba(207, 81, 81, .5);'>Delete</option>
+                        <option value='delete' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
                     </select>
                 </div>
             </div>

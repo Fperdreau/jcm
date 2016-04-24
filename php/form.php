@@ -689,7 +689,7 @@ if (!empty($_POST['getpubform'])) {
         if ($id_Presentation == "false") {
             $pub = false;
         } else {
-            $pub = new Presentation($db,$id_Presentation);
+            $pub = new Presentation($db, $id_Presentation);
         }
         if (!isset($_SESSION['username'])) {
             $_SESSION['username'] = false;
@@ -698,10 +698,10 @@ if (!empty($_POST['getpubform'])) {
         $type = (!empty($_POST['type']) && $_POST['type'] !== 'false') ? $_POST['type']:false;
         $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
 
-        $user = new User($db,$_SESSION['username']);
-        $result = Presentation::displayform($user,$pub,$type,$prestype,$date);
+        $user = new User($db, $_SESSION['username']);
+        $result = Presentation::displayform($user, $pub, $type, $prestype, $date);
     } else {
-        $result = "<p id='warning'>You must sign in to access this page!</p>";
+        $result = "<p class='sys_msg warning'>You must sign in to access this page!</p>";
     }
     echo json_encode($result);
     exit;

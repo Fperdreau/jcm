@@ -225,7 +225,7 @@ class ReminderMaker extends AppTable {
             <div class='digest_section'>
                 <div id='name'>{$info['name']}</div>
                 <div id='form'>
-                    <form method='post' action=''>
+                    <form method='post' action='php/form.php'>
                         <input type='hidden' name='modReminder' value='true'>
                         <input type='hidden' name='name' value='{$info['name']}'>
                         <div class='formcontrol'>

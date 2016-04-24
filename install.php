@@ -377,14 +377,14 @@ if (!empty($_POST['operation'])) {
             if (!in_array($date,$session_date)) {
                 $session = new Session($db);
                 if (!$session->make(array('date'=>$date,'time'=>$time))) {
-                    $result = "<p id='warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+                    $result = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
                     echo json_encode($result);
                     exit;
                 }
             }
         }
         $result['status'] = true;
-        $result['msg'] = "<p id='success'> '" . $db->tablesname['Session'] . "' updated</p>";
+        $result['msg'] = "<p class='sys_msg success'> '" . $db->tablesname['Session'] . "' updated</p>";
         echo json_encode($result);
         exit;
     }
@@ -432,7 +432,7 @@ if (!empty($_POST['getpagecontent'])) {
                 <p>Hello</p>
                 <p>The current version of <i>Journal Club Manager</i> installed here is $version. You are about to install the version $new_version.</p>
                 <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
-                <p id='warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <i>Journal Club Manager</i> database!!</p>
+                <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <i>Journal Club Manager</i> database!!</p>
                 <p style='text-align: center'>
                 <input type='button' value='New installation'  class='start' data-op='new'>
                 <input type='button' value='Update' class='start' data-op='update'>
@@ -566,8 +566,8 @@ if (!empty($_POST['getpagecontent'])) {
     } elseif ($step == 5) {
         $title = "Installation complete!";
         $operation = "
-		<p id='success'>Congratulations!</p>
-		<p id='warning'> Now you can delete the 'install.php' file from the root folder of the application</p>
+		<p class='sys_msg success'>Congratulations!</p>
+		<p class='sys_msg warning'> Now you can delete the 'install.php' file from the root folder of the application</p>
 		<p style='text-align: right'><input type='button' value='Finish' class='finish'></p>";
     }
 

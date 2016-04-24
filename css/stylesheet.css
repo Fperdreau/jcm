@@ -1103,6 +1103,14 @@ h3 {
     cursor: pointer;
 }
 
+.user_status {
+    margin-bottom: 5px;
+    border-radius: 10px;
+    color: rgba(41, 53, 82, 1);;
+    background-color: rgba(150, 188, 212, 1); /* Add a background color to our status message   */
+    border: 1px solid rgb(61, 94, 123); /* Add a border arround our status message   */
+}
+
 .pub_container {
     display: table-row;
     background: rgba(240,240,240,.5);
@@ -1616,13 +1624,9 @@ button.addBtn>img {
     vertical-align: top;
 }
 
-.session_settings {
-}
-
 .session_presentations {
     vertical-align: top;
 }
-
 
 /* *********************************************************************/
 /* Text/Messages
@@ -1647,28 +1651,26 @@ button.addBtn>img {
     text-transform: uppercase;
 }
 
-#warning {
+.sys_msg {
     border-radius: 10px;
     margin: 5px auto;
-    color: rgb(113, 57, 56);;
     padding: 10px; /* Some padding to make some more space for our text  */
+}
+
+.warning {
+    color: rgb(113, 57, 56);;
     background-color: rgba(226,186,176,1); /* Add a background color to our status message   */
     border: 1px solid rgb(154, 125, 118); /* Add a border arround our status message   */
 }
 
-#status {
-    border-radius: 10px;
-    margin: 5px auto;
+.status {
     color: rgba(41, 53, 82, 1);;
     background-color: rgba(150, 188, 212, 1); /* Add a background color to our status message   */
     border: 1px solid rgb(61, 94, 123); /* Add a border arround our status message   */
 }
 
-#success {
-    border-radius: 10px;
-    margin: 5px auto;
+.success {
     color: rgba(45, 72, 33, 1);
-    padding: 10px; /* Some padding to make some more space for our text  */
     background-color: rgba(164, 216, 141, 1); /* Add a background color to our status message   */
     border: 1px solid rgb(117, 154, 100); /* Add a border arround our status message   */
 }

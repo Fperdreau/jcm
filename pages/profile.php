@@ -37,7 +37,7 @@ $result = "
     <div class='section_container'>
             <section>
                 <h2>Personal information</h2>
-                <form method='post' action='' class='form' id='profile_persoinfo_form'>
+                <form method='post' action='php/form.php' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='processform'/>
                     </div>
@@ -79,7 +79,7 @@ $result = "
 
         <section>
             <h2>Contact information</h2>
-            <form method='post' action='' class='processform' id='profile_emailinfo_form'>
+            <form method='post' action='php/form.php' class='processform' id='profile_emailinfo_form'>
                 <div class='submit_btns'>
                     <input type='submit' name='user_modify' value='Modify' class='processform'/>
                 </div>

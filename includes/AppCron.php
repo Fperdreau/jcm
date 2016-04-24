@@ -329,7 +329,7 @@ class AppCron extends AppTable {
                 ";
             }
             $content .= "
-                <form method='post' action=''>
+                <form method='post' action='php/form.php'>
                 {$opt}
                     <input type='submit' class='modOpt' data-op='cron' value='Modify'>
                 </form>
@@ -427,7 +427,7 @@ class AppCron extends AppTable {
                     <div>
     
                         <div class='settings'>
-                            <form method='post' action=''>
+                            <form method='post' action='php/form.php'>
                                 <div>Date & Time</div>
                                 <div class='formcontrol'>
                                     <label>Date</label>

@@ -274,7 +274,7 @@ class MailManager extends AppTable {
                 {$uploader}
             </div>
                     
-            <form method='post' id='submit_form'>
+            <form method='post' action='php/form.php' id='submit_form'>
                      
                 <div class='mailing_block select_emails_container'>
                     <h3>Select recipients</h3>

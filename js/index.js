@@ -47,10 +47,14 @@ var showpubform = function (formel, idpress, type, date, prestype) {
     var callback = function (result) {
         formel
             .html(result)
-            .fadeIn(200);
+            .fadeIn(200)
+            .find('textarea').html(result.content);
+        tinyMCE.remove();
+        window.tinymce.dom.Event.domLoaded = true;
+        tinymcesetup();
 
     };
-    processAjax(formel, data, callback);
+    processAjax(formel, data, callback, "php/form.php");
 
     // Load JCM calendar
     loadCalendarSessions();
@@ -77,7 +81,7 @@ var showpostform = function (postid) {
         window.tinymce.dom.Event.domLoaded = true;
         tinymcesetup();
     };
-    processAjax(el, data, callback);
+    processAjax(el, data, callback, "php/form.php");
 };
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -372,7 +376,7 @@ $(document).ready(function () {
             var form = $(this).closest('form');
             var email = $(this).attr("id");
             var data = {change_pw: true, email: email};
-            processAjax(form,data);
+            processAjax(form, data, null , "php/form.php");
         })
 
 		// Password change form (email + new password)
@@ -387,7 +391,7 @@ $(document).ready(function () {
                     setTimeout(logout,2000);
                 }
             };
-            processAjax(form,data,callback);
+            processAjax(form, data, callback, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -424,7 +428,7 @@ $(document).ready(function () {
                     $('#user_list').html(result.content);
                 },2000);
             };
-            processAjax(div,data,callback);
+            processAjax(div, data, callback, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -508,7 +512,7 @@ $(document).ready(function () {
             data = modArray(data, 'spec_msg', content);
             data = modArray(data, 'attachments', attachments);
 
-            processAjax(el, data);
+            processAjax(el, data, null, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -556,7 +560,7 @@ $(document).ready(function () {
                     showpostform(false);
                 }
             };
-            processAjax('.postcontent',data,callback);
+            processAjax('.postcontent', data, callback, "php/form.php");
         })
 
         // Add a news to the homepage
@@ -572,7 +576,7 @@ $(document).ready(function () {
             var data = form.serializeArray();
             var content = tinyMCE.get('post_content').getContent();
             data = modArray(data,'content',content);
-            processAjax(form,data,callback);
+            processAjax(form, data, callback, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -596,7 +600,7 @@ $(document).ready(function () {
                         $('.type_list#'+classname).html(result);
                         $('input#new_'+classname+'_type').empty();
                     } else {
-                        showfeedback("<span id='warning'>We could not add this new category","feedback_"+classname);
+                        showfeedback("<span class='sys_msg warning'>We could not add this new category","feedback_"+classname);
                     }
                 }
             });
@@ -628,11 +632,12 @@ $(document).ready(function () {
             var div = $('#session_type');
             var type = $(this).val();
             var data = {session_type_default:type};
-            processAjax(div,data);
+            processAjax(div, data, null, "php/form.php");
         })
 
         // Select session to show
         .on('change','.selectSession',function (e) {
+            e.preventDefault();
             var nbsession = $(this).val();
             var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
             var data = {show_session: nbsession, status: status};
@@ -642,7 +647,7 @@ $(document).ready(function () {
                     .html(result)
                     .fadeIn(200);
             };
-            processAjax(div,data,callback);
+            processAjax(div, data, callback, "php/form.php");
         })
 
         // Modify speaker
@@ -663,7 +668,7 @@ $(document).ready(function () {
                 presid: presid,
                 date:date
             };
-            processAjax($('body'),data);
+            processAjax($('body'), data, null, "php/form.php");
         })
 
         // Modify session type
@@ -674,7 +679,7 @@ $(document).ready(function () {
             var sessionDiv = $(this).closest('.session_div');
             var sessionID = sessionDiv.data('id');
             var data = {modSession: true, session: sessionID, prop: prop, value: value};
-            processAjax(sessionDiv,data);
+            processAjax(sessionDiv, data, null, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -689,7 +694,7 @@ $(document).ready(function () {
                 $('#archives_list').html(result);
             };
             var div = $('#archives_list');
-            processAjax(div,data,callback);
+            processAjax(div, data, callback, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -789,15 +794,26 @@ $(document).ready(function () {
             }
 
             // Submit presentation
-            var data = form.serialize();
+            var data = form.serializeArray();
             var callback = function (result) {
-                var subform = $('section#submission_form, .modal_section#submission_form');
+                $('section#submission_form, .modal_section#submission_form').empty();
                 if (result.status === true) {
                     close_modal();
-                    //showpubform(subform,false);
                 }
             };
-            processAjax(form,data,callback);
+
+            // Find tinyMCE textarea and gets their content
+            var tinyMCE_el = form.find('.tinymce');
+            if (tinyMCE_el.length > 0 && tinyMCE_el !== undefined) {
+                tinyMCE_el.each(function() {
+                    var id = $(this).attr('id');
+                    var input_name = $(this).attr('name');
+                    var content = tinyMCE.get(id).getContent();
+                    data = modArray(data, input_name, content);
+                })
+            }
+
+            processAjax(form, data, callback, "php/form.php");
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -865,7 +881,7 @@ $(document).ready(function () {
                     $('#' + id_pres).remove();
                 }
             };
-            processAjax(el,data,callback);
+            processAjax(el, data, callback, "php/form.php");
         })
 
         // Dialog change password

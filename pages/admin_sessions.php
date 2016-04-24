@@ -66,7 +66,7 @@ $result = "
     <div class='section_left'>
     <section>
         <h2>Sessions settings</h2>
-        <form method='post' action='' class='form' id='config_form_session'>
+        <form method='post' action='php/form.php' class='form' id='config_form_session'>
             <div class='feedback' id='feedback_jcsession'></div>
             <input type='hidden' name='config_modify' value='true'>
             <div class='formcontrol'>

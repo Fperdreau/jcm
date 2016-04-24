@@ -34,7 +34,7 @@ $result = "
     <div class='section_container'>
             <section>
                 <h2>Site parameters</h2>
-                <form method='post' action='' class='form' id='config_form_site'>
+                <form method='post' action='php/form.php' class='form' id='config_form_site'>
                     <div class='submit_btns'>
                         <input type='submit' name='modify' value='Modify' class='processform'>
                     </div>
@@ -61,7 +61,7 @@ $result = "
 
             <section>
                 <h2>Email host information</h2>
-                <form method='post' action='' class='form' id='config_form_mail'>
+                <form method='post' action='php/form.php' class='form' id='config_form_mail'>
                     <div class='submit_btns'>
                         <input type='submit' name='modify' value='Modify' class='processform'>
                     </div>
@@ -109,7 +109,7 @@ $result = "
 
             <section>
                 <h2>Lab information</h2>
-                <form method='post' action='' class='form' id='config_form_lab'>
+                <form method='post' action='php/form.php' class='form' id='config_form_lab'>
                     <div class='submit_btns'>
                         <input type='submit' name='modify' value='Modify' class='processform'>
                     </div>

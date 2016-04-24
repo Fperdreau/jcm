@@ -224,7 +224,7 @@ class Presentations extends AppTable {
         }
 
         $nextcontent = "
-         <form method='' action='' class='form'>
+         <form method='post' action='php/form.php' class='form'>
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
               <div class='formcontrol'>
@@ -813,7 +813,7 @@ class Presentation extends Presentations {
         // Text of the submit button
         $submitxt = ucfirst($submit);
         $form = ($submit !== "select") ? "<div class='feedback'></div>
-        <form method='post' action='' enctype='multipart/form-data' id='submit_form'>
+        <form method='post' action='php/form.php' enctype='multipart/form-data' id='submit_form'>
             <div class='submit_btns'>
                 <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
             </div>
@@ -847,7 +847,7 @@ class Presentation extends Presentations {
 
             <div class='formcontrol'>
                 <label>Abstract</label>
-                <textarea name='summary' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
             </div>
         </form>
 

@@ -131,7 +131,7 @@ class AppPage extends AppTable {
             if ($this->status > -1) {
                 $result['msg'] = "
 		    <div id='content'>
-        		<p id='warning'>You must <a class='leanModal' id='user_login' href='' data-section='user_login'>
+        		<p class='sys_msg warning'>You must <a class='leanModal' id='user_login' href='' data-section='user_login'>
         		Sign In</a> or <a class='leanModal' id='user_register' href='' data-section='user_register'>
         		Sign Up</a> in order to access this page!</p>
 		    </div>
@@ -150,7 +150,7 @@ class AppPage extends AppTable {
             } else {
                 $result['msg'] = "
                     <div id='content'>
-                        <p id='warning'>Sorry, you do not have the permission to access this page</p>
+                        <p class='sys_msg warning'>Sorry, you do not have the permission to access this page</p>
                     </div>
                     ";
                 $result['status'] = false;
@@ -331,7 +331,7 @@ class AppPage extends AppTable {
                 </div>
 
                 <div class='plugSettings'>
-                    <form id='config_page_$pageName'>
+                    <form method='post' action='php/form.php' id='config_page_$pageName'>
                         <input type='hidden' value='true' name='modPage' />
                         <input type='hidden' value='$pageName' name='name' />
                         <div style='display: inline-block'>

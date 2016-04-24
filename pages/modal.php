@@ -32,7 +32,7 @@ echo "
 
         <!-- Sign in section -->
         <div class='modal_section' id='user_login' data-title='Sign In'>
-            <form id='login_form'>
+            <form id='login_form' method='post' action='php/form.php'>
                 <input type='hidden' name='login' value='true'/>
                 <div class='formcontrol' style='width: 100%;'>
                     <label for='username'>Username</label>
@@ -56,7 +56,7 @@ echo "
 
         <!-- Sign up section -->
         <div class='modal_section' id='user_register' data-title='Sign Up'>
-            <form id='register_form'>
+            <form id='register_form' method='post' action='php/form.php'>
                 <input type='hidden' name='register' value='true'>
                 <input type='hidden' name='status' value='member'>
                 <div class='formcontrol' style='width: 100%;'>
@@ -102,7 +102,7 @@ echo "
         <!-- Delete account section -->
         <div class='modal_section' id='user_delete' data-title='Delete Profile'>
             <div>Please, confirm your identity</div>
-            <form id='confirmdeleteuser'>
+            <form id='confirmdeleteuser' method='post' action='php/form.php'>
                 <div class='formcontrol'>
                     <label for='del_username'>Username</label>
                     <input type='text' id='del_username' name='del_username' value='' required/>
@@ -120,7 +120,7 @@ echo "
         <!-- Change password section -->
         <div class='modal_section' id='user_changepw' data-title='Change Password'>
             <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
-            <form id='modal_change_pwd'>
+            <form id='modal_change_pwd' method='post' action='php/form.php'>
                 <input type='hidden' name='change_pw' value='true'>
                 <div class='formcontrol'>
                     <label for='email'>Email</label>

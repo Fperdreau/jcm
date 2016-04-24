@@ -48,7 +48,7 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
                 </div>
             </form>";
     } else {
-        $content = "<div id='warning'>Incorrect email or hash id.</div>";
+        $content = "<div class='sys_msg warning'>Incorrect email or hash id.</div>";
     }
     $result = "
         <section>
@@ -59,7 +59,7 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     $result = "
         <section>
             <h2>Change password</h2>
-            <div id='warning'>Incorrect email or hash id.</div>
+            <div class='sys_msg warning'>Incorrect email or hash id.</div>
         </section>";
 }
 

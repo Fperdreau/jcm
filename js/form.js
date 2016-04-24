@@ -31,12 +31,24 @@
  * @returns {boolean}
  * @param callback: callback function to execute after the form has been processed
  * @param url: path to the php-side file
- * @param timing: duration of feeback message
+ * @param timing: duration of feedback message
  */
-var processForm = function (el, callback, url, timing) {
-    if (!checkform(el)) { return false; }
-    var data = el.serialize();
-    processAjax(el, data, callback, url, timing);
+var processForm = function(el,callback,url,timing) {
+    if (!checkform(el)) { return false;}
+    var data = el.serializeArray();
+
+    // Find tinyMCE textarea and gets their content
+    var tinyMCE_el = el.find('.tinymce');
+    if (tinyMCE_el.length > 0 && tinyMCE_el !== undefined) {
+        tinyMCE_el.each(function() {
+            var id = $(this).attr('id');
+            var input_name = $(this).attr('name');
+            var content = tinyMCE.get(id).getContent();
+            data = modArray(data, input_name, content);
+        })
+    }
+    url = el.attr('action');
+    processAjax(el,data,callback,url,timing);
 };
 
 /**
@@ -45,10 +57,9 @@ var processForm = function (el, callback, url, timing) {
  * @param data
  * @param callback: callback function
  * @param url: path to the php file
- * @param timing: duration of feeback message
+ * @param timing: duration of feedback message
  */
-var processAjax = function (formid, data, callback, url, timing) {
-    url = (url === undefined) ? 'php/form.php' : url;
+var processAjax = function(formid, data, callback, url, timing) {
     jQuery.ajax({
         url: url,
         type: 'POST',
@@ -61,8 +72,11 @@ var processAjax = function (formid, data, callback, url, timing) {
             removeLoading(formid);
         },
         success: function (data) {
-            callback = (callback === undefined) ? false : callback;
+            callback = (callback === undefined) ? false: callback;
             validsubmitform(formid, data, callback, timing);
+        },
+        error: function() {
+            removeLoading(formid);
         }
     });
 };
@@ -84,11 +98,11 @@ var validsubmitform = function (el, data, callback, timing) {
     // Format msg
     var msg = false;
     if (result.status === true) {
-        msg = (result.msg === undefined) ? "<p id='success'>DONE!</p>" :
-            "<p id='success'>" + result.msg + "</p>";
+        msg = (result.msg === undefined) ? "<p class='sys_msg success'>DONE!</p>" :
+            "<p class='sys_msg success'>" + result.msg + "</p>";
     } else if (result.status !== undefined) {
-        msg = (result.msg === undefined) ? "<p id='warning'>Oops, something has gone wrong!</p>" :
-        "<p id='warning'>" + result.msg + "</p>";
+        msg = (result.msg === undefined) ? "<p class='sys_msg warning'>Oops, something has gone wrong!</p>" :
+        "<p class='sys_msg warning'>" + result.msg + "</p>";
     }
 
     // Display feedback message and/or run callback function
@@ -100,11 +114,11 @@ var validsubmitform = function (el, data, callback, timing) {
 
         var feedbackForm = $('.feedbackForm');
         feedbackForm
-            .css({width: width + 'px', height: height + 'px'})
+            .css({width: width+'px', height: height+'px'})
             .html(msg)
             .fadeIn(200);
 
-        setTimeout(function () {
+        setTimeout(function() {
             feedbackForm
                 .fadeOut(200)
                 .remove();
@@ -128,7 +142,7 @@ var validsubmitform = function (el, data, callback, timing) {
  * @param el: DOM element
  * @returns {boolean}
  */
-var checkform = function (el) {
+var checkform = function(el) {
     var valid = true;
     el.find('.inputFeedback').hide();
     var msg = "* Required";
@@ -142,7 +156,7 @@ var checkform = function (el) {
             thisField = false;
         }
 
-        if ($(this).hasClass('tinymce') && tinyMCE.get($(this).attr('id')).getContent().length === 0) {
+        if ($(this).prop('required') && $(this).hasClass('tinymce') && tinyMCE.get($(this).attr('id')).getContent().length === 0) {
             tinymce.execCommand('mceFocus',false,'consent');
             thisField = false;
         }
@@ -173,11 +187,31 @@ var checkform = function (el) {
 
     });
 
+    // Check if at least one checkbox by checkbox name is checked
+    var checkbox = el.find('input[type="checkbox"]');
+    var name_map = {};
+    var ok = true;
+    checkbox.each(function() {  // first pass, create name mapping
+        var name = this.name;
+        if (name_map[name] == undefined) {
+            ok = el.find("input[name='"+name+"']:checked").length > 0;
+            if (!ok) {
+                el.find("input[name='"+name+"']")
+                    .last()
+                    .addClass('wrongField')
+                    .after("<div class='inputFeedback' style='display: none;'>*</div>")
+                    .next('.inputFeedback').animate({width:'toggle'});
+            }
+            name_map[name] = name;
+        }
+    });
+    valid = valid && ok;
+
     // Check if form include password confirmation
     var conf_password = el.find("input[name=conf_password]");
-    if (conf_password.length) {
+    if (conf_password.length > 0) {
         var password = el.find("input[name=password]").val();
-        if (password != conf_password.val()) {
+        if (password !== conf_password.val()) {
             conf_password.addClass('wrongField');
             msg = "Passwords must match";
             valid = false;
@@ -186,7 +220,7 @@ var checkform = function (el) {
 
     // Show feedback message next to the submit button
     if (!valid) {
-        var submitBtn = el.find('input[type="submit"]');
+        var submitBtn = el.find('button[type="submit"], input[type="submit"]');
         el.find('.feedbackSubmit').remove();
         submitBtn
             .before("<div class='feedbackSubmit' style='display: none;'>"+msg+"</div>");
@@ -214,7 +248,7 @@ var checkemail = function (email) {
  * @param selector: feeback div
  * @returns {boolean}
  */
-var showfeedback = function (message,selector) {
+var showfeedback = function (message, selector) {
     var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
     $(el)
         .html(message)
@@ -245,6 +279,7 @@ function modArray(data,prop,value) {
 $(document).ready(function () {
     $('body').on('click','.processform',function (e) {
         e.preventDefault();
+        e.stopPropagation();
         var input = $(this);
         var form = input.length > 0 ? $(input[0].form) : $();
         processForm(form);

@@ -252,7 +252,8 @@ $(document).ready(function() {
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var option = form.serializeArray();
             var data = {modOpt: name, op: op, data:option};
-            processAjax(div,data);
+            var url = form.attr('action');
+            processAjax(div, data, null, url);
         })
 
         /**
