@@ -137,9 +137,9 @@ $result = "
         </section>
         <div class='plugins'></div>
         
-        <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
-
     </div>
+    <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
+
 ";
 
 echo json_encode($result);

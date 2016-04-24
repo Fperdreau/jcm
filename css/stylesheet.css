@@ -980,6 +980,8 @@ h3 {
     margin-top: 10px;
     color: rgba(255,255,255,1);
     cursor: pointer;
+    width: 100px;
+    border-radius: 5px;
 }
 
 .operation_button:hover{
