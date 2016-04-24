@@ -214,7 +214,7 @@ class MailManager extends AppTable {
             $recipients_list = array();
             foreach (explode(',', $recipients) as $id) {
                 $user = new User($this->db);
-                $recipients_list[] = $user->getById($id);
+                if (!empty($id)) $recipients_list[] = $user->getById($id);
             }
         } else {
             $recipients_list = null;
