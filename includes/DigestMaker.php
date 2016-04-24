@@ -155,7 +155,7 @@ class DigestMaker extends AppTable {
                 </div>
                 {$string}
                 ";
-        $content['subject'] = "Reminder - ".date('d M Y');
+        $content['subject'] = "Digest - ".date('d M Y');
         
         return $content;
     }

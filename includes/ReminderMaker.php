@@ -155,7 +155,7 @@ class ReminderMaker extends AppTable {
                 </div>
                 {$string}
                 ";
-        $content['subject'] = "Reminder";
+        $content['subject'] = "Reminder - ".date('d M Y');
 
         return $content;
     }
