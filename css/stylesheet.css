@@ -259,7 +259,6 @@ input[type="submit"]:active, input[type="button"]:active {
     color: #FFF;
     background: rgba(207, 81, 81, .5); /* Set button background */
     border: 1px solid #DFDFDF; /* Small border around our submit button */
-    padding: 8px; /* Add some more space around our button text */
 }
 
 input[type='button'].addBtn {
