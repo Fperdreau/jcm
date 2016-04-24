@@ -694,20 +694,24 @@ class User extends Users{
         }
         $sql .= " ORDER BY date";
         $req = $this->db->send_query($sql);
-        $content = "
-            <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
-                <div style='width: 20%; display: table-cell;'>Date</div>
-                <div style='width: 75%; display: table-cell;'>Title</div>
-            </div>
-        ";
 
+        $content = "";
         while ($row = mysqli_fetch_assoc($req)) {
             $pubid = $row['id_pres'];
             /** @var Presentation $pub */
             $pub = new Presentation($this->db,$pubid);
             $content .= $pub->show(true);
         }
-        return $content;
+
+        return         $content = "
+            <div class='table_container' style='display: table; width: 100%;'>
+                <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
+                    <div style='width: 20%; display: table-cell;'>Date</div>
+                    <div style='width: 75%; display: table-cell;'>Title</div>
+                </div>
+                {$content}
+            </div>
+        ";
     }
 
     /**

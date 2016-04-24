@@ -55,7 +55,7 @@ a {
 }
 
 a:hover {
-    color: #cccccc;
+    color: rgba(50, 50, 50, 1);
 }
 
 /* *********************************************************************/
@@ -1161,7 +1161,7 @@ h3 {
     background: rgba(220,220,220,.5);
 }
 
-.pub_container>a:hover {
+.pub_container:hover>a {
     color: rgba(68,68,68,1);
 }
 
