@@ -23,7 +23,44 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Forms & Input field styles */
+/* General Demo Style */
+@import url(http://fonts.googleapis.com/css?family=Lato:300,400,700);
+
+/* *********************************************************************/
+/* Body
+/* *********************************************************************/
+html {
+    height: 100%;
+    font-size: 16px;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    min-width: 320px;
+    margin: 0;
+    padding: 0;
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+    font-weight: 300;
+    font-size: 1em;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+
+a {
+    text-decoration: none;
+    color: rgba(207,81,81,1);
+}
+
+a:hover {
+    color: #cccccc;
+}
+
+/* *********************************************************************/
+/* Forms & Input field
+/* *********************************************************************/
 .formcontrol {
     vertical-align: top;
     box-sizing: border-box;
@@ -309,37 +346,6 @@ input[type='button'].addBtn {
     color: rgba(255, 255, 255, 1);
     background: rgba(200, 0, 0, .5);
 }
-/* *********************************************************************/
-/* Body
-/* *********************************************************************/
-html {
-    height: 100%;
-    font-size: 16px;
-}
-
-body {
-    height: 100%;
-    width: 100%;
-    min-width: 320px;
-    margin: 0;
-    padding: 0;
-    font-family: 'Lato', Calibri, Arial, sans-serif;
-    font-weight: 300;
-    font-size: 1em;
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    overflow-y: scroll;
-    overflow-x: scroll;
-}
-
-a {
-	text-decoration: none;
-    color: rgba(207,81,81,1);
-}
-
-a:hover {
-    color: #cccccc;
-}
 
 /* *********************************************************************/
 /* Header
@@ -538,6 +544,8 @@ li a {
     left: 0;
     width: 250px;
     height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
     margin: 0;
     padding: 0;
     background: rgba(68,68,68,1);
@@ -881,6 +889,10 @@ h3 {
     text-transform: uppercase;
     transition: all 0.3s ease 0s;
     cursor: pointer;
+    width: 100px;
+    height: 54px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .submitMenuSection a {
@@ -900,30 +912,51 @@ h3 {
     background: rgba(207,81,81,1);
 }
 
-.submitMenuSection>.icon_container {
-    display: inline-block;
+.submitMenuSection:hover>a>.icon_container>.icon {
+    opacity: 0.2;
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;
 }
 
-.submitMenuSection .icon_container>div {
+.submitMenuSection:hover>a>.icon_container>.text {
+}
+
+.icon_container {
+    display: inline-block;
+    position: relative;
+    width: 200px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.icon_container>div {
     display: inline-block;
     vertical-align: middle;
+    width: 98px;
 }
 
-.submitMenuSection .icon_container .icon {
+.icon_container>.icon {
+    text-align: center;
+    text-transform: uppercase;
+    transition: all 0.3s ease 0s;
+    margin: auto;
+}
+
+.icon_container>.icon>img{
     border: 2px solid #CF5151;
     border-radius: 100%;
     padding: 5px;
     background: white;
-    text-align: center;
-    text-transform: uppercase;
-    transition: all 0.3s ease 0s;
-    cursor: pointer;
-}
-
-.submitMenuSection .icon_container .icon>img{
     width: 20px;
     height: 20px;
     vertical-align: bottom;
+}
+
+.icon_container>.text {
+    margin: auto;
+    height: 80%;
+    box-sizing: border-box;
 }
 
 /* *********************************************************************/
@@ -1703,6 +1736,7 @@ button.addBtn>img {
     display: none;
     margin: 0;
     width: auto;
+    padding-bottom: 10px;
     position: relative;
 }
 

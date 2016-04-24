@@ -33,7 +33,6 @@ require_once('includes/boot.php');
         <META NAME="keywords" CONTENT="Journal Club, application, science, tools, research, lab, management">
 
         <!-- Stylesheets -->
-        <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
         <link type='text/css' rel='stylesheet' href="css/uploader.min.css"/>
 

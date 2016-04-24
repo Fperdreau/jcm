@@ -278,12 +278,41 @@ $(document).ready(function () {
         .on('click','#float_menu',function () {
             var position = $(this).position();
             var height = $(this).outerHeight();
+            var windowHeight = $(window).height();
             $('.sideMenu')
                 .css({
-                    'top':height+"px",
-                    'left':position.left+"px"
+                    'top': height + "px",
+                    'left': position.left + "px",
+                    'height': (windowHeight - height) + "px",
+                    'max-height': (windowHeight - height) + "px"
                 })
                 .animate({width:'toggle'});
+        })
+
+        .on('mouseenter', '.submitMenuSection', function(e) {
+            e.preventDefault();
+            var section = $(this).find('.icon_container');
+            var text = section.find('.text');
+            var icon = section.find('.icon');
+            section.animate({
+                left: '-=' + icon.outerWidth() + 'px'
+            }, 200, function() {
+                // Animation complete.
+            });
+            text.css({visibility: 'visible'});
+        })
+
+        .on('mouseleave', '.submitMenuSection', function(e) {
+            e.preventDefault();
+            var section = $(this).find('.icon_container');
+            var text = section.find('.text');
+            var icon = section.find('.icon');
+            section.animate({
+                left: '+=' + icon.outerWidth() + 'px'
+            }, 200, function() {
+                // Animation complete.
+            });
+            text.css({visibility: 'hidden'});
         })
 
         // Display submenu
