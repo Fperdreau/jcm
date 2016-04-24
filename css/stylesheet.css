@@ -230,19 +230,29 @@ select.select_opt {
     display: inline-block;
 }
 
+/** Submit buttons **/
 input[type="submit"], input[type="button"] {
     cursor: pointer;
     background: rgba(249, 249, 249, 1); /* Set button background */
     border: 1px solid rgba(207, 81, 81, 1); /* Small border around our submit button */
-    padding: 8px; /* Add some more space around our button text */
+    border-radius: 5px;
+    padding: 10px 20px 10px 30px; /* Add some more space around our button text */
     transition: all 0.3s ease 0s;
     margin-top: 5px;
+}
+
+input[type="submit"]:after, input[type="button"]:after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
 }
 
 input[type="submit"]:hover, input[type="button"]:hover {
     color: #FFF;
     background: rgba(207, 81, 81, 1); /* Set button background */
-    padding: 8px; /* Add some more space around our button text */
 }
 
 input[type="submit"]:active, input[type="button"]:active {
@@ -988,6 +998,10 @@ h3 {
 
 #author_name {
     color: rgba(207,81,81,1);
+}
+
+input[name='title'], input[name='authors'] {
+    width: 100%;
 }
 
 /* *********************************************************************/

@@ -32,7 +32,6 @@ $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
 $assignStatus = ($user->assign == 1) ? "Yes":"No";
 $result = "
     <h1>Hello $user->fullname!</h1>
-    <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
 
     <div class='section_container'>
             <section>
@@ -137,6 +136,9 @@ $result = "
             {$assignments}
         </section>
         <div class='plugins'></div>
+        
+        <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
+
     </div>
 ";
 
