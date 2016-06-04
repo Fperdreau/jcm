@@ -118,6 +118,8 @@ $result = "
         
         <section>
             <h2>My availability</h2>
+            <p class='description'>Select the dates on which you are not available.</p>
+            <div class='sys_msg warning'>Selecting a date on which you have been planned as speaker will automatically cancel this presentation!</div>
             <div id='availability_calendar'></div>
             <div class='calendar_legend'>
                 <div class='not_available'>I am not available</div>
