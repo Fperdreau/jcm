@@ -392,7 +392,6 @@ $(document).ready(function () {
         })
 
         .on("change", "#availability_calendar", function () {
-            console.log('hello');
             alert($(this).val());
         })
 
@@ -510,9 +509,7 @@ $(document).ready(function () {
                 emails.splice(index, 1);
             }
             email_input.val(emails.join(','));
-            console.log(div);
             div.remove();
-
         })
 
 		// Send an email to the mailing list
@@ -523,9 +520,10 @@ $(document).ready(function () {
             // Check if recipients have been added
             var div = $('.select_emails_container').find('.select_emails_list');
             div.find('.mailing_recipients_empty').remove();
-            if (div.is(':empty')) {
-                div.html('<p class="mailing_recipients_empty" id="warning">You must select recipients before sending your email!</p>');
-                return false;
+            if (!$.trim( div.html() ).length) {
+                div.html('<p class="mailing_recipients_empty sys_msg warning leanmodal" id="warning">You must select ' +
+                    'recipients before sending your email by clicking on the "+" button!</p>');
+                return true;
             }
 
             // Check if form has been filled in properly
