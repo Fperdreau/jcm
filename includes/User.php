@@ -102,7 +102,7 @@ class Users extends AppTable {
      * @return array|null
      */
     public function all() {
-        $sql = "SELECT * FROM $this->tablename WHERE notification=1 and active=1 and status!='admin' ORDER BY fullname";
+        $sql = "SELECT * FROM $this->tablename WHERE active=1 and status!='admin' ORDER BY fullname";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
