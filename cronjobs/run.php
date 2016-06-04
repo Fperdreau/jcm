@@ -44,7 +44,10 @@ function run() {
             echo "<p>Running '$job'...</p>";
             $result = null;
 
-            // Instantiate job object
+            /**
+             * Instantiate job object
+             * @var AppCron $thisJob
+             */
             $thisJob = $AppCron->instantiate($job);
             $thisJob->get();
 
