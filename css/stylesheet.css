@@ -318,8 +318,14 @@ input[type='button'].addBtn {
 
 /* Change background color of invalid fields */
 .wrongField {
-    background: rgba(200,0,0,.1);
+    background: rgba(200, 0, 0, .1);
+    border: 2px solid rgba(200,0,0,1);
 }
+
+.wrongField select {
+    border: 2px solid rgba(200,0,0,.1);
+}
+
 
 /* Feedback div to display other messages */
 .feedbackSubmit {
