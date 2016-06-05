@@ -5,6 +5,7 @@
 - Corrected minor bugs introduced with JCM 1.4.2
 - Improved styling of submission menu
 - Mailing: recipients list now also includes every member.
+- Mailing: added warning message in case no recipients have been added.
 
 ### Scheduled tasks
 Improved management of scheduled tasks.
