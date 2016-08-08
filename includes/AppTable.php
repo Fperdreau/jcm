@@ -35,6 +35,8 @@ class AppTable {
     protected $db; // Instantiation of db
     protected $tablename; // Table name
     protected $table_data; // Table's data (array)
+    private static $default_exclude = array("id", "db", "tablename", "table_data");
+
 
     /**
      * Constructor
@@ -65,11 +67,10 @@ class AppTable {
      * @return array
      */
     protected function parsenewdata($class_vars, $post=array(), $exclude=array()) {
-        $default_exclude = array("db","tablename","table_data");
         $post_keys = array_keys($post);
         $content = array();
         foreach ($class_vars as $name=>$value) {
-            if (!in_array($name,$exclude) && !in_array($name, $default_exclude)) {
+            if (!in_array($name,$exclude) && !in_array($name, self::$default_exclude)) {
                 $value = in_array($name,$post_keys) ? $post[$name]: $this->$name;
                 $this->$name = $value;
                 $value = (is_array($value)) ? json_encode($value):$value;
