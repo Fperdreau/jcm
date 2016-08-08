@@ -37,7 +37,7 @@ class AppPage extends AppTable {
         "filename"=>array('CHAR(20)',false),
         "parent"=>array('CHAR(20)',false),
         "status"=>array('INT(2)',false),
-        "rank"=>array('INT(2)',false),
+        "rank"=>array('INT(2)', 0),
         "show_menu"=>array('INT(1)',false),
         "meta_title"=>array('VARCHAR(255)',false),
         "meta_keywords"=>array('TEXT(1000)',false),
@@ -48,9 +48,9 @@ class AppPage extends AppTable {
     public $name; // Page name
     public $filename; // Page file
     public $parent; // Page's parent
-    public $rank; // Order of apparition in menu
-    public $show_menu; // Show (1) or not in menu
-    public $status=""; // Permission level
+    public $rank = 0; // Order of apparition in menu
+    public $show_menu = 1; // Show (1) or not in menu
+    public $status; // Permission level
     public $meta_title; // Page's title
     public $meta_keywords; // Page's keywords
     public $meta_description; // Page's description
