@@ -3,6 +3,7 @@
 ## Release: 1.4.4
 ### Changes
 - Corrected minor errors (PHP STRICT errors)
+- Corrected bug that prevented the user to delete his/her account
 
 ## Release: 1.4.3
 ### Changes
