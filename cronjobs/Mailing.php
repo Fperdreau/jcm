@@ -40,12 +40,19 @@ class Mailing extends AppCron {
     public $dayName='Monday';
     public static $description = "Sends notifications (digests) to JCM members.";
 
+    /**
+     * Mailing constructor.
+     * @param AppDb $db
+     */
     public function __construct(AppDb $db) {
         parent::__construct($db);
         $this->path = basename(__FILE__);
-        //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
+    /**
+     * Install schedule task
+     * @return bool|mysqli_result
+     */
     public function install() {
         // Register the plugin in the db
         $class_vars = get_class_vars($this->name);
