@@ -732,7 +732,7 @@ $(document).ready(function () {
             e.preventDefault();
             var presid = $(this).val();
             var form = $('.submission');
-            showpubform(form,presid,'submit');
+            showpubform(form, presid, 'submit');
          })
 
         // Show download list
@@ -744,7 +744,7 @@ $(document).ready(function () {
         .on('click','.link_name',function () {
             var uplname = $(this).attr('id');
             var url = "uploads/"+uplname;
-            window.open(url,'_blank');
+            window.open(url, '_blank');
         })
 
 
@@ -856,7 +856,7 @@ $(document).ready(function () {
         .on('click','#modal_trigger_pubcontainer',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
-            displaypub(id_pres,modalpubform);
+            displaypub(id_pres, modalpubform);
         })
 
         // Choose a wish
@@ -864,13 +864,13 @@ $(document).ready(function () {
             e.preventDefault();
             var id_pres = $(this).data('id');
             var date = $(this).data('date');
-            showpubform(modalpubform,id_pres,'submit',date);
+            showpubform(modalpubform, id_pres, 'submit', date);
         })
 
         .on('click','#modal_trigger_newpub',function (e) {
             e.preventDefault();
             var type = $(this).data('type');
-            showpubform(modalpubform,false,type);
+            showpubform(modalpubform, false, type);
         })
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window
@@ -879,7 +879,7 @@ $(document).ready(function () {
         .on('click','.modify_ref',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            showpubform(modalpubform,id_pres,'submit');
+            showpubform(modalpubform, id_pres, 'submit');
         })
 
 		// Show publication deletion confirmation
@@ -940,7 +940,7 @@ $(document).ready(function () {
                     logout();
                 }
             };
-            processForm(form,callback);
+            processForm(form, callback);
         })
 
         // Login form
@@ -953,7 +953,7 @@ $(document).ready(function () {
                     location.reload();
                 }
             };
-            processForm(form,callback);
+            processForm(form, callback);
         })
 
         // Sign Up Form
@@ -966,6 +966,6 @@ $(document).ready(function () {
                     close_modal('.modalContainer');
                 }
             };
-            processForm(form,callback);
+            processForm(form, callback);
         });
 });
