@@ -366,7 +366,7 @@ if (!empty($_POST['operation'])) {
     }
 
     // STEP 5:Check consistency between presentations and sessions table
-    if ($operation == "checkdb") {
+    if ($operation == "checkDb") {
         $session_date = $db->getinfo($db->tablesname['Session'],'date');
 
         $sql = "SELECT date,jc_time FROM " . $db->tablesname['Presentation'];
@@ -374,10 +374,11 @@ if (!empty($_POST['operation'])) {
         while ($row = mysqli_fetch_assoc($req)) {
             $date = $row['date'];
             $time = $row['time'];
-            if (!in_array($date,$session_date)) {
+            if (!in_array($date, $session_date)) {
                 $session = new Session($db);
                 if (!$session->make(array('date'=>$date,'time'=>$time))) {
-                    $result = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+                    $result['status'] = false;
+                    $result['msg'] = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
                     echo json_encode($result);
                     exit;
                 }
