@@ -101,18 +101,19 @@ echo "
 
         <!-- Delete account section -->
         <div class='modal_section' id='user_delete' data-title='Delete Profile'>
-            <div>Please, confirm your identity</div>
+            <div>Please, confirm your identity.</div>
             <form id='confirmdeleteuser' method='post' action='php/form.php'>
+                <div><input type='hidden' name='delete_user' value='true'></div>
                 <div class='formcontrol'>
                     <label for='del_username'>Username</label>
-                    <input type='text' id='del_username' name='del_username' value='' required/>
+                    <input type='text' id='del_username' name='username' value='' required/>
                 </div>
                 <div class='formcontrol'>
                     <label for='del_password'>Password</label>
-                    <input type='password' id='del_password' name='del_password' value='' required/>
+                    <input type='password' id='del_password' name='password' value='' required/>
                 </div>
                 <div class='action_btns'>
-                    <input type='submit' class='confirmdeleteuser' value='Change'>
+                    <input type='submit' class='confirmdeleteuser' value='Delete my account'>
                 </div>
             </form>
         </div>
