@@ -348,45 +348,6 @@ if (!empty($_POST['modPage'])) {
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
-/*if (!empty($_POST['get_calendar_param'])) {
-	$booked = $Sessions->getsessions();// Get booked sessions
-    if ($booked === false) {
-        $booked = array();
-    }
-	$formatdate = array();
-    $nb_pres = array();
-    $type = array();
-    $status = array();
-	foreach($booked as $date) {
-        // Count how many presentations there are for this day
-        $session = new Session($db,$date);
-        $nb_pres[] = $session->nbpres;
-        $type[] = $session->type;
-        $status[] = $session->status;
-        // Format date
-	    $fdate = explode("-",$date);
-	    $day = $fdate[2];
-	    $month = $fdate[1];
-	    $year = $fdate[0];
-	    $formatdate[] = "$day-$month-$year";
-	}
-
-	$result = array(
-        "max_nb_session"=>$AppConfig->max_nb_session,
-        "jc_day"=>$AppConfig->jc_day,
-        "today"=>date('d-m-Y'),
-        "booked"=>$formatdate,
-        "nb"=>$nb_pres,
-        "status"=>$status,
-        "sessiontype"=>$type);
-	echo json_encode($result);
-    exit;
-}*/
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Datepicker (calendar)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
 
     // Get planned sessions
@@ -520,14 +481,14 @@ if (!empty($_POST['register'])) {
 
 // Delete user
 if (!empty($_POST['delete_user'])) {
-    $user = new User($db);
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
+    $user = new User($db, $username);
     $result = $user->login($_POST);
     if ($result['status'] == true) {
         if ($user ->delete_user($username)) {
             $result['msg'] = "Your account has been deleted!";
-            $result['status'] = false;
+            $result['status'] = true;
             $_SESSION['logok'] = false;
         } else {
             $result['status'] = false;
