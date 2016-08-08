@@ -165,6 +165,7 @@ class MailManager extends AppTable {
         // Format email content
         $body = $AppMail->formatmail($content['body'], $data['mail_id']);
 
+        $data['status'] = 0;
         $data['content'] = $body;
         $data['subject'] = $content['subject'];
         $data['recipients'] = implode(',', $mailing_list);
