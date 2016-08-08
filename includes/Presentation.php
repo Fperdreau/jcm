@@ -501,10 +501,9 @@ class Presentation extends Presentations {
     /**
      * Show this presentation (in archives)
      * @param bool $user : adapt the display for the profile page
-     * @param null $username
      * @return string
      */
-    public function show($user=false, $username=null) {
+    public function show($user=false) {
         if (!$user) {
             $speaker = new User($this->db, $this->orator);
             $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
@@ -512,8 +511,6 @@ class Presentation extends Presentations {
             $speakerDiv = "";
         }
         $date = date('d M y',strtotime($this->date));
-        $username = (is_null($username)) ? $_SESSION['username']:$username;
-        $url = AppConfig::getAppUrl() . "index.php?page=submission&op=mod_pub&id={$this->id_pres}&user={$username}";
         return "
             <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
@@ -522,7 +519,7 @@ class Presentation extends Presentations {
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>
+                    <a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>
                         $this->title
                     </a>
                 </div>

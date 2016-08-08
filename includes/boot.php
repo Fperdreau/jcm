@@ -36,6 +36,7 @@ date_default_timezone_set('Europe/Paris');
 if (!ini_get('display_errors')) {
     ini_set('display_errors', '0');
 }
+error_reporting(E_STRICT);
 
 /**
  * Define paths

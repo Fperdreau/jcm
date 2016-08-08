@@ -43,7 +43,7 @@ class AppConfig extends AppTable {
      */
     public $status = 'On'; // Application's status (on or off)
     public $app_name = "Journal Club Manager"; // Application's name
-    public $version = "1.4.3"; // Application's version
+    public $version = "1.4.4"; // Application's version
     public $author = "Florian Perdreau"; // Application's authors
     public $repository = "https://github.com/Fperdreau/jcm"; // Application's sources
     public $sitetitle = "Journal Club Manager"; //
@@ -115,7 +115,7 @@ class AppConfig extends AppTable {
         }
 
         if ($get) {
-            self::get();
+            $this->get();
         }
     }
 
@@ -129,7 +129,12 @@ class AppConfig extends AppTable {
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
             $value = ($varname == "session_type") ? json_decode($row['value'],true):htmlspecialchars_decode($row['value']);
-            $this->$varname = $value;
+            $prop = new ReflectionProperty(get_class($this), $varname);
+            if ($prop->isStatic()) {
+                $this::$$varname = $value;
+            } else {
+                $this->$varname = $value;
+            }
         }
         return true;
     }
@@ -180,8 +185,13 @@ class AppConfig extends AppTable {
         foreach ($class_vars as $name => $value) {
             if (in_array($name,array("db","tablename","table_data"))) continue;
             $newvalue = (in_array($name,$postkeys)) ? $post[$name]:$this->$name;
-            $newvalue = ($name == "session_type") ? json_encode($newvalue):$newvalue;
-            $this->$name = $newvalue;
+            $newvalue = ($name == "session_type") ? json_encode($newvalue) : $newvalue;
+            $prop = new ReflectionProperty(get_class($this), $name);
+            if ($prop->isStatic()) {
+                $this::$$name = $value;
+            } else {
+                $this->$name = $value;
+            }
 
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
             if (!empty($exist)) {

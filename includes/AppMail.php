@@ -60,6 +60,18 @@ class AppMail {
         $this->config = (!is_null($config)) ? $config : new AppConfig($db);
     }
 
+    private function get_config() {
+        if (is_null($this->config)) {
+            $this->config = new AppConfig($this->db);
+        }
+        return $this->config;
+    }
+
+    private function get_settings($setting) {
+        $config = $this->get_config();
+        return $config->$setting;
+    }
+
     /**
      * Send a verification email to organizers when someone signed up to the application.
      * @param $hash
@@ -77,8 +89,8 @@ class AppMail {
         }
 
         $content['subject'] = 'Signup | Verification'; // Give the email a subject
-        $authorize_url = $this->config->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
-        $deny_url = $this->config->site_url."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
+        $authorize_url = $this->config::getAppUrl()."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
+        $deny_url = $this->get_settings('site_url')."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
 
         $content['body'] = "
         Hello,<br><br>
@@ -207,9 +219,9 @@ class AppMail {
      */
     function formatmail($content, $email_id=null) {
         $show_in_browser = (is_null($email_id)) ? null:
-            "<a href='" . $this->config->site_url."pages/mail.php?mail_id={$email_id}"
+            "<a href='" . $this->get_settings('site_url')."pages/mail.php?mail_id={$email_id}"
             . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
-        $profile_url = $this->config->site_url.'index.php?page=profile';
+        $profile_url = $this->get_settings('site_url').'index.php?page=profile';
         $sitetitle = $this->config->sitetitle;
         $body = "
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>

@@ -128,7 +128,16 @@ class AppPlugins extends AppTable {
         $data = mysqli_fetch_assoc($req);
         if (!empty($data)) {
             foreach ($data as $prop=>$value) {
-                $this->$prop = ($prop == 'options') ? json_decode($value,true):$value;
+                // Check if property exists and is static
+                if (property_exists(get_class($this), $prop)) {
+                    $property = new ReflectionProperty(get_class($this), $prop);
+                    $new_value = ($prop == 'options') ? json_decode($value,true) : $value;
+                    if ($property->isStatic()) {
+                        $this::$$prop = $new_value;
+                    } else {
+                        $this->$prop = $new_value;
+                    }
+                }
             }
         }
     }
