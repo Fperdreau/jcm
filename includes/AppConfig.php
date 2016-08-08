@@ -111,7 +111,7 @@ class AppConfig extends AppTable {
 
         // Get App URL if not running in command line
         if (php_sapi_name() !== "cli") {
-            self::getAppUrl();
+            $this->getAppUrl();
         }
 
         if ($get) {
@@ -154,7 +154,7 @@ class AppConfig extends AppTable {
      * @param null $lang: language
      * @return string
      */
-    public static function getAppUrl($lang=null) {
+    public function getAppUrl($lang=null) {
         if (is_null(self::$site_url) || !is_null($lang)) {
             $root = explode('/',  dirname($_SERVER['PHP_SELF']));
             $root = '/' . $root[1];
@@ -184,14 +184,9 @@ class AppConfig extends AppTable {
         $result = false;
         foreach ($class_vars as $name => $value) {
             if (in_array($name,array("db","tablename","table_data"))) continue;
-            $newvalue = (in_array($name,$postkeys)) ? $post[$name]:$this->$name;
+            $newvalue = (in_array($name,$postkeys)) ? $post[$name] : $this->get_setting($name);
             $newvalue = ($name == "session_type") ? json_encode($newvalue) : $newvalue;
-            $prop = new ReflectionProperty(get_class($this), $name);
-            if ($prop->isStatic()) {
-                $this::$$name = $value;
-            } else {
-                $this->$name = $value;
-            }
+            $this->set_setting($name, $newvalue);
 
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
             if (!empty($exist)) {
@@ -201,5 +196,33 @@ class AppConfig extends AppTable {
             }
         }
         return $result;
+    }
+
+    /**
+     * Get app setting
+     * @param $setting
+     * @return mixed
+     */
+    public function get_setting($setting) {
+        $prop = new ReflectionProperty(get_class($this), $setting);
+        if ($prop->isStatic()) {
+            return $this::$$setting;
+        } else {
+            return $this->$setting;
+        }
+    }
+
+    /**
+     * Set app setting
+     * @param string $setting
+     * @param mixed $value
+     */
+    public function set_setting($setting, $value) {
+        $prop = new ReflectionProperty(get_class($this), $setting);
+        if ($prop->isStatic()) {
+            $this::$$setting = $value;
+        } else {
+            $this->$setting = $value;
+        }
     }
 }

@@ -254,8 +254,8 @@ function cleanBackups($mysqlSaveDir,$nbVersion) {
  * @return bool
  */
 function mail_backup($backupfile) {
-    global $db, $AppConfig;
-    $mail = new AppMail($db,$AppConfig);
+    global $db;
+    $mail = new AppMail($db);
     $admin = new User($db);
     $admin->get('admin');
 

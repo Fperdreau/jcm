@@ -274,8 +274,7 @@ class User extends Users{
      * @return bool|string
      */
     function make($post=array()) {
-        $config = new AppConfig($this->db);
-        $mail = new AppMail($this->db,$config);
+        $mail = new AppMail($this->db);
 
         $post = self::sanitize($post); // Escape $_POST content
         $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
@@ -495,9 +494,9 @@ class User extends Users{
      */
     private function send_confirmation_mail() {
         $config = new AppConfig($this->db);
-        $AppMail = new AppMail($this->db,$config);
+        $AppMail = new AppMail($this->db);
         $subject = 'Sign up | Confirmation'; // Give the email a subject
-        $login_url = $config->site_url."index.php";
+        $login_url = $config->getAppUrl()."index.php";
 
         $content = "
         <div style='width: 100%; margin: auto;'>
@@ -519,11 +518,11 @@ class User extends Users{
      */
     private function send_activation_mail() {
         $config = new AppConfig($this->db);
-        $AppMail = new AppMail($this->db,$config);
+        $AppMail = new AppMail($this->db);
 
         $subject = 'Your account has been deactivated'; // Give the email a subject
-        $authorize_url = $config->site_url."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
-        $newpwurl = $config->site_url."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
+        $authorize_url = $config->getAppUrl()."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
+        $newpwurl = $config->getAppUrl()."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
         $content = "
         <div style='width: 100%; margin: auto;'>
             <p>Hello $this->fullname,</p>

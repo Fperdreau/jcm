@@ -79,6 +79,6 @@ $AppPage = new AppPage($db);
 $Presentations = new Presentations($db);
 $Users = new Users($db);
 $Sessions = new Sessions($db);
-$AppMail = new AppMail($db,$AppConfig);
+$AppMail = new AppMail($db);
 $AppPlugins = new AppPlugins($db);
 $AppPlugins->getPlugins();

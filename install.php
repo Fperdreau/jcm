@@ -481,7 +481,7 @@ if (!empty($_POST['getpagecontent'])) {
     } elseif ($step == 3) {
         $db->get_config();
         if ($op == "update") $AppConfig = new AppConfig($db);
-        $AppConfig::getAppUrl();
+        $AppConfig->getAppUrl();
 
         $title = "Step 2: Application configuration";
         $operation = "

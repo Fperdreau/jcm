@@ -77,8 +77,7 @@ class MailSender extends AppCron {
      */
     private function getMailer() {
         if (is_null(self::$AppMail)) {
-            $config = new AppConfig($this->db);
-            self::$AppMail = new AppMail($this->db, $config);
+            self::$AppMail = new AppMail($this->db);
         }
         return self::$AppMail;
     }
