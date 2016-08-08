@@ -26,8 +26,6 @@ require('../includes/boot.php');
 $user = new User($db,$_SESSION['username']);
 $AppCron = new AppCron($db);
 
-$notify_admin_task = ($AppConfig->notify_admin_task) ? "Yes":"No";
-
 $cronOpt = $AppCron->show();
 $result = "
     <h1>Scheduled tasks</h1>
@@ -43,9 +41,9 @@ $result = "
             <div class='formcontrol'>
                 <label>Get notified by email</label>
                 <select name='notify_admin_task'>
-                    <option value={$AppConfig->notify_admin_task} selected>{$notify_admin_task}</option>
-                    <option value=True>Yes</option>
-                    <option value=False>No</option>
+                    <option value='{$AppConfig->notify_admin_task}' selected>{$AppConfig->notify_admin_task}</option>
+                    <option value='yes'>Yes</option>
+                    <option value='no'>No</option>
                 </select>
             </div>
             <input type='submit' name='modify' value='Modify' class='processform'>

@@ -5,6 +5,7 @@
 - Corrected minor errors (PHP STRICT errors)
 - Corrected bug that prevented the user to delete his/her account
 
+
 ## Release: 1.4.3
 ### Changes
 - Corrected minor bugs introduced with JCM 1.4.2

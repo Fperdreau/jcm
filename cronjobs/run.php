@@ -120,6 +120,8 @@ $logs = run();
 
 // Send logs to admins
 if ($logs !== false) {
-    mailLogs($logs);
+    if ($AppConfig->notify_admin_task == 'yes') {
+        mailLogs($logs);
+    }
 }
 

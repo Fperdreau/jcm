@@ -99,7 +99,7 @@ class AppConfig extends AppTable {
     /**
      * Scheduled tasks
      */
-    public $notify_admin_task = False;
+    public $notify_admin_task = 'yes';
 
     /**
      * Constructor
