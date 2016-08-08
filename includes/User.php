@@ -41,7 +41,7 @@ class Users extends AppTable {
         "lastname" => array("CHAR(30)", false),
         "fullname" => array("CHAR(30)", false),
         "username" => array("CHAR(30)", false),
-        "password" => array("CHAR(50)", false),
+        "password" => array("CHAR(255)", false),
         "position" => array("CHAR(10)", false),
         "email" => array("CHAR(100)", false),
         "notification" => array("INT(1) NOT NULL", 1),
@@ -258,7 +258,7 @@ class User extends Users{
      * @param AppDb $db
      * @param null $username
      */
-    function __construct(AppDb $db,$username=null) {
+    function __construct(AppDb $db, $username=null) {
         $this->db = $db;
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
@@ -278,6 +278,7 @@ class User extends Users{
 
         $post = self::sanitize($post); // Escape $_POST content
         $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
+        $this->last_login = $this->date;
 
         // Reformat first and last names
         if (!empty($post['firstname'])) {
