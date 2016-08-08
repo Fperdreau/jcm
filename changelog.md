@@ -1,5 +1,9 @@
 # Journal Club Manager &copy; 2014
 
+## Release: 1.4.4
+### Changes
+- Corrected minor errors (PHP STRICT errors)
+
 ## Release: 1.4.3
 ### Changes
 - Corrected minor bugs introduced with JCM 1.4.2
