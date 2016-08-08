@@ -107,9 +107,10 @@ class AppMail {
      * @return array
      */
     function get_mailinglist($type=null) {
-        $sql = "select fullname, username, email from $this->tablename where active=1";
-        if (null!=$type) {
-            $sql .= " AND $type=1";
+
+        $sql = "select * from $this->tablename where active=1";
+        if (!is_null($type)) {
+            $sql .= " AND {$type}=1";
         }
         $sql .= " ORDER BY fullname";
 
