@@ -68,7 +68,6 @@ class MailSender extends AppCron {
         $this->Manager = new MailManager($db);
 
         $this->path = basename(__FILE__);
-        //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     /**
