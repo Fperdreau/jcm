@@ -62,6 +62,10 @@ class MakeGroup extends AppCron {
     public function run() {
         global $db;
         $groups = new Groups($db);
+        if (!$groups->installed) {
+            return 'You must install the Group plugin first!';
+        }
+
         $result = $groups->run();
         if ($result['status'] && $this->options['send']['value'] == 1) {
             $result .= $this->notify();
