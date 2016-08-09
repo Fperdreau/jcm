@@ -5,6 +5,11 @@
 - Corrected minor errors (PHP STRICT errors)
 - Corrected bug that prevented the user to delete his/her account
 
+### Mailing
+- Added possibility to hide recipients list
+
+### Assignments
+- Send reminder to user about his/her upcoming presentation
 
 ## Release: 1.4.3
 ### Changes
