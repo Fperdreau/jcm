@@ -114,9 +114,9 @@ class AppCron extends AppTable {
     public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
-        if ($name !== False) {
-            $this->get();
-        }
+
+        // Get task's information
+        $this->get();
 
         // If time is default, set time to now
         $this->time = ($this->time === '1970-01-01 00:00:00') ? date('Y-m-d H:i:s', time()) : $this->time;
