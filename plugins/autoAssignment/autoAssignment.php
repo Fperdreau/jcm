@@ -85,7 +85,7 @@ class autoAssignment extends AppPlugins {
     /**
      * Get session instance
      */
-    private function getSession() {
+    public function getSession() {
         if (is_null(self::$session)) {
             self::$session = new Session($this->db);
         }
@@ -165,7 +165,7 @@ class autoAssignment extends AppPlugins {
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         // Get future sessions dates
-        $jc_days = self::getSession()->getjcdates(intval($nb_session));
+        $jc_days = $this->getSession()->getjcdates(intval($nb_session));
 
         $created = 0;
         $updated = 0;
