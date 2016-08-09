@@ -202,7 +202,8 @@ class AppMail {
         if(!is_null($attachment)){
             if (!is_array($attachment)) $attachment = array($attachment);
             foreach ($attachment as $path) {
-                $file_name = end(explode('/', $path));
+                $split = explode('/', $path);
+                $file_name = end($split);
                 if (!$mail->addAttachment($path, $file_name)) {
                     return false;
                 }
