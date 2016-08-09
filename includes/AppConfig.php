@@ -129,11 +129,13 @@ class AppConfig extends AppTable {
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
             $value = ($varname == "session_type") ? json_decode($row['value'],true):htmlspecialchars_decode($row['value']);
-            $prop = new ReflectionProperty(get_class($this), $varname);
-            if ($prop->isStatic()) {
-                $this::$$varname = $value;
-            } else {
-                $this->$varname = $value;
+            if (property_exists(get_class($this), $varname)) {
+                $prop = new ReflectionProperty(get_class($this), $varname);
+                if ($prop->isStatic()) {
+                    $this::$$varname = $value;
+                } else {
+                    $this->$varname = $value;
+                }
             }
         }
         return true;
