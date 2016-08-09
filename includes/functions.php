@@ -133,12 +133,16 @@ function browse($dir, $dirsNotToSaveArray = array()) {
     $filenames = array();
     if ($handle = opendir($dir)) {
         while (false !== ($file = readdir($handle))) {
-            $filename = $dir."/".$file;
+
+            $filename = $dir . '/' . $file;
+            $filename = str_replace('//', '/', $filename);
             if ($file != "." && $file != ".." && is_file($filename)) {
                 $filenames[] = $filename;
-            } else if ($file != "." && $file != ".." && is_dir($dir.$file) && !in_array($dir.$file, $dirsNotToSaveArray) ) {
-                $newfiles = browse($dir.$file,$dirsNotToSaveArray);
-                $filenames = array_merge($filenames,$newfiles);
+            }
+
+            else if ($file != "." && $file != ".." && is_dir($dir . $file) && !in_array($dir.$file, $dirsNotToSaveArray) ) {
+                $newfiles = browse($dir . $file, $dirsNotToSaveArray);
+                $filenames = array_merge($filenames, $newfiles);
             }
         }
         closedir($handle);
@@ -156,11 +160,11 @@ function backupDb($nbVersion){
 
     // Create Backup Folder
     $mysqlrelativedir = 'backup/mysql';
-    $mysqlSaveDir = PATH_TO_APP.'/'.$mysqlrelativedir;
-    $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
+    $mysqlSaveDir = PATH_TO_APP .'/'. $mysqlrelativedir;
+    $fileNamePrefix = 'fullbackup_' . date('Y-m-d_H-i-s');
 
-    if (!is_dir(PATH_TO_APP.'/backup')) {
-        mkdir(PATH_TO_APP.'/backup',0777);
+    if (!is_dir(PATH_TO_APP . '/backup')) {
+        mkdir(PATH_TO_APP . '/backup',0777);
     }
 
     if (!is_dir($mysqlSaveDir)) {
@@ -280,10 +284,10 @@ function mail_backup($backupfile) {
 function backupFiles() {
 
     $dirToSave = PATH_TO_APP;
-    $dirsNotToSaveArray = array(PATH_TO_APP."backup");
-    $mysqlSaveDir = PATH_TO_APP.'/backup/mysql';
-    $zipSaveDir = PATH_TO_APP.'/backup/complete';
-    $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
+    $dirsNotToSaveArray = array(PATH_TO_APP . "backup");
+    $mysqlSaveDir = PATH_TO_APP . '/backup/mysql';
+    $zipSaveDir = PATH_TO_APP . '/backup/complete';
+    $fileNamePrefix = 'fullbackup_' . date('Y-m-d_H-i-s');
 
     if (!is_dir(PATH_TO_APP.'/backup')) {
         mkdir(PATH_TO_APP.'/backup',0777);
@@ -299,7 +303,7 @@ function backupFiles() {
     $zipfile = $zipSaveDir.'/'.$fileNamePrefix.'.zip';
 
     // Check if backup does not already exist
-    $filenames = browse($dirToSave,$dirsNotToSaveArray);
+    $filenames = browse($dirToSave . '/', $dirsNotToSaveArray);
 
     $zip = new ZipArchive();
 
