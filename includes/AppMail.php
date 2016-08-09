@@ -144,18 +144,17 @@ class AppMail {
 
     /**
      * Send an email
-     * @param $to
-     * @param $subject
-     * @param $body
-     * @param null $attachment
-     * @return bool
-     * @throws Exception
-     * @throws PHPMailer
+     * @param array|string $to: recipients list
+     * @param string $subject: email title
+     * @param string $body: body text
+     * @param array|null $attachment: list of attached files
+     * @param bool $undisclosed: hide (true) recipients list
+     * @return bool: success or failure
      */
-    function send_mail($to,$subject,$body,$attachment = null) {
+    function send_mail($to, $subject, $body, $attachment = null, $undisclosed=true) {
         $mail = new PHPMailer();
         $mail->CharSet = 'UTF-8';
-        $mail->IsSMTP();                                      // set mailer to use SMTP
+        $mail->isSMTP();                                      // set mailer to use SMTP
         $mail->SMTPDebug  = $this->SMTPDebug;         // enables SMTP debug information (for testing)
 
         $mail->Mailer = "smtp";
@@ -172,19 +171,29 @@ class AppMail {
         $mail->From = $this->config->mail_from;
         $mail->FromName = $this->config->mail_from_name;
 
-        $mail->AddAddress("undisclosed-recipients:;");
-        $mail->AddReplyTo($this->config->mail_from, $this->config->mail_from_name);
+        if ($undisclosed) {
+            $mail->addAddress("undisclosed-recipients:;");
+        }
+        $mail->addReplyTo($this->config->mail_from, $this->config->mail_from_name);
 
         if (is_array($to)) {
             foreach($to as $to_add){
-                $mail->AddBCC($to_add);                  // name is optional
+                if ($undisclosed) {
+                    $mail->addBCC($to_add);                  // name is optional
+                } else {
+                    $mail->addAddress($to_add);
+                }
             }
         } else {
-            $mail->AddBCC($to);                  // name is optional
+            if ($undisclosed) {
+                $mail->addBCC($to);                  // name is optional
+            } else {
+                $mail->addAddress($to);
+            }
         }
 
         $mail->WordWrap = 50;                                 // set word wrap to 50 characters
-        $mail->IsHTML(true);
+        $mail->isHTML(true);
 
         $mail->Subject = $this->config->pre_header." ".$subject;
         $mail->Body    = $body;
@@ -194,15 +203,15 @@ class AppMail {
             if (!is_array($attachment)) $attachment = array($attachment);
             foreach ($attachment as $path) {
                 $file_name = end(explode('/', $path));
-                if (!$mail->AddAttachment($path, $file_name)) {
+                if (!$mail->addAttachment($path, $file_name)) {
                     return false;
                 }
             }
         }
 
-        if ($rep = $mail->Send()) {
-            $mail->ClearAddresses();
-            $mail->ClearAttachments();
+        if ($rep = $mail->send()) {
+            $mail->clearAddresses();
+            $mail->clearAttachments();
             return true;
         } else {
             return false;

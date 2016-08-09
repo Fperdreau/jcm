@@ -782,11 +782,12 @@ Mailing
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Send mail if asked
 if (!empty($_POST['mailing_send'])) {
-    $content['body'] = $_POST['spec_msg'];
-    $content['subject'] = $_POST['spec_head'];
-    $ids = explode(',',$_POST['emails']);
-    $content['attachments'] = $_POST['attachments'];
-    
+    $content['body'] = $_POST['spec_msg']; // Message
+    $content['subject'] = $_POST['spec_head']; // Title
+    $ids = explode(',',$_POST['emails']); // Recipients list
+    $content['attachments'] = $_POST['attachments']; // Attached files
+    $disclose = htmlspecialchars($_POST['undisclosed']) == 'yes'; // Do we show recipients list?
+
     $user = new User($db);
     $MailManager = new MailManager($db);
 
@@ -797,7 +798,7 @@ if (!empty($_POST['mailing_send'])) {
         $mailing_list[] = $data['email'];
     }
     
-    $result = $MailManager->send($content, $mailing_list);
+    $result = $MailManager->send($content, $mailing_list, $disclose);
 
     echo json_encode($result);
     exit;

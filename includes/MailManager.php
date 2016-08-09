@@ -152,11 +152,13 @@ class MailManager extends AppTable {
     }
 
     /**
-     * @param array $content
-     * @param array $mailing_list
+     * Sends an email
+     * @param array $content: email content
+     * @param array $mailing_list: recipients list
+     * @param bool $undisclosed: hide (true) or show(false) recipients list
      * @return mixed
      */
-    public function send(array $content, array $mailing_list) {
+    public function send(array $content, array $mailing_list, $undisclosed=true) {
         $AppMail = new AppMail($this->db);
 
         // Generate ID
@@ -184,7 +186,7 @@ class MailManager extends AppTable {
         if ($this->add($data)) {
 
             // Send email
-            if ($AppMail->send_mail($mailing_list, $content['subject'], $body, $attachments)) {
+            if ($AppMail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed)) {
 
                 // Update MailManager table
                 $result['status'] = $this->update(array('status'=>1), $data['mail_id']);
@@ -277,6 +279,7 @@ class MailManager extends AppTable {
                     
             <form method='post' action='php/form.php' id='submit_form'>
                      
+                <!-- Recipients list -->
                 <div class='mailing_block select_emails_container'>
                     <h3>Select recipients</h3>
                     <div>
@@ -292,8 +295,18 @@ class MailManager extends AppTable {
                     <div class='select_emails_list'>
                         {$recipients_list}
                     </div>
+                    <div>
+                        <div class='formcontrol'>
+                            <label>Hide recipients</label>
+                            <select name='undisclosed'>
+                                <option value='yes'>Yes</option>
+                                <option value='no' selected>No</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 
+                <!-- Text editor -->
                 <div class='mailing_lower_container'>
                     <h3>Write your message</h3>
                     <div class='submit_btns'>
