@@ -33,7 +33,7 @@ class Posts extends AppTable {
 
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "postid" => array("CHAR(30) NOT NULL"),
+        "postid" => array("CHAR(50) NOT NULL"),
         "date" => array("DATETIME", False),
         "title" => array("VARCHAR(255) NOT NULL"),
         "content" => array("TEXT(5000) NOT NULL", false, "post"),
