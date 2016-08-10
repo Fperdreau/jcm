@@ -99,7 +99,7 @@ class Reminder extends AppCron {
 
             <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
-                    Next session
+                    Session Information
                 </div>
                 <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
                     $sessioncontent
