@@ -11,6 +11,10 @@
 ### Assignments
 - Send reminder to user about his/her upcoming presentation
 
+### Plugins
+- Groups: only make groups for the next session 1) if a session is planned on this day and 2) if groups have not already
+ been made.
+  
 ## Release: 1.4.3
 ### Changes
 - Corrected minor bugs introduced with JCM 1.4.2
