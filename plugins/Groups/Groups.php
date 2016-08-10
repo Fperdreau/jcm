@@ -42,7 +42,7 @@ class Groups extends AppPlugins {
     );
 
     public $name = "Groups";
-    public $version = "1.0.2";
+    public $version = "1.1.0";
     public $page = 'profile';
     public $status = 'Off';
     public $installed = False;
@@ -55,6 +55,16 @@ class Groups extends AppPlugins {
     public static $description = "Automatically creates groups of users based on the number of presentations scheduled 
     for the upcoming session. Users will be notified by email about their group's information. If the different groups are
     meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
+
+    /**
+     * @var Session $session: Session instance
+     */
+    private static $session;
+
+    /**
+     * @var AppConfig $config: App settings
+     */
+    private static $config;
 
     /**
      * Constructor
@@ -110,13 +120,55 @@ class Groups extends AppPlugins {
      * @return array|string
      */
     public function run() {
-        // 1: Clear the group table
-        $this->clearTable();
+        $next_session = $this->get_next_session();
 
-        // 2: Assign groups
-        $result = $this->makegroups(); // Make groups
+        // 1: Check if group has not been made yet for the next session
+        if ($next_session->type !== 'none' && !$this->group_exist($next_session->date)) {
+            // 2: Clear the group table
+            $this->clearTable();
 
+            // 3: Assign groups
+            $result = $this->makegroups($next_session); // Make groups
+
+        } else {
+            $result['status'] = false;
+            $result['msg'] = 'Either there is no session plan on the next journal club day, or groups have already been 
+            made.';
+        }
         return $result;
+    }
+
+    /**
+     * Check if group has been already made for the next session
+     * @param $session_date: next session date
+     * @return bool
+     */
+    private function group_exist($session_date) {
+        $sql = "SELECT date FROM {$this->tablename}";
+        $req = $this->db->send_query($sql);
+        while ($row = mysqli_fetch_assoc($req)) {
+            if ($row['date'] == $session_date) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get information about next session
+     * @return Session
+     */
+    private function get_next_session() {
+        $session = new Session($this->db);
+        $nextdate = $session->getsessions(true);
+        return $session->get($nextdate[0]);
+    }
+
+    private function get_config() {
+        if (is_null(self::$config)) {
+            self::$config = new AppConfig($this->db);
+        }
+        return self::$config;
     }
 
     /**
@@ -128,15 +180,11 @@ class Groups extends AppPlugins {
     }
 
     /**
-     * Randomly assign groups to users for the next session
+     * Randomly assigns groups to users for the next session
+     * @param Session $session: next session
      * @return array|bool
      */
-    public function makegroups() {
-        global $Sessions, $db, $AppConfig;
-
-        // Get presentations of the next session
-        $nextdate = $Sessions->getsessions(true);
-        $session = new Session($db,$nextdate[0]);
+    public function makegroups(Session $session) {
 
         $rooms = explode(',', $this->options['room']['value']);
 
@@ -146,7 +194,7 @@ class Groups extends AppPlugins {
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max($AppConfig->max_nb_session, count($session->presids));
+        $ngroups = max($this->get_config()->max_nb_session, count($session->presids));
 
         // Get users list
         $Users = new Users($this->db);
@@ -229,17 +277,21 @@ class Groups extends AppPlugins {
     /**
      *
      * @param null $username
-     * @return mixed
+     * @return array
      */
     public function makeReminder($username=null) {
         $data = $this->getGroup($username);
-        $data['group'] = $this->showList($username);
-        $publication = new Presentation($this->db, $data['presid']);
-        $data['publication'] = $publication->showDetails(true);
-        $content['body'] = self::renderSection($data);
-        $content['title'] = 'Your Group assignment';
-        $content['subject'] = "Your Group assignment: {$data['date']}";
-        return $content;
+        if ($data !== false) {
+            $data['group'] = $this->showList($username);
+            $publication = new Presentation($this->db, $data['presid']);
+            $data['publication'] = $publication->showDetails(true);
+            $content['body'] = self::renderSection($data);
+            $content['title'] = 'Your Group assignment';
+            $content['subject'] = "Your Group assignment: {$data['date']}";
+            return $content;
+        } else {
+            return array();
+        }
     }
     
     /**
@@ -295,7 +347,7 @@ class Groups extends AppPlugins {
     /**
      * Get user's group
      * @param $username
-     * @return array
+     * @return bool|array
      */
     public function getGroup($username) {
         $sql = "SELECT * FROM $this->tablename WHERE username='$username'";
@@ -315,9 +367,12 @@ class Groups extends AppPlugins {
             foreach ($rows as $key=>$row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
+            return $groupusrs;
+
+        } else {
+            return false;
         }
 
-        return $groupusrs;
     }
 
     /**
