@@ -391,9 +391,8 @@ class Sessions extends AppTable {
      */
     public function makeMail($username=null) {
         // Get future presentations
-        //$pres_list = $this->showfuturesession(4,'mail');
         $content['body'] = $this->shownextsession(true);;
-        $content['title'] = 'Next session';
+        $content['title'] = 'Session Information';
         return $content;
     }
 
@@ -405,7 +404,7 @@ class Sessions extends AppTable {
     public function makeReminder($username=null) {
         // Get future presentations
         $content['body'] = $this->shownextsession(true);;
-        $content['title'] = 'Next session';
+        $content['title'] = 'Session Information';
         return $content;
     }
 
@@ -515,7 +514,7 @@ class Session extends Sessions {
     /**
      * Get session info
      * @param null $date
-     * @return bool
+     * @return Session|bool
      */
     public function get($date=null) {
         $this->date = ($date !== null) ? $date : $this->date;
@@ -533,7 +532,8 @@ class Session extends Sessions {
                     $this->$varname = htmlspecialchars_decode($value);
                 }
             }
-            return $this->updatestatus();
+            $this->updatestatus();
+            return $this;
         } else {
             return false;
         }
@@ -597,7 +597,7 @@ class Session extends Sessions {
             return false;
         }
 
-        self::get();
+        $this->get();
         return true;
     }
 
@@ -632,22 +632,36 @@ class Session extends Sessions {
         $time = explode(',',$this->time);
         $time_from = $time[0];
         $time_to = $time[1];
-        if (count($this->presids) == 0) return "Nothing planned yet";
+        if ($this->type == 'none') {
+            return "No journal club this day.";
+        } elseif (count($this->presids) == 0) {
+            return "There is no presentation planned for this session yet.";
+        }
 
-        $content = "<div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px; border: 1px solid #bebebe;'>
+        $content = "
+            <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
+                <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$this->type}</div>
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>$this->date</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>$time_from <b>To: </b>$time_to</div>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>$time_from<b> To: </b>$time_to</div>
                 <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b> $AppConfig->room</div><br>
-                Our next session is a <span style='font-weight: 500'>$this->type</span> and will host $this->nbpres presentations.
             </div>";
+
+        $presentations_list = '';
         $i = 0;
         foreach ($this->presids as $presid) {
             if ($prestoshow != false && $presid != $prestoshow) continue;
 
             $pres = new Presentation($this->db,$presid);
-            $content .= $pres->showDetails($show);
+            $presentations_list .= $pres->showDetails($show);
             $i++;
         }
+
+        $content .= "
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+            Presentations
+            </div>
+            {$presentations_list}
+        ";
         return $content;
     }
 }
