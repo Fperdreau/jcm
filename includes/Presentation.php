@@ -604,7 +604,7 @@ class Presentation extends Presentations {
         if ($show && !empty($this->link)) {
             $filecontent = "";
             foreach ($this->link as $fileid=>$info) {
-                $urllink = $AppConfig->site_url."uploads/".$info['filename'];
+                $urllink = $AppConfig->getAppUrl()."uploads/".$info['filename'];
                 $filecontent .= "
                         <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
                                     margin: 5px 2px 0 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold; border-radius: 5px;'>
@@ -622,22 +622,21 @@ class Presentation extends Presentations {
         $content = "
         <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
             <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
-                <div style='display: inline-block; vertical-align: top; margin: 0; text-align: center; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                    $type
-                </div>
-                <div style='display: inline-block; max-width: 80%; padding: 0 5px 0 5px; margin-left: 30px; height: auto;'>
-                    <div style='font-weight: bold; font-size: 16px;'>$this->title</div>
-                </div>
-            </div>
-            <div style='width: 95%; text-align: justify; margin: auto; padding: 5px 10px 0 10px; background-color: rgba(250,250,250,1); box-sizing: border-box; border-bottom: 5px solid rgba(207,81,81,.5);'>
-                <div style='display: inline-block; margin-left: 0; font-size: 15px; font-weight: 300; width: 50%;'>
-                    <b>Authors:</b> $this->authors
-                </div>
-                <div style='display: inline-block; width: 45%; margin: 0 auto 0 0; text-align: right;'>
-                    <div style='display: inline-block; font-size: 15px; font-weight: 300;'><b>Speaker:</b> $orator->fullname</div>
+                <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
+                    <span style='color: #222; font-weight: 900;'>$type</span>
+                    <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
+                    <span style='color: #777; font-weight: 600;'>$orator->fullname</span>
                 </div>
             </div>
-            <div style='width: 95%; text-align: justify; margin: auto; padding: 10px;'>
+            <div style='width: 100%; text-align: justify; margin: auto; box-sizing: border-box;'>
+                <div style='max-width: 80%; margin: 5px;'>
+                    <div style='font-weight: bold; font-size: 20px;'>$this->title</div>
+                </div>
+                <div style='margin-left: 5px; font-size: 15px; font-weight: 400; font-style: italic;'>
+                    $this->authors
+                </div>
+            </div>
+            <div style='width: 95%; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; padding: 10px;'>
                 <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
             </div>
             $filediv
