@@ -42,7 +42,7 @@ if ($op == 'new') {
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
         <section id='submission_form'>
             <h2>Submit a presentation</h2>
-            $submit_form
+            <div class='section_content'>$submit_form</div>
         </section>
     ";
 
@@ -55,7 +55,7 @@ if ($op == 'new') {
         If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
         <h2>Suggest a wish</h2>
         <section id='submission_form'>
-        $submit_form
+        <div class='section_content'>$submit_form</div>
         </section>
     ";
 
@@ -82,9 +82,11 @@ if ($op == 'new') {
             If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
         <h2>Select a wish</h2>
         <section>
+            <div class='section_content'>
             $selectopt
             <div id='submission_form' class='wishform'>
             $submit_form
+            </div>
             </div>
         </section>
     ";

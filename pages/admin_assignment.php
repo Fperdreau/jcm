@@ -31,7 +31,7 @@ $result = "
     <p class='page_description'>List of members's number of assignments per sessions' type.</p>
     <section>
         <h2>Members list</h2>
-        {$content}
+        <div class='section_content'>{$content}</div>
     </section>";
 
 echo json_encode($result);

@@ -64,26 +64,32 @@ $result = "
 
     <section>
         <h2>Last News</h2>
-        <div class='news'>
+        <div class='section_content'>
+            <div class='news'>
                 $news
+            </div>
         </div>
     </section>
 
     <div class='section_container'>
         <section>
             <h2>Next Sessions</h2>
-            <div class='formcontrol'>
-                <label>Session to show</label>
-                <input type='date' class='selectSession' data-status='false' id='datepicker' name='date'>
-            </div>
-            <div id='sessionlist'>
-                $futurepres
+            <div class='section_content'>
+                <div class='formcontrol'>
+                    <label>Session to show</label>
+                    <input type='date' class='selectSession' data-status='false' id='datepicker' name='date'>
+                </div>
+                <div id='sessionlist'>
+                    $futurepres
+                </div>
             </div>
         </section>
 
         <section>
             <h2>Wish list</h2>
-            $wishlist
+            <div class='section_content'>
+                $wishlist
+            </div>
         </section>
     </div>
 ";

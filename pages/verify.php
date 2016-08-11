@@ -32,13 +32,15 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
     $result = "
         <section>
             <h2>Activation</h2>
-			$msg
+			<div class='section_content'>$msg</div>
     	</section>";
 } else {
     $result = "
         <section>
             <h2>Activation</h2>
+            <div class='section_content'>
             <div class='sys_msg warning'>Incorrect email or hash id.</div>
+            </div>
     	</section>";
 }
 echo json_encode($result);

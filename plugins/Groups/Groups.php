@@ -446,9 +446,11 @@ class Groups extends AppPlugins {
         
         return "
                 <h2>Your group</h2>
+                <div class='section_content'>
                 {$groupContact}
                 <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
                 <div>{$content}</div>
+                </div>
             ";
     }
 }

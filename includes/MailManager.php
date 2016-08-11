@@ -211,7 +211,7 @@ class MailManager extends AppTable {
      * @return string
      */
     public function getContactForm($recipients=null) {
-        $user = new User($this->db, $_SESSION['username']);
+        $user = new User($this->db);
 
         if (!is_null($recipients)) {
             $recipients_list = array();

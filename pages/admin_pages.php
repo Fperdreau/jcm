@@ -28,7 +28,7 @@ $result = "
     <p class='page_description'>Here you manage the pages' settings and status</p>
     <section>
         <h2>Pages Management</h2>
-        $pageSettings
+        <div class='section_content'>$pageSettings</div>
     </section>
 ";
 

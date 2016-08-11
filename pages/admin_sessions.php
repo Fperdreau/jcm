@@ -66,84 +66,90 @@ $result = "
     <div class='section_left'>
     <section>
         <h2>Sessions settings</h2>
-        <form method='post' action='php/form.php' class='form' id='config_form_session'>
-            <div class='feedback' id='feedback_jcsession'></div>
-            <input type='hidden' name='config_modify' value='true'>
-            <div class='formcontrol'>
-                <label>Room</label>
-                <input type='text' name='room' value='$AppConfig->room'>
-            </div>
-            <div class='formcontrol'>
-                <label for='jc_day'>Day</label>
-                <select name='jc_day'>
-                    <option value='$AppConfig->jc_day' selected>$AppConfig->jc_day</option>
-                    <option value='monday'>Monday</option>
-                    <option value='tuesday'>Tuesday</option>
-                    <option value='wednesday'>Wednesday</option>
-                    <option value='thursday'>Thursday</option>
-                    <option value='friday'>Friday</option>
-                </select>
-            </div>
-            <div class='formcontrol'>
-                <label>From</label>
-                <select name='jc_time_from'>
-                    <option value='$AppConfig->jc_time_from' selected>$AppConfig->jc_time_from</option>
-                    $timeopt;
-                </select>
-            </div>
-            <div class='formcontrol'>
-                <label>To</label>
-                <select name='jc_time_to'>
-                    <option value='$AppConfig->jc_time_to' selected>$AppConfig->jc_time_to</option>
-                    $timeopt;
-                </select>
-            </div>
-            <div class='formcontrol'>
-                <label>Presentations/Session</label>
-                <input type='text' name='max_nb_session' value='$AppConfig->max_nb_session'/>
-            </div>
-            <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
-        </form>
+        <div class='section_content'>
+            <form method='post' action='php/form.php' class='form' id='config_form_session'>
+                <div class='feedback' id='feedback_jcsession'></div>
+                <input type='hidden' name='config_modify' value='true'>
+                <div class='formcontrol'>
+                    <label>Room</label>
+                    <input type='text' name='room' value='$AppConfig->room'>
+                </div>
+                <div class='formcontrol'>
+                    <label for='jc_day'>Day</label>
+                    <select name='jc_day'>
+                        <option value='$AppConfig->jc_day' selected>$AppConfig->jc_day</option>
+                        <option value='monday'>Monday</option>
+                        <option value='tuesday'>Tuesday</option>
+                        <option value='wednesday'>Wednesday</option>
+                        <option value='thursday'>Thursday</option>
+                        <option value='friday'>Friday</option>
+                    </select>
+                </div>
+                <div class='formcontrol'>
+                    <label>From</label>
+                    <select name='jc_time_from'>
+                        <option value='$AppConfig->jc_time_from' selected>$AppConfig->jc_time_from</option>
+                        $timeopt;
+                    </select>
+                </div>
+                <div class='formcontrol'>
+                    <label>To</label>
+                    <select name='jc_time_to'>
+                        <option value='$AppConfig->jc_time_to' selected>$AppConfig->jc_time_to</option>
+                        $timeopt;
+                    </select>
+                </div>
+                <div class='formcontrol'>
+                    <label>Presentations/Session</label>
+                    <input type='text' name='max_nb_session' value='$AppConfig->max_nb_session'/>
+                </div>
+                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
+            </form>
+        </div>
     </section>
 
     <section>
         <h2>Session/Presentation</h2>
-        <h3>Sessions</h3>
-        <div id='session_type' style='position: relative; margin-bottom: 20px;'>
-            <div class='formcontrol'>
-                <label>Default session type </label>
-                <select class='session_type_default'>
-                    $opttypedflt
-                </select>
+        <div class='section_content'>
+            <h3>Sessions</h3>
+            <div id='session_type' style='position: relative; margin-bottom: 20px;'>
+                <div class='formcontrol'>
+                    <label>Default session type </label>
+                    <select class='session_type_default'>
+                        $opttypedflt
+                    </select>
+                </div>
             </div>
+            <div style='font-size: 0;'>
+                <input type='button' class='type_add addBtn' data-class='session' value='+'/>
+                <input id='new_session_type' type='text' placeholder='New Category'/>
+            </div>
+            <div class='feedback' id='feedback_session'></div>
+            <div class='type_list' id='session'>$Sessionstype</div>
+            <h3>Presentations</h3>
+            <div  style='font-size: 0;'>
+                <input type='button' class='type_add addBtn' data-class='pres' value='+'/>
+                <input id='new_pres_type' type='text' placeholder='New Category'/>
+            </div>
+            <div class='feedback' id='feedback_pres'></div>
+            <div class='type_list' id='pres'>$prestype</div>
         </div>
-        <div style='font-size: 0;'>
-            <input type='button' class='type_add addBtn' data-class='session' value='+'/>
-            <input id='new_session_type' type='text' placeholder='New Category'/>
-        </div>
-        <div class='feedback' id='feedback_session'></div>
-        <div class='type_list' id='session'>$Sessionstype</div>
-        <h3>Presentations</h3>
-        <div  style='font-size: 0;'>
-            <input type='button' class='type_add addBtn' data-class='pres' value='+'/>
-            <input id='new_pres_type' type='text' placeholder='New Category'/>
-        </div>
-        <div class='feedback' id='feedback_pres'></div>
-        <div class='type_list' id='pres'>$prestype</div>
     </section>
     </div>
 
     <div class='section_right'>
-    <section>
-        <h2>Manage Sessions</h2>
-        <div class='formcontrol'>
-            <label>Session to show</label>
-            <input type='date' class='selectSession' id='datepicker' name='date' data-status='admin'>
-        </div>
-        <div id='sessionlist'>
-        $Sessionslist
-        </div>
-    </section>
+        <section>
+            <h2>Manage Sessions</h2>
+            <div class='section_content'>
+                <div class='formcontrol'>
+                    <label>Session to show</label>
+                    <input type='date' class='selectSession' id='datepicker' name='date' data-status='admin'>
+                </div>
+                <div id='sessionlist'>
+                $Sessionslist
+                </div>
+            </div>
+        </section>
     </div>
 </div>";
 

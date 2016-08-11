@@ -31,9 +31,10 @@ $result = "
     <p class='page_description'>Here you can customize and preview the weekly digest that will be sent to the JCM members.</p>
     <section>
         <h2>Digests Sections</h2>
-        {$content}
-        <div class='submit_btns'>
-        <input type='submit' value='Preview' class='mail_preview' id='digest'/>
+        <<div class='section_content'>{$content}
+            <div class='submit_btns'>
+            <input type='submit' value='Preview' class='mail_preview' id='digest'/>
+            </div>
         </div>
     </section>
     <section class='mail_preview_container' style='display: none;'>

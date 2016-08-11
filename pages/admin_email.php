@@ -33,7 +33,7 @@ $result = "
     <h1>Mailing</h1>
     <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
     <section>
-        {$contactForm}
+        <div class='section_content'>{$contactForm}</div>
     </section>";
 
 echo json_encode($result);

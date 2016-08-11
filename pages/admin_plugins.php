@@ -35,7 +35,7 @@ $result = "
     <div class='feedback'></div>
     <section>
         <h2>Plugins list</h2>
-        $plugin_list
+        <div class='section_content'>{$plugin_list}</div>
     </section>
 ";
 

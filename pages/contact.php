@@ -43,27 +43,34 @@ $result = "
     <div class='section_container'>
         <section>
             <h2>Where</h2>
+            <div class='section_content'>
             $AppConfig->lab_name</br>
             $AppConfig->lab_street</br>
             $AppConfig->lab_postcode, $AppConfig->lab_city</br>
             $AppConfig->lab_country
+            </div>
         </section>
 
         <section>
             <h2>When</h2>
+            <div class='section_content'>
             <b>Day:</b> $jc_day<br>
             <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
             <b>Room:</b> $AppConfig->room
+            </div>>
         </section>
 
         <section>
             <h2>Map</h2>
+            <div class='section_content'>
             <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
             </iframe>
+            </div>>
         </section>
 
         <section>
             <h2>Contact us</h2>
+            <div class='section_content'>
             <div class='feedback'></div>
             <form id='contact_form' method='post' action='php/form.php'>
                 <input type='hidden' name='contact_send' value='true'/>
@@ -90,6 +97,7 @@ $result = "
                     <textarea id='message' name='message' placeholder='Your message' required></textarea>
                 </div>
             </form>
+            </div>>
         </section>
     </div>
 ";

@@ -30,9 +30,11 @@ $result = "
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 <section>
     <h2>Users List</h2>
+    <div class='section_content'>
     <div class='feedback'></div>
     <div class='table_container' id='user_list'>
         $userlist
+    </div>
     </div>
 </section>";
 

@@ -35,27 +35,31 @@ $result = "
     
     <section>
         <h2>General settings</h2>
-        <p>You have the possibility to receive logs by email every time a task is executed.</p>
-        <form method='post' action='php/form.php' class='form' id='config_form_site'>
-            <input type='hidden' name='config_modify' value='true'/>
-            <div class='formcontrol'>
-                <label>Get notified by email</label>
-                <select name='notify_admin_task'>
-                    <option value='{$AppConfig->notify_admin_task}' selected>{$AppConfig->notify_admin_task}</option>
-                    <option value='yes'>Yes</option>
-                    <option value='no'>No</option>
-                </select>
-            </div>
-            <input type='submit' name='modify' value='Modify' class='processform'>
-            <div class='feedback' id='feedback_site'></div>
-        </form>
+        <div class='section_content'>
+            <p>You have the possibility to receive logs by email every time a task is executed.</p>
+            <form method='post' action='php/form.php' class='form' id='config_form_site'>
+                <input type='hidden' name='config_modify' value='true'/>
+                <div class='formcontrol'>
+                    <label>Get notified by email</label>
+                    <select name='notify_admin_task'>
+                        <option value='{$AppConfig->notify_admin_task}' selected>{$AppConfig->notify_admin_task}</option>
+                        <option value='yes'>Yes</option>
+                        <option value='no'>No</option>
+                    </select>
+                </div>
+                <input type='submit' name='modify' value='Modify' class='processform'>
+                <div class='feedback' id='feedback_site'></div>
+            </form>
+        </div>
     </section>
     
     <div class='feedback'></div>
 
     <section>
         <h2>Tasks list</h2>
+        <div class='section_content'>
         $cronOpt
+        </div>
     </section>
 ";
 

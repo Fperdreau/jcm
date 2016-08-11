@@ -53,13 +53,13 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
     $result = "
         <section>
             <h2>Change password</h2>
-            $content
+            <div class='section_content'>$content</div>
         </section>";
 } else {
     $result = "
         <section>
             <h2>Change password</h2>
-            <div class='sys_msg warning'>Incorrect email or hash id.</div>
+            <div class='section_content'><div class='sys_msg warning'>Incorrect email or hash id.</div></div>
         </section>";
 }
 

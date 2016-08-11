@@ -41,6 +41,6 @@ if (!empty($_GET['id'])) {
     $content = "Nothing to show here";
 }
 
-$content = "<section>{$content}</section>";
+$content = "<section><div class='section_content'>{$content}</div></section>";
 
 echo json_encode($content);

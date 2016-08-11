@@ -169,13 +169,15 @@ class Presentations extends AppTable {
             $content.= "
             <section>
                 <h2 class='section_header'>$year</h2>
-                <div class='table_container'>
-                <div class='list-container list-heading'>
-                    <div>Date</div>
-                    <div>Title</div>
-                    <div>Speakers</div>
-                </div>
-                $yearcontent
+                <div class='section_content'>
+                    <div class='table_container'>
+                    <div class='list-container list-heading'>
+                        <div>Date</div>
+                        <div>Title</div>
+                        <div>Speakers</div>
+                    </div>
+                    $yearcontent
+                    </div>
                 </div>
             </section>";
         }
@@ -593,7 +595,12 @@ class Presentation extends Presentations {
         </div>";
     }
 
-
+    /**
+     * Presentation's attached files (for emails)
+     * @param array $links
+     * @param $app_url
+     * @return string
+     */
     private static function downloadMenu(array $links, $app_url) {
         $icon_css = "display: inline-block;
             font-size: 10px;

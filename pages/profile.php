@@ -36,6 +36,7 @@ $result = "
     <div class='section_container'>
             <section>
                 <h2>Personal information</h2>
+                <div class='section_content'>
                 <form method='post' action='php/form.php' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='processform'/>
@@ -74,10 +75,12 @@ $result = "
                     <input type='hidden' name='user_modify' value='true' />
                     <div class='feedback' id='feedback_perso'></div>
                 </form>
+                </div>
             </section>
 
         <section>
             <h2>Contact information</h2>
+            <div class='section_content'>
             <form method='post' action='php/form.php' class='processform' id='profile_emailinfo_form'>
                 <div class='submit_btns'>
                     <input type='submit' name='user_modify' value='Modify' class='processform'/>
@@ -114,10 +117,12 @@ $result = "
                 <input type='hidden' name='username' value='$user->username'/>
                 <div class='feedback' id='feedback_mail'></div>
             </form>
+            </div>
         </section>
         
         <section>
             <h2>My availability</h2>
+            <div class='section_content'>
             <p class='description'>Select the dates on which you are not available.</p>
             <div class='sys_msg warning'>Selecting a date on which you have been planned as speaker will automatically cancel this presentation!</div>
             <div id='availability_calendar'></div>
@@ -126,16 +131,17 @@ $result = "
                 <div class='jcday'>JC day</div>
                 <div class='assigned'>I am a speaker</div>
             </div>
+            </div>
         </section>
 
         <section>
             <h2>My submissions</h2>
-            $publication_list
+            <div class='section_content'>$publication_list</div>
         </section>
         
         <section>
             <h2>My assignments</h2>
-            {$assignments}
+            <div class='section_content'>{$assignments}</div>
         </section>
         <div class='plugins'></div>
         

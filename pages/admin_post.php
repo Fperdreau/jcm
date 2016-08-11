@@ -60,8 +60,9 @@ $result = "
     </div>
     <section>
         <h2>New post</h2>
-        <div class='feedback'></div>
-        <div class='postcontent'>
+        <div class='section_content'>
+            <div class='feedback'></div>
+            <div class='postcontent'></div>
         </div>
     </section>
     ";
