@@ -288,16 +288,17 @@ class Sessions extends AppTable {
             $date = date('d M y',strtotime($session->date));
             $content .= "
             <div style='display: block; margin: 10px auto 0 auto;'>
-                <div style='display: block; margin: 0;'>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px; background-color: #555555; color: #FFF; padding: 5px; font-size: 0.8em;'>
-                        $date
-                    </div>
-                    <div style='display: inline-block; position: relative; text-align: center; height: 20px; line-height: 20px;
-                        min-width: 100px; width: auto; background-color: rgba(207,81,81,.7); color: #FFF; padding: 5px; font-size: 0.8em;'>
-                        $type
+                <!-- header -->
+                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
+                    <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
+                        <span style='color: #222; font-weight: 900;'>{$date}</span>
+                        <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
+                        <span style='color: #777; font-weight: 600;'>{$type}</span>
                     </div>
                 </div>
-                <div style='padding: 10px 20px 10px 10px; background-color: #eee; margin: 0; border: 1px solid rgba(175,175,175,.8);'>
+
+                <div style='padding: 10px 20px 10px 10px; background-color: #efefef; margin: 0 0 0 15px; 
+                border-left: 2px solid rgba(175,175,175,.8);'>
                     $sessioncontent
                 </div>
 
@@ -608,8 +609,10 @@ class Session extends Sessions {
      */
     public function showsession($mail=true) {
         if ($this->type == 'none')
-            return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; font-weight: 300; overflow: hidden;'>
+            return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
+                    font-weight: 300; overflow: hidden;'>
                     <b>No Journal Club this day</b></div>";
+
         $content = "";
         $max = (count($this->presids) < $this->max_nb_session) ? $this->max_nb_session:count($this->presids);
         for ($i=0;$i<$max;$i++) {

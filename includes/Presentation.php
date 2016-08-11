@@ -580,13 +580,14 @@ class Presentation extends Presentations {
         }
 
         return "
-        <div class='pres_container' id='$this->id_pres' style='display: block; position: relative; margin: auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+        <div class='pres_container' id='$this->id_pres' style='display: block; position: relative; margin: auto; 
+        font-size: 0.9em; font-weight: 300; overflow: hidden;'>
             <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top;'>$type</div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
                 <div>$show_but</div>
-                <div style='font-style: italic;'>
-                    <div style='display: inline-block;'>Presented by </div>
-                    <div style='display: inline-block;'>$speaker</div>
+                <div>
+                    <span style='font-size: 12px; font-style: italic;'>Presented by </span>
+                    <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
                 </div>
             </div>
         </div>";
