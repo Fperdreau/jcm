@@ -151,7 +151,7 @@ class ReminderMaker extends AppTable {
         $content['body'] = "
                 <div style='width: 100%; margin: auto;'>
                     <p>Hello {$user->firstname},</p>
-                    <p>This is a reminder for the next Journal Club session.</p>
+                    <p>This is a reminder about the next Journal Club session.</p>
                 </div>
                 {$string}
                 ";
