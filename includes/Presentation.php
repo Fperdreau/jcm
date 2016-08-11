@@ -519,7 +519,8 @@ class Presentation extends Presentations {
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>
+                    <a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
+                    data-id='$this->id_pres'>
                         $this->title
                     </a>
                 </div>
@@ -550,7 +551,8 @@ class Presentation extends Presentations {
             if ($opt == 'mail') {
                 $show_but = "$this->title";
             } else {
-                $show_but = "<a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$this->id_pres'>$this->title</a>";
+                $show_but = "<a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form'
+                             data-id='$this->id_pres'>$this->title</a>";
             }
             $type = ucfirst($this->type);
         }
@@ -590,56 +592,86 @@ class Presentation extends Presentations {
         </div>";
     }
 
+
+    private static function downloadMenu(array $links, $app_url) {
+        $icon_css = "display: inline-block;
+            font-size: 10px;
+            text-align: center;
+            width: 30px;
+            height: 30px;
+            font-weight: bold;
+            background-color: #555555;
+            color: #EEEEEE;
+            border-radius: 100%;
+            line-height: 30px;
+            margin: 2px 5px 2px 0px;
+        ";
+
+        // Get file list
+        $filediv = "";
+        if (!empty($links)) {
+            $filecontent = "";
+            foreach ($links as $fileid=>$info) {
+                $urllink = $app_url."uploads/".$info['filename'];
+                $filecontent .= "
+                        <div style='{$icon_css}'>
+                            <a href='$urllink' target='_blank' style='color: #EEEEEE;'>".strtoupper($info['type'])."</a>
+                        </div>";
+            }
+            $filediv = "<div style='display: block; text-align: right; width: 95%; min-height: 20px; height: auto;
+                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
+        }
+
+        return $filediv;
+    }
+
     /**
      * Show presentation details
      * @param bool $show: show list of attached files
      * @return string
      */
     public function showDetails($show=false) {
-        $AppConfig = new AppConfig($this->db);
         $orator = new User($this->db,$this->orator);
+        $filediv = null;
 
-        // Get file list
-        $filediv = "";
-        if ($show && !empty($this->link)) {
-            $filecontent = "";
-            foreach ($this->link as $fileid=>$info) {
-                $urllink = $AppConfig->getAppUrl()."uploads/".$info['filename'];
-                $filecontent .= "
-                        <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
-                                    margin: 5px 2px 0 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold; border-radius: 5px;'>
-                            <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
-                        </div>";
-            }
-            $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto;
-                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
+        // Make download menu if required
+        if ($show) {
+            $AppConfig = new AppConfig($this->db);
+            $app_url = $AppConfig->getAppUrl();
+            $filediv = self::downloadMenu($this->link, $app_url);
         }
 
         // Format presentation's type
         $type = ucfirst($this->type);
+
+        // Abstract
+        $abstract = (!empty($this->summary)) ? "
+            <div style='width: 95%; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; 
+            padding: 10px;'>
+                <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
+            </div>
+            " : null;
 
         // Build content
         $content = "
         <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
             <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
                 <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
-                    <span style='color: #222; font-weight: 900;'>$type</span>
+                    <span style='color: #222; font-weight: 900;'>{$type}</span>
                     <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
-                    <span style='color: #777; font-weight: 600;'>$orator->fullname</span>
+                    <span style='color: #777; font-weight: 600;'>{$orator->fullname}</span>
                 </div>
             </div>
             <div style='width: 100%; text-align: justify; margin: auto; box-sizing: border-box;'>
                 <div style='max-width: 80%; margin: 5px;'>
-                    <div style='font-weight: bold; font-size: 20px;'>$this->title</div>
+                    <div style='font-weight: bold; font-size: 20px;'>{$this->title}</div>
                 </div>
                 <div style='margin-left: 5px; font-size: 15px; font-weight: 400; font-style: italic;'>
-                    $this->authors
+                    {$this->authors}
                 </div>
             </div>
-            <div style='width: 95%; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; padding: 10px;'>
-                <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
-            </div>
-            $filediv
+           {$abstract}
+           {$filediv}
         </div>
         ";
         return $content;
