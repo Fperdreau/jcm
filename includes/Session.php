@@ -297,7 +297,7 @@ class Sessions extends AppTable {
                     </div>
                 </div>
 
-                <div style='padding: 10px 20px 10px 10px; background-color: #efefef; margin: 0 0 0 15px; 
+                <div style='padding: 10px 20px 10px 10px; background-color: rgba(239,239,239,.6); margin: 0 0 0 10px; 
                 border-left: 2px solid rgba(175,175,175,.8);'>
                     $sessioncontent
                 </div>

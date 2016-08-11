@@ -755,20 +755,23 @@ section {
     margin: 10px auto 10px auto;
     padding: 0;
     background-color: rgba(200,200,200,.1);
-    border: 1px solid #ddd;
     min-width: 300px;
 }
 
 section>.section_content {
     margin: auto;
-    padding: 0 10px 20px 10px;
+    padding: 10px 10px 20px 10px;
+    border: 1px solid #ddd;
 }
 
 section>h2 {
     padding: 5px 5px;
-    border-bottom: 1px solid #ddd;
-    border-left: 5px solid #ddd;
-    margin: 0 0 5px 0;
+    /* border-bottom: 1px solid #ddd; */
+    border-left: 5px solid #cf5151;
+    margin: 0;
+    color: #eee;
+    background-color: rgb(68, 68, 68);
+    font-weight: 300;
 }
 
 .section_container {
@@ -1686,6 +1689,7 @@ button.addBtn>img {
 .session_core>div {
     display: inline-block;
     vertical-align: top;
+    width: 100%;
 }
 
 .session_presentations {
