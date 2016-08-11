@@ -304,7 +304,7 @@ class Groups extends AppPlugins {
         <p>Here is your group assignment for the session held on <b>{$data['date']}</b>.</p>
         <p>Your group will meet in room {$data['room']}.</p>
         <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
-            " . $data['group'] . "
+            {$data['group']}
         </div>
         <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
             <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
