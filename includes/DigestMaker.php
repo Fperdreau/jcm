@@ -193,6 +193,9 @@ class DigestMaker extends AppTable {
      * @return string
      */
     public static function showSection(array $data) {
+        if (empty($data)) {
+            return null;
+        }
         return "
            <div style='display: block; padding: 10px; margin: 0 auto 20px auto; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
                 <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
