@@ -6,7 +6,7 @@
 - Corrected bug that prevented the user to delete his/her account
 
 ### Mailing
-- Added possibility to hide recipients list
+- Added possibility to hide recipients list.
 
 ### Assignments
 - Send reminder to user about his/her upcoming presentation
@@ -34,7 +34,7 @@ Improved management of scheduled tasks.
 - Corrected bug in automatic assignment
 
 ### ReminderMaker
-- New feature: Organizers can select what to display into the reminder emails (admin>reminder)
+- New feature: Organizers can select what to display in the reminder emails (admin>reminder)
 
 ### Group plugin
 - Added possibility to send an email to group members
