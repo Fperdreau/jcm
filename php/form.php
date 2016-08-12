@@ -234,7 +234,8 @@ if (!empty($_POST['preview'])) {
         $DigestMaker = new ReminderMaker($db);
         $result = $DigestMaker->makeDigest($_SESSION['username']);
     }
-
+    $AppMail = new AppMail($db);
+    $result['body'] = $AppMail->formatmail($result['body']);
     echo json_encode($result);
     exit;
 }
