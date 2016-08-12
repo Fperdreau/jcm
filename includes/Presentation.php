@@ -654,7 +654,7 @@ class Presentation extends Presentations {
 
         // Abstract
         $abstract = (!empty($this->summary)) ? "
-            <div style='width: 95%; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; 
+            <div style='width: 95%; box-sizing: border-box; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; 
             padding: 10px;'>
                 <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
             </div>
