@@ -319,9 +319,8 @@ class Sessions extends AppTable {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
-        $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig::$site_url."index.php?page=contact";
-        $editUrl = $AppConfig::$site_url."index.php?page=submission&op=mod_pub&id={$info['presid']}&user={$user->username}";
+        $contactURL = URL_TO_APP."index.php?page=contact";
+        $editUrl = URL_TO_APP."index.php?page=submission&op=mod_pub&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
@@ -363,8 +362,7 @@ class Sessions extends AppTable {
     public function notify_organizers(User $user, array $info) {
         $MailManager = new MailManager($this->db);
         $date = $info['date'];
-        $AppConfig = new AppConfig($this->db);
-        $url = $AppConfig::$site_url.'index.php?page=sessions';
+        $url = URL_TO_APP.'index.php?page=sessions';
 
         foreach ($user->getadmin() as $key=>$info) {
             $content['body'] = "
