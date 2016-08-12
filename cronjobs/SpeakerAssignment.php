@@ -104,7 +104,6 @@ class SpeakerAssignment extends AppCron {
         $session = new Session($this->db, $jc_days[0]);
         $today = date('Y-m-d');
         $dueDate = date('Y-m-d',strtotime($jc_days[0] . " - {$this->options['Days']['value']} day"));
-        var_dump($dueDate);
         if ($today == $dueDate) {
             $n = 0;
             foreach ($session->presids as $presid) {
@@ -134,8 +133,7 @@ class SpeakerAssignment extends AppCron {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
-        $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig::$site_url."index.php?page=contact";
+        $contactURL = URL_TO_APP."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
@@ -157,8 +155,7 @@ class SpeakerAssignment extends AppCron {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
-        $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig::$site_url."index.php?page=contact";
+        $contactURL = URL_TO_APP."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
@@ -180,8 +177,7 @@ class SpeakerAssignment extends AppCron {
     public function reminderEmail(User $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
-        $AppConfig = new AppConfig($this->db);
-        $contactURL = $AppConfig::$site_url."index.php?page=contact";
+        $contactURL = URL_TO_APP."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
