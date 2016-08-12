@@ -30,10 +30,10 @@ $user = new User($db,$_SESSION['username']);
 $timeopt = maketimeopt();
 
 $result = "
-    <h1>Configuration</h1>
+    <h1>Settings</h1>
     <div class='section_container'>
             <section>
-                <h2>Site parameters</h2>
+                <h2>JCM settings</h2>
                 <div class='section_content'>
                     <form method='post' action='php/form.php' class='form' id='config_form_site'>
                         <div class='submit_btns'>
