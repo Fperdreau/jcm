@@ -141,7 +141,7 @@ class MailManager extends AppTable {
     public static function showEmail(array $email, array $attachements=array()) {
         $file_list = "";
         foreach ($attachements as $file_name) {
-            $file_list .= "<div class='email_file'><a href='" . AppConfig::$site_url . 'uploads/' . $file_name . "'>{$file_name}</a></div>";
+            $file_list .= "<div class='email_file'><a href='" . URL_TO_APP . 'uploads/' . $file_name . "'>{$file_name}</a></div>";
         }
         $content = htmlspecialchars_decode($email['content']);
         return "
@@ -289,7 +289,7 @@ class MailManager extends AppTable {
                             {$mailing_list}
                         </select>
                         <button type='submit' class='add_email addBtn'>
-                            <img src='" . AppConfig::$site_url . 'images/add.png' . "'>
+                            <img src='" . URL_TO_APP . 'images/add.png' . "'>
                         </button>
                     </div>
                     <div class='select_emails_list'>
