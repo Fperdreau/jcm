@@ -87,8 +87,8 @@ class AppMail {
         }
 
         $content['subject'] = 'Signup | Verification'; // Give the email a subject
-        $authorize_url = $this->get_config()->getAppUrl()."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
-        $deny_url = $this->get_config()->getAppUrl()."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
+        $authorize_url = URL_TO_APP."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
+        $deny_url = URL_TO_APP."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
 
         $content['body'] = "
         Hello,<br><br>
@@ -228,15 +228,28 @@ class AppMail {
      */
     function formatmail($content, $email_id=null) {
         $show_in_browser = (is_null($email_id)) ? null:
-            "<a href='" . $this->get_config()->getAppUrl()."pages/mail.php?mail_id={$email_id}"
+            "<a href='" . URL_TO_APP."pages/mail.php?mail_id={$email_id}"
             . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
-        $profile_url = $this->get_config()->getAppUrl().'index.php?page=profile';
-        $sitetitle = $this->config->sitetitle;
+        $profile_url = URL_TO_APP.'index.php?page=profile';
+        $css_title = "
+                color: rgba(255,255,255,1);
+                text-align: left;
+                font-size: 0;
+                font-weight: 300;
+                margin: 0;
+                padding: 0;
+                position: relative;
+        ";
         $body = "
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
-                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; font-size: 2em; line-height: 40px; height: 40px; text-align: center;'>
-                        {$sitetitle}
+                    <div style='padding: 10px 20px;  margin: 2% auto; width: 100%; background-color: rgba(68, 68, 68, 1);
+                     border: 1px solid #e0e0e0; font-size: 2em; text-align: center;'>
+                        <div style='{$css_title}'>
+                            <span style='font-size: 30px; font-weight: 400;'>JCM</span>
+                            <span style='font-size: 25px; color: rgba(200,200,200,.8);'>anager</span>
+                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>{$this->get_config()->lab_name}</div>
+                        </div>
                     </div>
 
                     <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; text-align: justify;'>
