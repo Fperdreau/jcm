@@ -265,6 +265,9 @@ class Groups extends AppPlugins {
      */
     public function makeMail($username=null) {
         $data = $this->getGroup($username);
+        if ($data !== false) {
+
+        }
         $data['group'] = $this->showList($username);
         $publication = new Presentation($this->db, $data['presid']);
         $data['publication'] = $publication->showDetails(true);
@@ -386,7 +389,7 @@ class Groups extends AppPlugins {
         }
         $group = $this->getGroup($username);
         if (empty($group['members'])) {
-            $content = 'No group has been made yet';
+            return 'No group has been made yet';
         } else {
             $u = 0;
             $content = "";
@@ -440,16 +443,20 @@ class Groups extends AppPlugins {
             $ids = implode(',', $ids);
             $groupContact = "
                 <div class='div_button'><a href='" . AppConfig::$site_url . 'index.php?page=email&recipients_list=' . $ids . "'>Contact my group</a></div>";
+            $groupContent = "
+                <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
+                <div>{$content}</div>
+            ";
         } else {
             $groupContact = null;
+            $groupContent = "You have not been assigned to any group yet.";
         }
         
         return "
                 <h2>Your group</h2>
                 <div class='section_content'>
                 {$groupContact}
-                <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
-                <div>{$content}</div>
+                {$groupContent}
                 </div>
             ";
     }
