@@ -755,7 +755,7 @@ section {
     margin: 10px auto 10px auto;
     padding: 0;
     background-color: rgba(200,200,200,.1);
-    min-width: 300px;
+    min-width: 320px;
 }
 
 section>.section_content {
@@ -784,7 +784,7 @@ section>h2 {
     display: inline-block;
     vertical-align: top;
     width: 45%;
-    min-width: 300px;
+    min-width: 320px;
     text-align: left;
 }
 
