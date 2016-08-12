@@ -50,7 +50,6 @@ if(!defined('PATH_TO_PAGES')) define('PATH_TO_PAGES', PATH_TO_APP.'/pages/');
 if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP.'/config/');
 if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP.'/libs/');
 
-
 /**
  * Includes required files (classes)
  */
@@ -75,6 +74,9 @@ SessionInstance::initsession();
  */
 $db = new AppDb();
 $AppConfig = new AppConfig($db);
+if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
+
+
 $AppPage = new AppPage($db);
 $Presentations = new Presentations($db);
 $Users = new Users($db);
