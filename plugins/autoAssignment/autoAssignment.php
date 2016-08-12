@@ -157,6 +157,7 @@ class autoAssignment extends AppPlugins {
 
 
     /**
+     * Assigns speakers to the $nb_session future sessions
      * @param null|int $nb_session: number of sessions
      * @return mixed
      */
