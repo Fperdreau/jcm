@@ -693,7 +693,7 @@ class Presentation extends Presentations {
     public function showwish($show) {
         /** @var AppConfig $config */
         $config = new AppConfig($this->db);
-        $url = $config->site_url."index.php?page=submission&op=wishpick&id=$this->id_pres";
+        $url = $config->getAppUrl()."index.php?page=submission&op=wishpick&id=$this->id_pres";
         $uploader = new User($this->db,$this->username);
         $update = date('d M y',strtotime($this->up_date));
         return "
@@ -703,8 +703,8 @@ class Presentation extends Presentations {
             </div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
                <a href='$url' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-id='$this->id_pres'>
-                    <div>$this->title</div>
-                    <div style='font-style: italic; color: #000000;'>Suggested by <span style='color: #CF5151;'>$uploader->fullname</span></div>
+                    <div style='font-size: 16px;'>$this->title</div>
+                    <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>$uploader->fullname</span></div>
                 </a>
             </div>
         </div>";
