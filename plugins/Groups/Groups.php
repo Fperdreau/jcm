@@ -266,15 +266,16 @@ class Groups extends AppPlugins {
     public function makeMail($username=null) {
         $data = $this->getGroup($username);
         if ($data !== false) {
-
+            $data['group'] = $this->showList($username);
+            $publication = new Presentation($this->db, $data['presid']);
+            $data['publication'] = $publication->showDetails(true);
+            $content['body'] = self::renderSection($data);
+            $content['title'] = 'Your Group assignment';
+            $content['subject'] = "Your Group assignment: {$data['date']}";
+            return $content;
+        } else {
+            return array();
         }
-        $data['group'] = $this->showList($username);
-        $publication = new Presentation($this->db, $data['presid']);
-        $data['publication'] = $publication->showDetails(true);
-        $content['body'] = self::renderSection($data);
-        $content['title'] = 'Your Group assignment';
-        $content['subject'] = "Your Group assignment: {$data['date']}";
-        return $content;
     }
 
     /**
@@ -353,6 +354,9 @@ class Groups extends AppPlugins {
      * @return bool|array
      */
     public function getGroup($username) {
+        if (!$this->isInstalled()) {
+            return false;
+        }
         $sql = "SELECT * FROM $this->tablename WHERE username='$username'";
         $data = $this->db->send_query($sql)->fetch_assoc();
         $groupusrs['members'] = array();
