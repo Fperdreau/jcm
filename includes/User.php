@@ -729,6 +729,7 @@ class User extends Users{
             $pub = new Presentation($this->db, $pubid);
             $content .= $pub->show($show, $username);
         }
+        if (empty($content)) return "You don't have any upcoming presentations.";
         return "
             <div class='table_container' style='display: table; width: 100%;'>
                 <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
