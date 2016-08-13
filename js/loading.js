@@ -115,13 +115,14 @@ function getPage(page, urlparam) {
         async: true,
         success: function (data) {
             var json = jQuery.parseJSON(data);
+            var page_name = json.pageName.split('_');
 
             // Change url and push it to history
             var stateObj = { page: json.pageName };
             var url = (urlparam === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + urlparam;
             history.pushState(stateObj, json.pageName, url);
 
-            if (json.AppStatus === 'Off' && page !== 'admin') {
+            if (json.AppStatus === 'Off' && page_name[0] !== 'admin') {
                 $('#pagecontent')
                     .html("<div id='content'><div style='vertical-align: middle; margin-top: 20%; text-align: center;'>" +
                     "<div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div><div> the website is currently under maintenance.</div></div></div>")
