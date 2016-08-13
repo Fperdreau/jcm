@@ -748,7 +748,8 @@ if (!empty($_POST['test_email_settings'])) {
     foreach ($_POST as $setting=>$value) {
         $settings[$setting] = htmlspecialchars($value);
     }
-    $result = $AppMail->send_test_email($settings);
+    $to = (isset($_POST['test_email'])) ? htmlspecialchars($_POST['test_email']) : null;
+    $result = $AppMail->send_test_email($settings, $to);
     echo json_encode($result);
     exit;
 }

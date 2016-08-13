@@ -527,6 +527,10 @@ if (!empty($_POST['getpagecontent'])) {
                     <label for='mail_password'>Email password</label>
                     <input name='mail_password' type='password' value='$AppConfig->mail_password'>
                 </div>
+                <div class='formcontrol'>
+                    <label for='test_email'>Your email (for testing only)</label>
+                    <input name='test_email' type='email' value='$AppConfig->mail_password'>
+                </div>
 
                 <div class='submit_btns'>
                     <input type='submit' value='Test settings' class='test_email_settings'> 

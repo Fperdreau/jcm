@@ -103,20 +103,24 @@ class AppMail {
 
     /**
      * Send a test email to verify the email host settings
-     * @param $data
+     * @param array $data: email host settings
+     * @param null|string $to: recipient email
      * @return mixed
      */
-    public function send_test_email($data) {
+    public function send_test_email(array $data, $to=null) {
         $MailManager = new MailManager($this->db);
-        $Users = new Users($this->db);
-        $admins = $Users->getadmin('admin');
-        $to = array();
-        foreach ($admins as $key=>$admin) {
-            $to[] = $admin['email'];
+        if (is_null($to)) {
+            $Users = new Users($this->db);
+            $admins = $Users->getadmin('admin');
+            $to = array();
+            foreach ($admins as $key=>$admin) {
+                $to[] = $admin['email'];
+            }
+        } else {
+            $to = array($to);
         }
 
         $content['subject'] = 'Test: email host settings'; // Give the email a subject
-
         $content['body'] = "
         Hello,<br><br>
         <p>This is just a test email sent to verify your email host settings. If you can read this message, it means 
