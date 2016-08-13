@@ -70,6 +70,7 @@ SessionInstance::initsession();
  */
 $db = new AppDb();
 $AppConfig = new AppConfig($db,false);
+if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
 
 /**
  * Browse release content and returns associative array with folders name as keys
