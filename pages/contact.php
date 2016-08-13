@@ -57,7 +57,7 @@ $result = "
             <b>Day:</b> $jc_day<br>
             <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
             <b>Room:</b> $AppConfig->room
-            </div>>
+            </div>
         </section>
 
         <section>
@@ -65,7 +65,7 @@ $result = "
             <div class='section_content'>
             <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
             </iframe>
-            </div>>
+            </div>
         </section>
 
         <section>
@@ -97,7 +97,7 @@ $result = "
                     <textarea id='message' name='message' placeholder='Your message' required></textarea>
                 </div>
             </form>
-            </div>>
+            </div>
         </section>
     </div>
 ";
