@@ -121,10 +121,13 @@ class autoAssignment extends AppPlugins {
         // Get speakers planned for this session
         $speakers = array_diff($session->speakers, array('TBA'));
 
+
+
         // Get assignable users
         $assignable_users = array();
         while (empty($assignable_users)) {
             $assignable_users = self::$Assignment->getAssignable($session_type, $max, $session->date);
+            if ($assignable_users == false) return false;
             $max += 1;
         }
 
@@ -171,6 +174,14 @@ class autoAssignment extends AppPlugins {
         $created = 0;
         $updated = 0;
         $assignedSpeakers = array();
+
+        // Check if there is enough users
+        $User = new Users($this->db);
+        if (empty($User->getUsers(true))) {
+            $result['msg'] = 'There is not enought assignable members';
+            $result['status'] = false;
+            return $result;
+        };
 
         // Loop over sessions
         foreach ($jc_days as $day) {
