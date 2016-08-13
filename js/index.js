@@ -698,7 +698,7 @@ $(document).ready(function () {
             processAjax($('body'), data, null, "php/form.php");
         })
 
-        // Modify session type
+        // Modify session time
         .on('change','.mod_session',function (e) {
             e.preventDefault();
             var prop = $(this).attr('name');
@@ -706,6 +706,17 @@ $(document).ready(function () {
             var sessionDiv = $(this).closest('.session_div');
             var sessionID = sessionDiv.data('id');
             var data = {modSession: true, session: sessionID, prop: prop, value: value};
+            processAjax(sessionDiv, data, null, "php/form.php");
+        })
+
+        // Modify session type
+        .on('change','.mod_session_type',function (e) {
+            e.preventDefault();
+            var prop = $(this).attr('name');
+            var value = $(this).val();
+            var sessionDiv = $(this).closest('.session_div');
+            var sessionID = sessionDiv.data('id');
+            var data = {mod_session_type: true, session: sessionID, prop: prop, value: value};
             processAjax(sessionDiv, data, null, "php/form.php");
         })
 

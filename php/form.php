@@ -963,14 +963,30 @@ if (!empty($_POST['modSession'])) {
 
     $post = array($prop=>$value);
     if ($result['status'] = $session->update($post)) {
-        /* If session type is set to none, we notify the assigned speakers of this session that their session
-        has been canceled */
-        if ($prop === 'type' && $value === 'none') {
-            $result['status'] = $session->cancelSession($session);
-        }
         if ($result['status']) $result['msg'] = "Session has been modified";
     } else {
         $result['status'] = false;
+    }
+    echo json_encode($result);
+    exit;
+}
+
+// Modify session type or cancel session
+if (!empty($_POST['mod_session_type'])) {
+    $sessionid = htmlspecialchars($_POST['session']);
+    $prop = htmlspecialchars($_POST['prop']);
+    $value = htmlspecialchars($_POST['value']);
+    $session = new Session($db, $sessionid);
+
+    $post = array($prop=>$value);
+    if ($prop === 'type' && $value === 'none') {
+        /* If session type is set to none, we notify the assigned speakers of this session that their session
+        has been canceled */
+        $result['status'] = $session->cancelSession($session);
+        if ($result['status']) $result['msg'] = "Session has been canceled";
+    } else {
+        $result['status'] = $session->set_session_type($session, $value);
+        if ($result['status']) $result['msg'] = "Session's type has been set to {$value}";
     }
     echo json_encode($result);
     exit;

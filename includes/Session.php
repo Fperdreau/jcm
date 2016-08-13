@@ -201,7 +201,7 @@ class Sessions extends AppTable {
                     <div class='session_type'>
                         <div class='formcontrol' style='width: 100%;'>
                             <label>Type</label>
-                            <select class='mod_session' name='type'>
+                            <select class='mod_session_type' name='type'>
                             $typeoptions
                             </select>
                         </div>
@@ -368,7 +368,7 @@ class Sessions extends AppTable {
             $content['body'] = "
                 <div style='width: 100%; margin: auto;'>
                     <p>Hello {$info['fullname']},</p>
-                    <p>This is to inform you that the presentation of <strong>{$user->fullname}</strong> planned on <strong>{$date}</strong> has been manually canceled. 
+                    <p>This is to inform you that the presentation of <strong>{$user->fullname}</strong> planned on the <strong>{$date}</strong> has been canceled. 
                     You can either manually assign another speaker on this day in the <a href='{$url}'>Admin>Session</a> section or let the automatic 
                     assignment select a member for you.</p>
                 </div>
@@ -437,6 +437,61 @@ class Sessions extends AppTable {
         // Update session information
         if ($result) {
             $result = $session->update(array('nbpres'=>0, 'status'=>'Free', 'type'=>'none'));
+        }
+        return $result;
+    }
+
+    /**
+     * Modify session type and notify speakers about the change
+     * @param Session $session
+     * @param $new_type
+     * @return bool|mixed
+     */
+    public function set_session_type(Session $session, $new_type) {
+        $assignment = new Assignment($this->db);
+        $result = true;
+
+        $previous_type = $session->type;
+
+        // Loop over presentations scheduled for this session
+        foreach ($session->presids as $id_pres) {
+            $pres = new Presentation($this->db, $id_pres);
+            $speaker = new User($this->db, $pres->orator);
+
+            // Unassign
+            $info = array(
+                'speaker'=>$speaker->username,
+                'type'=>$previous_type,
+                'presid'=>$pres->id_pres,
+                'date'=>$session->date
+            );
+
+            // Update assignment table with new session type
+            if ($assignment->updateAssignment($speaker, $info, false, false)) {
+                $info['type'] = $new_type;
+                $result = $assignment->updateAssignment($speaker, $info, true, false);
+            }
+
+            // Notify user about the change of session type
+            $MailManager = new MailManager($this->db);
+            $date = $info['date'];
+            $contactURL = URL_TO_APP."index.php?page=contact";
+
+            $content['body'] = "
+            <div style='width: 100%; margin: auto;'>
+                <p>Hello $speaker->fullname,</p>
+                <p>This is to inform you that the type of your session ({$date}) has been modified and will be a <strong>{$new_type}</strong> instead of a <strong>{$previous_type}</strong>.</p>
+                <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
+            </div>
+            ";
+            $content['subject'] = "Your session ($date) has been modified";
+
+            $result = $MailManager->send($content, array($speaker->email));
+        }
+
+        // Update session information
+        if ($result) {
+            $result = $session->update(array('type'=>$new_type));
         }
         return $result;
     }

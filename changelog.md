@@ -10,6 +10,7 @@
 
 ### Assignments
 - Send reminder to user about his/her upcoming presentation
+- Speakers are now notified by email if the type of their session has been modified.
 
 ### Plugins
 - Groups: only make groups for the next session 1) if a session is planned on this day and 2) if groups have not already

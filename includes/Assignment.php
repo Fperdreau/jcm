@@ -272,7 +272,7 @@ class Assignment extends AppTable {
      */
     public function updateAssignment(User $user, array $info, $assign=true, $notify=false) {
         $session = new Session($this->db, $info['date']);
-        if ($this->updateTable(self::prettyName($session->type, true), $user->username, $assign)) {
+        if ($this->updateTable(self::prettyName($info['type'], true), $user->username, $assign)) {
             if ($notify) {
                 $session->notify_session_update($user, $info, $assign);
             }
