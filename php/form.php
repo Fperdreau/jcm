@@ -742,6 +742,17 @@ if (!empty($_POST['contact_send'])) {
     exit;
 }
 
+// Test email settings
+if (!empty($_POST['test_email_settings'])) {
+    $settings = array();
+    foreach ($_POST as $setting=>$value) {
+        $settings[$setting] = htmlspecialchars($value);
+    }
+    $result = $AppMail->send_test_email($settings);
+    echo json_encode($result);
+    exit;
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Upload file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/

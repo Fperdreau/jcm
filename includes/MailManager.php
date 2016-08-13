@@ -153,12 +153,13 @@ class MailManager extends AppTable {
 
     /**
      * Sends an email
-     * @param array $content: email content
-     * @param array $mailing_list: recipients list
-     * @param bool $undisclosed: hide (true) or show(false) recipients list
+     * @param array $content : email content
+     * @param array $mailing_list : recipients list
+     * @param bool $undisclosed : hide (true) or show(false) recipients list
+     * @param array $settings: email host settings (for testing)
      * @return mixed
      */
-    public function send(array $content, array $mailing_list, $undisclosed=true) {
+    public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null) {
         $AppMail = new AppMail($this->db);
 
         // Generate ID
@@ -186,7 +187,7 @@ class MailManager extends AppTable {
         if ($this->add($data)) {
 
             // Send email
-            if ($AppMail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed)) {
+            if ($AppMail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed, $settings)) {
 
                 // Update MailManager table
                 $result['status'] = $this->update(array('status'=>1), $data['mail_id']);

@@ -66,6 +66,7 @@ $result = "
                 <div class='section_content'>
                     <form method='post' action='php/form.php' class='form' id='config_form_mail'>
                         <div class='submit_btns'>
+                            <input type='submit' value='Test settings' class='test_email_settings'> 
                             <input type='submit' name='modify' value='Modify' class='processform'>
                         </div>
                         <input type='hidden' name='config_modify' value='true'/>

@@ -102,6 +102,31 @@ class AppMail {
     }
 
     /**
+     * Send a test email to verify the email host settings
+     * @param $data
+     * @return mixed
+     */
+    public function send_test_email($data) {
+        $MailManager = new MailManager($this->db);
+        $Users = new Users($this->db);
+        $admins = $Users->getadmin('admin');
+        $to = array();
+        foreach ($admins as $key=>$admin) {
+            $to[] = $admin['email'];
+        }
+
+        $content['subject'] = 'Test: email host settings'; // Give the email a subject
+
+        $content['body'] = "
+        Hello,<br><br>
+        <p>This is just a test email sent to verify your email host settings. If you can read this message, it means 
+        that everything went fine and that your settings are valid!</p>
+        ";
+
+        return $MailManager->send($content, $to, true, $data);
+    }
+
+    /**
      * Get list of users' email
      * @param null $type
      * @return array
@@ -144,37 +169,39 @@ class AppMail {
 
     /**
      * Send an email
-     * @param array|string $to: recipients list
-     * @param string $subject: email title
-     * @param string $body: body text
-     * @param array|null $attachment: list of attached files
-     * @param bool $undisclosed: hide (true) recipients list
-     * @return bool: success or failure
+     * @param array|string $to : recipients list
+     * @param string $subject : email title
+     * @param string $body : body text
+     * @param array|null $attachment : list of attached files
+     * @param bool $undisclosed : hide (true) recipients list
+     * @param array $settings: email host settings (for testing)
+     * @return bool : success or failure
      */
-    function send_mail($to, $subject, $body, $attachment = null, $undisclosed=true) {
+    function send_mail($to, $subject, $body, $attachment = null, $undisclosed=true, array $settings=null) {
         $mail = new PHPMailer();
         $mail->CharSet = 'UTF-8';
         $mail->isSMTP();                                      // set mailer to use SMTP
         $mail->SMTPDebug  = $this->SMTPDebug;         // enables SMTP debug information (for testing)
 
         $mail->Mailer = "smtp";
-        $mail->Host = $this->config->mail_host;
-        $mail->Port = $this->config->mail_port;
+        $mail->Host = (!is_null($settings) && isset($settings['mail_host'])) ? $settings['mail_host'] : $this->config->mail_host;
+        $mail->Port = (!is_null($settings) && isset($settings['mail_port'])) ? $settings['mail_port'] : $this->config->mail_port;
 
         if ($this->config->SMTP_secure != "none") {
             $mail->SMTPAuth = true;     // turn on SMTP authentication
-            $mail->SMTPSecure = $this->config->SMTP_secure; // secure transfer enabled REQUIRED for GMail
-            $mail->Username = $this->config->mail_username;
-            $mail->Password = $this->config->mail_password;
+            $mail->SMTPSecure = (!is_null($settings) && isset($settings['SMTP_secure'])) ? $settings['SMTP_secure'] : $this->config->SMTP_secure; // secure transfer enabled REQUIRED for GMail
+            $mail->Username = (!is_null($settings) && isset($settings['mail_username'])) ? $settings['mail_username'] : $this->config->mail_username;
+            $mail->Password = (!is_null($settings) && isset($settings['mail_password'])) ? $settings['mail_password'] : $this->config->mail_password;
         }
 
-        $mail->From = $this->config->mail_from;
-        $mail->FromName = $this->config->mail_from_name;
+        $mail->From = (!is_null($settings) && isset($settings['mail_from'])) ? $settings['mail_from'] : $this->config->mail_from;
+        $mail->FromName = (!is_null($settings) && isset($settings['mail_from_name'])) ? $settings['mail_from_name'] : $this->config->mail_from_name;
+        $pre_header = (!is_null($settings) && isset($settings['pre_header'])) ? $settings['pre_header'] : $this->config->pre_header;
 
         if ($undisclosed) {
             $mail->addAddress("undisclosed-recipients:;");
         }
-        $mail->addReplyTo($this->config->mail_from, $this->config->mail_from_name);
+        $mail->addReplyTo($mail->From, $mail->FromName);
 
         if (is_array($to)) {
             foreach($to as $to_add){
@@ -195,7 +222,7 @@ class AppMail {
         $mail->WordWrap = 50;                                 // set word wrap to 50 characters
         $mail->isHTML(true);
 
-        $mail->Subject = $this->config->pre_header." ".$subject;
+        $mail->Subject = $pre_header." ".$subject;
         $mail->Body    = $body;
         $mail->AltBody= @convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
 

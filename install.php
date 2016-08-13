@@ -529,6 +529,7 @@ if (!empty($_POST['getpagecontent'])) {
                 </div>
 
                 <div class='submit_btns'>
+                    <input type='submit' value='Test settings' class='test_email_settings'> 
                     <input type='submit' value='Next' class='proceed'>
                 </div>
             </form>
@@ -769,6 +770,16 @@ if (!empty($_POST['getpagecontent'])) {
                         };
                     }
                     processAjax(operationDiv,data,callback,'install.php');
+                })
+
+                // Test email host settings
+                .on('click', '.test_email_settings', function(e) {
+                    e.preventDefault();
+                    var input = $(this);
+                    var form = input.length > 0 ? $(input[0].form) : $();
+                    var data = form.serializeArray();
+                    data.push({name: 'test_email_settings', value: true});
+                    processAjax(form, data, false, 'php/form.php');
                 })
 
                 // Final step: Create admin account

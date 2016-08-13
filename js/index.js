@@ -462,6 +462,16 @@ $(document).ready(function () {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin - Mailing
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        // Test email host settings
+        .on('click', '.test_email_settings', function(e) {
+            e.preventDefault();
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var data = form.serializeArray();
+            data.push({name: 'test_email_settings', value: true});
+            processAjax(form, data, false, 'php/form.php');
+        })
+
         // Add emails
         .on('click', '.add_email', function (e) {
             e.preventDefault();
