@@ -172,7 +172,7 @@ var checkform = function(el) {
         }
 
         // Check if provided email is valid
-        if ($(this).attr('type') == 'email' && !checkemail($(this).val())) {
+        if ($(this).val().length > 0 && $(this).attr('type') == 'email' && !checkemail($(this).val())) {
             msg = "Invalid email";
             thisField = false;
         }
