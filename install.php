@@ -529,7 +529,7 @@ if (!empty($_POST['getpagecontent'])) {
                 </div>
                 <div class='formcontrol'>
                     <label for='test_email'>Your email (for testing only)</label>
-                    <input name='test_email' type='email' value='$AppConfig->mail_password'>
+                    <input name='test_email' type='email' value=''>
                 </div>
 
                 <div class='submit_btns'>
