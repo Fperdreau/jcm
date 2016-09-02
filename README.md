@@ -36,7 +36,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 * TinyMCE Copyright &copy; Moxiecode Systems AB, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
 
 ##Requirements:
-* A web server running PHP 5.2 or later
+* A web server running PHP 5.5 or later
 * MySQLi (5.0 or later)
 * CRON table (Linux)/Scheduled task (Windows) *(required for email notifications)*
 * SMTP server or a Google Mail account
