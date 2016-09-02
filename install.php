@@ -374,7 +374,7 @@ if (!empty($_POST['operation'])) {
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $date = $row['date'];
-            $time = $row['time'];
+            $time = $row['jc_time'];
             if (!in_array($date, $session_date)) {
                 $session = new Session($db);
                 if (!$session->make(array('date'=>$date,'time'=>$time))) {
