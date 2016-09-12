@@ -3,6 +3,7 @@
 ## Release: 1.4.4
 ### Changes
 - Corrected minor errors (PHP STRICT errors)
+- Fixed compatibility issues with Php 5.4
 - Corrected bug that prevented the user to delete his/her account
 
 ### Mailing
