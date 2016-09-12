@@ -96,15 +96,14 @@ class SpeakerAssignment extends AppCron {
         $result['status'] = true;
         $result['msg'] = null;
 
-        $Assignment = new Session($this->db);
         $MailManager = new MailManager($this->db);
 
         // Get future sessions dates
-        $jc_days = $Assignment->getjcdates(1);
-        $session = new Session($this->db, $jc_days[0]);
         $today = date('Y-m-d');
-        $dueDate = date('Y-m-d',strtotime($jc_days[0] . " - {$this->options['Days']['value']} day"));
-        if ($today == $dueDate) {
+        $dueDate = date('Y-m-d', strtotime($today . " + {$this->options['Days']['value']} day"));
+        $session = new Session($this->db, $dueDate);
+
+        if ($session->dateexists($dueDate)) {
             $n = 0;
             foreach ($session->presids as $presid) {
                 $Presentation = new Presentation($this->db, $presid);
