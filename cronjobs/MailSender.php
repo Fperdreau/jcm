@@ -96,6 +96,9 @@ class MailSender extends AppCron {
         $sent = 0;
         foreach ($this->Manager->all(0) as $key=>$email) {
             $recipients = explode(',', $email['recipients']);
+            if ($email['attachments'] == '') {
+                $email['attachments'] = null;
+            }
             if (self::$AppMail->send_mail($recipients, $email['subject'], $email['content'], $email['attachments'])) {
                 $result = $this->Manager->update(array('status'=>1), $email['mail_id']);
                 $sent += 1;
