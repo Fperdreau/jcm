@@ -69,6 +69,12 @@ foreach ($includeList as $includeFile) {
 SessionInstance::initsession();
 
 /**
+ * Get logger
+ */
+
+$Corelogger = AppLogger::get_instance('core');
+
+/**
  * Declare classes
  *
  */
