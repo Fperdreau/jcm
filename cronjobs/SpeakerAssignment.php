@@ -176,12 +176,13 @@ class SpeakerAssignment extends AppCron {
     public function reminderEmail(User $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
+        $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $contactURL = URL_TO_APP."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
                 <p>This is to remind you that you have a presentation (<span style='font-weight: 500'>$sessionType</span>) planned on the a <span style='font-weight: 500'>$date</span>.</p>
-                <p>Please, submit your presentation on the Journal Club Manager if you have not already.</p>
+                <p>Please, submit your presentation on the <i>Journal Club Manager</i> before the <span style='font-weight: 500'>{$dueDate}</span> if you have not already.</p>
                 <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> on the organizers as soon as possible.</p>
             </div>
         ";
