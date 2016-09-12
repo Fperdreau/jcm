@@ -35,7 +35,7 @@ class AppTable {
     protected $db; // Instantiation of db
     protected $tablename; // Table name
     protected $table_data; // Table's data (array)
-    private static $default_exclude = array("id", "db", "tablename", "table_data");
+    private static $default_exclude = array("id", "db", "tablename", "table_data", "logger");
 
 
     /**
