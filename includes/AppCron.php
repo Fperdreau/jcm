@@ -106,6 +106,11 @@ class AppCron extends AppTable {
      */
     public static $description;
 
+    /** Application logger
+     * @var AppLogger
+     */
+    public static $logger;
+
     /**
      * Constructor
      * @param AppDb $db
@@ -114,6 +119,9 @@ class AppCron extends AppTable {
     public function __construct(AppDb $db, $name=False) {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
+
+        // Get logger
+        self::$logger = AppLogger::get_instance(get_class());
 
         // Get task's information
         $this->get();
@@ -222,31 +230,6 @@ class AppCron extends AppTable {
             $result['status'] = false;
         }
         return $result;
-    }
-
-    /**
-     * Write logs into file
-     * @param $file
-     * @param $string
-     */
-    static function logger($file, $string) {
-        $cronlog = PATH_TO_APP."/cronjobs/logs/$file";
-        if (!is_dir(PATH_TO_APP.'/cronjobs/logs')) {
-            mkdir(PATH_TO_APP.'/cronjobs/logs',0777);
-        }
-        if (!is_file($cronlog)) {
-            $fp = fopen($cronlog,"w+");
-        } else {
-            $fp = fopen($cronlog,"a+");
-        }
-        $string = "\r\n[" . date('Y-m-d H:i:s') . "]: $string.\r\n";
-
-        try {
-            fwrite($fp,$string);
-            fclose($fp);
-        } catch (Exception $e) {
-            echo "<p>Could not write file '$cronlog':<br>".$e->getMessage()."</p>";
-        }
     }
 
     /**
