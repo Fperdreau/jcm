@@ -166,13 +166,24 @@ class MailManager extends AppTable {
         $data['mail_id'] = $this->generateID();
 
         // Format email content
-        $body = $AppMail->formatmail($content['body'], $data['mail_id']);
+        $auto = !isset($content['mail_from']); // Is this message sent by a human or automatically
+        $body = $AppMail->formatmail($content['body'], $data['mail_id'], $auto);
 
         $data['status'] = 0;
         $data['content'] = $body;
-        $data['subject'] = $content['subject'];
         $data['recipients'] = implode(',', $mailing_list);
         $data['attachments'] = !empty($content['attachments']) ? $content['attachments'] : null;
+
+        // Set sender
+        if (isset($content['mail_from'])) {
+            if (is_null($settings)) {
+                $settings = array();
+            }
+            $settings['mail_from'] = $content['mail_from'];
+            $settings['mail_from_name'] = (isset($content['mail_from_name'])) ? $content['mail_from_name'] : $content['mail_from'];
+            $content['subject'] = "Sent by {$settings['mail_from_name']} - {$content['subject']}";
+        }
+        $data['subject'] = $content['subject'];
 
         if (!is_null($data['attachments'])) {
             $attachments = array();
@@ -230,9 +241,11 @@ class MailManager extends AppTable {
             if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
         }
 
+        $sender_obj = new User($this->db, $_SESSION['username']);
+        $sender = array('mail_from'=>$sender_obj->email, 'mail_from_name'=>$sender_obj->fullname);
         // Upload
         $uploader = Media::uploader();
-        return self::contactForm($uploader, $mailing_list, $recipients_list);
+        return self::contactForm($uploader, $mailing_list, $recipients_list, $sender);
     }
 
     /**
@@ -254,9 +267,11 @@ class MailManager extends AppTable {
      * @param $uploader
      * @param $mailing_list
      * @param array|null $recipients
+     * @param null|array $sender: sender information (full name and email address).
+     *      $sender = array('mail_from'=>"email@me.com", 'mail_from_name'=>"John Doe")
      * @return string
      */
-    public static function contactForm($uploader, $mailing_list, array $recipients=null) {
+    public static function contactForm($uploader, $mailing_list, array $recipients=null, $sender=null) {
 
         $recipients_list = "";
         $emails_input = null;
@@ -268,6 +283,15 @@ class MailManager extends AppTable {
             }
             $ids = implode(',', $ids);
             $emails_input = "<input name='emails' type='hidden' value='{$ids}'/>";
+        }
+
+        $sender_info = null;
+        if (!is_null($sender)) {
+            foreach ($sender as $key=>$value) {
+                if (!empty(str_replace(' ','', $value))) {
+                    $sender_info .= "<input type='hidden' name='{$key}' value='{$value}' />";
+                }
+            }
         }
 
         return "
@@ -313,15 +337,16 @@ class MailManager extends AppTable {
                     <div class='submit_btns'>
                         <input type='hidden' name='attachments' />
                         <input type='hidden' name='mailing_send' value='true' />
+                        {$sender_info}
                         {$emails_input}
                         <input type='submit' name='send' value='Send' class='mailing_send' />
                     </div>
                     <div class='formcontrol'>
                         <label>Subject:</label>
-                        <input type='text' name='spec_head' placeholder='Subject' required />
+                        <input type='text' name='subject' placeholder='Subject' required />
                     </div>
                     <div class='formcontrol'>
-                        <textarea name='spec_msg' id='spec_msg' class='tinymce' required></textarea>
+                        <textarea name='body' id='spec_msg' class='tinymce' required></textarea>
                     </div>
                 </div>
                 

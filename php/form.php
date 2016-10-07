@@ -729,10 +729,13 @@ if (!empty($_POST['contact_send'])) {
     $usr_mail = htmlspecialchars($_POST["email"]);
     $usr_name = htmlspecialchars($_POST["name"]);
     $content = "Message sent by $usr_name ($usr_mail):<br><p>$usr_msg</p>";
-    $body = $AppMail -> formatmail($content);
+    $body = $AppMail->formatmail($content, null, false);
     $subject = "Contact from $usr_name";
 
-    if ($AppMail->send_mail($sel_admin_mail,$subject,$body)) {
+    $settings['mail_from'] = $usr_mail;
+    $settings['mail_from_name'] = $usr_mail;
+
+    if ($AppMail->send_mail($sel_admin_mail, $subject, $body, null, true, $settings)) {
         $result['status'] = true;
         $result['msg'] = "Your message has been sent!";
     } else {
@@ -795,12 +798,20 @@ Mailing
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Send mail if asked
 if (!empty($_POST['mailing_send'])) {
-    $content['body'] = $_POST['spec_msg']; // Message
-    $content['subject'] = $_POST['spec_head']; // Title
+    $content = array();
+    foreach ($_POST as $key => $value) {
+        if (!is_array($value)) {
+            $value = htmlspecialchars_decode($value);
+        }
+        $content[$key] = $value;
+    }
+//    $content['body'] = $_POST['spec_msg']; // Message
+//    $content['subject'] = $_POST['spec_head']; // Title
+//    $content['mail_from'] = $_POST['mail_from']; // Sender email
+//    $content['mail_from_name'] = $_POST['mail_from']; // Sender email
     $ids = explode(',',$_POST['emails']); // Recipients list
     $content['attachments'] = $_POST['attachments']; // Attached files
     $disclose = htmlspecialchars($_POST['undisclosed']) == 'yes'; // Do we show recipients list?
-
     $user = new User($db);
     $MailManager = new MailManager($db);
 

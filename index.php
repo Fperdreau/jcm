@@ -92,12 +92,12 @@ require_once('includes/boot.php');
             <!-- Footer section -->
             <footer id="footer">
                 <div id="colBar"></div>
-                <div id="appTitle"><?php echo $AppConfig->app_name; ?></div>
-                <div id="appVersion">Version <?php echo $AppConfig->version; ?></div>
+                <div id="appTitle"><?php echo $AppConfig::$app_name; ?></div>
+                <div id="appVersion">Version <?php echo $AppConfig::$version; ?></div>
                 <div id="sign">
-                    <div><?php echo "<a href='$AppConfig->repository' target='_blank'>Sources</a></div>
+                    <div><?php echo "<a href='{$AppConfig::$repository}' target='_blank'>Sources</a></div>
                 <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3</a></div>
-                <div><a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></div>
+                <div><a href='http://www.florianperdreau.fr' target='_blank'>{$AppConfig::$copyright} {$AppConfig::$author}</a>" ?></div>
                 </div>
             </footer>
 

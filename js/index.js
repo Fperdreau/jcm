@@ -546,7 +546,7 @@ $(document).ready(function () {
                 attachments.push($(this).val());
             });
             attachments = attachments.join(',');
-            data = modArray(data, 'spec_msg', content);
+            data = modArray(data, 'body', content);
             data = modArray(data, 'attachments', attachments);
 
             processAjax(el, data, null, "php/form.php");

@@ -678,6 +678,14 @@ li a {
     font-size: 0.9em;
 }
 
+#sign a {
+    color:  rgba(207,81,81,1);
+}
+
+#sign a:hover {
+    color: rgba(200,200,200,.8);
+}
+
 #appTitle {
     text-transform: uppercase;
     color: #cccccc;

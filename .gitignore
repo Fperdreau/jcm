@@ -14,3 +14,5 @@
 
 #ignore development folder
 /dev/
+
+/logs/

@@ -290,7 +290,7 @@ if (!empty($_POST['operation'])) {
 
         // Get default application settings
         $AppConfig = new AppConfig($db, false);
-        $version = $AppConfig->version; // New version number
+        $version = $AppConfig::$version; // New version number
         if ($op === true) {
             $AppConfig->get();
         }
@@ -409,7 +409,7 @@ if (!empty($_POST['getpagecontent'])) {
     $step = htmlspecialchars($_POST['getpagecontent']);
     $_SESSION['step'] = $step;
     $op = htmlspecialchars($_POST['op']);
-    $new_version = $AppConfig->version;
+    $new_version = $AppConfig::$version;
 
     /**
      * Get configuration from previous installation
@@ -451,7 +451,7 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 1: Database configuration";
         $operation = "
 			<form action='' method='post' name='install' id='db_info'>
-                <input type='hidden' name='version' value='$AppConfig->version'>
+                <input type='hidden' name='version' value='$AppConfig::$version'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='db_info'/>
 				<input type='hidden' name='db_info' value='true' />
@@ -489,7 +489,7 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 2: Application configuration";
         $operation = "
             <form action='' method='post' name='install' id='install_db'>
-                <input type='hidden' name='version' value='$AppConfig->version'>
+                <input type='hidden' name='version' value='$AppConfig::$version'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='install_db'/>
                 <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
@@ -819,12 +819,12 @@ if (!empty($_POST['getpagecontent'])) {
     </div>
 
     <footer id="footer" style='width: 60%; padding: 20px; margin: 2% auto;'>
-        <div id="appTitle"><?php echo $AppConfig->app_name; ?></div>
-        <div id="appVersion">Version <?php echo $AppConfig->version; ?></div>
+        <div id="appTitle"><?php echo $AppConfig::$app_name; ?></div>
+        <div id="appVersion">Version <?php echo $AppConfig::$version; ?></div>
         <div id="sign">
-            <div><?php echo "<a href='$AppConfig->repository' target='_blank'>Sources</a></div>
+            <div><?php echo "<a href='{$AppConfig::$repository}' target='_blank'>Sources</a></div>
                 <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3</a></div>
-                <div><a href='http://www.florianperdreau.fr' target='_blank'>&copy2014 $AppConfig->author</a>" ?></div>
+                <div><a href='http://www.florianperdreau.fr' target='_blank'>{$AppConfig::$copyright} {$AppConfig::$author}</a>" ?></div>
         </div>
     </footer>
 </div>

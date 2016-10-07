@@ -10,6 +10,7 @@
 - Added possibility to hide recipients list.
 - Added possibility to test email host settings without modifying JCM's configuration during the installation process
  and on Admin>Settings page.
+- Added possibility to reply to email sent through JCM if sender is a human.
 
 ### Assignments
 - Send reminder to user about his/her upcoming presentation

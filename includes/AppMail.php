@@ -255,9 +255,10 @@ class AppMail {
      * Format email (html)
      * @param string $content
      * @param null $email_id
+     * @param bool $auto: has this email been sent automatically
      * @return string
      */
-    function formatmail($content, $email_id=null) {
+    function formatmail($content, $email_id=null, $auto=True) {
         $show_in_browser = (is_null($email_id)) ? null:
             "<a href='" . URL_TO_APP."pages/mail.php?mail_id={$email_id}"
             . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
@@ -271,6 +272,7 @@ class AppMail {
                 padding: 0;
                 position: relative;
         ";
+        $footer = self::footer_template($show_in_browser, $profile_url, $auto);
         $body = "
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
@@ -287,16 +289,32 @@ class AppMail {
                         {$content}
                     </div>
 
-                    <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
-                        <div style='text-align: center;'>{$show_in_browser}</div>
-                        <div style='border-top: 1px solid #e0e0e0;'>This email has been sent automatically. You can choose to no longer receive email 
-                        notifications by going to your
-                        <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
-                        </div>
-                        <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='{$this->config->repository}' style='color: #CF5151; text-decoration: none;'>Journal Club Manager &copy; 2014</a></div>
-                    </div>
+                    {$footer}
                 </div>
             </div>";
         return $body;
+    }
+
+    /**
+     * Render email footer
+     * @param $url_browser
+     * @param $profile_url
+     * @param bool $auto: has this email been sent automatically
+     * @return string
+     */
+    static function footer_template($url_browser, $profile_url, $auto=True) {
+        $auto_msg = ($auto) ? "
+            <div style='border-top: 1px solid #e0e0e0;'>This email has been sent automatically. You can choose to no longer receive email 
+                notifications by going to your
+                <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
+            </div>
+        " : null;
+        return "
+        <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
+            <div style='text-align: center;'>{$url_browser}</div>
+            {$auto_msg}
+            <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='" . AppConfig::$repository . "' style='color: #CF5151; text-decoration: none;'>" . AppConfig::$app_name . " " . AppConfig::$copyright . "</a></div>
+        </div>
+        ";
     }
 }

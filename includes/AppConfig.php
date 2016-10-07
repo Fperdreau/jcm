@@ -42,11 +42,12 @@ class AppConfig extends AppTable {
      *
      */
     public $status = 'On'; // Application's status (on or off)
-    public $app_name = "Journal Club Manager"; // Application's name
-    public $version = "1.4.4 - beta"; // Application's version
-    public $author = "Florian Perdreau"; // Application's authors
-    public $repository = "https://github.com/Fperdreau/jcm"; // Application's sources
+    public static $app_name = "Journal Club Manager"; // Application's name
+    public static $version = "1.4.4 - beta"; // Application's version
+    public static $author = "Florian Perdreau"; // Application's authors
+    public static $repository = "https://github.com/Fperdreau/jcm"; // Application's sources
     public $sitetitle = "Journal Club Manager"; //
+    public static $copyright = "&copy; 2014-2016";
     public static $site_url; // Web path to application
     public $max_nb_attempt = 5; // Maximum nb of login attempt
 
