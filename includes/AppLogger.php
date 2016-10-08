@@ -132,6 +132,21 @@ class AppLogger {
      * @return string
      */
     private static function format($message) {
-        return "[" . date('Y-m-d H:i:s') . "] - " . self::$class_name . ": $message.\r\n";
+        return "[" . date('Y-m-d H:i:s') . "] - " . self::$class_name . " - [User: ". self::get_user() ."]: $message.\r\n";
+    }
+
+    /**
+     * Get user
+     * @return string
+     */
+    private static function get_user() {
+        if (php_sapi_name() === "cli") {
+            return "system";
+        } elseif (isset($_SESSION['username'])) {
+            return $_SESSION['username'];
+        } else {
+            return "system";
+        }
+
     }
 }

@@ -450,7 +450,7 @@ class AppCron extends AppTable {
             }
 
         }
-        
+
         if (is_null($logs)) {
             $logs = 'Nothing to display';
         }
