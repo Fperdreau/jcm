@@ -210,61 +210,7 @@ if (!empty($_POST['operation'])) {
 
     // STEP 2: Write database credentials to config.php file
     if ($operation == "do_conf") {
-
-        $filename = PATH_TO_CONFIG . "config.php";
-        $result = "";
-        if (is_file($filename)) {
-            unlink($filename);
-        }
-
-        // Make config folder
-        $dirname = PATH_TO_CONFIG;
-        if (is_dir($dirname) === false) {
-            if (!mkdir($dirname, 0755)) {
-                $result['status'] = false;
-                $result['msg'] = "Could not create config directory";
-                echo json_encode($result);
-                exit;
-            }
-        }
-
-        // Make uploads folder
-        $dirname = PATH_TO_APP . "/uploads/";
-        if (is_dir($dirname) === false) {
-            if (!mkdir($dirname, 0755)) {
-                $result['status'] = false;
-                $result['msg'] = "Could not create uploads directory";
-                echo json_encode($result);
-                exit;
-            }
-        }
-
-        // Write configuration information to config/config.php
-        $fields_to_write = array("version", "host", "username", "passw", "dbname", "dbprefix");
-        $config = array();
-        foreach ($_POST as $name => $value) {
-            if (in_array($name, $fields_to_write)) {
-                $config[] = '"' . $name . '" => "' . $value . '"';
-            }
-        }
-        $config = implode(',', $config);
-        $string = '<?php $config = array(' . $config . '); ?>';
-
-        // Create new config file
-        if ($fp = fopen($filename, "w+")) {
-            if (fwrite($fp, $string) == true) {
-                fclose($fp);
-                $result['status'] = true;
-                $result['msg'] = "Configuration file created!";
-            } else {
-                $result['status'] = false;
-                $result['msg'] = "Impossible to write";
-            }
-        } else {
-            $result['status'] = false;
-            $result['msg'] = "Impossible to open the file";
-        }
-        echo json_encode($result);
+        echo json_encode($AppConfig::createConfig($_POST));
         exit;
     }
 
@@ -275,6 +221,7 @@ if (!empty($_POST['operation'])) {
         $backup->run();
         $result['msg'] = "Backup is complete!";
         $result['status'] = true;
+        AppLogger::get_instance(APP_NAME)->info($result['msg']);
         echo json_encode($result);
         exit;
     }
@@ -363,6 +310,8 @@ if (!empty($_POST['operation'])) {
 
         $result['msg'] = "Database installation complete!";
         $result['status'] = true;
+        AppLogger::get_instance(APP_NAME, 'Install')->info($result['msg']);
+
         echo json_encode($result);
         exit;
     }
