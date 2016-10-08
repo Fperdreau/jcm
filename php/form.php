@@ -193,7 +193,7 @@ if (!empty($_POST['showLog'])) {
 // Delete scheduled task's logs
 if (!empty($_POST['deleteLog'])) {
     $name = htmlspecialchars($_POST['deleteLog']);
-    $result['status'] = AppCron::deleteLog($name);
+    $result['status'] = AppCron::deleteLog();
     echo json_encode($result);
     exit;
 }
@@ -271,8 +271,7 @@ if (!empty($_POST['mod_cron'])) {
 if (!empty($_POST['run_cron'])) {
     $cronName = $_POST['cron'];
     $CronJobs = new AppCron($db);
-    $cron = $CronJobs->instantiate($cronName);
-    $result['msg'] = $cron->run();
+    $result['msg'] = $CronJobs->execute($cronName);
     $result['status'] = true;
     echo json_encode($result);
     exit;

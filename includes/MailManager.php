@@ -288,7 +288,8 @@ class MailManager extends AppTable {
         $sender_info = null;
         if (!is_null($sender)) {
             foreach ($sender as $key=>$value) {
-                if (!empty(str_replace(' ','', $value))) {
+                $value = str_replace(' ','', $value);
+                if (!empty($value)) {
                     $sender_info .= "<input type='hidden' name='{$key}' value='{$value}' />";
                 }
             }

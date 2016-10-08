@@ -451,7 +451,7 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 1: Database configuration";
         $operation = "
 			<form action='' method='post' name='install' id='db_info'>
-                <input type='hidden' name='version' value='$AppConfig::$version'>
+                <input type='hidden' name='version' value='{$AppConfig::$version}'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='db_info'/>
 				<input type='hidden' name='db_info' value='true' />
@@ -489,7 +489,7 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 2: Application configuration";
         $operation = "
             <form action='' method='post' name='install' id='install_db'>
-                <input type='hidden' name='version' value='$AppConfig::$version'>
+                <input type='hidden' name='version' value='{$AppConfig::$version}'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='install_db'/>
                 <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
@@ -497,20 +497,20 @@ if (!empty($_POST['getpagecontent'])) {
                 <h3>Mailing service</h3>
                 <div class='formcontrol'>
                     <label for='mail_from'>Sender Email address</label>
-                    <input name='mail_from' type='email' value='$AppConfig->mail_from'>
+                    <input name='mail_from' type='email' value='{$AppConfig->mail_from}'>
                 </div>
                 <div class='formcontrol'>
                     <label for='mail_from_name'>Sender name</label>
-                    <input name='mail_from_name' type='text' value='$AppConfig->mail_from_name'>
+                    <input name='mail_from_name' type='text' value='{$AppConfig->mail_from_name}'>
                 </div>
                 <div class='formcontrol'>
                     <label for='mail_host'>Email host</label>
-                    <input name='mail_host' type='text' value='$AppConfig->mail_host'>
+                    <input name='mail_host' type='text' value='{$AppConfig->mail_host}'>
                 </div>
                 <div class='formcontrol'>
                     <label for='SMTP_secure'>SMTP access</label>
                     <select name='SMTP_secure'>
-                        <option value='$AppConfig->SMTP_secure' selected='selected'>$AppConfig->SMTP_secure</option>
+                        <option value='{$AppConfig->SMTP_secure}' selected='selected'>{$AppConfig->SMTP_secure}</option>
                         <option value='ssl'>ssl</option>
                         <option value='tls'>tls</option>
                         <option value='none'>none</option>
@@ -518,15 +518,15 @@ if (!empty($_POST['getpagecontent'])) {
                  </div>
                 <div class='formcontrol'>
                     <label for='mail_port'>Email port</label>
-                    <input name='mail_port' type='text' value='$AppConfig->mail_port'>
+                    <input name='mail_port' type='text' value='{$AppConfig->mail_port}'>
                 </div>
                 <div class='formcontrol'>
                     <label for='mail_username'>Email username</label>
-                    <input name='mail_username' type='text' value='$AppConfig->mail_username'>
+                    <input name='mail_username' type='text' value='{$AppConfig->mail_username}'>
                 </div>
                 <div class='formcontrol'>
                     <label for='mail_password'>Email password</label>
-                    <input name='mail_password' type='password' value='$AppConfig->mail_password'>
+                    <input name='mail_password' type='password' value='{$AppConfig->mail_password}'>
                 </div>
                 <div class='formcontrol'>
                     <label for='test_email'>Your email (for testing only)</label>

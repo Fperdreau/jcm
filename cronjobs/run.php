@@ -30,106 +30,14 @@ require('../includes/boot.php');
  * Run scheduled tasks and send a notification to the admins
  * @return array
  */
-function run() {
-    global $db;
+global $db, $AppConfig;
 
-    $AppCron = new AppCron($db);
-    $runningCron = $AppCron->getRunningJobs();
-    $nbJobs = count($runningCron);
-    $logs = array();
-
-    if ($nbJobs > 0) {
-        $logs['msg'] = "There are $nbJobs task(s) to run.";
-        foreach ($runningCron as $job) {
-            $AppCron::$logger->log("Task '$job' starts.");
-            $result = null;
-
-            /**
-             * Instantiate job object
-             * @var AppCron $thisJob
-             */
-            $thisJob = $AppCron->instantiate($job);
-            $thisJob->get();
-
-            // Run job
-            try {
-                $result = $thisJob->run();
-                $logs[$job][] = $AppCron::$logger->log("Task '$job' result: $result.");
-            } catch (Exception $e) {
-                $logs[$job][] = $AppCron::$logger->log("Execution of '$job' encountered an error: " . $e->getMessage() . ".");
-            }
-
-            // Update new running time
-            $newTime = $thisJob->updateTime();
-            if ($newTime['status']) {
-                $logs[$job][] = $AppCron::$logger->log("$job: Next running time: {$newTime['msg']}: {$result}.");
-            } else {
-                $logs[$job][] = $AppCron::$logger->log("$job: Could not update the next running time.");
-            }
-
-            $logs[$job][] = $AppCron::$logger->log("Task '$job' completed.");
-        }
-        return $logs;
-    } else {
-        return $logs;
-    }
-}
-
-/**
- * Send logs to admins
- * @param array $logs
- * @return bool
- */
-function mailLogs(array $logs) {
-    global $db, $AppConfig;
-    $MailManager = new MailManager($db);
-
-    // Only notify admins if asked
-    if (!$AppConfig->notify_admin_task) {
-        return false;
-    }
-
-    // Convert array to string
-    $string = "<p>{$logs['msg']}</p>";
-    foreach ($logs as $job=>$info) {
-        if ($job == 'msg') {
-            continue;
-        }
-        $string .= "<h3>{$job}</h3>";
-        foreach ($info as $status) {
-            $string .= "<li>{$status}</li>";
-        }
-    }
-
-    // Get admins email
-    $adminMails = $db->getinfo($db->tablesname['User'],'email',array('status'),array("'admin'"));
-    if (!is_array($adminMails)) $adminMails = array($adminMails);
-    $content['body'] = "
-            <p>Hello, </p>
-            <p>Please find below the logs of the scheduled tasks.</p>
-            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
-                    Logs
-                </div>
-                <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
-                    $string
-                </div>
-            </div>";
-    $content['subject'] = "Scheduled tasks logs";
-    if ($MailManager->send($content, $adminMails)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// Run scheduled tasks
-$logs = run();
+$AppCron = new AppCron($db);
+$logs = $AppCron->execute_all();
 
 // Send logs to admins
-if (!empty($logs)) {
-    if ($AppConfig->notify_admin_task == 'yes') {
-        mailLogs($logs);
+if ($logs !== false) {
+    if ($AppConfig->notify_admin_task) {
+        $AppCron->notify_admin($logs);
     }
 }
-

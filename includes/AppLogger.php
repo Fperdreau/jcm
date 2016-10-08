@@ -46,19 +46,41 @@ class AppLogger {
      */
     private static $instances;
 
+    private static $class_name;
+
     /**
      * AppLogger constructor.
      * @param null $file_name
      */
     private function __construct($file_name=null) {
         $this->file_name = (is_null($file_name)) ? self::$default_name : $file_name;
+        self::$class_name = (is_null($file_name)) ? self::$default_name : $file_name;
         $now = date('Ymd');
-        $this->file = PATH_TO_APP."/logs/{$this->file_name}_{$now}.log";
+        $this->file = self::get_path() . "{$this->file_name}_{$now}.log";
 
         # Create log folder if it does not exist yet
-        if (!is_dir(PATH_TO_APP.'/logs')) {
-            mkdir(PATH_TO_APP.'/logs',0777);
+        if (!is_dir(self::get_path())) {
+            mkdir(self::get_path(), 0777);
         }
+    }
+
+    /**
+     * Get log files
+     * @param $class_name
+     * @return array
+     */
+    public static function get_logs($class_name) {
+        $files = array();
+        foreach (scandir(self::get_path()) as $item) {
+            if (preg_match("/{$class_name}/i", $item)) {
+                $files[] = self::get_path() . $item;
+            }
+        }
+        return $files;
+    }
+
+    public static function get_path() {
+        return PATH_TO_APP . "/logs/";
     }
 
     /**
@@ -85,7 +107,7 @@ class AppLogger {
             $fp = fopen($this->file,"a+");
         }
 
-        echo $string;
+        if (php_sapi_name() === "cli") {echo $string  . PHP_EOL;}
 
         try {
             fwrite($fp, self::format($string));
@@ -110,6 +132,6 @@ class AppLogger {
      * @return string
      */
     private static function format($message) {
-        return "[" . date('Y-m-d H:i:s') . "] - " . get_called_class() . ": $message.\r\n";
+        return "[" . date('Y-m-d H:i:s') . "] - " . self::$class_name . ": $message.\r\n";
     }
 }

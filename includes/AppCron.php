@@ -120,14 +120,17 @@ class AppCron extends AppTable {
         parent::__construct($db, 'Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
 
-        // Get logger
-        self::$logger = AppLogger::get_instance(get_class());
+        self::get_logger();
 
         // Get task's information
         $this->get();
 
         // If time is default, set time to now
         $this->time = ($this->time === '1970-01-01 00:00:00') ? date('Y-m-d H:i:s', time()) : $this->time;
+    }
+
+    public static function get_logger() {
+        self::$logger = AppLogger::get_instance(get_class());
     }
 
     /**
@@ -137,6 +140,107 @@ class AppCron extends AppTable {
     public function install() {
         $class_vars = get_class_vars($this->name);
         return $this->make($class_vars);
+    }
+
+    /**
+     * Run scheduled tasks and send a notification to the admins
+     * @return array
+     * @throws Exception
+     */
+    public function execute_all() {
+        $runningCron = $this->getRunningJobs();
+        $nbJobs = count($runningCron);
+        $logs = array();
+        if ($nbJobs > 0) {
+            $logs['msg'] = self::$logger->log("There are $nbJobs task(s) to run.");
+            foreach ($runningCron as $job) {
+                $logs[$job] = $this->execute($job);
+            }
+            return $logs;
+        } else {
+            $logs['msg'] = null;
+            return $logs;
+        }
+    }
+
+    /**
+     * Run scheduled tasks and send a notification to the admins
+     * @param string $task_name: task name
+     * @return array|mixed
+     */
+    public function execute($task_name) {
+        self::get_logger();
+        /**
+         * Instantiate job object
+         * @var AppCron $thisJob
+         */
+        $thisJob = $this->instantiate($task_name);
+        $thisJob->get();
+
+        $this::$logger->log("Task '$task_name' starts");
+        $result = null;
+
+        // Run job
+        try {
+            $result = $thisJob->run();
+            $logs[] = $this::$logger->log("Task '$task_name' result: $result");
+        } catch (Exception $e) {
+            $logs[] = $this::$logger->log("Execution of '$task_name' encountered an error: " . $e->getMessage());
+        }
+
+        // Update new running time
+        $newTime = $thisJob->updateTime();
+        if ($newTime['status']) {
+            $logs[] = $this::$logger->log("$task_name: Next running time: {$newTime['msg']}");
+        } else {
+            $logs[] = $this::$logger->log("$task_name: Could not update the next running time");
+        }
+
+        $logs[] = $this::$logger->log("Task '$task_name' completed");
+
+        return $logs;
+    }
+
+    /**
+     * Sends an email to admins with the scheduled tasks logs
+     * @param array $logs
+     * @return mixed
+     */
+    public function notify_admin(array $logs) {
+        $MailManager = new MailManager($this->db);
+
+        // Convert array to string
+        $string = "<p>{$logs['msg']}</p>";
+        foreach ($logs as $job=>$info) {
+            if ($job == 'msg') {
+                continue;
+            }
+            $string .= "<h3>{$job}</h3>";
+            foreach ($info as $status) {
+                $string .= "<li>{$status}</li>";
+            }
+        }
+
+        // Get admins email
+        $adminMails = $this->db->getinfo($this->db->tablesname['User'],'email',array('status'),array("'admin'"));
+        if (!is_array($adminMails)) $adminMails = array($adminMails);
+        $content['body'] = "
+            <p>Hello, </p>
+            <p>Please find below the logs of the scheduled tasks.</p>
+            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+                    Logs
+                </div>
+                <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
+                    $string
+                </div>
+            </div>";
+        $content['subject'] = "Scheduled tasks logs";
+        if ($MailManager->send($content, $adminMails)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -330,16 +434,25 @@ class AppCron extends AppTable {
      * @return null|string: logs
      */
     public static function showLog($name) {
-        $path = PATH_TO_APP . '/cronjobs/logs/'. $name . '.txt';
+        $logs = AppLogger::get_logs(get_class());
+        if (empty($logs)) {
+            return null;
+        }
+        $path = $logs[0];
+        $logs = null;
+
         if (is_file($path)) {
-            $logs = '';
-            $fh = fopen($path,'r');
-            while ($line = fgets($fh)) {
-                $logs .= "{$line}<br>";
+            $content = file_get_contents($path);
+            $pattern = "/[^\\n]*{$name}[^\\n]*/";
+            preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
+            foreach ($matches[0] as $res=>$line) {
+                $logs .= "<pre>{$line[0]}</pre>";
             }
-            fclose($fh);
-        } else {
-            $logs = null;
+
+        }
+        
+        if (is_null($logs)) {
+            $logs = 'Nothing to display';
         }
         return $logs;
     }
@@ -349,13 +462,17 @@ class AppCron extends AppTable {
      * @param string $name: Task's name
      * @return null|string: logs
      */
-    public static function deleteLog($name) {
-        $path = PATH_TO_APP . '/cronjobs/logs/'. $name . '.txt';
-        if (is_file($path)) {
-            return unlink($path);
-        } else {
-            return false;
+    public static function deleteLog($name=null) {
+        $name = (is_null($name)) ? get_class() : $name;
+        $result = false;
+        foreach (AppLogger::get_logs($name) as $path) {
+            if (is_file($path)) {
+                $result = unlink($path);
+            } else {
+                $result = false;
+            }
         }
+        return $result;
     }
     
     /**
