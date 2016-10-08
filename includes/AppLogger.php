@@ -37,6 +37,11 @@ class AppLogger {
     private $file;
 
     /**
+     * File handler
+     */
+    private $handler;
+
+    /**
      * @var string: Default file name
      */
     static private $default_name = 'system';
@@ -46,15 +51,37 @@ class AppLogger {
      */
     private static $instances;
 
+    /**
+     * Calling class name
+     * @var null|string
+     */
     private static $class_name;
+
+    /**
+     * Verbose level
+     * @var string
+     */
+    private static $level = 'info';
+
+    /**
+     * Verbose levels
+     */
+    const DEBUG = 'debug';
+    const INFO = 'info';
+    const ERROR = 'error';
+    const WARN = 'warning';
+    const CRIT = 'critical';
+    const FATAL = 'fatal';
 
     /**
      * AppLogger constructor.
      * @param null $file_name
+     * @param null $class_name
      */
-    private function __construct($file_name=null) {
+    private function __construct($file_name=null, $class_name=null) {
         $this->file_name = (is_null($file_name)) ? self::$default_name : $file_name;
-        self::$class_name = (is_null($file_name)) ? self::$default_name : $file_name;
+        $this->set_class($class_name);
+
         $now = date('Ymd');
         $this->file = self::get_path() . "{$this->file_name}_{$now}.log";
 
@@ -79,43 +106,219 @@ class AppLogger {
         return $files;
     }
 
+    /**
+     * Verbose level setter
+     * @param string $level
+     */
+    public static function set_level($level) {
+        self::$level = $level;
+    }
+
+    /**
+     * Get path to log files
+     * @return string
+     */
     public static function get_path() {
         return PATH_TO_APP . "/logs/";
     }
 
     /**
      * Get logger
-     * @param $class_name
+     * @param string $log_name
+     * @param null|string $class_name
      * @return AppLogger
      */
-    public static function get_instance($class_name) {
-        if (is_null(self::$instances) or !isset(self::$instances[$class_name]) ) {
-            self::$instances[$class_name] = new self($class_name);
+    public static function get_instance($log_name, $class_name=null) {
+        if (is_null(self::$instances) or !isset(self::$instances[$log_name]) ) {
+            self::$instances[$log_name] = new self($log_name, $class_name);
+        } else {
+            if (!is_null($class_name)) {
+                self::$instances[$log_name]->set_class($class_name);
+            }
         }
-        return self::$instances[$class_name];
+
+        return self::$instances[$log_name];
+    }
+
+    public function set_class($class_name) {
+        self::$class_name = (is_null($class_name)) ? self::$default_name : $class_name;
+    }
+
+    /**
+     * Alias for AppLogger->log($msg, $echo, $level)
+     * @param $msg
+     * @param bool $echo
+     */
+    public function info($msg, $echo=false) {
+        $this->log($msg, $echo, AppLogger::INFO);
+    }
+
+    /**
+     * Alias for AppLogger->log($msg, $echo, $level)
+     * @param $msg
+     * @param bool $echo
+     */
+    public function debug($msg, $echo=false) {
+        $this->log($msg, $echo, AppLogger::DEBUG);
+    }
+
+    /**
+     * Alias for AppLogger->log($msg, $echo, $level)
+     * @param $msg
+     * @param bool $echo
+     */
+    public function warning($msg, $echo=false) {
+        $this->log($msg, $echo, AppLogger::WARN);
+    }
+
+    /**
+     * Alias for AppLogger->log($msg, $echo, $level)
+     * @param $msg
+     * @param bool $echo
+     */
+    public function critical($msg, $echo=false) {
+        $this->log($msg, $echo, AppLogger::CRIT);
+    }
+
+    /**
+     * Alias for AppLogger->log($msg, $echo, $level)
+     * @param $msg
+     * @param bool $echo
+     */
+    public function fatal($msg, $echo=false) {
+        $this->log($msg, $echo, AppLogger::FATAL);
+    }
+
+    /**
+     * Alias for AppLogger->log($msg, $echo, $level)
+     * @param $msg
+     * @param bool $echo
+     */
+    public function error($msg, $echo=false) {
+        $this->log($msg, $echo, AppLogger::ERROR);
     }
 
     /**
      * Write logs into file
-     * @param $string
+     * @param array|string $msg
+     * @param bool $echo
+     * @param string $level
      * @return string
      */
-    public function log($string) {
-        if (!is_file($this->file)) {
-            $fp = fopen($this->file,"w+");
+    public function log($msg, $echo=false, $level=null) {
+        if (is_null($string = self::parse_msg($msg))) {
+            return null;
+        }
+
+        if (is_null($level)) {
+            $level = self::parse_level($msg);
+        }
+
+        // Echo message
+        if ($echo or php_sapi_name() === "cli") {
+            self::echo_msg($string);
+        }
+
+        // Format message
+        $string = self::format($string, $level);
+
+        // Write into log file
+        $this->write($string);
+
+        return $msg;
+    }
+
+    /**
+     * Parse level
+     * @param $msg
+     * @return string
+     */
+    private static function parse_level($msg) {
+        if (is_array($msg)) {
+            $level = (isset($msg['status']) & $msg['status'] === false) ? self::ERROR : self::INFO;
         } else {
-            $fp = fopen($this->file,"a+");
+            $level = (is_bool($msg) & !$msg) ? self::ERROR : self::INFO;
         }
+        return $level;
+    }
 
-        if (php_sapi_name() === "cli") {echo $string  . PHP_EOL;}
+    /**
+     * Parse message
+     * @param $msg
+     * @return mixed|null
+     */
+    private static function parse_msg($msg) {
+        if (is_array($msg)) {
+            if (isset($msg['msg'])) {
+                return $msg['msg'];
+            } else {
+                return null;
+            }
+        } else {
+            return $msg;
+        }
+    }
 
+    /**
+     * Open log file
+     * @return null|resource
+     */
+    private function open() {
+        if (!is_null($this->handler)) {
+            return $this->handler;
+        } else {
+            try {
+                $mode = !is_file($this->file) ? "w+" : "a+";
+                $this->handler = fopen($this->file, $mode);
+            } catch (Exception $e) {
+                self::echo_msg("Could not open file '{$this->file}':<br>" . $e->getMessage());
+            }
+            return $this->handler;
+        }
+    }
+
+    /**
+     * Write into log file
+     * @param string $msg
+     */
+    private function write($msg) {
+        $this->open();
         try {
-            fwrite($fp, self::format($string));
-            fclose($fp);
+            fwrite($this->handler, $msg);
+            $this->close();
         } catch (Exception $e) {
-            echo "<p>Could not write into file '{$this->file}':<br>".$e->getMessage()."</p>";
+            self::echo_msg("Could not write into file '{$this->file}':<br>" . $e->getMessage());
         }
-        return $string;
+    }
+
+    /**
+     * Close log file and set handler to null
+     */
+    private function close() {
+        fclose($this->handler);
+        $this->handler = null;
+    }
+
+    /**
+     * Choose right format to echo string
+     * @param string $string
+     */
+    public static function echo_msg($string) {
+        if (php_sapi_name() === "cli") {
+            echo $string  . PHP_EOL;
+        } elseif (self::isAjax()) {
+            echo json_encode($string);
+        } else {
+            echo "<pre>{$string}</pre>";
+        }
+    }
+
+    /**
+     * Check if it is an AJAX request
+     * @return bool
+     */
+    private static function isAjax() {
+        return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     }
 
     /**
@@ -127,12 +330,13 @@ class AppLogger {
     }
 
     /**
-     * Format log
-     * @param $message
+     * Format log message
+     * @param string $message
+     * @param string $level
      * @return string
      */
-    private static function format($message) {
-        return "[" . date('Y-m-d H:i:s') . "] - " . self::$class_name . " - [User: ". self::get_user() ."]: $message.\r\n";
+    private static function format($message, $level) {
+        return "[" . date('Y-m-d H:i:s') . "] - [User: ". self::get_user() ."] - ". strtoupper($level) . " - [" . self::$class_name . "] - : {$message}.\r\n";
     }
 
     /**
@@ -147,6 +351,5 @@ class AppLogger {
         } else {
             return "system";
         }
-
     }
 }
