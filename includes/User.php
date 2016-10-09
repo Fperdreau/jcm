@@ -321,7 +321,8 @@ class User extends Users{
                         Your registration cannot be validated for the moment. Please try again later.";;
                 }
             }
-		} else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
+        } else {
             $result['status'] = false;
 			$result['msg'] = "This username/email address already exist in our database";
 		}
@@ -464,8 +465,10 @@ class User extends Users{
             }
         } else {
             self::delete_user($this->username);
-            return "Permission denied by the admin. Account successfully deleted.";
+            $result['status'] = false;
+            $result['msg'] = "Permission denied by the admin. Account successfully deleted.";
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
@@ -484,8 +487,10 @@ class User extends Users{
                 $result['msg'] = "Account successfully deactivated";
             } else {
                 $result['status'] = false;
+                $result['msg'] = "We could not deactivate this account";
             }
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
@@ -603,6 +608,7 @@ class User extends Users{
                 $result['msg'] = "User status is now $newstatus!";
             }
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 

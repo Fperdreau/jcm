@@ -169,15 +169,21 @@ class AppDb {
         $this->bdd = mysqli_connect($this->host,$this->username,$this->passw);
         if (!$this->bdd) {
             $result['status'] = false;
-            die(json_encode("Failed to connect to the database" . mysqli_error($this->bdd)));
+            $result['msg'] = "Failed to connect to the database" . mysqli_error($this->bdd);
+            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
+            die(json_encode($result['msg']));
         }
 
         if (!mysqli_select_db($this->bdd,"$this->dbname")) {
-            die(json_encode("Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd)));
+            $result['msg'] = "Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd);
+            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
+            die(json_encode($result['msg']));
         }
 
         if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
-            die(json_encode("Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd)));
+            $result['msg'] = "Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd);
+            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
+            die(json_encode($result['msg']));
         }
 
         return $this->bdd;
@@ -198,6 +204,7 @@ class AppDb {
         if (!@mysqli_select_db($link,$config['dbname'])) {
             $result['status'] = false;
             $result['msg'] = "Database '".$config['dbname']."' cannot be selected<br/>";
+            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
             return $result;
         }
         $result['status'] = true;
@@ -266,13 +273,14 @@ class AppDb {
     public function send_query($sql,$silent=false) {
         self::bdd_connect();
         if (!mysqli_set_charset($this->bdd,"utf8")) {
-            print('We could not load UTF8 charset');
+            AppLogger::get_instance(APP_NAME)->critical('We could not load UTF8 charset');
         }
         $req = mysqli_query($this->bdd,$sql);
         if (false === $req) {
             if ($silent == false) {
                 echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
             }
+            AppLogger::get_instance(APP_NAME)->critical('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
             return false;
         } else {
             self::bdd_close();

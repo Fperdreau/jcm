@@ -431,7 +431,13 @@ class Presentation extends Presentations {
         // Update table
         $class_vars = get_class_vars("Presentation");
         $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
-        return $this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres));
+        if ($this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
+            return true;
+        } else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id_pres})");
+            return false;
+        }
     }
 
     /**
@@ -487,7 +493,13 @@ class Presentation extends Presentations {
         $uploads->delete_files($this->id_pres);
 
         // Delete corresponding entry in the publication table
-        return $this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id));
+        if ($this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id))) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$pres_id}) deleted");
+            return true;
+        } else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not delete presentation ({$pres_id})");
+            return false;
+        }
     }
 
     /**

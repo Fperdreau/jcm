@@ -204,17 +204,19 @@ class MailManager extends AppTable {
                 $result['status'] = $this->update(array('status'=>1), $data['mail_id']);
             } else {
                 $result['status'] = false;
+                $result['msg'] = 'Could not send email';
             };
 
         } else {
             $result['status'] = false;
+            $result['msg'] = 'Could not add email to database';
         };
 
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
-
     }
 
     /**

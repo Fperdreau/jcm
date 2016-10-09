@@ -37,7 +37,6 @@ class AppTable {
     protected $table_data; // Table's data (array)
     private static $default_exclude = array("id", "db", "tablename", "table_data", "logger");
 
-
     /**
      * Constructor
      * @param AppDb $db
@@ -89,9 +88,11 @@ class AppTable {
         if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
             $result['status'] = True;
             $result['msg'] = "'$this->tablename' created";
+            AppLogger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
         } else {
             $result['status'] = False;
             $result['msg'] = "'$this->tablename' not created";
+            AppLogger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
         }
         return $result;
     }

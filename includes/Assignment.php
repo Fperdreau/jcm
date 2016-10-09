@@ -276,8 +276,10 @@ class Assignment extends AppTable {
             if ($notify) {
                 $session->notify_session_update($user, $info, $assign);
             }
+            AppLogger::get_instance(APP_NAME, get_class($this))->info("Assignments for {$user->username} have been updated");
             return true;
         } else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
             return false;
         }
     }

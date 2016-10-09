@@ -448,7 +448,6 @@ class AppCron extends AppTable {
             foreach ($matches[0] as $res=>$line) {
                 $logs .= "<pre>{$line[0]}</pre>";
             }
-
         }
 
         if (is_null($logs)) {
@@ -568,11 +567,12 @@ class AppCron extends AppTable {
     
                         <div class='plugOpt' id='$cronName'></div>
                         <div>
-                            <input type='submit' class='showLog' value='Show logs' id='{$cronName}' />
-                            <input type='submit' class='deleteLog' value='Delete logs' id='{$cronName}' />
+                            <a href='" . URL_TO_APP . "php/form.php?show_log_manager=true&class=AppCron&search={$cronName}' class='show_log_manager' id='{$cronName}'>
+                            <input type='submit' value='Show logs' id='{$cronName}' />
+                            </a>
                         </div>
 
-                        <div class='plugLog' id='${cronName}' style='display: none'></div>
+                        <div class='log_target_container' id='${cronName}' style='display: none'></div>
 
                     </div>
                     

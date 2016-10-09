@@ -186,7 +186,7 @@ class AppConfig extends AppTable {
         $postkeys = array_keys($post);
         $result = false;
         foreach ($class_vars as $name => $value) {
-            if (in_array($name,array("db","tablename","table_data"))) continue;
+            if (in_array($name, array("db", "tablename", "table_data"))) continue;
             $newvalue = (in_array($name,$postkeys)) ? $post[$name] : $this->get_setting($name);
             $newvalue = ($name == "session_type") ? json_encode($newvalue) : $newvalue;
             $this->set_setting($name, $newvalue);
@@ -196,6 +196,11 @@ class AppConfig extends AppTable {
                 $result = $this->db->updatecontent($this->tablename,array("value"=>$newvalue),array("variable"=>$name));
             } else {
                 $result = $this->db->addcontent($this->tablename,array("variable"=>$name,"value"=>$newvalue));
+            }
+            if ($result) {
+                AppLogger::get_instance(APP_NAME, get_class($this))->info("'{$name}' set to {$newvalue}");
+            } else {
+                AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not set '{$name}' to {$newvalue}");
             }
         }
         return $result;
@@ -227,5 +232,61 @@ class AppConfig extends AppTable {
         } else {
             $this->$setting = $value;
         }
+    }
+
+    /**
+     * Create configuration files including database credentials and App version
+     * @param $post
+     * @return string
+     */
+    public static function createConfig($post) {
+        $folders = array('config','uploads');
+
+        $filename = PATH_TO_CONFIG . "config.php";
+        $result = "";
+        if (is_file($filename)) {
+            unlink($filename);
+        }
+
+        // Make folders
+        foreach ($folders as $folder) {
+            $dirname = PATH_TO_APP.'/'.$folder;
+            if (is_dir($dirname) === false) {
+                if (!mkdir($dirname, 0755)) {
+                    $result['status'] = false;
+                    $result['msg'] = "Could not create '$folder' directory";
+                    AppLogger::get_instance(APP_NAME, get_class())->critical($result);
+                    return $result;
+                }
+            }
+        }
+
+        // Write configuration information to config/config.php
+        $fields_to_write = array("version", "host", "username", "passw", "dbname", "dbprefix");
+        $config = array();
+        foreach ($post as $name => $value) {
+            if (in_array($name, $fields_to_write)) {
+                $config[] = '"' . $name . '" => "' . $value . '"';
+            }
+        }
+        $config = implode(',', $config);
+        $string = '<?php $config = array(' . $config . '); ?>';
+
+        // Create new config file
+        if ($fp = fopen($filename, "w+")) {
+            if (fwrite($fp, $string) == true) {
+                fclose($fp);
+                $result['status'] = true;
+                $result['msg'] = "Configuration file created!";
+            } else {
+                $result['status'] = false;
+                $result['msg'] = "Impossible to write";
+            }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "Impossible to open the file";
+        }
+        AppLogger::get_instance(APP_NAME, get_class())->log($result);
+        return $result;
     }
 }

@@ -102,7 +102,8 @@ class Uploads extends AppTable{
                 $req = $this->db->send_query($sql);
                 $data = mysqli_fetch_assoc($req);
                 $file = new Media($this->db,$data['fileid']);
-                if  (!$this->db->deletecontent($this->tablename,'fileid',$file->fileid)) {
+                if  (!$this->db->deletecontent($this->tablename, 'fileid', $file->fileid)) {
+                    AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;
                 }
             }
@@ -180,12 +181,14 @@ class Media extends Uploads {
         // First check the file
         $result['error'] = $this->checkupload($file);
         if ($result['error'] != true) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error($result['error']);
             return $result;
         }
 
         // Second: Proceed to upload
         $result = $this->upload($file);
         if ($result['error'] !== true) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error($result['error']);
             return $result;
         }
 
@@ -197,8 +200,8 @@ class Media extends Uploads {
         $result['error'] = $this->db->addcontent($this->tablename,$content);
         if ($result['error'] !== true) {
             $result['error'] = 'SQL: Could not add the file to the media table';
+            AppLogger::get_instance(APP_NAME, get_class($this))->error($result['error']);
         }
-
         return $result;
     }
 
@@ -245,7 +248,13 @@ class Media extends Uploads {
      * @return mixed
      */
     function add_presid($filename,$presid) {
-        return $this->db->updatecontent($this->tablename,array('presid'=>$presid),array('filename'=>$filename));
+        if ($this->db->updatecontent($this->tablename,array('presid'=>$presid),array('filename'=>$filename))) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->log("New id ({$presid}) associated with file ({$filename})");
+            return true;
+        } else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not associate id ({$presid}) to file ({$filename})");
+            return false;
+        }
     }
 
     /**
@@ -257,19 +266,20 @@ class Media extends Uploads {
             if (unlink($this->directory.$this->filename)) {
                 if ($this->db->deletecontent($this->tablename,'fileid',$this->fileid)) {
                     $result['status'] = true;
-                    $result['msg'] = "<p class='sys_msg success'>File Deleted</p>";
+                    $result['msg'] = "File Deleted";
                 } else {
                     $result['status'] = false;
-                    $result['msg'] = "<p class='sys_msg success'>Oops!</p>";
+                    $result['msg'] = "Could not remove file entry from database";
                 }
             } else {
                 $result['status'] = false;
-                $result['msg'] = "<p class='sys_msg success'>Oops!</p>";
+                $result['msg'] = "Could not delete file";
             }
         } else {
             $result['status'] = false;
-            $result['msg'] = "<p class='sys_msg success'>Oops!</p>";
+            $result['msg'] = "File does not exist";
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 

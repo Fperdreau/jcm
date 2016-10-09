@@ -23,6 +23,10 @@
 // Includes required files (classes)
 require('../includes/boot.php');
 
+if (!empty($_GET)) {
+    $_POST = $_GET;
+}
+
 if (!empty($_POST['get_app_status'])) {
     echo json_encode($AppConfig->status);
     exit;
@@ -193,7 +197,36 @@ if (!empty($_POST['showLog'])) {
 // Delete scheduled task's logs
 if (!empty($_POST['deleteLog'])) {
     $name = htmlspecialchars($_POST['deleteLog']);
-    $result['status'] = AppCron::deleteLog();
+    $result['status'] = AppCron::deleteLog($name);
+    echo json_encode($result);
+    exit;
+}
+
+// Get scheduled task's logs
+if (!empty($_POST['show_log'])) {
+    $name = (isset($_POST['name'])) ? htmlspecialchars($_POST['name']) : htmlspecialchars($_POST['show_log']);
+    $search = (isset($_POST['search'])) ? htmlspecialchars($_POST['search']) : null;
+    $result = AppLogger::show($name, $search);
+    if (is_null($result)) $result = 'Nothing to display';
+    echo json_encode($result);
+    exit;
+}
+
+// Delete scheduled task's logs
+if (!empty($_POST['delete_log'])) {
+    $name = htmlspecialchars($_POST['delete_log']);
+    $file = htmlspecialchars($_POST['file']);
+    $result['status'] = AppLogger::delete($file);
+    $result['content'] = AppLogger::manager($name);
+    echo json_encode($result);
+    exit;
+}
+
+// Get log manager
+if (!empty($_POST['show_log_manager'])) {
+    $name = htmlspecialchars($_POST['class']);
+    $search = htmlspecialchars($_POST['search']);
+    $result = AppLogger::manager($name, $search);
     echo json_encode($result);
     exit;
 }
@@ -1062,13 +1095,14 @@ if (!empty($_POST['modSpeaker'])) {
     exit;
 }
 
-// Modify defaut session type
+// Modify default session type
 if (!empty($_POST['session_type_default'])) {
     if ($AppConfig->update($_POST)) {
         $result['status'] = true;
         $result['msg'] = "DONE";
     } else {
         $result['status'] = false;
+        $result['msg'] = "Something went wrong";
     }
     echo json_encode($result);
     exit;

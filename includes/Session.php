@@ -540,7 +540,13 @@ class Session extends Sessions {
             $content = $this->parsenewdata($class_vars, $post, array('presids','speakers', 'max_nb_session'));
 
             // Add session to the database
-            return $this->db->addcontent($this->tablename,$content);
+            if ($this->db->addcontent($this->tablename, $content)) {
+                AppLogger::get_instance(APP_NAME, get_class($this))->info("New session created on {$this->date}");
+                return true;
+            } else {
+                AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not create session on {$this->date}");
+                return false;
+            }
         } else {
             $this->get($this->date);
             return $this->update($post);
@@ -562,7 +568,13 @@ class Session extends Sessions {
         } else {
             $status = "Booked out";
         }
-        return $this->db->updatecontent($this->tablename,array("status"=>$status, "nbpres"=>$this->nbpres),array('date'=>$this->date));
+        if ($this->db->updatecontent($this->tablename,array("status"=>$status, "nbpres"=>$this->nbpres),array('date'=>$this->date))) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->info("Status of session {$this->date} set to: {$status}");
+            return true;
+        } else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not change status of session {$this->date} to: {$status}");
+            return false;
+        }
     }
 
     /**
@@ -595,7 +607,6 @@ class Session extends Sessions {
 
     /**
      * Get presentations and speakers
-     * @return array
      */
     public function getPresids() {
         $sql = "SELECT id_pres,orator FROM ".$this->db->tablesname['Presentation']." WHERE date='$this->date'";
@@ -648,7 +659,7 @@ class Session extends Sessions {
         $class_vars = get_class_vars("Session");
         $content = $this->parsenewdata($class_vars,$post, array('speakers','presids', 'max_nb_session'));
         if (!$this->db->updatecontent($this->tablename,$content,array('date'=>$this->date))) {
-            return false;
+            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not update session ({$this->date})");
         }
 
         $this->get();

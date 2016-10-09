@@ -92,7 +92,9 @@ class Posts extends AppTable {
             $result['msg'] = "Thank you for your post!";
         } else {
             $result['status'] = false;
+            $result['msg'] = 'We could not add your post';
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->info($result);
         return $result;
     }
 
@@ -130,7 +132,9 @@ class Posts extends AppTable {
             $result['msg'] = "Thank you for your post!";
         } else {
             $result['status'] = false;
+            $result['msg'] = 'Sorry, we could not update your post';
         }
+        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
@@ -155,7 +159,13 @@ class Posts extends AppTable {
      * @return bool
      */
     public function delete($postid) {
-        return $this->db->deletecontent($this->tablename,array('postid'),array($postid));
+        if ($this->db->deletecontent($this->tablename,array('postid'),array($postid))) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->info("Post ({$postid}) deleted");
+            return true;
+        } else {
+            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not delete post ({$postid})");
+            return false;
+        }
     }
 
     /**

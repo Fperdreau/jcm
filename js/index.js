@@ -619,6 +619,115 @@ $(document).ready(function () {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin - Sessions
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        /**
+         * Show  logs
+         */
+        .on('click', '.show_log', function(e) {
+            e.preventDefault();
+            var name = $(this).closest('.log_container').attr('id');
+            var url = $(this).attr('href');
+            var div = $('.log_content_container#' + name);
+            $('.log_list_item_container').each(function() {
+                $(this).removeClass('log_list_active');
+            });
+            var item = $(this).closest('.log_list_item_container');
+            jQuery.ajax({
+                type: 'get',
+                url: url,
+                beforeSend: function() {
+                    loadingDiv(div);
+                },
+                complete: function() {
+                    removeLoading(div);
+                },
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    div.html(json);
+                    item.addClass('log_list_active');
+                }
+            });
+        })
+
+        /**
+         * Search in logs
+         */
+        .on('click', '.search_log', function(e) {
+            e.preventDefault();
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var name = $(this).attr('id');
+            var url = form.attr('action');
+            var div = $('.log_content_container#' + name);
+            jQuery.ajax({
+                type: 'get',
+                url: url,
+                data: form.serializeArray(),
+                beforeSend: function() {
+                    loadingDiv(div);
+                },
+                complete: function() {
+                    removeLoading(div);
+                },
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    div.html(json);
+                }
+            });
+        })
+
+        /**
+         * Delete  log file
+         */
+        .on('click', '.delete_log', function(e) {
+            e.preventDefault();
+            var div = $(this).closest('.log_container');
+            var url = $(this).attr('href');
+            jQuery.ajax({
+                type: 'get',
+                url: url,
+                beforeSend: function() {
+                    loadingDiv(div);
+                },
+                complete: function() {
+                    removeLoading(div);
+                },
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    if (json.status == true) {
+                        div.html(json.content);
+                    }
+                }
+            });
+        })
+
+        /**
+         * Delete  log file
+         */
+        .on('click', '.show_log_manager', function(e) {
+            e.preventDefault();
+            //var div = $(this).closest('.log_container');
+            var name = $(this).attr('id');
+            var div = $('.log_target_container#' + name);
+            var url = $(this).attr('href');
+            jQuery.ajax({
+                type: 'get',
+                url: url,
+                beforeSend: function() {
+                    loadingDiv(div);
+                },
+                complete: function() {
+                    removeLoading(div);
+                },
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    div.html(json).toggle();
+                }
+            });
+        })
+
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Admin - Sessions
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Add a session/presentation type
         .on('click','.type_add',function (e) {
             var classname = $(this).attr('data-class');

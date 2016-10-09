@@ -201,6 +201,29 @@ select.select_opt {
     color: #555;
 }
 
+input[type="search"] {
+    padding: 8px 5px 8px 40px;
+    border-radius: 5px;
+    border: 1px solid rgba(207, 81, 81, .3);
+    color: #777;
+
+    width: 130px;
+    box-sizing: border-box;
+    font-size: 16px;
+    background-image: url('../images/search.png');
+    background-position: 5px 8px;
+    background-size: 21px 21px;
+    background-repeat: no-repeat;
+    -webkit-transition: width .4s ease-in-out;
+    transition: width .4s ease-in-out
+}
+
+input[type="search"]:focus {
+    outline: none;
+    border-bottom: 1px solid rgba(207,81,81,1);
+    width: 70%;
+}
+
 /* Submit and action buttons */
 .submit_btns {
     margin: 0 auto 0 0;
@@ -216,17 +239,18 @@ select.select_opt {
 
 /** Submit buttons **/
 input[type="submit"], input[type="button"], button[type="submit"] {
-    background: #FFFFFF;
     color: rgba(50, 50, 50, 1);
-    border: 1px solid rgba(207, 81, 81, 1); /* Small border around our submit button */
+    border: 1px solid rgba(207, 81, 81, 1);
     transition: all 0.3s ease 0s;
     opacity: 1;
     cursor: pointer;
-    padding: 10px 20px;
+    padding: 10px 10px 10px 40px;
     font-size: 12px;
     margin-right: 5px;
     margin-top: 5px;
     border-radius: 5px;
+    background: rgba( 255, 255, 255, 1) url(../images/submit_icon_black.png) 10px 50% no-repeat;
+    background-size: 20px;
 }
 
 input[type="submit"]:after, input[type="button"]:after {
@@ -237,12 +261,14 @@ input[type="submit"]:after, input[type="button"]:after {
 
 input[type="submit"]:hover, input[type="button"]:hover {
     color: #FFF;
-    background: rgba(207, 81, 81, 1); /* Set button background */
+    background: rgba(207, 81, 81, 1) url(../images/submit_icon_white.png) 10px 50% no-repeat;
+    background-size: 20px;
 }
 
 input[type="submit"]:active, input[type="button"]:active {
     color: #FFF;
-    background: rgba(207, 81, 81, .5); /* Set button background */
+    background:rgba(145, 73, 73, 1) url(../images/submit_icon_white.png) 10px 50% no-repeat;
+    background-size: 30px;
     border: 1px solid #DFDFDF; /* Small border around our submit button */
 }
 
@@ -1248,6 +1274,142 @@ input[name='title'], input[name='authors'] {
 }
 
 /* *********************************************************************/
+/* Admin - Logs
+/* *********************************************************************/
+.log_target_container {
+    display: none;
+}
+
+.log_container {
+    margin-top: 10px;
+    font-size: 14px;
+    border: 1px dashed rgba(50, 50, 50, .5);
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.log_search_bar {
+    min-width: 300px;
+}
+
+.log_search_bar input {
+    vertical-align: middle;
+}
+
+.log_search_bar input[type=search] {
+    padding: 8px 5px 8px 10px;
+    border-radius: 5px;
+    border: none;
+    color: #ffffff;
+
+    background: none;
+    background-color: rgb(100, 100, 100);
+    width: 130px;
+    box-sizing: border-box;
+    font-size: 16px;
+
+    -webkit-transition: width .4s ease-in-out;
+    transition: width .4s ease-in-out;
+    vertical-align: middle;
+}
+
+.log_search_bar input[type=search]:focus {
+    outline: none;
+    width: 70%;
+}
+
+.log_search_bar:hover input[type=button], .log_search_bar:active input[type=button], .log_search_bar:focus input[type=button]{
+    outline: none;
+    opacity: 1;
+    margin-left: -40px;
+    background-color: rgb(80, 80, 80);
+}
+
+.log_search_bar input[type=button]:hover {
+    background-color: rgb(150, 150, 150);
+    background-image: url(../images/search.png);
+}
+
+.log_search_bar input[type="button"] {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    margin: 0 0 0 -40px;
+    width: 30px;
+    opacity: 0.0;
+    vertical-align: middle;
+    border: none;
+    background-color: rgb(68, 68, 68);
+    background-image: url(../images/search_icon_white.png);
+    background-position: 50% 50%;
+    background-size: 21px 21px;
+    background-repeat: no-repeat;
+}
+
+.log_content_container {
+    display: inline-block;
+    min-width: 300px;
+    width: 70%;
+    margin: 10px 0 0 0;
+    padding: 5px;
+    background: rgba(100,100,100,1);
+    color: white;
+    font-size: 12px;
+    overflow-y: auto;
+    max-height: 300px;
+    border: 1px solid rgba(50, 50, 50, .5);
+    border-radius: 5px;
+    vertical-align: top;
+}
+
+.log_list_container {
+    margin: 10px 5px 0 0;
+    padding: 10px;
+    border: 1px solid rgba(50, 50, 50, .5);
+    border-radius: 5px;
+    width: 180px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.log_list_item_container {
+    margin-top: 5px;
+    border-bottom: 1px solid rgba(50, 50, 50, .3);
+}
+
+.log_list_active {
+    background: rgba(207,81,81,0.1);
+}
+
+.log_list_item_container>div {
+    display: inline-block;
+}
+
+.log_list_item_container .log_info {
+    width: 140px;
+    padding: 5px;
+    font-size: 12px;
+}
+
+.log_list_item_container .log_name {
+    text-transform: uppercase;
+    font-weight: 400;
+}
+
+.log_list_item_container .log_date {
+    color: #2d8ac7;
+}
+
+.log_list_item_container .log_icon {
+    width: 20px;
+    text-align: right;
+    vertical-align: middle;
+}
+
+.log_icon>a>img {
+    width: 20px;
+}
+
+/* *********************************************************************/
 /* Admin - Plugins
 /* *********************************************************************/
 .plugDiv {
@@ -1323,7 +1485,6 @@ input[name='title'], input[name='authors'] {
     overflow-y: auto;
     max-height: 300px;
     border: 1px solid rgba(50, 50, 50, .5);
-
 }
 
 .workBtn {

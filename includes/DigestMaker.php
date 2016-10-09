@@ -104,7 +104,11 @@ class DigestMaker extends AppTable {
      */
     public function register($name) {
         if (!$this->get($name)) {
-            $this->add(array('name'=>$name, 'display'=>0, 'position'=>0));
+            if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
+                AppLogger::get_instance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into digest table");
+            } else {
+                AppLogger::get_instance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into digest table");
+            }
         }
     }
     
