@@ -22,6 +22,43 @@
 
 // Includes required files (classes)
 require_once('includes/boot.php');
+
+$menu = "
+<nav>
+    <ul>
+        <li class=\"main_section\" id='home'><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
+        <li class=\"main_section\" id='news'><a href='index.php?page=news' class='menu-section' id='news'>news</a></li>
+        <li class=\"main_section\" id='archives'><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
+        <li class=\"main_section\" id='contact'><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
+        <li class=\"main_section\" id='organizer'><a href='#' class='submenu_trigger' id='addmenu-organizer'>organizer</a></li>   
+        <nav class='submenu' id='addmenu-organizer'>
+            <ul>
+                <li><a href='index.php?page=sessions' class='menu-section' id='sessions'>Sessions</a></li>
+                <li><a href='index.php?page=users' class='menu-section' id='users'>Users</a></li>
+                <li><a href='index.php?page=email' class='menu-section' id='email'>Mailing</a></li>
+                <li><a href='index.php?page=post' class='menu-section' id='post'>Posts</a></li>
+                <li><a href='index.php?page=digest' class='menu-section' id='digest'>Digest</a></li>
+                <li><a href='index.php?page=reminder' class='menu-section' id='reminder'>Reminder</a></li>
+                <li><a href='index.php?page=assignment' class='menu-section' id='assignment'>Assignments</a></li>
+            </ul>
+        </nav>
+        <li class=\"main_section\" id='admin'><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>
+        <nav class='submenu' id='addmenu-admin'>
+            <ul>
+                <li><a href='index.php?page=settings' class='menu-section' id='settings'>Settings</a></li>
+                <li><a href='index.php?page=pages' class='menu-section' id='pages'>Pages</a></li>
+                <li><a href='index.php?page=plugins' class='menu-section' id='plugins'>Plugins</a></li>
+                <li><a href='index.php?page=tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
+                <li><a href='index.php?page=logs' class='menu-section' id='logs'>System logs</a></li>
+            </ul>
+        </nav>
+    </ul>
+</nav>
+
+
+
+";
+
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -46,7 +83,7 @@ require_once('includes/boot.php');
     <body class="mainbody">
 
         <div class="sideMenu">
-            <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+            <?php echo $menu; ?>
         </div>
 
             <!-- Header section -->
@@ -60,7 +97,7 @@ require_once('includes/boot.php');
             Menu section -->
                 <div class="menu">
                     <div class="topnav">
-                        <?php require(PATH_TO_PHP.'page_menu.php'); ?>
+                        <?php echo $menu; ?>
                     </div>
                 </div><!--
              Login box-->

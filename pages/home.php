@@ -35,7 +35,7 @@ $wishlist = $presentations->getwishlist(10,true);
         <div class='submitMenuSection'>
             <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='submit'>
                <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/submit.png'. "'></div>
+                    <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
                     <div class='text'>Submit</div>
                 </div>
            </a>
@@ -43,7 +43,7 @@ $wishlist = $presentations->getwishlist(10,true);
         <div class='submitMenuSection'>
             <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
                <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/wish.png'. "'></div>
+                    <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
                     <div class='text'>Add a wish</div>
                 </div>
             </a>
@@ -51,7 +51,7 @@ $wishlist = $presentations->getwishlist(10,true);
         <div class='submitMenuSection'>
             <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='select'>
                 <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/select.png'. "'></div>
+                    <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
                     <div class='text'>Select a wish</div>
                 </div>
             </a>

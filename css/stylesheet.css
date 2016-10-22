@@ -249,7 +249,7 @@ input[type="submit"], input[type="button"], button[type="submit"] {
     margin-right: 5px;
     margin-top: 5px;
     border-radius: 5px;
-    background: rgba( 255, 255, 255, 1) url(../images/submit_icon_black.png) 10px 50% no-repeat;
+    background: rgba( 255, 255, 255, 1) url(../images/next_black.png) 10px 50% no-repeat;
     background-size: 20px;
 }
 
@@ -261,13 +261,13 @@ input[type="submit"]:after, input[type="button"]:after {
 
 input[type="submit"]:hover, input[type="button"]:hover {
     color: #FFF;
-    background: rgba(207, 81, 81, 1) url(../images/submit_icon_white.png) 10px 50% no-repeat;
+    background: rgba(207, 81, 81, 1) url(../images/next_white.png) 10px 50% no-repeat;
     background-size: 20px;
 }
 
 input[type="submit"]:active, input[type="button"]:active {
     color: #FFF;
-    background:rgba(145, 73, 73, 1) url(../images/submit_icon_white.png) 10px 50% no-repeat;
+    background:rgba(145, 73, 73, 1) url(../images/next_white.png) 10px 50% no-repeat;
     background-size: 30px;
     border: 1px solid #DFDFDF; /* Small border around our submit button */
 }
@@ -401,7 +401,8 @@ header {
     width: 100%;
     min-width: 320px;
     z-index: 100;
-    background-color: rgba(68,68,68,1);
+    background-color: rgba(50,50,50,1);
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12)!important;
     padding: 0;
     margin: 0;
     box-sizing: border-box;
@@ -412,14 +413,13 @@ header {
 header>div{
     display: inline-block;
     height: 40px;
-    line-height: 40px;
     vertical-align: bottom;
     margin: 0;
 }
 
 #sitetitle {
-    background: rgba(150,150,150,.5);
-    color: rgba(255,255,255,1);
+    background: rgb(100, 100, 100);
+    color: rgb(255,255,255);
     text-align: left;
     font-size: 0;
     font-weight: 300;
@@ -429,22 +429,15 @@ header>div{
     border-left: 5px solid rgba(207,81,81,1);
 }
 
-#menu {
-    width: auto;
-}
-
 #login_box {
     box-sizing: border-box;
-    height: auto;
-    width: auto;
     float: right;
-    font-size: 0.9em;
     vertical-align: middle;
-    background-color: rgba(68,68,68,1);
     color: #FFF;
     cursor: pointer;
     padding: 0 4px 0 3px;
     margin: 0;
+    line-height: 38px;
     transition: all 0.3s ease 0s;
 }
 
@@ -479,6 +472,12 @@ header>div{
     width: auto;
 }
 
+#menu {
+    width: auto;
+    margin: 0;
+    text-align: left;
+}
+
 li {
     text-transform: uppercase;
 }
@@ -488,24 +487,66 @@ li a {
 }
 
 .topnav {
-    width: auto;
     display: inline-block;
+    transition: width .4s ease-in-out
 }
 
 .topnav nav ul {
     list-style-type: none;
     margin: auto;
     padding: 0;
+    font-size: 0;
 }
 
-.topnav nav li {
+nav li {
     display: inline-block;
     list-style: none;
     cursor: pointer;
     text-align: center;
-    font-size: 1.2em;
+    padding: 0 10px 0 35px;
     color: rgba(207,81,81,1);
-    margin-left: 20px;
+    margin-left: 0;
+    letter-spacing: 1px;
+    box-sizing: border-box;
+    width: auto;
+    height: 40px;
+    font-size: 12px;
+    line-height: 39px;
+}
+
+nav li:first-letter {
+    font-size: 15pxpx;
+}
+
+
+nav li#home {
+    background-image: url("../images/home.png");
+}
+
+nav li#archives {
+    background-image: url("../images/archives.png");
+}
+
+nav li#news {
+    background-image: url("../images/news.png");
+}
+
+nav li#contact {
+    background-image: url("../images/contact.png");
+}
+
+nav li#organizer {
+    background-image: url("../images/organizer.png");
+}
+
+nav li#admin {
+    background-image: url("../images/admin.png");
+}
+
+.main_section {
+    background-position: 5px 50%;
+    background-size: 25px;
+    background-repeat: no-repeat;
 }
 
 .topnav nav li a {
@@ -516,6 +557,10 @@ li a {
     color: #ffffff;
 }
 
+.topnav nav li:hover {
+    background-color: rgba(207,81,81,1);
+}
+
 .topnav nav li a.activepage, .dropdown nav li a.activepage {
     color: #ffffff;
 }
@@ -524,13 +569,14 @@ li a {
 .topnav nav.submenu {
     display: none;
     position: absolute;
-    background-color: rgba(34,34,34,.9);
+    background-color: rgba(34,34,34,.95);
     box-shadow: 0 2px 2px #555;
     z-index: 10;
     margin: 0;
     padding: 0;
-    width: auto;
-    max-width: 250px;
+    width: 250px;
+    font-size: 14px;
+    border-left: 3px solid rgba(207,81,81,1);
 }
 
 .topnav nav.submenu ul {
@@ -544,21 +590,46 @@ li a {
     vertical-align: bottom;
     list-style: none;
     display: block;
-    padding: 2px 5px;
+    padding: 2px 5px 2px 20px;
     margin: 0;
-    font-size: 1em;
+    font-size: 14px;
     border-bottom: 1px solid rgba(255,255,255,.1);
     color: #eee;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.topnav nav.submenu li:hover {
+nav.submenu li:hover, nav.submenu .activepage {
     border-bottom: 1px solid rgba(34,34,34,.5);
-    background: rgba(255,255,255,.5);
-    color: rgba(68,68,68,1);
+    padding: 2px 5px 2px 30px;
+    background: rgba( 50, 50, 50, 1) url(../images/submit_icon_white.png) 5px 50% no-repeat;
+    background-size: 10px;
+    font-size: 16px;
 }
 
-.topnav nav.submenu li:hover>a {
-    color: rgba(68,68,68,1);
+nav .activepage {
+    color: white;
+    background: rgb(25, 25, 25);
+    background-position: 5px 50%;
+    background-size: 25px;
+    background-repeat: no-repeat;}
+
+nav li.active_submenu {
+    background-color: rgba(207,81,81,1);
+    color: white;
+}
+
+nav li.active_submenu a {
+    color: white;
+}
+
+nav.submenu li > a {
+    font-weight: 500;
+}
+
+nav.submenu li:hover>a {
+    color: rgba(200, 200, 200, 1);
 }
 
 /* Side Menu */
@@ -617,18 +688,7 @@ li a {
     margin: 0;
     border-bottom: 1px solid rgba(255,255,255,.5);
     color: #eee;
-    padding: 10px;
     cursor: pointer;
-}
-
-.sideMenu nav li:hover {
-    border-bottom: 1px solid rgba(34,34,34,.5);
-    background: rgba(255,255,255,.5);
-    color: rgba(68,68,68,1);
-}
-
-.sideMenu nav li:hover>a {
-    color: #ffffff;
 }
 
 .sideMenu nav.submenu {
@@ -641,33 +701,8 @@ li a {
     width: 100%;
 }
 
-.sideMenu nav.submenu ul {
-    display: block;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-
 .sideMenu nav.submenu li {
-    vertical-align: bottom;
-    list-style: none;
-    display: block;
-    padding: 5px;
-    margin: 0;
-    font-size: 1em;
-    border-bottom: 1px solid rgba(255,255,255,.1);
-    color: #eee;
     text-align: right;
-}
-
-.sideMenu nav.submenu li:hover {
-    border-bottom: 1px solid rgba(34,34,34,.5);
-    background: rgba(255,255,255,.5);
-    color: rgba(68,68,68,1);
-}
-
-.sideMenu nav.submenu li:hover>a {
-    color: rgba(68,68,68,1);
 }
 
 /* *********************************************************************/
@@ -948,7 +983,6 @@ h3 {
 .submitMenuSection {
     display: inline-block;
     font-size: 14px;
-    padding: 10px;
     background: #E4E4E2;
     text-align: center;
     text-transform: uppercase;
@@ -1007,11 +1041,10 @@ h3 {
 
 .icon_container>.icon>img{
     border: 2px solid #CF5151;
-    border-radius: 100%;
+    border-radius: 50%;
     padding: 5px;
     background: white;
-    width: 20px;
-    height: 20px;
+    width: 30px;
     vertical-align: bottom;
 }
 
@@ -1952,6 +1985,7 @@ button.addBtn>img {
     -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
     -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
     box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
+    border-radius: 5px;
 }
 
 .modal_section {
