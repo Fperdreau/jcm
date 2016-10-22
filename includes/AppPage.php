@@ -379,4 +379,61 @@ class AppPage extends AppTable {
         return $pageSettings;
     }
 
+    public static function organizer_menu() {
+        return "
+            <li class='main_section' id='organizer'><a href='#' class='submenu_trigger' id='addmenu-organizer'>organizer</a></li>   
+            <nav class='submenu' id='addmenu-organizer'>
+                <ul>
+                    <li><a href='index.php?page=sessions' class='menu-section' id='sessions'>Sessions</a></li>
+                    <li><a href='index.php?page=users' class='menu-section' id='users'>Users</a></li>
+                    <li><a href='index.php?page=email' class='menu-section' id='email'>Mailing</a></li>
+                    <li><a href='index.php?page=post' class='menu-section' id='post'>Posts</a></li>
+                    <li><a href='index.php?page=digest' class='menu-section' id='digest'>Digest</a></li>
+                    <li><a href='index.php?page=reminder' class='menu-section' id='reminder'>Reminder</a></li>
+                    <li><a href='index.php?page=assignment' class='menu-section' id='assignment'>Assignments</a></li>
+                </ul>
+            </nav>
+        ";
+    }
+
+    public static function admin_menu() {
+        return "
+        <li class='main_section' id='admin'><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>
+        <nav class='submenu' id='addmenu-admin'>
+            <ul>
+                <li><a href='index.php?page=settings' class='menu-section' id='settings'>Settings</a></li>
+                <li><a href='index.php?page=pages' class='menu-section' id='pages'>Pages</a></li>
+                <li><a href='index.php?page=plugins' class='menu-section' id='plugins'>Plugins</a></li>
+                <li><a href='index.php?page=tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
+                <li><a href='index.php?page=logs' class='menu-section' id='logs'>System logs</a></li>
+            </ul>
+        </nav>
+        ";
+    }
+
+    public static function menu() {
+
+        if (isset($_SESSION['logok']) && $_SESSION['logok']) {
+            $organizer = self::organizer_menu();
+            $admin = self::admin_menu();
+        } else {
+            $organizer = null;
+            $admin = null;
+        }
+
+        return "
+            <nav>
+                <ul>
+                    <li class='main_section' id='home'><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
+                    <li class='main_section' id='news'><a href='index.php?page=news' class='menu-section' id='news'>news</a></li>
+                    <li class='main_section' id='archives'><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
+                    <li class='main_section' id='contact'><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
+                    {$organizer}
+                    {$admin}
+                </ul>
+            </nav>
+            
+        ";
+    }
+
 }
