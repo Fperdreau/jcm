@@ -394,7 +394,7 @@ div.inputFeedback {
 /* Presentation form */
 .form_aligned_block {
     display: inline-block;
-    min-width: 280px;
+    min-width: 270px;
     width: 49%;
     vertical-align: top;
     box-sizing: border-box;
@@ -1171,6 +1171,7 @@ h3 {
     width: 200px;
     box-sizing: border-box;
     text-align: left;
+    padding: 5px 0px;
 }
 
 .icon_container>div {
