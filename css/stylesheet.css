@@ -391,6 +391,153 @@ div.inputFeedback {
     background: rgba(200, 0, 0, .5);
 }
 
+/* Presentation form */
+.form_aligned_block {
+    display: inline-block;
+    min-width: 280px;
+    width: 49%;
+    vertical-align: top;
+    box-sizing: border-box;
+    height: 250px;
+}
+
+.form_container {
+    text-align: center;
+}
+
+.form_container form {
+    width: 100%;
+    display: initial;
+    position: relative;
+}
+
+.form_container form .form_container#float {
+    position: relative;
+}
+
+.float_input {
+    position: relative;
+    width: 100%;
+    border: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+.float_input > input[type='text']:focus + label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(207, 82, 82, .8);
+    color: white;
+    font-size: 60%;
+    padding: 1px 6px;
+    z-index: 2;
+    text-transform: uppercase;
+    top: 100%;
+    margin-top: -16px;
+}
+
+.float_input > input[type='text']:focus {
+    padding: 4px 6px 20px 6px;
+    border: 1px solid rgba(207, 81, 81, .5);
+}
+
+.float_input > input[type='text']:valid {
+    background: white;
+}
+
+.float_input > label {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    transition:
+    background 0.2s,
+    color 0.2s,
+    top 0.2s,
+    bottom 0.2s,
+    right 0.2s,
+    left 0.2s;
+    position: absolute;
+    box-sizing: border-box;
+    color: #999;
+    background: none;
+    border: none;
+    min-width: 0;
+    text-align: left;
+    padding: 7px 6px;
+    height: auto;
+    line-height: 100%;
+    font-size: 13px;
+    background: white;
+}
+
+.float_input > input[type='text'] {
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    max-width: none;
+
+    background: none;
+    position: relative;
+
+    padding: 12px 12px;
+    outline: 0;
+    box-sizing: border-box;
+
+    line-height: inherit;
+    min-height: 0;
+    min-width: 0;
+}
+
+.matched_bg {
+    background: rgba(200, 200, 200, .1);
+    border: 2px solid rgba(200, 200, 200, .3);
+    border-radius: 5px;
+    padding: 10px;
+    margin: 0 2px 10px 2px;
+    text-align: justify;
+}
+
+.form_upper_container, .form_lower_container {
+    text-align: center;
+    width: 100%;
+    min-width: 280px;
+    border: 2px solid rgba(200, 200, 200, .3);
+    border-radius: 5px;
+    box-sizing: border-box;
+    margin-top: 10px;
+    background: rgba(200, 200, 200, .1);
+}
+
+.form_lower_container {
+    padding: 10px;
+}
+
+.form_upper_container > div {
+    display: inline-block;
+    text-align: justify;
+    vertical-align: top;
+    width: 49%;
+    min-width: 300px;
+    height: 200px;
+}
+
+.form_description {
+    margin-bottom: 10px;
+    padding: 0 0 0 30px;
+    background: url("../images/next_black.png") 5px 50% no-repeat no-repeat;
+    background-size: 20px;
+
+    text-align: left;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
 /* *********************************************************************/
 /* Header
 /* *********************************************************************/
@@ -1087,7 +1234,7 @@ h3 {
     color: rgba(207,81,81,1);
 }
 
-input[name='title'], input[name='authors'] {
+.form_container form input[type='text'] {
     width: 100%;
 }
 
@@ -1961,12 +2108,13 @@ button.addBtn>img {
 
 /* Publication modal window */
 .modalContainer {
-    position:absolute;
+    position: absolute;
     padding: 0;
     min-width: 300px;
-    width: 40%;
+    width: 90%;
+    max-width: 600px;
     height: auto;
-    top:80px;
+    top: 80px;
 }
 
 .modalContainer .modal_section {

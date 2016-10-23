@@ -353,7 +353,7 @@ if (!empty($_POST['getPage'])) {
         $result = $Page->check_login();
 
         $result['plugins'] = $Plugins->getPlugins($page);
-        $result['pageName'] = $Page->filename;
+        $result['pageName'] = $Page->name;
         $result['title'] = $Page->meta_title;
         $result['keywords'] = $Page->meta_keywords;
         $result['description'] = $Page->meta_description;

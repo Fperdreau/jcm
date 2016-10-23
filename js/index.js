@@ -907,10 +907,9 @@ $(document).ready(function () {
 
 
         // Select submission type
-         .on('change','select#type',function (e) {
+         .on('change', 'select#type', function (e) {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
-
             var guestField = form.find('#guest');
             var titleField = form.find("input[name='title']").parent('.formcontrol');
             var authorsField = form.find("input[name='authors']").parent('.formcontrol');

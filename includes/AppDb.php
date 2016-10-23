@@ -396,7 +396,7 @@ class AppDb {
      * @param $id
      * @return bool
      */
-    public function deletecontent($table_name,$refcol,$id) {
+    public function deletecontent($table_name, $refcol, $id) {
         $refcol = is_array($refcol) ? $refcol:array($refcol);
         $id = is_array($id) ? $id:array($id);
 

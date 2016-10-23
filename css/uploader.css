@@ -26,13 +26,14 @@
 
 .upl_container {
     display: block;
-    min-width: 250px;
+    min-width: 200px;
     max-width: 400px;
     height: auto;
     padding: 10px;
     margin: 20px auto 10px auto;
     background-color: rgba(68,68,68,1);
     border: 1px solid #000000;
+    border-radius: 5px;
     text-align: center;
     -webkit-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);
     -moz-box-shadow: inset 0px 0px 37px 1px rgba(0,0,0,1);

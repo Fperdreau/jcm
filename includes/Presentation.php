@@ -840,9 +840,9 @@ class Presentation extends Presentations {
         // Show date input only for submissions and updates
         $dateinput = ($submit != "suggest") ? "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>":"";
 
-        $authors = ($type !== 'minute') ? "<div class='formcontrol'>
-                <label>Authors </label>
+        $authors = ($type !== 'minute') ? "<div class='float_input'>
                 <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
+                <label>Authors </label>
             </div>":"";
 
         $selectopt = ($submit === "select") ? $Presentation->generate_selectwishlist():"";
@@ -860,46 +860,68 @@ class Presentation extends Presentations {
 
         // Text of the submit button
         $submitxt = ucfirst($submit);
-        $form = ($submit !== "select") ? "<div class='feedback'></div>
-        <form method='post' action='php/form.php' enctype='multipart/form-data' id='submit_form'>
-            <div class='submit_btns'>
-                <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
+        $form = ($submit !== "select") ? "
+            <div class='feedback'></div>
+            <div class='form_container'>
+                <div class='form_aligned_block matched_bg'>
+                    <div class='form_description'>
+                        Upload files attached to this presentation
+                    </div>
+                    {$uploader}
+                </div>
+                
+                <form method='post' action='php/form.php' enctype='multipart/form-data' id='submit_form'>
+                    
+                    <div class='form_aligned_block matched_bg'>
+                        
+                        <div class='form_description'>
+                            Select a presentation type and pick a date
+                        </div>
+                        <div class='formcontrol'>
+                            <label>Type</label>
+                            <select name='type' id='type' required>
+                                $typeoptions
+                            </select>
+                        </div>
+                        
+                        <div class='formcontrol'>
+                            $dateinput
+                        </div>
+                    </div>
+                
+                    <div class='form_lower_container'>
+                         
+                        <div class='form_description'>
+                            Provide presentation information
+                        </div>
+            
+                        <div class='float_input'>
+                            <input type='text' id='title' name='title' value='$Presentation->title' required/>
+                            <label>Title </label>
+                        </div>
+            
+                        {$authors}
+
+                        <div class='float_input' id='guest' style='display: none;'>
+                            <input type='text' id='orator' name='orator' required>
+                            <label>Speaker</label>
+                        </div>
+                        
+                        <div class='formcontrol'>
+                            <label>Abstract</label>
+                            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                        </div>
+                    </div>
+                    <div class='submit_btns'>
+                        <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
+                        <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
+                        <input type='hidden' name='$submit' value='true'/>
+                        <input type='hidden' name='username' value='$user->username'/>
+                        $idPresentation
+                    </div>
+                </form>
             </div>
-            <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
-            <input type='hidden' name='$submit' value='true'/>
-            <input type='hidden' name='username' value='$user->username'/>
-            $idPresentation
-
-            <div class='formcontrol'>
-                <label>Type</label>
-                <select name='type' id='type' required>
-                    $typeoptions
-                </select>
-            </div>
-
-            <div class='formcontrol'>
-                $dateinput
-            </div>
-
-            <div class='formcontrol' id='guest' style='display: none;'>
-                <label>Speaker</label>
-                <input type='text' id='orator' name='orator' required>
-            </div>
-
-            <br><div class='formcontrol'>
-                <label>Title </label>
-                <input type='text' id='title' name='title' value='$Presentation->title' required/>
-            </div>
-
-            $authors
-
-            <div class='formcontrol'>
-                <label>Abstract</label>
-                <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
-            </div>
-        </form>
-
-        $uploader":"";
+        ":"";
 
         return "
     <div>$selectopt</div>

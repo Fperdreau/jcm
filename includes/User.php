@@ -190,7 +190,7 @@ class Users extends AppTable {
  *
  * Handle User information (username,password,etc.) and user-related routines (creation, update of user information).
  */
-class User extends Users{
+class User extends Users {
 
     /**
      * @var int

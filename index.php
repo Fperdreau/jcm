@@ -22,7 +22,6 @@
 
 // Includes required files (classes)
 require_once('includes/boot.php');
-
 $menu = AppPage::menu();
 ?>
 
@@ -46,63 +45,62 @@ $menu = AppPage::menu();
     </head>
 
     <body class="mainbody">
+        <?php require(PATH_TO_PAGES . 'modal.php'); ?>
 
         <div class="sideMenu">
             <?php echo $menu; ?>
         </div>
 
-            <!-- Header section -->
-            <header class="header">
+        <!-- Header section -->
+        <header class="header">
 
-                <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
-             --><div id="sitetitle">
-                    <span style="font-size: 30px; font-weight: 400;">JCM</span>
-                    <span style="font-size: 25px; color: rgba(200,200,200,.8);">anager</span>
-                </div><!--
-            Menu section -->
-                <div class="menu">
-                    <div class="topnav">
-                        <?php echo $menu; ?>
-                    </div>
-                </div><!--
-             Login box-->
-                <div id='login_box'>
-                    <?php
-                    if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
-                        $showlogin = "
-                    <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login.png' alt='login'></div>
-                    <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup.png' alt='signup'></div>
-                     ";
-                    } else {
-                        $showlogin = "
-                    <div><a href='index.php?page=profile' class='menu-section' id='profile'><img src='images/profile.png' alt='profile'></a></div>
-                    <div><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
-                    }
-                    echo $showlogin;
-                    ?>
+            <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
+         --><div id="sitetitle">
+                <span style="font-size: 30px; font-weight: 400;">JCM</span>
+                <span style="font-size: 25px; color: rgba(200,200,200,.8);">anager</span>
+            </div><!--
+        Menu section -->
+            <div class="menu">
+                <div class="topnav">
+                    <?php echo $menu; ?>
                 </div>
-            </header>
-
-            <!-- Core section -->
-            <div id="core">
-                <?php require(PATH_TO_PAGES.'modal.php'); ?>
-                <div id="pagecontent">
-                    <div id="plugins"></div>
-                </div>
+            </div><!--
+         Login box-->
+            <div id='login_box'>
+                <?php
+                if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
+                    $showlogin = "
+                <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login.png' alt='login'></div>
+                <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup.png' alt='signup'></div>
+                 ";
+                } else {
+                    $showlogin = "
+                <div><a href='index.php?page=profile' class='menu-section' id='profile'><img src='images/profile.png' alt='profile'></a></div>
+                <div><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
+                }
+                echo $showlogin;
+                ?>
             </div>
+        </header>
 
-            <!-- Footer section -->
-            <footer id="footer">
-                <div id="colBar"></div>
-                <div id="appTitle"><?php echo $AppConfig::$app_name; ?></div>
-                <div id="appVersion">Version <?php echo $AppConfig::$version; ?></div>
-                <div id="sign">
-                    <div><?php echo "<a href='{$AppConfig::$repository}' target='_blank'>Sources</a></div>
-                <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3</a></div>
-                <div><a href='http://www.florianperdreau.fr' target='_blank'>{$AppConfig::$copyright} {$AppConfig::$author}</a>" ?></div>
-                </div>
-            </footer>
+        <!-- Core section -->
+        <div id="core">
+            <div id="pagecontent">
+                <div id="plugins"></div>
+            </div>
+        </div>
 
+        <!-- Footer section -->
+        <footer id="footer">
+            <div id="colBar"></div>
+            <div id="appTitle"><?php echo AppConfig::$app_name; ?></div>
+            <div id="appVersion">Version <?php echo AppConfig::$version; ?></div>
+            <div id="sign">
+                <div><a href="<?php echo AppConfig::$repository; ?>" target='_blank'>Sources</a></div>
+                <div><a href="http://www.gnu.org/licenses/agpl-3.0.html" target='_blank'>GNU AGPL v3</a></div>
+                <div><a href="http://www.florianperdreau.fr" target='_blank'><?php echo AppConfig::$copyright . ' ' .  AppConfig::$author; ?></a></div>
+            </div>
+        </footer>
 
         <!-- Bunch of jQuery functions -->
         <script type="text/javascript" src="js/index.min.js"></script>

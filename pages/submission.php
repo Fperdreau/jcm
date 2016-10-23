@@ -27,7 +27,7 @@ $username = (isset($_GET['user'])) ? $_GET['user']:$_SESSION['username'];
 $user = new User($db, $username);
 
 // Get options
-$op = htmlspecialchars($_GET['op']);
+$op = (isset($_GET['op'])) ? htmlspecialchars($_GET['op']) : 'new';
 $result = "Oops";
 $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
 
