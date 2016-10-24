@@ -31,6 +31,37 @@ $op = (isset($_GET['op'])) ? htmlspecialchars($_GET['op']) : 'new';
 $result = "Oops";
 $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
 
+// Submission menu
+
+// Submission menu
+$submitMenu = "
+    <div class='submitMenu'>
+        <div class='submitMenuSection'>
+            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='submit'>
+               <div class='icon_container'>
+                    <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
+                    <div class='text'>Submit</div>
+                </div>
+           </a>
+        </div>
+        <div class='submitMenuSection'>
+            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
+               <div class='icon_container'>
+                    <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
+                    <div class='text'>Add a wish</div>
+                </div>
+            </a>
+        </div>
+        <div class='submitMenuSection'>
+            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='select'>
+                <div class='icon_container'>
+                    <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
+                    <div class='text'>Select a wish</div>
+                </div>
+            </a>
+        </div>
+    </div>";
+
 // Submit a new presentation
 if ($op == 'new') {
     $submit_form = Presentation::displayform($user, false, 'submit', false, $date);
@@ -103,6 +134,15 @@ if ($op == 'new') {
         </section>
     ";
 }
+
+$result = "
+<div class='submission_container'>
+    <div class='submission_menu_container'>
+        {$submitMenu}
+    </div>
+    {$result}
+</div>
+";
 
 echo json_encode($result);
 exit;

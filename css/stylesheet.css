@@ -120,7 +120,7 @@ label{
     color: #EEE;
     padding: 4px 1px;
 
-    min-width: 110px;
+    min-width: 100px;
     height: 20px;
     line-height: 20px;
 }
@@ -688,6 +688,10 @@ nav li#organizer {
 
 nav li#admin {
     background-image: url("../images/admin.png");
+}
+
+nav li#submission {
+    background-image: url("../images/add_paper_white.png");
 }
 
 .main_section {

@@ -391,6 +391,7 @@ class AppPage extends AppTable {
             <nav>
                 <ul>
                     <li class='main_section' id='home'><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
+                    <li class='main_section' id='submission'><a href='index.php?page=submission' class='menu-section' id='submission'>submit</a></li>
                     <li class='main_section' id='news'><a href='index.php?page=news' class='menu-section' id='news'>news</a></li>
                     <li class='main_section' id='archives'><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
                     <li class='main_section' id='contact'><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
