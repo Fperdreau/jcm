@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-require('../includes/boot.php');
+require('../../includes/boot.php');
 
 $Reminder = new ReminderMaker($db);
 $content = $Reminder->edit();

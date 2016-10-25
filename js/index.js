@@ -263,6 +263,9 @@ function realWidth(obj) {
     return width;
 }
 
+/**
+ * Hide active sub-menus
+ */
 function clear_active_submenu() {
     // Hide sub menus
     if ($(".submenu").is(':visible')) {
@@ -272,7 +275,6 @@ function clear_active_submenu() {
     $('.submenu_trigger').each(function() {
         $(this).parent('li').removeClass("active_submenu");
     });
-
 }
 
 /**
@@ -383,9 +385,14 @@ $(document).ready(function () {
             $(this).closest('li').addClass("activepage");
 
             if ($(this).is('[id]')) {
-                var pagetoload = $(this).attr("id");
+                // Parse url
+                var query = $(this).attr("href");
+                var vars = query.split("&");
+                var pair = vars[0].split("=");
+                var page_to_load = pair[1];
+
                 var param = ($(this).is('[data-param]'))? $(this).attr('data-param'):false;
-                getPage(pagetoload,param);
+                getPage(page_to_load,param);
                 $('.submenu, .dropdown').hide();
             }
 
@@ -758,16 +765,31 @@ $(document).ready(function () {
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Add a session/presentation type
         .on('click','.type_add',function (e) {
+            e.preventDefault();
             var classname = $(this).attr('data-class');
             var typename = $('input#new_'+classname+'_type').val();
-
+            if ($(this).hasClass('wrongField')) {
+                $(this).removeClass('wrongField');
+            }
+            if (typename.length == 0) {
+                $(this).siblings('input').addClass('wrongField');
+                return true;
+            }
+            var el = $(this);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
                 async: true,
                 data: {
                     add_type: classname,
-                    typename: typename},
+                    typename: typename
+                },
+                beforeSend: function() {
+                    el.toggleClass('addBtn loadBtn');
+                },
+                complete: function() {
+                    el.toggleClass('addBtn loadBtn');
+                },
                 success: function (data) {
                     var result = jQuery.parseJSON(data);
                     if (result !== false) {
@@ -784,6 +806,7 @@ $(document).ready(function () {
         .on('click','.type_del',function (e) {
             var typename = $(this).attr('data-type');
             var classname = $(this).attr('data-class');
+            var el = $(this);
             jQuery.ajax({
                 url: 'php/form.php',
                 type: 'POST',
@@ -791,6 +814,12 @@ $(document).ready(function () {
                 data: {
                     del_type: classname,
                     typename: typename},
+                beforeSend: function() {
+                    el.addClass('loadBtn');
+                },
+                complete: function() {
+                    el.removeClass('loadBtn');
+                },
                 success: function (data) {
                     var result = jQuery.parseJSON(data);
                     if (result !== false) {

@@ -229,11 +229,11 @@ class Presentations extends AppTable {
          <form method='post' action='php/form.php' class='form'>
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
-              <div class='formcontrol'>
-                <label for='id'>Select a wish</label>
+              <div class='form-group'>
                 <select name='id' id='select_wish'>
                     $option
                 </select>
+                <label for='id'>Select a wish</label>
               </div>
           </form>";
 
@@ -838,9 +838,9 @@ class Presentation extends Presentations {
         $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
 
         // Show date input only for submissions and updates
-        $dateinput = ($submit != "suggest") ? "<label>Date</label><input type='date' id='datepicker' name='date' value='$date'>":"";
+        $dateinput = ($submit != "suggest") ? "<input type='date' id='datepicker' name='date' value='$date'><label>Date</label>":"";
 
-        $authors = ($type !== 'minute') ? "<div class='float_input'>
+        $authors = ($type !== 'minute') ? "<div class='form-group'>
                 <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
                 <label>Authors </label>
             </div>":"";
@@ -877,14 +877,14 @@ class Presentation extends Presentations {
                         <div class='form_description'>
                             Select a presentation type and pick a date
                         </div>
-                        <div class='formcontrol'>
-                            <label>Type</label>
+                        <div class='form-group'>
                             <select name='type' id='type' required>
                                 $typeoptions
                             </select>
+                            <label>Type</label>
                         </div>
                         
-                        <div class='formcontrol'>
+                        <div class='form-group'>
                             $dateinput
                         </div>
                     </div>
@@ -895,19 +895,19 @@ class Presentation extends Presentations {
                             Provide presentation information
                         </div>
             
-                        <div class='float_input'>
+                        <div class='form-group'>
                             <input type='text' id='title' name='title' value='$Presentation->title' required/>
                             <label>Title </label>
                         </div>
             
                         {$authors}
 
-                        <div class='float_input' id='guest' style='display: none;'>
+                        <div class='form-group' id='guest' style='display: none;'>
                             <input type='text' id='orator' name='orator' required>
                             <label>Speaker</label>
                         </div>
                         
-                        <div class='formcontrol'>
+                        <div class='form-group'>
                             <label>Abstract</label>
                             <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
                         </div>

@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-require('../includes/boot.php');
+require('../../includes/boot.php');
 
 $DigestMaker = new DigestMaker($db);
 $content = $DigestMaker->edit();

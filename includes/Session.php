@@ -199,29 +199,29 @@ class Sessions extends AppTable {
         if ($status == "admin") {
             $settings = "<h3>Settings</h3>
                     <div class='session_type'>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label>Type</label>
+                        <div class='form-group' style='width: 100%;'>
                             <select class='mod_session_type' name='type'>
                             $typeoptions
                             </select>
+                            <label>Type</label>
                         </div>
                     </div>
                     <div class='session_time'>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label>From</label>
+                        <div class='form-group' style='width: 100%;'>
                             <select class='mod_session' name='time_from'>
                                 <option value='$timefrom' selected>$timefrom</option>
                                 $timeopt
                             </select>
+                            <label>From</label>
                         </div>
                     </div>
                     <div class='session_time'>
-                        <div class='formcontrol' style='width: 100%;'>
-                            <label>To</label>
+                        <div class='form-group' style='width: 100%;'>
                             <select class='mod_session' name='time_to'>
                                 <option value='$timeto' selected>$timeto</option>
                                 $timeopt
                             </select>
+                            <label>To</label>
                         </div>
                     </div>";
         }
@@ -519,10 +519,10 @@ class Session extends Sessions {
     public function __construct(AppDb $db,$date=null) {
         parent::__construct($db);
         $AppConfig = new AppConfig($this->db);
-        $this->time = "$AppConfig->jc_time_from,$AppConfig->jc_time_to";
-        $this->type = $AppConfig->session_type_default;
-
+        $this->time = "$AppConfig->jc_time_from, $AppConfig->jc_time_to";
+        $this->type = $AppConfig->session_type_default[0];
         $this->date = $date;
+
         if ($date != null) {
             self::get($date);
         }

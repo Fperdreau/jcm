@@ -310,26 +310,24 @@ class MailManager extends AppTable {
                 <!-- Recipients list -->
                 <div class='mailing_block select_emails_container'>
                     <h3>Select recipients</h3>
-                    <div>
+                    <div class='mailing_selector_container'>
                         <select class='select_emails_selector' required>
                             <option value='' disabled selected>Select emails</option>
                             <option value='all'>All</option>
                             {$mailing_list}
                         </select>
-                        <button type='submit' class='add_email addBtn'>
-                            <img src='" . URL_TO_APP . 'images/add.png' . "'>
-                        </button>
+                        <button type='submit' class='add_email addBtn'></button>
                     </div>
                     <div class='select_emails_list'>
                         {$recipients_list}
                     </div>
                     <div>
-                        <div class='formcontrol'>
-                            <label>Hide recipients</label>
+                        <div class='form-group'>
                             <select name='undisclosed'>
                                 <option value='yes'>Yes</option>
                                 <option value='no' selected>No</option>
                             </select>
+                            <label>Hide recipients</label>
                         </div>
                     </div>
                 </div>
@@ -344,11 +342,11 @@ class MailManager extends AppTable {
                         {$emails_input}
                         <input type='submit' name='send' value='Send' class='mailing_send' />
                     </div>
-                    <div class='formcontrol'>
-                        <label>Subject:</label>
-                        <input type='text' name='subject' placeholder='Subject' required />
+                    <div class='form-group'>
+                        <input type='text' name='subject' required />
+                        <label>Subject</label>
                     </div>
-                    <div class='formcontrol'>
+                    <div class='form-group'>
                         <textarea name='body' id='spec_msg' class='tinymce' required></textarea>
                     </div>
                 </div>

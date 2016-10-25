@@ -87,21 +87,6 @@ a:hover {
     color: #777;
 }
 
-/* Div specific to tinyMCE textarea */
-.formcontrol>div.mce-tinymce {
-    display: inline-block;
-    position: relative;
-    vertical-align: top;
-    margin: 0;
-    width: 100%;
-    box-sizing: border-box;
-
-    font-size: 12px;
-    font-weight: 300;
-
-    color: #777;
-}
-
 form {
     position: relative;
     max-width: 100%;
@@ -250,7 +235,7 @@ input[type="submit"], input[type="button"], button[type="submit"] {
     margin-top: 5px;
     border-radius: 5px;
     background: rgba( 255, 255, 255, 1) url(../images/next_black.png) 10px 50% no-repeat;
-    background-size: 20px;
+    background-size: 12px;
 }
 
 input[type="submit"]:after, input[type="button"]:after {
@@ -262,23 +247,14 @@ input[type="submit"]:after, input[type="button"]:after {
 input[type="submit"]:hover, input[type="button"]:hover {
     color: #FFF;
     background: rgba(207, 81, 81, 1) url(../images/next_white.png) 10px 50% no-repeat;
-    background-size: 20px;
+    background-size: 12px;
 }
 
 input[type="submit"]:active, input[type="button"]:active {
     color: #FFF;
     background:rgba(145, 73, 73, 1) url(../images/next_white.png) 10px 50% no-repeat;
-    background-size: 30px;
+    background-size: 20px;
     border: 1px solid #DFDFDF; /* Small border around our submit button */
-}
-
-input[type='button'].addBtn {
-    font-weight: 500;
-    padding: 0 10px 0 10px;
-    box-sizing: border-box;
-    line-height: 28px;
-    font-size: 20px;
-    margin-top: 0;
 }
 
 .div_button {
@@ -337,7 +313,6 @@ input[type='button'].addBtn {
     border: 2px solid rgba(200,0,0,.1);
 }
 
-
 /* Feedback div to display other messages */
 .feedbackSubmit {
     margin: 5px -15px 0 0;
@@ -391,7 +366,238 @@ div.inputFeedback {
     background: rgba(200, 0, 0, .5);
 }
 
-/* Presentation form */
+/* Form group */
+.form-group {
+    position: relative;
+    width: 100%;
+    border: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+.form-group > input, .form-group > textarea, .form-group > div {
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    max-width: none;
+
+    background: none;
+    position: relative;
+
+    padding: 12px 12px;
+    outline: 0;
+    box-sizing: border-box;
+
+    line-height: inherit;
+    min-height: 0;
+    min-width: 0;
+
+    font-size: 12px;
+    color: #777;
+    font-weight: 400;
+    text-transform: capitalize;
+}
+
+.form-group > textarea {
+    min-height: 200px;
+}
+
+.form-group select {
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    max-width: none;
+
+    background: white;
+    position: relative;
+
+    padding: 12px 12px;
+    outline: 0;
+    box-sizing: border-box;
+
+    line-height: inherit;
+    min-height: 0;
+    min-width: 0;
+
+    opacity: 0;
+
+    border-radius: 0;
+    display: inline-block;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    outline: none;
+    height: auto;
+
+    text-transform: capitalize;
+}
+
+.form-group > label {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    min-width: 0;
+    padding: 7px 6px;
+    height: auto;
+    line-height: 100%;
+    box-sizing: border-box;
+
+    transition:
+            background 0.2s,
+            color 0.2s,
+            top 0.2s,
+            bottom 0.2s,
+            right 0.2s,
+            left 0.2s;
+    color: #999;
+    background: none;
+    border: none;
+    text-align: left;
+
+    font-size: 13px;
+    background: white;
+}
+
+.form-group > div {
+    border: 1px solid rgba(207, 81, 81, .3);
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.form-group > input:valid, .form-group > select:valid, .form-group > textarea:valid, .form-group > div {
+    background: none;
+    padding: 24px 6px 0 6px;
+    border: 1px solid rgba(207, 81, 81, .3);
+}
+
+.form-group > input:focus, .form-group > select:focus, .form-group > textarea:focus {
+    padding: 4px 6px 20px 6px;
+    border: 1px solid rgba(207, 81, 81, .5);
+}
+
+.form-group > input:focus + label, .form-group > textarea:focus + label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(207, 82, 82, .7);
+    color: white;
+    font-size: 60%;
+    padding: 2px 6px;
+    z-index: 2;
+    text-transform: uppercase;
+    top: 100%;
+    margin-top: -16px;
+}
+
+/* Select input */
+.form-group > select:valid {
+    opacity: 1;
+}
+
+.form-group > select:valid + label {
+    background: white;
+}
+
+.form-group > select:focus {
+    padding: 20px 15px 5px 15px;
+}
+
+.form-group > select:focus + label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(207, 82, 82, .7);
+    color: white;
+    font-size: 60%;
+    padding: 2px 6px;
+    z-index: 2;
+    text-transform: uppercase;
+    top: 0;
+    height: 16px;
+    opacity: 1;
+}
+
+.form-group select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #444;
+}
+
+.form-group select::-ms-expand {
+    display: none;
+}
+
+.form-group > select + label:before {
+    content: '';
+    right: 1px;
+    top: 1px;
+    bottom: 0;
+    width: 30px;
+    height: 40px;
+    background: #ffffff;
+    position: absolute;
+    pointer-events: none;
+    display: block;
+}
+
+.form-group > select + label:after {
+    content: '>';
+    font: 16px Consolas, monospace;
+    color: rgba(207, 81, 81, .8);
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+    right: 0;
+    top: 8px;
+    border-bottom: 1px solid rgba(207, 81, 81, .3);
+    position: absolute;
+    pointer-events: none;
+    width: 40px;
+    padding: 0 0 5px 0;
+    background: white;
+    text-indent: 14px;
+}
+
+.form-group > input.wrongField + label, .form-group > input.wrongField + label, .form-group > textarea.wrongField,
+.form-group > div.wrongField {
+    border: 2px solid rgba(207, 82, 82, .8);
+    background-color: rgba(207, 82, 82, .1);
+    color: rgba(207, 82, 82, .8);
+}
+
+.form-group > div.inputFeedback {
+    font-weight: 500;
+    color: rgba(200, 100, 100, .8);
+    background: white;
+    text-align: center;
+    padding: 10px 5px;
+    font-size: 20px;
+    width: 30px;
+    border: 1px solid rgba(200, 100, 100, 1);
+    line-height: 15px;
+    /* vertical-align: baseline; */
+    height: 30px;
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    z-index: 3;
+    right: 5px;
+    left: inherit;
+}
+
+
+
+/* *********************************************************************/
+/* Submission form
+/* *********************************************************************/
 .form_aligned_block {
     display: inline-block;
     min-width: 270px;
@@ -413,84 +619,6 @@ div.inputFeedback {
 
 .form_container form .form_container#float {
     position: relative;
-}
-
-.float_input {
-    position: relative;
-    width: 100%;
-    border: none;
-    overflow: hidden;
-    box-sizing: border-box;
-    margin-top: 5px;
-}
-
-.float_input > input[type='text']:focus + label {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(207, 82, 82, .8);
-    color: white;
-    font-size: 60%;
-    padding: 1px 6px;
-    z-index: 2;
-    text-transform: uppercase;
-    top: 100%;
-    margin-top: -16px;
-}
-
-.float_input > input[type='text']:focus {
-    padding: 4px 6px 20px 6px;
-    border: 1px solid rgba(207, 81, 81, .5);
-}
-
-.float_input > input[type='text']:valid {
-    background: white;
-}
-
-.float_input > label {
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    transition:
-    background 0.2s,
-    color 0.2s,
-    top 0.2s,
-    bottom 0.2s,
-    right 0.2s,
-    left 0.2s;
-    position: absolute;
-    box-sizing: border-box;
-    color: #999;
-    background: none;
-    border: none;
-    min-width: 0;
-    text-align: left;
-    padding: 7px 6px;
-    height: auto;
-    line-height: 100%;
-    font-size: 13px;
-    background: white;
-}
-
-.float_input > input[type='text'] {
-    top: 0;
-    left: 0;
-    z-index: 1;
-    width: 100%;
-    max-width: none;
-
-    background: none;
-    position: relative;
-
-    padding: 12px 12px;
-    outline: 0;
-    box-sizing: border-box;
-
-    line-height: inherit;
-    min-height: 0;
-    min-width: 0;
 }
 
 .matched_bg {
@@ -993,7 +1121,7 @@ section>h2 {
     border-left: 5px solid #cf5151;
     margin: 0;
     color: #eee;
-    background-color: rgb(68, 68, 68);
+    background-color: rgb(50, 50, 50);
     font-weight: 300;
 }
 
@@ -1689,10 +1817,10 @@ h3 {
 }
 
 .loadBtn {
-    background: rgba( 255, 255, 255, 1)
-    url('../images/small_loader.gif')
-    50% 50%
-    no-repeat;
+    background-color: rgba( 255, 255, 255, 1);
+    background-image: url('../images/small_loader.gif');
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
     background-size: 20px 20px;
 }
 
@@ -1810,6 +1938,15 @@ h3 {
     vertical-align: top;
 }
 
+.mailing_selector_container {
+    font-size: 0;
+}
+
+.mailing_selector_container > button, .mailing_selector_container > select {
+    vertical-align: top;
+    margin: 0;
+}
+
 .mailing_lower_container .mce-tinymce {
     width: 100%;
     box-sizing: border-box;
@@ -1820,7 +1957,7 @@ h3 {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    width: 80%;
+    width: 100%;
     max-width: 100%;
 }
 
@@ -1888,25 +2025,59 @@ h3 {
     background: rgba(200, 200, 200, 1);
 }
 
-button.addBtn {
+input[type="submit"].addBtn, button.addBtn {
     outline: none;
     padding: 3px;
-    border: 2px solid rgba(207,81,81,1);
+    border: 1px solid rgba(207,81,81,1);
     background: white;
     vertical-align: middle;
     cursor: pointer;
     color: rgba(50, 50, 50, 1);
+    background: rgba(255, 255, 255, 1) url(../images/add_black.png) 50% 50% no-repeat;
+    background-size: 20px;
+    height: 30px;
+    width: 30px;
+    border-radius: 0;
+    font-weight: 500;
+    box-sizing: border-box;
+    line-height: 28px;
+    font-size: 20px;
+    margin-top: 0;
 }
 
-button.addBtn:hover {
-    background: rgba(207,81,81,1);
+input[type="button"].addBtn:hover, button.addBtn:hover {
+    background: rgba(207,81,81,1) url(../images/add_white.png) 50% 50% no-repeat;
+    background-size: 20px;
     color: white;
 }
 
-button.addBtn>img {
-    width: 20px;
-    height: 20px;
-    vertical-align: bottom;
+input[type="button"].loadBtn, button.loadBtn {
+    color: white;
+    background: white url('../images/small_loader.gif') no-repeat 50% 50%;
+    background-size: 20px 20px;
+    outline: none;
+    padding: 3px;
+    border: 1px solid rgba(207,81,81,1);
+    vertical-align: middle;
+    cursor: pointer;
+    color: rgba(50, 50, 50, 1);
+
+    height: 30px;
+    width: 30px;
+    border-radius: 0;
+    font-weight: 500;
+    box-sizing: border-box;
+    line-height: 28px;
+    font-size: 20px;
+    margin-top: 0;
+}
+
+div.loadBtn {
+    color: white;
+    background: white url('../images/small_loader.gif') no-repeat 50% 50%;
+    background-size: 20px 20px;
+    outline: none;
+    vertical-align: middle;
 }
 
 /* *********************************************************************/
@@ -1992,7 +2163,7 @@ button.addBtn>img {
 }
 
 .type_del:active {
-    background-color: rgba(68,68,68,1);
+    background-color: rgba(50,50,50,1);
 }
 
 .session_div {
@@ -2010,7 +2181,7 @@ button.addBtn>img {
     line-height: 30px;
     border: 0;
     padding: 0;
-    background: rgba(68,68,68,.9);
+    background: rgba(50,50,50,.9);
 }
 
 .session_header>div {
@@ -2486,11 +2657,13 @@ input.dateinput {
     padding: 2px;
     margin: 2px;
     box-sizing: border-box;
+
 }
 
 .calendar_legend>div {
-    display: initial;
+    display: inline-block;
     padding: 2px;
+    font-size: 15px;
     margin: 2px;
     box-sizing: border-box;
 }

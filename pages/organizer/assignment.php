@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-require('../includes/boot.php');
+require('../../includes/boot.php');
 
 $Assignment = new Assignment($db);
 $content = $Assignment->showAll();

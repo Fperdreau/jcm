@@ -144,7 +144,7 @@ var validsubmitform = function (el, data, callback, timing) {
  */
 var checkform = function(el) {
     var valid = true;
-    el.find('.inputFeedback').hide();
+    el.closest('.inputFeedback').remove();
     var msg = "* Required";
 
     el.find('input,select,textarea').not('input[type="submit"]').each(function () {
@@ -179,8 +179,8 @@ var checkform = function(el) {
 
         if (!thisField) {
             $(this).addClass('wrongField');
-            $(this).after("<div class='inputFeedback' style='display: none;'>*</div>");
-            $(this).next('.inputFeedback').animate({width:'toggle'});
+            $(this).parent('div').append("<div class='inputFeedback' style='display: none;'>*</div>");
+            $(this).parent('div').find('.inputFeedback').animate({width:'toggle'});
         }
 
         valid = (!thisField) ? thisField:valid;

@@ -130,13 +130,8 @@ class AppPage extends AppTable {
     public function check_login() {
         if ((!isset($_SESSION['logok']) || $_SESSION['logok'] == false)) {
             if ($this->status > -1) {
-                $result['msg'] = "
-		    <div id='content'>
-        		<p class='sys_msg warning'>You must <a class='leanModal' id='user_login' href='' data-section='user_login'>
-        		Sign In</a> or <a class='leanModal' id='user_register' href='' data-section='user_register'>
-        		Sign Up</a> in order to access this page!</p>
-		    </div>
-		    ";
+                $result['msg'] = self::login_required();
+
                 $result['status'] = false;
             } else {
                 $result['status'] = true;
@@ -149,15 +144,37 @@ class AppPage extends AppTable {
                 $result['status'] = true;
                 $result['msg'] = null;
             } else {
-                $result['msg'] = "
-                    <div id='content'>
-                        <p class='sys_msg warning'>Sorry, you do not have the permission to access this page</p>
-                    </div>
-                    ";
+                $result['msg'] = self::forbidden();
                 $result['status'] = false;
             }
         }
         return $result;
+    }
+
+    /**
+     * Forbidden access
+     * @return string
+     */
+    public static function forbidden() {
+        return "
+        <div id='content'>
+            <p class='sys_msg warning'>Sorry, you do not have the permission to access this page</p>
+        </div>
+        ";
+    }
+
+    /**
+     * Login requested
+     * @return string
+     */
+    public static function login_required() {
+        return "
+        <div id='content'>
+            <p class='sys_msg warning'>You must <a class='leanModal' id='user_login' href='' data-section='user_login'>
+            Sign In</a> or <a class='leanModal' id='user_register' href='' data-section='user_register'>
+            Sign Up</a> in order to access this page!</p>
+        </div>
+        ";
     }
 
     /**
@@ -339,13 +356,13 @@ class AppPage extends AppTable {
             <li class='main_section' id='organizer'><a href='#' class='submenu_trigger' id='addmenu-organizer'>organizer</a></li>   
             <nav class='submenu' id='addmenu-organizer'>
                 <ul>
-                    <li><a href='index.php?page=sessions' class='menu-section' id='sessions'>Sessions</a></li>
-                    <li><a href='index.php?page=users' class='menu-section' id='users'>Users</a></li>
-                    <li><a href='index.php?page=email' class='menu-section' id='email'>Mailing</a></li>
-                    <li><a href='index.php?page=post' class='menu-section' id='post'>Posts</a></li>
-                    <li><a href='index.php?page=digest' class='menu-section' id='digest'>Digest</a></li>
-                    <li><a href='index.php?page=reminder' class='menu-section' id='reminder'>Reminder</a></li>
-                    <li><a href='index.php?page=assignment' class='menu-section' id='assignment'>Assignments</a></li>
+                    <li><a href='index.php?page=organizer/sessions' class='menu-section' id='sessions'>Sessions</a></li>
+                    <li><a href='index.php?page=organizer/users' class='menu-section' id='users'>Users</a></li>
+                    <li><a href='index.php?page=organizer/email' class='menu-section' id='email'>Mailing</a></li>
+                    <li><a href='index.php?page=organizer/post' class='menu-section' id='post'>Posts</a></li>
+                    <li><a href='index.php?page=organizer/digest' class='menu-section' id='digest'>Digest</a></li>
+                    <li><a href='index.php?page=organizer/reminder' class='menu-section' id='reminder'>Reminder</a></li>
+                    <li><a href='index.php?page=organizer/assignment' class='menu-section' id='assignment'>Assignments</a></li>
                 </ul>
             </nav>
         ";
@@ -360,11 +377,11 @@ class AppPage extends AppTable {
         <li class='main_section' id='admin'><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>
         <nav class='submenu' id='addmenu-admin'>
             <ul>
-                <li><a href='index.php?page=settings' class='menu-section' id='settings'>Settings</a></li>
-                <li><a href='index.php?page=pages' class='menu-section' id='pages'>Pages</a></li>
-                <li><a href='index.php?page=plugins' class='menu-section' id='plugins'>Plugins</a></li>
-                <li><a href='index.php?page=tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
-                <li><a href='index.php?page=logs' class='menu-section' id='logs'>System logs</a></li>
+                <li><a href='index.php?page=admin/settings' class='menu-section' id='settings'>Settings</a></li>
+                <li><a href='index.php?page=admin/pages' class='menu-section' id='pages'>Pages</a></li>
+                <li><a href='index.php?page=admin/plugins' class='menu-section' id='plugins'>Plugins</a></li>
+                <li><a href='index.php?page=admin/tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
+                <li><a href='index.php?page=admin/logs' class='menu-section' id='logs'>System logs</a></li>
             </ul>
         </nav>
         ";

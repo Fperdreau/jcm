@@ -41,35 +41,35 @@ $result = "
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='processform'/>
                     </div>
-                    <div class='formcontrol'>
-                        <label for='firstname'>First Name</label>
+                    <div class='form-group'>
                         <input type='text' name='firstname' value='$user->firstname'/>
+                        <label for='firstname'>First Name</label>
                     </div>
-                    <div class='formcontrol'>
-                        <label for='lastname'>Last Name</label>
+                    <div class='form-group'>
                         <input type='text' name='lastname' value='$user->lastname'/>
+                        <label for='lastname'>Last Name</label>
                     </div><br>
-                    <div class='formcontrol'>
-                        <label for='status'>Status: </label>
+                    <div class='form-group'>
                         <div>$user->status</div>
+                        <label for='status'>Status: </label>
                     </div>
-                    <div class='formcontrol'>
-                        <label for='password'>Password</label>
+                    <div class='form-group'>
                         <div><a href='' class='change_pwd' id='$user->email'>Change my password</a></div>
+                        <label for='password'>Password</label>
                     </div>
-                    <div class='formcontrol'>
-                        <label for='position'>Position</label>
+                    <div class='form-group'>
                         <select name='position'>
-                        <option value='$user->position' selected='selected'>$user->position</option>
-                        <option value='researcher'>Researcher</option>
-                        <option value='postdoc'>Post-doc</option>
-                        <option value='phdstudent'>PhD student</option>
-                        <option value='master'>Master</option>
+                            <option value='$user->position' selected='selected'>$user->position</option>
+                            <option value='researcher'>Researcher</option>
+                            <option value='postdoc'>Post-doc</option>
+                            <option value='phdstudent'>PhD student</option>
+                            <option value='master'>Master</option>
                         </select>
+                        <label for='position'>Position</label>
                     </div>
-                    <div class='formcontrol'>
-                        <label>Presentations: </label>
+                    <div class='form-group'>
                         <div>$user->nbpres submission(s)</div>
+                        <label>Presentations: </label>
                     </div>
                     <input type='hidden' name='username' value='$user->username'/>
                     <input type='hidden' name='user_modify' value='true' />
@@ -85,33 +85,33 @@ $result = "
                 <div class='submit_btns'>
                     <input type='submit' name='user_modify' value='Modify' class='processform'/>
                 </div>
-                <div class='formcontrol'>
-                    <label for='email'>Email</label>
+                <div class='form-group'>
                     <input type='text' name='email' value='$user->email'/>
+                    <label for='email'>Email</label>
                 </div><br>
-                <div class='formcontrol'>
-                    <label for='notification'>I want to receive Email notifications</label>
+                <div class='form-group'>
                     <select name='notification' class='select_opt'>
                         <option value='$user->notification' selected>$notifStatus</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
+                    <label for='notification'>I want to receive Email notifications</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='reminder'>I want to receive reminders</label>
+                <div class='form-group'>
                     <select name='reminder' class='select_opt'>
                         <option value='$user->reminder' selected>$reminderStatus</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
+                    <label for='reminder'>I want to receive reminders</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='reminder'>I want to be assigned as speaker</label>
+                <div class='form-group'>
                     <select name='assign' class='select_opt'>
                         <option value='$user->assign' selected>$assignStatus</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
+                    <label for='reminder'>I want to be assigned as speaker</label>
                 </div>
                 <input type='hidden' name='user_modify' value='true' />
                 <input type='hidden' name='username' value='$user->username'/>

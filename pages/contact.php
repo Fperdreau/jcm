@@ -77,24 +77,24 @@ $result = "
                 <div class='submit_btns'>
                     <input type='submit' name='send' value='Send' class='processform'>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='admin_mail'>Organizer</label>
+                <div class='form-group' style='width: 100%;'>
                     <select name='admin_mail' required>
                         <option value='none' selected='selected'>Select an organizer</option>
                         $mail_option
                     </select>
+                    <label for='admin_mail'>Organizer</label>
                 </div><br>
-                <div class='formcontrol' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='text' name='name' required>
                     <label for='name'>Your name</label>
-                    <input type='text' name='name' placeholder='Your name' required>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='email' name='email' required>
                     <label for='mail'>E-mail</label>
-                    <input type='email' name='email' placeholder='Your email' required>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
+                    <textarea id='message' name='message' required></textarea>
                     <label for='message'>Message</label>
-                    <textarea id='message' name='message' placeholder='Your message' required></textarea>
                 </div>
             </form>
             </div>

@@ -20,7 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
+require('../../includes/boot.php');
 
 // Declare classes
 $user = new User($db,$_SESSION['username']);
@@ -70,12 +70,11 @@ $result = "
             <form method='post' action='php/form.php' class='form' id='config_form_session'>
                 <div class='feedback' id='feedback_jcsession'></div>
                 <input type='hidden' name='config_modify' value='true'>
-                <div class='formcontrol'>
+                <div class='form-group'>
                     <label>Room</label>
                     <input type='text' name='room' value='$AppConfig->room'>
                 </div>
-                <div class='formcontrol'>
-                    <label for='jc_day'>Day</label>
+                <div class='form-group'>
                     <select name='jc_day'>
                         <option value='$AppConfig->jc_day' selected>$AppConfig->jc_day</option>
                         <option value='monday'>Monday</option>
@@ -84,24 +83,25 @@ $result = "
                         <option value='thursday'>Thursday</option>
                         <option value='friday'>Friday</option>
                     </select>
+                    <label for='jc_day'>Day</label>
                 </div>
-                <div class='formcontrol'>
-                    <label>From</label>
+                <div class='form-group'>
                     <select name='jc_time_from'>
                         <option value='$AppConfig->jc_time_from' selected>$AppConfig->jc_time_from</option>
                         $timeopt;
                     </select>
+                    <label>From</label>
                 </div>
-                <div class='formcontrol'>
-                    <label>To</label>
+                <div class='form-group'>
                     <select name='jc_time_to'>
                         <option value='$AppConfig->jc_time_to' selected>$AppConfig->jc_time_to</option>
                         $timeopt;
                     </select>
+                    <label>To</label>
                 </div>
-                <div class='formcontrol'>
-                    <label>Presentations/Session</label>
+                <div class='form-group'>
                     <input type='text' name='max_nb_session' value='$AppConfig->max_nb_session'/>
+                    <label>Presentations/Session</label>
                 </div>
                 <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
             </form>
@@ -113,22 +113,22 @@ $result = "
         <div class='section_content'>
             <h3>Sessions</h3>
             <div id='session_type' style='position: relative; margin-bottom: 20px;'>
-                <div class='formcontrol'>
-                    <label>Default session type </label>
+                <div class='form-group'>
                     <select class='session_type_default'>
                         $opttypedflt
                     </select>
+                    <label>Default session type </label>
                 </div>
             </div>
             <div style='font-size: 0;'>
-                <input type='button' class='type_add addBtn' data-class='session' value='+'/>
+                <button class='type_add addBtn' data-class='session' value='+'/>
                 <input id='new_session_type' type='text' placeholder='New Category'/>
             </div>
             <div class='feedback' id='feedback_session'></div>
             <div class='type_list' id='session'>$Sessionstype</div>
             <h3>Presentations</h3>
             <div  style='font-size: 0;'>
-                <input type='button' class='type_add addBtn' data-class='pres' value='+'/>
+                <button class='type_add addBtn' data-class='pres' value='+'/>
                 <input id='new_pres_type' type='text' placeholder='New Category'/>
             </div>
             <div class='feedback' id='feedback_pres'></div>
@@ -141,9 +141,9 @@ $result = "
         <section>
             <h2>Manage Sessions</h2>
             <div class='section_content'>
-                <div class='formcontrol'>
-                    <label>Session to show</label>
+                <div class='form-group'>
                     <input type='date' class='selectSession' id='datepicker' name='date' data-status='admin'>
+                    <label>Session to show</label>
                 </div>
                 <div id='sessionlist'>
                 $Sessionslist

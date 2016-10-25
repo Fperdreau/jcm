@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-require('../includes/boot.php');
+require('../../includes/boot.php');
 
 // Get contact form
 $recipients_list = isset($_GET['recipients_list']) ? $_GET['recipients_list'] : null;

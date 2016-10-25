@@ -34,13 +34,13 @@ echo "
         <div class='modal_section' id='user_login' data-title='Sign In'>
             <form id='login_form' method='post' action='php/form.php'>
                 <input type='hidden' name='login' value='true'/>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='username'>Username</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='text' name='username' required autocomplete='on'>
+                    <label for='username'>Username</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='password'>Password</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='password' name='password' required>
+                    <label for='password'>Password</label>
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'>
@@ -59,38 +59,39 @@ echo "
             <form id='register_form' method='post' action='php/form.php'>
                 <input type='hidden' name='register' value='true'>
                 <input type='hidden' name='status' value='member'>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='firstname'>First Name</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='text' name='firstname' required autocomplete='on'>
+                    <label for='firstname'>First Name</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='lastname'>Last Name</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='text' name='lastname' required autocomplete='on'>
+                    <label for='lastname'>Last Name</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='username'>Username</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='text' name='username' required autocomplete='on'>
+                    <label for='username'>Username</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='password'>Password</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='password' name='password' required>
+                    <label for='password'>Password</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='conf_password'>Confirm password</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='password' name='conf_password' required>
+                    <label for='conf_password'>Confirm password</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='email'>Email</label>
+                <div class='float_input' style='width: 100%;'>
                     <input type='email' name='email' required autocomplete='on'>
+                    <label for='email'>Email</label>
                 </div>
-                <div class='formcontrol' style='width: 100%;'>
-                    <label for='position'>Position</label>
-                        <select name='position' id='position' required>
-                            <option value='researcher'>Researcher</option>
-                            <option value='post-doc'>Post-doc</option>
-                            <option value='phdstudent'>PhD student</option>
-                            <option value='master'>Master student</option>
-                        </select>
+                <div class='float_select' style='width: 100%;'>
+                    <select name='position' id='position' required>
+                        <option value='' selected disabled></option>
+                        <option value='researcher'>Researcher</option>
+                        <option value='post-doc'>Post-doc</option>
+                        <option value='phdstudent'>PhD student</option>
+                        <option value='master'>Master student</option>
+                    </select>   
+                    <label class='dropdown'>Position</label>    
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'><input type='submit' class='back_btn' value='Back'> <i class='fa fa-angle-double-left'></i> </div>

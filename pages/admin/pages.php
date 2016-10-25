@@ -20,7 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
+require('../../includes/boot.php');
 $AppPage = new AppPage($db);
 $pageSettings = $AppPage->showOpt();
 

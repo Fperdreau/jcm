@@ -23,6 +23,11 @@
 require('../includes/boot.php');
 
 // Declare classes
+if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
+    echo json_encode(AppPage::login_required());
+    exit();
+}
+
 $username = (isset($_GET['user'])) ? $_GET['user']:$_SESSION['username'];
 $user = new User($db, $username);
 
