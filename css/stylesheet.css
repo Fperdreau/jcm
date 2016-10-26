@@ -376,6 +376,11 @@ div.inputFeedback {
     margin-top: 5px;
 }
 
+.field_small {
+    width: 100px;
+    display: inline-block;
+}
+
 .form-group > input, .form-group > textarea, .form-group > div {
     top: 0;
     left: 0;
@@ -457,9 +462,8 @@ div.inputFeedback {
             left 0.2s;
     color: #999;
     background: none;
-    border: none;
     text-align: left;
-
+    border: 0;
     font-size: 13px;
     background: white;
 }
@@ -471,9 +475,16 @@ div.inputFeedback {
 }
 
 .form-group > input:valid, .form-group > select:valid, .form-group > textarea:valid, .form-group > div {
-    background: none;
+    background: none !important;
     padding: 24px 6px 0 6px;
     border: 1px solid rgba(207, 81, 81, .3);
+}
+
+input[type=text]:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > select:-webkit-autofill, .form-group > textarea:-webkit-autofill{
+    background: none !important;
+    padding: 24px 6px 0 6px;
+    border: 1px solid rgba(207, 81, 81, .3);
+    -webkit-appearance: none;
 }
 
 .form-group > input:focus, .form-group > select:focus, .form-group > textarea:focus {
@@ -499,6 +510,7 @@ div.inputFeedback {
 /* Select input */
 .form-group > select:valid {
     opacity: 1;
+    border: 1px solid rgba(207, 81, 81, .3);
 }
 
 .form-group > select:valid + label {
@@ -507,6 +519,7 @@ div.inputFeedback {
 
 .form-group > select:focus {
     padding: 20px 15px 5px 15px;
+    border: 1px solid rgba(207, 81, 81, .5);
 }
 
 .form-group > select:focus + label {
@@ -593,7 +606,25 @@ div.inputFeedback {
     left: inherit;
 }
 
-
+.form-group > div.passstrength {
+    font-weight: inherit;
+    color: inherit;
+    background: inherit;
+    text-align: inherit;
+    padding: inherit;
+    font-size: inherit;
+    width: inherit;
+    border: inherit;
+    line-height: inherit;
+    /* vertical-align: baseline; */
+    height: inherit;
+    border-radius: inherit;
+    position: inherit;
+    top: inherit;
+    right: inherit;
+    left: inherit;
+    z-index: 1;
+}
 
 /* *********************************************************************/
 /* Submission form
@@ -1668,7 +1699,7 @@ h3 {
     color: white;
     font-size: 12px;
     overflow-y: auto;
-    max-height: 300px;
+    max-height: 400px;
     border: 1px solid rgba(50, 50, 50, .5);
     border-radius: 5px;
     vertical-align: top;
@@ -1679,9 +1710,11 @@ h3 {
     padding: 10px;
     border: 1px solid rgba(50, 50, 50, .5);
     border-radius: 5px;
-    width: 180px;
+    width: 190px;
     display: inline-block;
     vertical-align: top;
+    overflow-y: auto;
+    max-height: 400px;
 }
 
 .log_list_item_container {
@@ -1816,7 +1849,7 @@ h3 {
     background-color: rgba(207,81,81,1);
 }
 
-.loadBtn {
+div.workBtn .loadBtn {
     background-color: rgba( 255, 255, 255, 1);
     background-image: url('../images/small_loader.gif');
     background-position: 50% 50%;
@@ -1860,7 +1893,6 @@ h3 {
     background: url('../images/run.png') 50% 50%
     no-repeat;
     background-size: 20px 20px;
-
 }
 
 .settingsBtn {

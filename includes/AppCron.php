@@ -406,12 +406,12 @@ class AppCron extends AppTable {
                     }
                     $optProp = "<select name='{$optName}'>{$options}</select>";
                 } else {
-                    $optProp = "<input type='text' name='$optName' value='{$settings['value']}' style='width: auto;'/>";
+                    $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
                 }
                 $opt .= "
-                    <div class='formcontrol'>
-                        <label for='{$optName}'>{$optName}</label>
+                    <div class='form-group'>
                         {$optProp}
+                        <label for='{$optName}'>{$optName}</label>
                     </div>
                 ";
             }
@@ -528,33 +528,33 @@ class AppCron extends AppTable {
                         <div class='settings'>
                             <form method='post' action='php/form.php'>
                                 <div>Date & Time</div>
-                                <div class='formcontrol'>
-                                    <label>Date</label>
+                                <div class='form-group field_small'>
                                     <input type='date' name='date' value='{$date}'/>
+                                    <label>Date</label>
                                 </div>
-                                <div class='formcontrol'>
-                                    <label>Time</label>
+                                <div class='form-group field_small'>
                                     <input type='time' name='time' value='{$time}' />
+                                    <label>Time</label>
                                 </div>
                                 
                                 <div class='frequency_container'>
         
                                     <div>Frequency</div>
-                                    <div class='formcontrol'>
-                                        <label>Months</label>
+                                    <div class='form-group field_small'>
                                         <input name='months' type='number' value='{$frequency[0]}'/>
+                                        <label>Months</label>
                                     </div>
-                                    <div class='formcontrol'>
-                                        <label>Days</label>
+                                    <div class='form-group field_small'>
                                         <input name='days' type='number' value='{$frequency[1]}'/>
+                                        <label>Days</label>
                                     </div>
-                                    <div class='formcontrol'>
-                                        <label>Hours</label>
+                                    <div class='form-group field_small'>
                                         <input name='hours' type='number' value='{$frequency[2]}'/>
+                                        <label>Hours</label>
                                     </div>
-                                    <div class='formcontrol'>
-                                        <label>Minutes</label>
+                                    <div class='form-group field_small'>
                                         <input name='minutes' type='number' value='{$frequency[3]}'/>
+                                        <label>Minutes</label>
                                     </div>
                                 </div>
                                 <div class='submit_btns'>

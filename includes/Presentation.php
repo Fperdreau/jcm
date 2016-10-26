@@ -849,7 +849,7 @@ class Presentation extends Presentations {
 
         // Make submission's type selection list
         $typeoptions = "";
-        $pres_type = explode(',', $AppConfig->pres_type);
+        $pres_type = $AppConfig->pres_type;
         foreach ($pres_type as $types) {
             if ($types == $type) {
                 $typeoptions .= "<option value='$types' selected>$types</option>";

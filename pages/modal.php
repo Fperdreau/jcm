@@ -34,11 +34,11 @@ echo "
         <div class='modal_section' id='user_login' data-title='Sign In'>
             <form id='login_form' method='post' action='php/form.php'>
                 <input type='hidden' name='login' value='true'/>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='text' name='username' required autocomplete='on'>
                     <label for='username'>Username</label>
                 </div>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='password' name='password' required>
                     <label for='password'>Password</label>
                 </div>
@@ -59,31 +59,31 @@ echo "
             <form id='register_form' method='post' action='php/form.php'>
                 <input type='hidden' name='register' value='true'>
                 <input type='hidden' name='status' value='member'>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='text' name='firstname' required autocomplete='on'>
                     <label for='firstname'>First Name</label>
                 </div>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='text' name='lastname' required autocomplete='on'>
                     <label for='lastname'>Last Name</label>
                 </div>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='text' name='username' required autocomplete='on'>
                     <label for='username'>Username</label>
                 </div>
-                <div class='float_input' style='width: 100%;'>
-                    <input type='password' name='password' required>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='password' name='password' class='passwordChecker' required>
                     <label for='password'>Password</label>
                 </div>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='password' name='conf_password' required>
                     <label for='conf_password'>Confirm password</label>
                 </div>
-                <div class='float_input' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <input type='email' name='email' required autocomplete='on'>
                     <label for='email'>Email</label>
                 </div>
-                <div class='float_select' style='width: 100%;'>
+                <div class='form-group' style='width: 100%;'>
                     <select name='position' id='position' required>
                         <option value='' selected disabled></option>
                         <option value='researcher'>Researcher</option>

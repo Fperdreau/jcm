@@ -25,7 +25,7 @@ require_once('includes/boot.php');
 $menu = AppPage::menu();
 ?>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -93,12 +93,12 @@ $menu = AppPage::menu();
         <!-- Footer section -->
         <footer id="footer">
             <div id="colBar"></div>
-            <div id="appTitle"><?php echo AppConfig::$app_name; ?></div>
-            <div id="appVersion">Version <?php echo AppConfig::$version; ?></div>
+            <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
+            <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
             <div id="sign">
-                <div><a href="<?php echo AppConfig::$repository; ?>" target='_blank'>Sources</a></div>
-                <div><a href="http://www.gnu.org/licenses/agpl-3.0.html" target='_blank'>GNU AGPL v3</a></div>
-                <div><a href="http://www.florianperdreau.fr" target='_blank'><?php echo AppConfig::$copyright . ' ' .  AppConfig::$author; ?></a></div>
+                <div><a href="<?php echo AppConfig::repository; ?>" target='_blank'>Sources</a></div>
+                <div><a href="http://www.gnu.org/licenses/agpl-3.0.html" target='_blank'><?php echo AppConfig::license; ?></a></div>
+                <div><a href="http://www.florianperdreau.fr" target='_blank'><?php echo AppConfig::copyright . ' ' .  AppConfig::author; ?></a></div>
             </div>
         </footer>
 
@@ -108,6 +108,8 @@ $menu = AppPage::menu();
         <script type="text/javascript" src="js/plugins.min.js"></script>
         <script type="text/javascript" src="js/Myupload.min.js"></script>
         <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
+        <script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js"></script>
+        <link type='text/css' rel='stylesheet' href='js/passwordchecker/css/style.min.css' />
 
         <!-- TinyMce (Rich-text textarea) -->
         <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>

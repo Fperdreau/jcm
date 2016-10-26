@@ -313,7 +313,7 @@ class AppMail {
         <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
             <div style='text-align: center;'>{$url_browser}</div>
             {$auto_msg}
-            <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='" . AppConfig::$repository . "' style='color: #CF5151; text-decoration: none;'>" . AppConfig::$app_name . " " . AppConfig::$copyright . "</a></div>
+            <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='" . AppConfig::repository . "' style='color: #CF5151; text-decoration: none;'>" . AppConfig::app_name . " " . AppConfig::copyright . "</a></div>
         </div>
         ";
     }

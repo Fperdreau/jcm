@@ -239,7 +239,7 @@ if (!empty($_POST['operation'])) {
 
         // Get default application settings
         $AppConfig = new AppConfig($db, false);
-        $version = $AppConfig::$version; // New version number
+        $version = $AppConfig::version; // New version number
         if ($op === true) {
             $AppConfig->get();
         }
@@ -248,6 +248,16 @@ if (!empty($_POST['operation'])) {
         // Create config table
         $AppConfig->setup($op);
         $AppConfig->get();
+        if (!is_array($AppConfig->session_type)) {
+            $types = explode(',', $AppConfig->session_type);
+            $types = array_filter($types, function($value) { return $value !== ''; });
+            $_POST['session_type'] = array_merge(AppConfig::session_type_default, $types);
+        }
+        if (!is_array($AppConfig->pres_type)) {
+            $types = explode(',', $AppConfig->pres_type);
+            $types = array_filter($types, function($value) { return $value !== ''; });
+            $_POST['pres_type'] = array_merge(AppConfig::pres_type_default, $types);
+        }
         $AppConfig->update($_POST);
 
         // Create users table
@@ -360,7 +370,7 @@ if (!empty($_POST['getpagecontent'])) {
     $step = htmlspecialchars($_POST['getpagecontent']);
     $_SESSION['step'] = $step;
     $op = htmlspecialchars($_POST['op']);
-    $new_version = $AppConfig::$version;
+    $new_version = AppConfig::version;
 
     /**
      * Get configuration from previous installation
@@ -402,29 +412,29 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 1: Database configuration";
         $operation = "
 			<form action='' method='post' name='install' id='db_info'>
-                <input type='hidden' name='version' value='{$AppConfig::$version}'>
+                <input type='hidden' name='version' value='" . AppConfig::version. "'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='db_info'/>
 				<input type='hidden' name='db_info' value='true' />
-                <div class='formcontrol'>
+                <div class='form-group'>
     				<label for='host'>Host Name</label>
     				<input name='host' type='text' value='$host' required autocomplete='on'>
                 </div>
-                <div class='formcontrol'>
-    				<label for='username'>Username</label>
+                <div class='form-group'>
     				<input name='username' type='text' value='$username' required autocomplete='on'>
+                    <label for='username'>Username</label>
                 </div>
-                <div class='formcontrol'>
-				    <label for='passw'>Password</label>
+                <div class='form-group'>
 				    <input name='passw' type='password' value='$passw'>
+                    <label for='passw'>Password</label>
                 </div>
-                <div class='formcontrol'>
-				    <label for='dbname'>DB Name</label>
+                <div class='form-group'>
 				    <input name='dbname' type='text' value='$dbname' required autocomplete='on'>
+                    <label for='dbname'>DB Name</label>
                 </div>
-                <div class='formcontrol'>
-				    <label for='dbprefix'>DB Prefix</label>
+                <div class='form-group'>
 				    <input name='dbprefix' type='text' value='$dbprefix' required autocomplete='on'>
+                    <label for='dbprefix'>DB Prefix</label>
                 </div>
                 <div class='submit_btns'>
                     <input type='submit' value='Next' class='proceed'>
@@ -440,48 +450,48 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 2: Application configuration";
         $operation = "
             <form action='' method='post' name='install' id='install_db'>
-                <input type='hidden' name='version' value='{$AppConfig::$version}'>
+                <input type='hidden' name='version' value='" . AppConfig::version. "'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='install_db'/>
                 <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
 
                 <h3>Mailing service</h3>
-                <div class='formcontrol'>
-                    <label for='mail_from'>Sender Email address</label>
+                <div class='form-group'>
                     <input name='mail_from' type='email' value='{$AppConfig->mail_from}'>
+                    <label for='mail_from'>Sender Email address</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='mail_from_name'>Sender name</label>
+                <div class='form-group'>
                     <input name='mail_from_name' type='text' value='{$AppConfig->mail_from_name}'>
+                    <label for='mail_from_name'>Sender name</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='mail_host'>Email host</label>
+                <div class='form-group'>
                     <input name='mail_host' type='text' value='{$AppConfig->mail_host}'>
+                    <label for='mail_host'>Email host</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='SMTP_secure'>SMTP access</label>
+                <div class='form-group'>
                     <select name='SMTP_secure'>
                         <option value='{$AppConfig->SMTP_secure}' selected='selected'>{$AppConfig->SMTP_secure}</option>
                         <option value='ssl'>ssl</option>
                         <option value='tls'>tls</option>
                         <option value='none'>none</option>
                      </select>
+                     <label for='SMTP_secure'>SMTP access</label>
                  </div>
-                <div class='formcontrol'>
-                    <label for='mail_port'>Email port</label>
+                <div class='form-group'>
                     <input name='mail_port' type='text' value='{$AppConfig->mail_port}'>
+                    <label for='mail_port'>Email port</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='mail_username'>Email username</label>
+                <div class='form-group'>
                     <input name='mail_username' type='text' value='{$AppConfig->mail_username}'>
+                    <label for='mail_username'>Email username</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='mail_password'>Email password</label>
+                <div class='form-group'>
                     <input name='mail_password' type='password' value='{$AppConfig->mail_password}'>
+                    <label for='mail_password'>Email password</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='test_email'>Your email (for testing only)</label>
+                <div class='form-group'>
                     <input name='test_email' type='email' value=''>
+                    <label for='test_email'>Your email (for testing only)</label>
                 </div>
 
                 <div class='submit_btns'>
@@ -500,21 +510,21 @@ if (!empty($_POST['getpagecontent'])) {
                 <input type='hidden' name='operation' value='admin_creation'/>
                 <input type='hidden' name='status' value='admin'/>
 
-			    <div class='formcontrol'>
-				    <label for='username'>UserName</label>
+			    <div class='form-group'>
 				    <input type='text' name='username' required autocomplete='on'>
+                    <label for='username'>UserName</label>
                 </div>
-                <div class='formcontrol'>
-				    <label for='password'>Password</label>
-				    <input type='password' name='password' required>
+                <div class='form-group'>
+				    <input type='password' name='password' class='passwordChecker' required>
+                    <label for='password'>Password</label>
                 </div>
-                <div class='formcontrol'>
-				    <label for='conf_password'>Confirm password</label>
+                <div class='form-group'>
 				    <input type='password' name='conf_password' required>
+                    <label for='conf_password'>Confirm password</label>
                 </div>
-                <div class='formcontrol'>
-				    <label for='admin_email'>Email</label>
+                <div class='form-group'>
 				    <input type='email' name='email' required autocomplete='on'>
+                    <label for='admin_email'>Email</label>
                 </div>
                 <input type='hidden' name='status' value='admin'>
                 <div class='submit_btns'>
@@ -567,6 +577,7 @@ if (!empty($_POST['getpagecontent'])) {
     <!-- JQuery -->
     <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
     <script type="text/javascript" src="js/form.js"></script>
+    <script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js"></script>
 
     <!-- Bunch of jQuery functions -->
     <script type="text/javascript">
@@ -769,13 +780,15 @@ if (!empty($_POST['getpagecontent'])) {
         <div id="pagecontent" style="padding: 20px 0;"></div>
     </div>
 
-    <footer id="footer" style='width: 60%; padding: 20px; margin: 2% auto;'>
-        <div id="appTitle"><?php echo $AppConfig::$app_name; ?></div>
-        <div id="appVersion">Version <?php echo $AppConfig::$version; ?></div>
+    <!-- Footer section -->
+    <footer id="footer"  style='width: 60%; padding: 20px; margin: 2% auto;'>
+        <div id="colBar"></div>
+        <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
+        <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
         <div id="sign">
-            <div><?php echo "<a href='{$AppConfig::$repository}' target='_blank'>Sources</a></div>
-                <div><a href='http://www.gnu.org/licenses/agpl-3.0.html' target='_blank'>GNU AGPL v3</a></div>
-                <div><a href='http://www.florianperdreau.fr' target='_blank'>{$AppConfig::$copyright} {$AppConfig::$author}</a>" ?></div>
+            <div><a href="<?php echo AppConfig::repository; ?>" target='_blank'>Sources</a></div>
+            <div><a href="http://www.gnu.org/licenses/agpl-3.0.html" target='_blank'><?php echo AppConfig::license; ?></a></div>
+            <div><a href="http://www.florianperdreau.fr" target='_blank'><?php echo AppConfig::copyright . ' ' .  AppConfig::author; ?></a></div>
         </div>
     </footer>
 </div>

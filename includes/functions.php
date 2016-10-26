@@ -51,7 +51,7 @@ function explodecontent($delimiter,$var) {
  * @param $divid
  * @return string
  */
-function showtypelist($types,$class,$divid) {
+function showtypelist(array $types, $class, $divid) {
     $result = "";
     foreach ($types as $type) {
         $result .= "

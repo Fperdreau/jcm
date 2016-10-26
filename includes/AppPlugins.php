@@ -250,9 +250,9 @@ class AppPlugins extends AppTable {
                     $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
                 }
                 $opt .= "
-                    <div class='formcontrol'>
-                        <label for='{$optName}'>{$optName}</label>
+                    <div class='form-group'>
                         {$optProp}
+                        <label for='{$optName}'>{$optName}</label>
                     </div>
                 ";
             }
@@ -310,9 +310,9 @@ class AppPlugins extends AppTable {
                     
                     <div>
                         <div class='settings'>
-                            <div class='formcontrol'>
+                            <div class='form-group' style='width: 20%'>
+                                <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "'/>
                                 <label>Page</label>
-                                <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "' style='width: 20%'/>
                             </div>
                         </div>
                         

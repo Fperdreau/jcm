@@ -539,7 +539,7 @@ if (!empty($_POST['change_pw'])) {
     if ($user->mail_exist($email)) {
         $username = $db ->getinfo($db->tablesname['User'],'username',array("email"),array("'$email'"));
         $user->get($username);
-        $reset_url = $AppConfig->site_url."index.php?page=renew&hash=$user->hash&email=$user->email";
+        $reset_url = $AppConfig::$site_url."index.php?page=renew&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
             Hello $user->firstname $user->lastname,<br>
@@ -952,17 +952,17 @@ if (!empty($_POST['add_type'])) {
     $class = $_POST['add_type'];
     $typename = $_POST['typename'];
     $varname = $class."_type";
-    $divid = $class.'_'.$typename;
+    $div_id = $class.'_'.$typename;
     if ($class == "session") {
-        $AppConfig->session_type[$typename] = array();
-        $types = array_keys($AppConfig->$varname);
+        $AppConfig->session_type[] = $typename;
+        $types = $AppConfig->session_type;
     } else {
-        $AppConfig->$varname .= ",$typename";
-        $types = explode(',',$AppConfig->$varname);
+        $AppConfig->pres_type[] = $typename;
+        $types = $AppConfig->pres_type;
     }
     if ($AppConfig->update()) {
         //Get session types
-        $result = showtypelist($types,$class,$divid);
+        $result = showtypelist($types, $class, $div_id);
     } else {
         $result = false;
     }
@@ -976,20 +976,32 @@ if (!empty($_POST['del_type'])) {
     $typename = $_POST['typename'];
     $varname = $class."_type";
     $divid = $class.'_'.$typename;
+    $result['status'] = true;
     if ($class == "session") {
-        unset($AppConfig->session_type[$typename]);
-        $types = array_keys($AppConfig->$varname);
-    } else {
-        $AppConfig->$varname = explode(',',$AppConfig->$varname);
-        $types = array_values(array_diff($AppConfig->$varname,array($typename)));
-        $AppConfig->$varname = implode(',',$types);
-    }
+        if (in_array($typename, AppConfig::session_type_default)) {
+            $result['status'] = false;
+            $result['msg'] = "Default types cannot be deleted";
+        } else {
+            if(($key = array_search($typename, $AppConfig->session_type)) !== false) {
+                unset($AppConfig->session_type[$key]);
+            }
+        }
 
-    if ($AppConfig->update()) {
-        //Get session types
-        $result = showtypelist($types,$class,$divid);
     } else {
-        $result = false;
+        if (in_array($typename, AppConfig::pres_type_default)) {
+            $result['status'] = false;
+            $result['msg'] = "Default types cannot be deleted";
+        } else {
+            if(($key = array_search($typename, $AppConfig->pres_type)) !== false) {
+                unset($AppConfig->pres_type[$key]);
+            }
+        }
+    }
+    $types = $AppConfig->$varname;
+
+    if ($result['status'] && $AppConfig->update()) {
+        //Get session types
+        $result['msg'] = showtypelist($types, $class, $divid);
     }
     echo json_encode($result);
     exit;

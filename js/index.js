@@ -715,7 +715,7 @@ $(document).ready(function () {
          */
         .on('click', '.delete_log', function(e) {
             e.preventDefault();
-            var div = $(this).closest('.log_container');
+            var div = $(this).closest('.log_container').parent();
             var url = $(this).attr('href');
             jQuery.ajax({
                 type: 'get',
@@ -804,6 +804,7 @@ $(document).ready(function () {
 
         // Delete a session/presentation type
         .on('click','.type_del',function (e) {
+            e.preventDefault();
             var typename = $(this).attr('data-type');
             var classname = $(this).attr('data-class');
             var el = $(this);
@@ -822,8 +823,11 @@ $(document).ready(function () {
                 },
                 success: function (data) {
                     var result = jQuery.parseJSON(data);
-                    if (result !== false) {
-                        $('.type_list#'+classname).html(result);
+                    if (result.status !== false) {
+                        $('.type_list#'+classname).html(result.msg);
+                    } else {
+                        validsubmitform( $('.type_list#'+classname), data);
+                        //$('.type_list#'+classname).html(result.msg);
                     }
                 }
             });

@@ -169,13 +169,12 @@ class Sessions extends AppTable {
 
         // Get type options
         $AppConfig = new AppConfig($this->db);
-        $session_type = array_keys($AppConfig->session_type);
-        $typeoptions = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
-        foreach ($session_type as $type) {
+        $type_options = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
+        foreach ($AppConfig->session_type as $type) {
             if ($type === $session->type) {
-                $typeoptions .= "<option value='$type' selected>$type</option>";
+                $type_options .= "<option value='$type' selected>$type</option>";
             } else {
-                $typeoptions .= "<option value='$type'>$type</option>";
+                $type_options .= "<option value='$type'>$type</option>";
             }
         }
 
@@ -201,7 +200,7 @@ class Sessions extends AppTable {
                     <div class='session_type'>
                         <div class='form-group' style='width: 100%;'>
                             <select class='mod_session_type' name='type'>
-                            $typeoptions
+                            $type_options
                             </select>
                             <label>Type</label>
                         </div>
@@ -504,10 +503,10 @@ class Session extends Sessions {
  * Instantiates session objects
  */
 
-    public $date = "";
+    public $date;
     public $status = "FREE";
-    public $time = "";
-    public $type = "Journal Club";
+    public $time;
+    public $type;
     public $nbpres = 0;
     public $presids = array();
     public $speakers = array();
@@ -520,7 +519,7 @@ class Session extends Sessions {
         parent::__construct($db);
         $AppConfig = new AppConfig($this->db);
         $this->time = "$AppConfig->jc_time_from, $AppConfig->jc_time_to";
-        $this->type = $AppConfig->session_type_default[0];
+        $this->type = AppConfig::session_type_default[0];
         $this->date = $date;
 
         if ($date != null) {

@@ -31,7 +31,7 @@ $timeopt = maketimeopt();
 //Get session types
 $Sessionstype = "";
 $opttypedflt = "";
-foreach ($AppConfig->session_type as $type=>$chairs) {
+foreach ($AppConfig->session_type as $type) {
     $Sessionstype .= "
         <div class='type_div' id='session_$type'>
             <div class='type_name'>".ucfirst($type)."</div>
@@ -39,7 +39,7 @@ foreach ($AppConfig->session_type as $type=>$chairs) {
             </div>
         </div>
     ";
-    if ($type == $AppConfig->session_type_default) {
+    if ($type == AppConfig::session_type_default) {
         $opttypedflt .= "<option value='$type' selected>$type</option>";
     } else {
         $opttypedflt .= "<option value='$type'>$type</option>";
@@ -48,8 +48,7 @@ foreach ($AppConfig->session_type as $type=>$chairs) {
 
 /**  Get session types */
 $prestype = "";
-$prestypes = explode(',',$AppConfig->pres_type);
-foreach ($prestypes as $type) {
+foreach ($AppConfig->pres_type as $type) {
     $prestype .= "
         <div class='type_div' id='pres_$type'>
             <div class='type_name'>".ucfirst($type)."</div>

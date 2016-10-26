@@ -117,7 +117,7 @@ class Assignment extends AppTable {
 
         // Get session types
         $session_types = array();
-        foreach ($AppConfig->session_type as $type=>$info) {
+        foreach ($AppConfig->session_type as $type) {
             $session_types[] = self::prettyName($type, true);
         }
 

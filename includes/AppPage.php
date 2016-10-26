@@ -260,6 +260,7 @@ class AppPage extends AppTable {
      */
     public function showOpt() {
         $pages = $this->getPages();
+        var_dump($pages); exit;
         $sql = "SELECT name FROM ".$this->tablename;
         $req = $this->db->send_query($sql);
         $pageSettings = "";
@@ -267,7 +268,8 @@ class AppPage extends AppTable {
             $pageName = $row['name'];
             $thisPage = new AppPage($this->db,$pageName);
             $pageList = "<option value='none'>None</option>";
-            foreach ($pages as $name) {
+            foreach ($pages as $key=>$name) {
+                var_dump($name);
                 $selectOpt = ($name == $thisPage->parent) ? "selected":"";
                 $pageList .= "<option value='$name' $selectOpt>$name</option>";
             }
@@ -378,7 +380,6 @@ class AppPage extends AppTable {
         <nav class='submenu' id='addmenu-admin'>
             <ul>
                 <li><a href='index.php?page=admin/settings' class='menu-section' id='settings'>Settings</a></li>
-                <li><a href='index.php?page=admin/pages' class='menu-section' id='pages'>Pages</a></li>
                 <li><a href='index.php?page=admin/plugins' class='menu-section' id='plugins'>Plugins</a></li>
                 <li><a href='index.php?page=admin/tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
                 <li><a href='index.php?page=admin/logs' class='menu-section' id='logs'>System logs</a></li>

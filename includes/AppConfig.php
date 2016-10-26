@@ -41,13 +41,14 @@ class AppConfig extends AppTable {
      * Application info
      *
      */
+    const app_name = "Journal Club Manager"; // Application's name
+    const version = "1.4.4 - beta"; // Application's version
+    const author = "Florian Perdreau"; // Application's authors
+    const repository = "https://github.com/Fperdreau/jcm"; // Application's sources
+    const sitetitle = "Journal Club Manager"; //
+    const copyright = "&copy; 2014-2016";
+    const license = "GNU AGPL v3";
     public $status = 'On'; // Application's status (on or off)
-    public static $app_name = "Journal Club Manager"; // Application's name
-    public static $version = "1.4.4 - beta"; // Application's version
-    public static $author = "Florian Perdreau"; // Application's authors
-    public static $repository = "https://github.com/Fperdreau/jcm"; // Application's sources
-    public $sitetitle = "Journal Club Manager"; //
-    public static $copyright = "&copy; 2014-2016";
     public static $site_url; // Web path to application
     public $max_nb_attempt = 5; // Maximum nb of login attempt
 
@@ -60,11 +61,10 @@ class AppConfig extends AppTable {
     public $jc_time_from = "17:00";
     public $jc_time_to = "18:00";
     public $max_nb_session = 1;
-    public $session_type = array(
-        "Journal Club"=>array('TBA')
-    );
-    public $session_type_default = "Journal Club";
-    public $pres_type = "paper,research,methodology,guest,minute";
+    public $session_type;
+    public $pres_type;
+    const session_type_default = array("Journal Club", "Business Meeting");
+    const pres_type_default = array("paper","research","methodology","guest","minute");
 
     /**
      * Lab info
@@ -129,7 +129,7 @@ class AppConfig extends AppTable {
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = ($varname == "session_type") ? json_decode($row['value'],true):htmlspecialchars_decode($row['value']);
+            $value = (in_array($varname, array("session_type", "pres_type"))) ? json_decode($row['value'], true) : htmlspecialchars_decode($row['value']);
             if (property_exists(get_class($this), $varname)) {
                 $prop = new ReflectionProperty(get_class($this), $varname);
                 if ($prop->isStatic()) {
@@ -143,40 +143,6 @@ class AppConfig extends AppTable {
     }
 
     /**
-     * Gets config value
-     * @param string $variable
-     * @return array
-     */
-    public function getConfig($variable) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE variable='{$variable}'";
-        return $this->db->send_query($sql)->fetch_assoc();
-    }
-
-    /**
-     * This function gets App's URL to root
-     * @param null $lang: language
-     * @return string
-     */
-    public function getAppUrl($lang=null) {
-        if (is_null(self::$site_url) || !is_null($lang)) {
-            $root = explode('/',  dirname($_SERVER['PHP_SELF']));
-            $root = '/' . $root[1];
-            self::$site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' )
-                . $_SERVER['HTTP_HOST'] . $root .'/';
-
-            if(substr(self::$site_url, -2) == '//') {
-                self::$site_url = substr(self::$site_url, 0, -1);
-            }
-
-            if (!(is_null($lang))) {
-                self::$site_url .= $lang.'/';
-            }
-        }
-        $_SESSION['BASE_URL'] = self::$site_url;
-        return self::$site_url;
-    }
-
-    /**
      * Update application settings
      * @param array $post
      * @return bool
@@ -187,8 +153,9 @@ class AppConfig extends AppTable {
         $result = false;
         foreach ($class_vars as $name => $value) {
             if (in_array($name, array("db", "tablename", "table_data"))) continue;
-            $newvalue = (in_array($name,$postkeys)) ? $post[$name] : $this->get_setting($name);
-            $newvalue = ($name == "session_type") ? json_encode($newvalue) : $newvalue;
+
+            $newvalue = (in_array($name, $postkeys)) ? $post[$name] : $this->get_setting($name);
+            $newvalue = (in_array($name, array("session_type", "pres_type")) or is_array($newvalue)) ? json_encode($newvalue) : $newvalue;
             $this->set_setting($name, $newvalue);
 
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
@@ -232,6 +199,41 @@ class AppConfig extends AppTable {
         } else {
             $this->$setting = $value;
         }
+    }
+
+
+    /**
+     * Gets config value
+     * @param string $variable
+     * @return array
+     */
+    public function getConfig($variable) {
+        $sql = "SELECT * FROM {$this->tablename} WHERE variable='{$variable}'";
+        return $this->db->send_query($sql)->fetch_assoc();
+    }
+
+    /**
+     * This function gets App's URL to root
+     * @param null $lang: language
+     * @return string
+     */
+    public function getAppUrl($lang=null) {
+        if (is_null(self::$site_url) || !is_null($lang)) {
+            $root = explode('/',  dirname($_SERVER['PHP_SELF']));
+            $root = '/' . $root[1];
+            self::$site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' )
+                . $_SERVER['HTTP_HOST'] . $root .'/';
+
+            if(substr(self::$site_url, -2) == '//') {
+                self::$site_url = substr(self::$site_url, 0, -1);
+            }
+
+            if (!(is_null($lang))) {
+                self::$site_url .= $lang.'/';
+            }
+        }
+        $_SESSION['BASE_URL'] = self::$site_url;
+        return self::$site_url;
     }
 
     /**
