@@ -75,9 +75,9 @@ $result = "
         <section>
             <h2>Next Sessions</h2>
             <div class='section_content'>
-                <div class='formcontrol'>
-                    <label>Session to show</label>
+                <div class='form-group'>
                     <input type='date' class='selectSession' data-status='false' id='datepicker' name='date'>
+                    <label>Session to show</label>
                 </div>
                 <div id='sessionlist'>
                     $futurepres
