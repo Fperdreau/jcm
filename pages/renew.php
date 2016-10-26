@@ -35,13 +35,13 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
             <form id='conf_changepw'>
                 <input type='hidden' name='conf_changepw' value='true'/>
                 <input type='hidden' name='username' value='$username' id='ch_username'/>
-                <div class='formcontrol'>
-                    <label for='password'>New Password</label>
+                <div class='form-group'>
                     <input type='password' name='password' value='' required/>
+                    <label for='password'>New Password</label>
                 </div>
-                <div class='formcontrol'>
-                    <label for='conf_password'>Confirm password</label>
+                <div class='form-group'>
                     <input type='password' name='conf_password' value='' required/></br>
+                    <label for='conf_password'>Confirm password</label>
                 </div>
                 <div class='submit_btns'>
                     <input type='submit' name='login' value='Submit' class='conf_changepw'/>
@@ -51,13 +51,13 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
         $content = "<div class='sys_msg warning'>Incorrect email or hash id.</div>";
     }
     $result = "
-        <section>
+        <section style='width: 300px;'>
             <h2>Change password</h2>
             <div class='section_content'>$content</div>
         </section>";
 } else {
     $result = "
-        <section>
+        <section style='width: 300px;'>
             <h2>Change password</h2>
             <div class='section_content'><div class='sys_msg warning'>Incorrect email or hash id.</div></div>
         </section>";

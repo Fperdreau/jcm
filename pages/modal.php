@@ -105,13 +105,13 @@ echo "
             <div>Please, confirm your identity.</div>
             <form id='confirmdeleteuser' method='post' action='php/form.php'>
                 <div><input type='hidden' name='delete_user' value='true'></div>
-                <div class='formcontrol'>
+                <div class='form-group'>
+                    <input type='text' id='del_username' name='username' value='' required autocomplete='off'/>
                     <label for='del_username'>Username</label>
-                    <input type='text' id='del_username' name='username' value='' required/>
                 </div>
-                <div class='formcontrol'>
+                <div class='form-group'>
+                    <input type='password' id='del_password' name='password' value='' required autocomplete='off'/>
                     <label for='del_password'>Password</label>
-                    <input type='password' id='del_password' name='password' value='' required/>
                 </div>
                 <div class='action_btns'>
                     <input type='submit' class='confirmdeleteuser' value='Delete my account'>
@@ -124,9 +124,9 @@ echo "
             <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
             <form id='modal_change_pwd' method='post' action='php/form.php'>
                 <input type='hidden' name='change_pw' value='true'>
-                <div class='formcontrol'>
-                    <label for='email'>Email</label>
+                <div class='form-group'>
                     <input type='email' name='email' value='' required/>
+                    <label for='email'>Email</label>
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
