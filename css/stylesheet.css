@@ -373,7 +373,7 @@ div.inputFeedback {
     border: none;
     overflow: hidden;
     box-sizing: border-box;
-    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .field_small {
