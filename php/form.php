@@ -38,6 +38,11 @@ if (!empty($_POST['isLogged'])) {
     exit;
 }
 
+if (!empty($_POST['load_content'])) {
+    $url = htmlspecialchars($_POST['load_content']);
+
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Common to Plugins/Scheduled tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -678,26 +683,14 @@ if (isset($_POST['suggest'])) {
 
 // Display submission form
 if (!empty($_POST['getpubform'])) {
-    if (isset($_SESSION['logok']) && $_SESSION['logok']) {
-        $id_Presentation = $_POST['getpubform'];
-        if ($id_Presentation == "false") {
-            $pub = false;
-        } else {
-            $pub = new Presentation($db, $id_Presentation);
-        }
-        if (!isset($_SESSION['username'])) {
-            $_SESSION['username'] = false;
-        }
-        $date = (!empty($_POST['date']) && $_POST['date'] !== 'false') ? $_POST['date']:false;
-        $type = (!empty($_POST['type']) && $_POST['type'] !== 'false') ? $_POST['type']:false;
-        $prestype = (!empty($_POST['prestype']) && $_POST['prestype'] !== 'false') ? $_POST['prestype']:false;
+    $Presentation = new Presentation($db);
+    echo json_encode($Presentation->editor($_POST));
+    exit;
+}
 
-        $user = new User($db, $_SESSION['username']);
-        $result = Presentation::displayform($user, $pub, $type, $prestype, $date);
-    } else {
-        $result = "<p class='sys_msg warning'>You must sign in to access this page!</p>";
-    }
-    echo json_encode($result);
+if (!empty($_POST['show_wish_list'])) {
+    $Presentation = new Presentation($db);
+    echo json_encode($Presentation->generate_selectwishlist('.submission_container'));
     exit;
 }
 

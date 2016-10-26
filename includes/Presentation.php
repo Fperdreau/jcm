@@ -213,9 +213,10 @@ class Presentations extends AppTable {
 
     /**
      *  Generate wish list (option menu)
+     * @param string $target
      * @return string
      */
-    function generate_selectwishlist() {
+    function generate_selectwishlist($target='.submission') {
         $sql = "SELECT id_pres FROM $this->tablename WHERE type='wishlist' ORDER BY title DESC";
         $req = $this->db->send_query($sql);
 
@@ -230,7 +231,7 @@ class Presentations extends AppTable {
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
               <div class='form-group'>
-                <select name='id' id='select_wish'>
+                <select name='id' id='select_wish' data-target='{$target}'>
                     $option
                 </select>
                 <label for='id'>Select a wish</label>
@@ -809,6 +810,27 @@ class Presentation extends Presentations {
         $filediv
         ";
         return $result;
+    }
+
+    /**
+     * Render submission editor
+     * @param array|null $post
+     * @return string
+     */
+    public function editor(array $post=null) {
+        $post = (is_null($post)) ? $_POST : $post;
+
+        $id_Presentation = $post['getpubform'];
+        $pub = $id_Presentation == "false" ? false : new self($this->db, $id_Presentation);
+        if (!isset($_SESSION['username'])) {
+            $_SESSION['username'] = false;
+        }
+        $date = (!empty($post['date']) && $post['date'] !== 'false') ? $post['date']:false;
+        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type']:false;
+        $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype']:false;
+
+        $user = new User($this->db, $_SESSION['username']);
+        return Presentation::displayform($user, $pub, $type, $prestype, $date);
     }
 
     /**

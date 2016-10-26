@@ -62,6 +62,15 @@ var showpubform = function (formel, idpress, type, date, prestype) {
 };
 
 /**
+ *
+ * @param el
+ */
+function show_wish_list(el) {
+    var data = {'show_wish_list': true};
+    processAjax(el, data, false, "php/form.php");
+}
+
+/**
  * Display form to post a news
  * @param postid
  */
@@ -366,7 +375,7 @@ $(document).ready(function () {
                 var page_to_load = pair[1];
 
                 var param = ($(this).is('[data-param]'))? $(this).attr('data-param'):false;
-                getPage(page_to_load,param);
+                getPage(page_to_load, param);
                 $('.submenu, .dropdown').hide();
             }
 
@@ -896,7 +905,7 @@ $(document).ready(function () {
         .on('change','#select_wish',function (e) {
             e.preventDefault();
             var presid = $(this).val();
-            var form = $('.submission');
+            var form = $($(this).data('target'));
             showpubform(form, presid, 'submit');
          })
 
@@ -1036,6 +1045,33 @@ $(document).ready(function () {
             var type = $(this).data('type');
             showpubform(modalpubform, false, type);
         })
+
+        .on('click', '.load_content', function(e) {
+            e.preventDefault();
+            var query = $(this).attr("href");
+            var vars = query.split("?");
+            var pairs = vars[1].split("&");
+            var args = {};
+            for (var i=0; i<pairs.length; i++) {
+                var pair = pairs[i].split("=");
+                args[pair[0]] = pair[1];
+            }
+            var type = (args['op'] !== undefined) ? args['op'] : false;
+            if (type == 'wishpick') {
+                var data = {'show_wish_list': true};
+                var el = $('.submission_container');
+                // First we remove any existing submission form
+                var callback = function (result) {
+                    el
+                        .html(result)
+                        .fadeIn(200);
+                };
+                processAjax(el, data, callback, "php/form.php");
+            } else {
+                showpubform($('.submission_container'), false, type);
+            }
+        })
+
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
