@@ -336,32 +336,6 @@ $(document).ready(function () {
                 .animate({width:'toggle'});
         })
 
-        .on('mouseenter', '.submitMenuSection', function(e) {
-            e.preventDefault();
-            var section = $(this).find('.icon_container');
-            var text = section.find('.text');
-            var icon = section.find('.icon');
-            section.animate({
-                left: '-=' + icon.outerWidth() + 'px'
-            }, 200, function() {
-                // Animation complete.
-            });
-            text.css({visibility: 'visible'});
-        })
-
-        .on('mouseleave', '.submitMenuSection', function(e) {
-            e.preventDefault();
-            var section = $(this).find('.icon_container');
-            var text = section.find('.text');
-            var icon = section.find('.icon');
-            section.animate({
-                left: '+=' + icon.outerWidth() + 'px'
-            }, 200, function() {
-                // Animation complete.
-            });
-            text.css({visibility: 'hidden'});
-        })
-
         // Display submenu
         .on('click','.submenu_trigger',function (e) {
             e.preventDefault();

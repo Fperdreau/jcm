@@ -40,7 +40,7 @@ $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
 
 // Submission menu
 $submitMenu = "
-    <div class='submitMenu'>
+    <div class='submitMenu_fixed'>
         <div class='submitMenuSection'>
             <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='submit'>
                <div class='icon_container'>

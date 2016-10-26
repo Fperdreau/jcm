@@ -1274,6 +1274,7 @@ h3 {
     color: rgba(68,68,68,1);
 }
 
+/* Submission floating menu */
 .submitMenu {
     position: fixed;
     top: 40px;
@@ -1290,7 +1291,7 @@ h3 {
     text-align: center;
 }
 
-.submitMenuSection {
+.submitMenu > .submitMenuSection {
     display: inline-block;
     font-size: 14px;
     background: #E4E4E2;
@@ -1304,31 +1305,147 @@ h3 {
     overflow: hidden;
 }
 
-.submitMenuSection a {
+.submitMenu > .submitMenuSection a {
     color:#444;
     text-align: center;
     text-decoration: none;
 }
 
-.submitMenuSection:hover>a {
+.submitMenu > .submitMenuSection:hover>a {
     color:#EEE;
     text-align: center;
     text-decoration: none;
 }
 
-.submitMenuSection:hover {
+.submitMenu > .submitMenuSection:hover {
     color:#EEE;
     background: rgba(207,81,81,1);
 }
 
-.submitMenuSection:hover>a>.icon_container>.icon {
+.submitMenu .icon_container {
+    display: inline-block;
+    position: relative;
+    width: 200px;
+    box-sizing: border-box;
+    text-align: left;
+    padding: 5px 0px;
+    transition:
+            background 0.2s,
+            color 0.2s,
+            margin-left 0.4s,
+            opacity 0.4s;
+}
+
+.submitMenu .icon_container>div {
+    display: inline-block;
+    vertical-align: middle;
+    width: 95px;
+    transition:
+            background 0.2s,
+            color 0.2s,
+            margin 0.4s,
+            opacity 0.4s;
+}
+
+.submitMenu .icon_container>.icon {
+    text-align: center;
+    text-transform: uppercase;
+    margin: auto;
+    transition:
+            background 0.2s,
+            color 0.2s,
+            margin-left 0.4s,
+            opacity 0.4s;
+}
+
+.submitMenu .icon_container>.icon>img{
+    border: 2px solid #CF5151;
+    border-radius: 50%;
+    padding: 5px;
+    background: white;
+    width: 40px;
+    vertical-align: bottom;
+    box-sizing: border-box;
+}
+
+.submitMenu .icon_container>.text {
+    height: 80%;
+    box-sizing: border-box;
+    margin-left: 0;
+    text-align: center;
+}
+
+.submitMenu > .submitMenuSection:hover .icon_container {
+    margin-left: -100px;
+}
+
+.submitMenu > .submitMenuSection:hover .icon_container>.icon {
+    opacity: 0.2;
+    margin-left: 0px;
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;}
+
+/* Submission floating menu */
+.submitMenu_fixed {
+    top: 40px;
+    left:0;
+    z-index: 91;
+    font-size: 0;
+
+    width: 320px;
+    margin: auto;
+    box-sizing: border-box;
+
+    background: rgba(200,200,200,.5);
+    text-align: center;
+}
+
+.submitMenu_fixed > .submitMenuSection {
+    display: inline-block;
+    font-size: 14px;
+    background: #E4E4E2;
+    text-align: center;
+    text-transform: uppercase;
+    transition: all 0.3s ease 0s;
+    cursor: pointer;
+    width: 100px;
+    height: 54px;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 0;
+    margin-left: 5px;
+}
+
+.submitMenu_fixed > .submitMenuSection:first-child {
+    margin: 0;
+}
+
+.submitMenu_fixed > .submitMenuSection a {
+    color:#444;
+    text-align: center;
+    text-decoration: none;
+}
+
+.submitMenu_fixed > .submitMenuSection:hover>a {
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;
+}
+
+.submitMenu_fixed > .submitMenuSection:hover {
+    color:#EEE;
+    background: rgba(207,81,81,1);
+}
+
+.submitMenu_fixed > .submitMenuSection:hover>a>.icon_container>.icon {
     opacity: 0.2;
     color:#EEE;
     text-align: center;
     text-decoration: none;
 }
 
-.icon_container {
+.submitMenu_fixed .icon_container {
     display: inline-block;
     position: relative;
     width: 200px;
@@ -1337,20 +1454,20 @@ h3 {
     padding: 5px 0px;
 }
 
-.icon_container>div {
+.submitMenu_fixed .icon_container>div {
     display: inline-block;
     vertical-align: middle;
     width: 98px;
 }
 
-.icon_container>.icon {
+.submitMenu_fixed .icon_container>.icon {
     text-align: center;
     text-transform: uppercase;
     transition: all 0.3s ease 0s;
     margin: auto;
 }
 
-.icon_container>.icon>img{
+.submitMenu_fixed .icon_container>.icon>img{
     border: 2px solid #CF5151;
     border-radius: 50%;
     padding: 5px;
@@ -1359,12 +1476,11 @@ h3 {
     vertical-align: bottom;
 }
 
-.icon_container>.text {
+.submitMenu_fixed .icon_container>.text {
     margin: auto;
     height: 80%;
     box-sizing: border-box;
 }
-
 /* *********************************************************************/
 /* Buttons
 /* *********************************************************************/
