@@ -35,7 +35,7 @@
                     $el.parent('.form-group').append($div);
                 }
                 $el.on('keyup', function (e) {
-                    var el = $(this).next('.passstrength');
+                    var el = $(this).siblings('.passstrength');
                     var bar = el.find('.passwordChecker_bar');
                     var text = el.find('.passwordChecker_text');
                     bar.attr('class','passwordChecker_bar');

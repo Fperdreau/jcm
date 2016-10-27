@@ -211,7 +211,7 @@ input[type="search"]:focus {
 
 /* Submit and action buttons */
 .submit_btns {
-    margin: 0 auto 0 0;
+    margin: 5px auto;
     top: 0;
     right: 20px;
     text-align: right;
@@ -370,10 +370,10 @@ div.inputFeedback {
 .form-group {
     position: relative;
     width: 100%;
-    border: none;
     overflow: hidden;
     box-sizing: border-box;
     margin-bottom: 5px;
+    border: 1px solid rgba(207, 81, 81, .3);
 }
 
 .field_small {
@@ -403,6 +403,7 @@ div.inputFeedback {
     color: #777;
     font-weight: 400;
     text-transform: capitalize;
+    border: none;
 }
 
 .form-group > textarea {
@@ -438,6 +439,8 @@ div.inputFeedback {
     height: auto;
 
     text-transform: capitalize;
+    border: none;
+
 }
 
 .form-group > label {
@@ -469,7 +472,6 @@ div.inputFeedback {
 }
 
 .form-group > div {
-    border: 1px solid rgba(207, 81, 81, .3);
     font-size: 13px;
     box-sizing: border-box;
 }
@@ -477,13 +479,11 @@ div.inputFeedback {
 .form-group > input:valid, .form-group > select:valid, .form-group > textarea:valid, .form-group > div {
     background: none !important;
     padding: 24px 6px 0 6px;
-    border: 1px solid rgba(207, 81, 81, .3);
 }
 
 input[type=text]:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > select:-webkit-autofill, .form-group > textarea:-webkit-autofill{
     background: none !important;
     padding: 24px 6px 0 6px;
-    border: 1px solid rgba(207, 81, 81, .3);
     -webkit-appearance: none;
 }
 
@@ -510,7 +510,6 @@ input[type=text]:-webkit-autofill, .form-group > input:-webkit-autofill, .form-g
 /* Select input */
 .form-group > select:valid {
     opacity: 1;
-    border: 1px solid rgba(207, 81, 81, .3);
 }
 
 .form-group > select:valid + label {
