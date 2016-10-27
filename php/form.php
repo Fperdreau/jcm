@@ -664,7 +664,6 @@ if (!empty($_POST['submit'])) {
 
 // Suggest a presentation to the wishlist
 if (isset($_POST['suggest'])) {
-    $_POST['date'] = "";
     $_POST['type'] = "wishlist";
     $pres = new Presentation($db);
     $created = $pres->make($_POST);
@@ -684,13 +683,17 @@ if (isset($_POST['suggest'])) {
 // Display submission form
 if (!empty($_POST['getpubform'])) {
     $Presentation = new Presentation($db);
-    echo json_encode($Presentation->editor($_POST));
+    echo json_encode($Presentation::format_section($Presentation->editor($_POST)));
     exit;
 }
 
 if (!empty($_POST['show_wish_list'])) {
     $Presentation = new Presentation($db);
-    echo json_encode($Presentation->generate_selectwishlist('.submission_container'));
+    $result['content'] = $Presentation->generate_selectwishlist('.submission_container');
+    $result['title'] = "Select a wish";
+    $result['description'] = $Presentation::description("wishpick");
+
+    echo json_encode($Presentation::format_section($result));
     exit;
 }
 

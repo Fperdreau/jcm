@@ -906,7 +906,7 @@ $(document).ready(function () {
             e.preventDefault();
             var presid = $(this).val();
             var form = $($(this).data('target'));
-            showpubform(form, presid, 'submit');
+            showpubform(form, presid, 'new');
          })
 
         // Show download list
@@ -920,7 +920,6 @@ $(document).ready(function () {
             var url = "uploads/"+uplname;
             window.open(url, '_blank');
         })
-
 
         // Select submission type
          .on('change', 'select#type', function (e) {

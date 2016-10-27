@@ -277,9 +277,9 @@ class Presentations extends AppTable {
 class Presentation extends Presentations {
 
     public $type = "";
-    public $date = "0000-00-00";
+    public $date = "1970-01-01";
     public $jc_time = "17:00,18:00";
-    public $up_date = "0000-00-00 00:00:00";
+    public $up_date = "1970-01-01 00:00:00";
     public $username = "";
     public $title = "";
     public $authors = "";
@@ -301,7 +301,6 @@ class Presentation extends Presentations {
         $config = new AppConfig($db);
         $this->jc_time = "$config->jc_time_from,$config->jc_time_to";
         $this->up_date = date('Y-m-d h:i:s'); // Date of creation
-
         if (null != $id_pres) {
             self::get($id_pres);
         }
@@ -834,6 +833,58 @@ class Presentation extends Presentations {
     }
 
     /**
+     * @param array $content
+     * @return string
+     */
+    public static function format_section(array $content) {
+        return "
+        <section id='submission_form'>
+            <h2>{$content['title']}</h2>
+             <p class='page_description'>{$content['description']}</p>       
+            <div class='section_content'>{$content['content']}</div>
+        </section>
+        ";
+    }
+
+    /**
+     * Submission form instruction
+     * @param $type
+     * @return null|string
+     */
+    public static function description($type) {
+        $result = null;
+        switch ($type) {
+            case "new":
+                $result = "
+                Book a Journal Club session to present a paper, your research, or a
+            methodology topic. <br>
+            Fill in the form below, select a date (only available dates are selectable) and it's all done!
+            Your submission will be automatically added to our database.<br>
+            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!
+                ";
+                break;
+            case "suggest":
+                $result = "
+                Here you can suggest a paper that somebody else could present at a Journal Club session.
+                Fill in the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
+                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!
+                ";
+                break;
+            case "wishpick":
+                $result = "
+                Here you can choose a suggested paper from the wishlist that you would like to present.<br>
+                The form below will be automatically filled in with the data provided by the user who suggested the selected paper.
+                Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
+                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!
+                ";
+                break;
+
+        }
+        return $result;
+
+    }
+
+    /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
      * @param User $user
      * @param bool $Presentation
@@ -842,7 +893,7 @@ class Presentation extends Presentations {
      * @param bool $date
      * @return string
      */
-    public static function displayform(User $user, $Presentation=false, $submit="submit", $type=false, $date=false) {
+    public static function displayform(User $user, $Presentation=false, $submit="new", $type=false, $date=false) {
         global $AppConfig, $db;
 
         if ($Presentation == false) {
@@ -867,7 +918,7 @@ class Presentation extends Presentations {
                 <label>Authors </label>
             </div>":"";
 
-        $selectopt = ($submit === "select") ? $Presentation->generate_selectwishlist():"";
+        $selectopt = ($submit === "wishpick") ? $Presentation->generate_selectwishlist():"";
 
         // Make submission's type selection list
         $typeoptions = "";
@@ -882,7 +933,7 @@ class Presentation extends Presentations {
 
         // Text of the submit button
         $submitxt = ucfirst($submit);
-        $form = ($submit !== "select") ? "
+        $form = ($submit !== "wishpick") ? "
             <div class='feedback'></div>
             <div class='form_container'>
                 <div class='form_aligned_block matched_bg'>
@@ -945,12 +996,21 @@ class Presentation extends Presentations {
             </div>
         ":"";
 
-        return "
-    <div>$selectopt</div>
-    <div class='submission'>
-        $form
-    </div>
-	";
+        if ($submit == 'suggest') {
+            $result['title'] = "Make a wish";
+        } elseif ($submit == "new") {
+            $result['title'] = "New presentation";
+        } elseif ($submit == "wishpick") {
+            $result['title'] = "Select a wish";
+        }
+        $result['content'] = "
+            <div>$selectopt</div>
+            <div class='submission'>
+                $form
+            </div>
+            ";
+        $result['description'] = self::description($submit);
+        return $result;
     }
 
     /**

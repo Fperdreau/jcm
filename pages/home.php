@@ -31,30 +31,32 @@ $wishlist = $presentations->getwishlist(10,true);
 
 // Submission menu
     $submitMenu = "
-    <div class='submitMenu'>
-        <div class='submitMenuSection'>
-            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='submit'>
-               <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
-                    <div class='text'>Submit</div>
-                </div>
-           </a>
-        </div>
-        <div class='submitMenuSection'>
-            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
-               <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
-                    <div class='text'>Add a wish</div>
-                </div>
-            </a>
-        </div>
-        <div class='submitMenuSection'>
-            <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='select'>
-                <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
-                    <div class='text'>Select a wish</div>
-                </div>
-            </a>
+    <div class='submitMenuFloat'>
+        <div class='submitMenuContainer'>
+            <div class='submitMenuSection'>
+                <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='new'>
+                   <div class='icon_container'>
+                        <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
+                        <div class='text'>Submit</div>
+                    </div>
+               </a>
+            </div>
+            <div class='submitMenuSection'>
+                <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
+                   <div class='icon_container'>
+                        <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
+                        <div class='text'>Add a wish</div>
+                    </div>
+                </a>
+            </div>
+            <div class='submitMenuSection'>
+                <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='wishpick'>
+                    <div class='icon_container'>
+                        <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
+                        <div class='text'>Select a wish</div>
+                    </div>
+                </a>
+            </div>
         </div>
     </div>";
 

@@ -34,6 +34,7 @@ $user = new User($db, $username);
 // Get options
 $result = null;
 $submit_form = null;
+$content = null;
 
 if (isset($_GET['op'])) {
     $op = htmlspecialchars($_GET['op']);
@@ -42,31 +43,11 @@ if (isset($_GET['op'])) {
 
 // Submit a new presentation
     if ($op == 'new') {
-        $submit_form = Presentation::displayform($user, false, 'submit', false, $date);
-        $result = "
-       <section id='submission_form'>
-            <h2>Submit a presentation</h2>
-             <p class='page_description'>Book a Journal Club session to present a paper, your research, or a
-            methodology topic. <br>
-            Fill up the form below, select a date (only available dates are selectable) and it's all done!
-            Your submission will be automatically added to our database.<br>
-            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>       
-            <div class='section_content'>$submit_form</div>
-        </section>
-    ";
+        $content = Presentation::displayform($user, false, 'submit', false, $date);
 
 // Suggest a presentation
     } elseif ($op == 'suggest') {
-        $submit_form = Presentation::displayform($user, false, "suggest");
-        $result = "
-        <section id='submission_form'>
-            <h2>Suggest a wish</h2>            
-            <p class='page_description'>Here you can suggest a paper that somebody else could present at a Journal Club session.
-             Fill up the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
-            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-            <div class='section_content'>$submit_form</div>
-        </section>
-    ";
+        $content = Presentation::displayform($user, false, "suggest");
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
@@ -84,77 +65,56 @@ if (isset($_GET['op'])) {
             $submit_form = "";
         }
 
-        $result = "
-        <section>
-            <h2>Select a wish</h2>
-            <p class='page_description'>Here you can choose a suggested paper from the wishlist that you would like to present.<br>
-            The form below will be automatically filled up with the data provided by the user who suggested the selected paper.
-            Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
-            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!</p>
-            <div class='section_content'>
-            $selectopt
-            <div id='submission_form' class='wishform'>
-            $submit_form
-            </div>
-            </div>
-        </section>
-    ";
+        $content['title'] = "Select a wish";
+        $content['description'] = $Presentation::description('wishpick');
+        $content['content'] = $selectopt;
 
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
         $Presentation = new Presentation($db, $_GET['id']);
-        $submit_form = Presentation::displayform($user, $Presentation, 'submit');
-        $result = "
-        <section id='submission_form'>
-            <h2>Modify a presentation</h2>
-            <p class='page_description'>Here you can modify your submission. Please, check on the information before submitting your presentation</p>
-            $submit_form
-        </section>
-    ";
+        $content = Presentation::displayform($user, $Presentation, 'submit');
     }
 }
 
 // Submission menu
 $submitMenu = "
-    <div class='submitMenu submitMenu_fixed'>
-        <div class='submitMenuSection'>
-            <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=new' . "' class='load_content' data-section='submission_form' data-type='submit'>
-               <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
-                    <div class='text'>Submit</div>
-                </div>
-           </a>
-        </div>
-        <div class='submitMenuSection'>
-            <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' class='load_content' data-section='submission_form' data-type='suggest'>
-               <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
-                    <div class='text'>Add a wish</div>
-                </div>
-            </a>
-        </div>
-        <div class='submitMenuSection'>
-            <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=wishpick' . "' class='load_content' data-section='submission_form' data-type='select'>
-                <div class='icon_container'>
-                    <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
-                    <div class='text'>Select a wish</div>
-                </div>
-            </a>
+    <div class='submitMenu_fixed'>
+        <div class='submitMenuContainer'>
+            <div class='submitMenuSection'>
+                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=new' . "' class='load_content' data-section='submission_form' data-type='submit'>
+                   <div class='icon_container'>
+                        <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
+                        <div class='text'>Submit</div>
+                    </div>
+               </a>
+            </div>
+            <div class='submitMenuSection'>
+                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' class='load_content' data-section='submission_form' data-type='suggest'>
+                   <div class='icon_container'>
+                        <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
+                        <div class='text'>Add a wish</div>
+                    </div>
+                </a>
+            </div>
+            <div class='submitMenuSection'>
+                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=wishpick' . "' class='load_content' data-section='submission_form' data-type='select'>
+                    <div class='icon_container'>
+                        <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
+                        <div class='text'>Select a wish</div>
+                    </div>
+                </a>
+            </div>
         </div>
     </div>";
 
-$result = "
-    <div class='submission_menu_container'>
-        <section>
-            <h2>Choose the submission type</h2>
-            {$submitMenu}
-        </section>
-    </div>
-    <div class='submission_container'>
-        {$result}
-    </div>
-</div>
-";
+$form_section = null;
+if (!is_null($content)) {
+    $form_section = $Presentation::format_section($content);
+}
 
+$result = "
+    {$submitMenu}
+    <div class='submission_container'>{$form_section}</div> 
+";
 echo json_encode($result);
 exit;

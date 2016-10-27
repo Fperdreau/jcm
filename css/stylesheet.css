@@ -47,6 +47,7 @@ body {
     -webkit-font-smoothing: antialiased;
     overflow-y: scroll;
     overflow-x: scroll;
+    background: #e9ebee;
 }
 
 a {
@@ -108,6 +109,11 @@ label{
     min-width: 100px;
     height: 20px;
     line-height: 20px;
+}
+
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+    background: inherit;
+    color: rgb(0, 0, 0);
 }
 
 input[type='text'], input[type='email'], input[type='password'], input[type='date'], input[type='datetime-local'],
@@ -481,8 +487,8 @@ div.inputFeedback {
     padding: 24px 6px 0 6px;
 }
 
-input[type=text]:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > select:-webkit-autofill, .form-group > textarea:-webkit-autofill{
-    background: none !important;
+input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > select:-webkit-autofill, .form-group > textarea:-webkit-autofill{
+    background-color: white !important;
     padding: 24px 6px 0 6px;
     -webkit-appearance: none;
 }
@@ -713,6 +719,7 @@ header {
     box-sizing: border-box;
     text-align: left;
     height: 40px;
+    font-size: 0;
 }
 
 header>div{
@@ -1135,14 +1142,17 @@ section {
     font-size: 16px;
     margin: 10px auto 10px auto;
     padding: 0;
-    background-color: rgba(200,200,200,.1);
     min-width: 320px;
+    border-radius: 3px;
+    border: 1px solid;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+    background-color: rgba(255,255,255,1);
+
 }
 
 section>.section_content {
     margin: auto;
     padding: 10px 10px 20px 10px;
-    border: 1px solid #ddd;
 }
 
 section>h2 {
@@ -1274,7 +1284,7 @@ h3 {
 }
 
 /* Submission floating menu */
-.submitMenu {
+.submitMenuFloat {
     position: fixed;
     top: 40px;
     left:0;
@@ -1282,15 +1292,22 @@ h3 {
     font-size: 0;
 
     width: 100%;
-    min-width: 300px;
     margin: 0;
-    box-sizing: border-box;
 
-    background: rgba(200,200,200,.5);
+    background: none;
     text-align: center;
 }
 
-.submitMenu > .submitMenuSection {
+.submitMenuContainer {
+    width: 300px;
+    margin: auto;
+    background: rgba(200,200,200,.5);
+    border: 1px solid #d0d1d5;
+    border-radius: 0 0 3px 3px;
+    text-align: center;
+}
+
+.submitMenuContainer > .submitMenuSection {
     display: inline-block;
     font-size: 14px;
     background: #E4E4E2;
@@ -1299,29 +1316,29 @@ h3 {
     transition: all 0.3s ease 0s;
     cursor: pointer;
     width: 100px;
-    height: 54px;
+    height: auto;
     box-sizing: border-box;
     overflow: hidden;
 }
 
-.submitMenu > .submitMenuSection a {
+.submitMenuContainer > .submitMenuSection a {
     color:#444;
     text-align: center;
     text-decoration: none;
 }
 
-.submitMenu > .submitMenuSection:hover>a {
+.submitMenuContainer > .submitMenuSection:hover>a {
     color:#EEE;
     text-align: center;
     text-decoration: none;
 }
 
-.submitMenu > .submitMenuSection:hover {
+.submitMenuContainer > .submitMenuSection:hover {
     color:#EEE;
     background: rgba(207,81,81,1);
 }
 
-.submitMenu .icon_container {
+.submitMenuContainer .icon_container {
     display: inline-block;
     position: relative;
     width: 200px;
@@ -1335,7 +1352,7 @@ h3 {
             opacity 0.4s;
 }
 
-.submitMenu .icon_container>div {
+.submitMenuContainer .icon_container>div {
     display: inline-block;
     vertical-align: middle;
     width: 95px;
@@ -1346,7 +1363,7 @@ h3 {
             opacity 0.4s;
 }
 
-.submitMenu .icon_container>.icon {
+.submitMenuContainer .icon_container>.icon {
     text-align: center;
     text-transform: uppercase;
     margin: auto;
@@ -1357,71 +1374,88 @@ h3 {
             opacity 0.4s;
 }
 
-.submitMenu .icon_container>.icon>img{
+.submitMenuContainer .icon_container>.icon>img{
     border: 2px solid #CF5151;
     border-radius: 50%;
     padding: 5px;
     background: white;
-    width: 40px;
+    width: 20px;
     vertical-align: bottom;
-    box-sizing: border-box;
+    box-sizing: content-box;
 }
 
-.submitMenu .icon_container>.text {
+.submitMenuContainer .icon_container>.text {
     height: 80%;
     box-sizing: border-box;
     margin-left: 0;
     text-align: center;
 }
 
-.submitMenu > .submitMenuSection:hover .icon_container {
+.submitMenuContainer > .submitMenuSection:hover .icon_container {
     margin-left: -100px;
 }
 
-.submitMenu > .submitMenuSection:hover .icon_container>.icon {
+.submitMenuContainer > .submitMenuSection:hover .icon_container>.icon {
     opacity: 0.2;
-    margin-left: 0px;
+    margin-left: 0;
     color:#EEE;
     text-align: center;
-    text-decoration: none;}
+    text-decoration: none;
+}
 
 /* Submission floating menu */
 .submitMenu_fixed {
     position: relative;
-    top: 0;
-    left: 0;
-    z-index: 0;
-    font-size: 0;
     margin: 10px auto;
-
     width: 320px;
-    box-sizing: border-box;
     border-radius: 5px;
 
-    background: none;
     text-align: center;
+
+    background: white;
+    border: 1px solid;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+    background-color: rgba(255,255,255,1);
+    padding: 10px 5px;
 }
 
-.submitMenu_fixed > .submitMenuSection {
+.submitMenu_fixed > .submitMenuContainer {
+    width: 100%;
+    background: none;
+    border: none;
+}
+
+.submitMenu_fixed > .submitMenuContainer > .submitMenuSection {
     display: inline-block;
     font-size: 14px;
-    background: white;
+    background-color: white;
     text-align: center;
     text-transform: uppercase;
     transition: all 0.3s ease 0s;
     cursor: pointer;
     width: 100px;
-    height: 54px;
     box-sizing: border-box;
     overflow: hidden;
     margin-left: 5px;
-    border: 1px solid rgba(50, 50, 50, 1);
+    border: 1px solid #d0d1d5;
     border-radius: 5px;
 }
 
-.submitMenu_fixed > .submitMenuSection:first-child {
+.submitMenu_fixed > .submitMenuContainer > .submitMenuSection:first-child {
     margin: 0;
 }
+
+.submitMenu_fixed > .submitMenuContainer > .submitMenuSection:hover>a {
+    color:#EEE;
+    text-align: center;
+    text-decoration: none;
+}
+
+.submitMenu_fixed > .submitMenuContainer > .submitMenuSection:hover {
+    color:#EEE;
+    background: rgba(207,81,81,1);
+}
+
 
 /* *********************************************************************/
 /* Buttons

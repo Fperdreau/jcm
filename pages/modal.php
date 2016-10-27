@@ -136,7 +136,7 @@ echo "
         </div>
 
         <!-- Submission form section -->
-        <div class='modal_section' id='submission_form' data-title='Presentation'></div>
+        <div class='modal_section' id='submission_form' data-title='Submission'></div>
 
         <!-- Delete submission (confirmation) section -->
         <div class='modal_section' id='pub_delete' data-title='Delete Presentation'>
