@@ -43,11 +43,11 @@ if (isset($_GET['op'])) {
 
 // Submit a new presentation
     if ($op == 'new') {
-        $content = Presentation::displayform($user, false, 'submit', false, $date);
+        $content = Presentation::form($user, false, 'submit', false, $date);
 
 // Suggest a presentation
     } elseif ($op == 'suggest') {
-        $content = Presentation::displayform($user, false, "suggest");
+        $content = Presentation::form($user, false, "suggest");
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
@@ -60,7 +60,7 @@ if (isset($_GET['op'])) {
 
         $selectopt = $Presentations->generate_selectwishlist('.submission_container');
         if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
-            $submit_form = Presentation::displayform($user, $Presentation,'submit');
+            $submit_form = Presentation::form($user, $Presentation,'submit');
         } else {
             $submit_form = "";
         }
@@ -72,7 +72,7 @@ if (isset($_GET['op'])) {
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
         $Presentation = new Presentation($db, $_GET['id']);
-        $content = Presentation::displayform($user, $Presentation, 'submit');
+        $content = Presentation::form($user, $Presentation, 'submit');
     }
 }
 
