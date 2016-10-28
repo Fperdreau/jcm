@@ -35,7 +35,7 @@
  */
 var showpubform = function (formel, idpress, type, date, prestype, destination) {
     if (idpress === undefined) {idpress = false; }
-    if (type === undefined) {type = "submit"; }
+    if (type === undefined) {type = "new"; }
     if (date === undefined) {date = false; }
     if (prestype === undefined) {prestype = false; }
     var data = {
@@ -725,24 +725,28 @@ $(document).ready(function () {
          */
         .on('click', '.show_log_manager', function(e) {
             e.preventDefault();
-            //var div = $(this).closest('.log_container');
             var name = $(this).attr('id');
             var div = $('.log_target_container#' + name);
             var url = $(this).attr('href');
-            jQuery.ajax({
-                type: 'get',
-                url: url,
-                beforeSend: function() {
-                    loadingDiv(div);
-                },
-                complete: function() {
-                    removeLoading(div);
-                },
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    div.html(json).toggle();
-                }
-            });
+            if (!div.is(':visible')) {
+
+                jQuery.ajax({
+                    type: 'get',
+                    url: url,
+                    beforeSend: function () {
+                        loadingDiv(div);
+                    },
+                    complete: function () {
+                        removeLoading(div);
+                    },
+                    success: function (data) {
+                        var json = jQuery.parseJSON(data);
+                        div.html(json).toggle();
+                    }
+                });
+            } else {
+                div.toggle();
+            }
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1013,7 +1017,6 @@ $(document).ready(function () {
                     data = modArray(data, input_name, content);
                 })
             }
-
             processAjax(form, data, callback, "php/form.php");
         })
 
@@ -1080,7 +1083,7 @@ $(document).ready(function () {
         .on('click','.modify_ref',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            showpubform(modalpubform, id_pres, 'submit');
+            showpubform(modalpubform, id_pres, 'new');
         })
 
 		// Show publication deletion confirmation
