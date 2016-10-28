@@ -655,7 +655,7 @@ if (!empty($_POST['del_pub'])) {
 }
 
 // Submit a new presentation
-if (!empty($_POST['submit'])) {
+if (!empty($_POST['new'])) {
     $Presentation = new Presentation($db);
     $result = $Presentation->edit($_POST);
     echo json_encode($result);
@@ -692,6 +692,7 @@ if (!empty($_POST['getpubform'])) {
     exit;
 }
 
+// Show wishlist selector
 if (!empty($_POST['show_wish_list'])) {
     $Presentation = new Presentation($db);
     $result['content'] = $Presentation->generate_selectwishlist('.submission_container');
@@ -725,7 +726,7 @@ if (!empty($_POST['mod_pub'])) {
     $id_Presentation = $_POST['mod_pub'];
     $user = new User($db,$_SESSION['username']);
     $pub = new Presentation($db,$id_Presentation);
-    $form = Presentation::displayform($user,$pub,'update');
+    $form = Presentation::form($user,$pub,'update');
     echo json_encode($form);
     exit;
 }
@@ -733,7 +734,7 @@ if (!empty($_POST['mod_pub'])) {
 if (!empty($_POST['getform'])) {
     $pub = new Presentation($db);
     $user = new User($db,$_SESSION['username']);
-    $form = Presentation::displayform($user,$pub,'submit');
+    $form = Presentation::form($user,$pub,'submit');
     echo json_encode($form);
     exit;
 }
