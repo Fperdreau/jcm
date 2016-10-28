@@ -32,7 +32,7 @@ if (!empty($_GET['id'])) {
 
     $Presentation = new Presentation($db, htmlspecialchars($_GET['id']));
     if ($user != false) {
-        $content = $Presentation->displayform($user, $Presentation);
+        $content = $Presentation::form($user, $Presentation);
     } else {
         $content = $Presentation->displaypub();
     }
