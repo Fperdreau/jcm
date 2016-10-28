@@ -508,10 +508,12 @@ class AppCron extends AppTable {
 
             $cronList .= "
             <div class='plugDiv' id='cron_$cronName'>
-                <div class='plugLeft'>
-                    <div class='plugName'>$cronName</div>
-                    <div class='plugTime' id='cron_time_$cronName'>$datetime</div>
-                    <div class='optbar'>
+                <div class='plugHeader'>
+                    <div class='plug_header_panel'>
+                        <div class='plugName'>$cronName</div>
+                        <div class='plugTime' id='cron_time_$cronName'>$datetime</div>
+                    </div>
+                    <div class='optBar'>
                         <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
                         $install_btn
                         $runBtn
@@ -527,17 +529,19 @@ class AppCron extends AppTable {
     
                         <div class='settings'>
                             <form method='post' action='php/form.php'>
-                                <div>Date & Time</div>
-                                <div class='form-group field_small'>
-                                    <input type='date' name='date' value='{$date}'/>
-                                    <label>Date</label>
+                                <div class='plug_settings_panel'>
+                                    <div>Date & Time</div>
+                                    <div class='form-group field_small'>
+                                        <input type='date' name='date' value='{$date}'/>
+                                        <label>Date</label>
+                                    </div>
+                                    <div class='form-group field_small'>
+                                        <input type='time' name='time' value='{$time}' />
+                                        <label>Time</label>
+                                    </div>
                                 </div>
-                                <div class='form-group field_small'>
-                                    <input type='time' name='time' value='{$time}' />
-                                    <label>Time</label>
-                                </div>
-                                
-                                <div class='frequency_container'>
+
+                                <div class='plug_settings_panel frequency_container'>
         
                                     <div>Frequency</div>
                                     <div class='form-group field_small'>
