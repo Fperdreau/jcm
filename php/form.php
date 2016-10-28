@@ -682,8 +682,13 @@ if (isset($_POST['suggest'])) {
 
 // Display submission form
 if (!empty($_POST['getpubform'])) {
+    $destination = isset($_POST['destination']) ? htmlspecialchars($_POST['destination']) : 'body';
     $Presentation = new Presentation($db);
-    echo json_encode($Presentation::format_section($Presentation->editor($_POST)));
+    if ($destination === "body") {
+        echo json_encode($Presentation::format_section($Presentation->editor($_POST)));
+    } else {
+        echo json_encode($Presentation::format_modal($Presentation->editor($_POST)));
+    }
     exit;
 }
 

@@ -1389,6 +1389,7 @@ h3 {
     box-sizing: border-box;
     margin-left: 0;
     text-align: center;
+    font-size: 14px;
 }
 
 .submitMenuContainer > .submitMenuSection:hover .icon_container {

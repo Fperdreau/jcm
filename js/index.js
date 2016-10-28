@@ -31,8 +31,9 @@
  * @param type: form's type (submit, modify, suggest)
  * @param date: presentation's date
  * @param prestype
+ * @param destination: destination view (body, modal)
  */
-var showpubform = function (formel, idpress, type, date, prestype) {
+var showpubform = function (formel, idpress, type, date, prestype, destination) {
     if (idpress === undefined) {idpress = false; }
     if (type === undefined) {type = "submit"; }
     if (date === undefined) {date = false; }
@@ -41,7 +42,8 @@ var showpubform = function (formel, idpress, type, date, prestype) {
         getpubform: idpress,
         type: type,
         date: date,
-        prestype: prestype
+        prestype: prestype,
+        destination: destination
     };
     // First we remove any existing submission form
     var callback = function (result) {
@@ -1042,7 +1044,7 @@ $(document).ready(function () {
         .on('click','#modal_trigger_newpub',function (e) {
             e.preventDefault();
             var type = $(this).data('type');
-            showpubform(modalpubform, false, type);
+            showpubform(modalpubform, false, type, false, false, 'modal');
         })
 
         .on('click', '.load_content', function(e) {

@@ -847,6 +847,18 @@ class Presentation extends Presentations {
     }
 
     /**
+     * View for modal windows
+     * @param array $content
+     * @return string
+     */
+    public static function format_modal(array  $content) {
+        return "
+            <p class='page_description'>{$content['description']}</p>       
+            <div class='section_content'>{$content['content']}</div>
+        ";
+    }
+
+    /**
      * Submission form instruction
      * @param $type
      * @return null|string
@@ -1015,35 +1027,39 @@ class Presentation extends Presentations {
 
     /**
      * Submission menu
+     * @param $style
      * @return string
      */
-    public static function submitMenu() {
+    public static function submitMenu($style) {
+        $class = ($style === 'float') ? "submitMenuFloat" : "submitMenu_fixed";
         return "
-        <div class='submitMenu'>
-            <div class='submitMenuSection'>
-                <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='submit'>
-                   <div class='icon_container'>
-                        <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
-                        <div class='text'>Submit</div>
+            <div class='{$class}'>
+                <div class='submitMenuContainer'>
+                    <div class='submitMenuSection'>
+                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='new'>
+                           <div class='icon_container'>
+                                <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
+                                <div class='text'>Submit</div>
+                            </div>
+                       </a>
                     </div>
-               </a>
-            </div>
-            <div class='submitMenuSection'>
-                <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
-                   <div class='icon_container'>
-                        <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
-                        <div class='text'>Add a wish</div>
+                    <div class='submitMenuSection'>
+                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
+                           <div class='icon_container'>
+                                <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
+                                <div class='text'>Add a wish</div>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <div class='submitMenuSection'>
-                <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='select'>
-                    <div class='icon_container'>
-                        <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
-                        <div class='text'>Select a wish</div>
+                    <div class='submitMenuSection'>
+                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='wishpick'>
+                            <div class='icon_container'>
+                                <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
+                                <div class='text'>Select a wish</div>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
+                </div>
         </div>";
     }
 }

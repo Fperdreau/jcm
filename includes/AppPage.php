@@ -389,13 +389,26 @@ class AppPage extends AppTable {
     }
 
     /**
+     * Render menu section for registered members
+     * @return string
+     */
+    public static function member_menu() {
+        return "
+            <li class='main_section' id='submission'><a href='index.php?page=submission' class='menu-section' id='submission'>submit</a></li>
+            <li class='main_section' id='archives'><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
+        ";
+    }
+
+    /**
      * Render main menu
      * @return string
      */
     public static function menu() {
         $organizer = null;
         $admin = null;
+        $member_menu = null;
         if (isset($_SESSION['logok']) && $_SESSION['logok']) {
+            $member_menu = self::member_menu();
             if (isset($_SESSION['status']) && in_array($_SESSION['status'], array('organizer', 'admin'))) {
                 $organizer = self::organizer_menu();
             }
@@ -409,10 +422,9 @@ class AppPage extends AppTable {
             <nav>
                 <ul>
                     <li class='main_section' id='home'><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
-                    <li class='main_section' id='submission'><a href='index.php?page=submission' class='menu-section' id='submission'>submit</a></li>
                     <li class='main_section' id='news'><a href='index.php?page=news' class='menu-section' id='news'>news</a></li>
-                    <li class='main_section' id='archives'><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
                     <li class='main_section' id='contact'><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
+                    {$member_menu}
                     {$organizer}
                     {$admin}
                 </ul>
