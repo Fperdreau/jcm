@@ -146,6 +146,7 @@ $(document).ready(function() {
                     var newattr = (op=='install') ? 'uninstall':'install';
                     $(el)
                         .attr('data-op',newattr)
+                        .removeClass('loadBtn')
                         .addClass(newClass);
                 }
             };
@@ -157,12 +158,11 @@ $(document).ready(function() {
                     type: type,
                     op: op
                 },
-                async: true,
                 beforeSend: function() {
                     if (op == 'install') {
-                        $(el.removeClass('installBtn'));
+                        $(el).removeClass('installBtn');
                     } else {
-                        $(el.removeClass('uninstallBtn'));
+                        $(el).removeClass('uninstallBtn');
                     }
                     $(el).addClass('loadBtn');
                 },
@@ -190,6 +190,7 @@ $(document).ready(function() {
                     var newattr = (op === 'On') ? 'Off':'On';
                     $(el)
                         .attr('data-op',newattr)
+                        .removeClass('loadBtn')
                         .addClass(newClass);
                 }
             };
@@ -204,9 +205,9 @@ $(document).ready(function() {
                 async: true,
                 beforeSend: function() {
                     if (op == 'on') {
-                        $(el.removeClass('activateBtn'));
+                        $(el).removeClass('activateBtn');
                     } else {
-                        $(el.removeClass('deactivateBtn'));
+                        $(el).removeClass('deactivateBtn');
                     }
                     $(el).addClass('loadBtn');
                 },
@@ -314,7 +315,7 @@ $(document).ready(function() {
                     $(el).toggleClass('runBtn loadBtn');
                 },
                 complete: function() {
-                    $(el).toggleClass('runBtn loadBtn');
+                    $(el).toggleClass('loadBtn runBtn');
                 },
                 success: function(data) {
                     validsubmitform(div,data);
