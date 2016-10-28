@@ -27,8 +27,10 @@ $Reminder = new ReminderMaker($db);
 $content = $Reminder->edit();
 // Send mail
 $result = "
+    <div class='page_header'>
     <h1>Reminder Maker</h1>
     <p class='page_description'>Here you can customize and preview the reminder email that will be sent to the JCM members.</p>
+    </div>
     <section>
         <h2>Reminder Sections</h2>
         <div class='section_content'>

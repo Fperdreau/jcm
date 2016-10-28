@@ -30,8 +30,11 @@ $contactForm = $MailManager->getContactForm($recipients_list);
 
 // Send mail
 $result = "
+    <div class='page_header'>
     <h1>Mailing</h1>
     <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
+    </div>
+    
     <section>
         <div class='section_content'>{$contactForm}</div>
     </section>";

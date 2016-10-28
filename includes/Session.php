@@ -206,16 +206,14 @@ class Sessions extends AppTable {
                         </div>
                     </div>
                     <div class='session_time'>
-                        <div class='form-group' style='width: 100%;'>
+                        <div class='form-group field_small inline_field'>
                             <select class='mod_session' name='time_from'>
                                 <option value='$timefrom' selected>$timefrom</option>
                                 $timeopt
                             </select>
                             <label>From</label>
                         </div>
-                    </div>
-                    <div class='session_time'>
-                        <div class='form-group' style='width: 100%;'>
+                        <div class='form-group field_small inline_field'>
                             <select class='mod_session' name='time_to'>
                                 <option value='$timeto' selected>$timeto</option>
                                 $timeopt

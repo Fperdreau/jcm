@@ -113,7 +113,10 @@ if (!is_null($content)) {
 }
 
 $result = "
+    <div class='page_header'>
+    <h1>Submission</h1>
     {$submitMenu}
+    </div>
     <div class='submission_container'>{$form_section}</div> 
 ";
 echo json_encode($result);

@@ -59,8 +59,10 @@ foreach ($AppConfig->pres_type as $type) {
 }
 
 $result = "
+<div class='page_header'>
 <h1>Manage Sessions</h1>
 <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
+</div>
 <div class='section_container'>
     <div class='section_left'>
     <section>

@@ -34,6 +34,10 @@ foreach ($years as $year) {
 $publist = $Presentations->getpublicationlist();
 
 $result = "
+    <div class='page_header'>
+    <h1>Archives</h1>
+    </div>
+    
     <div class='feedback'></div>
         <select name='year' class='archive_select'>
             $options

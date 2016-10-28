@@ -30,7 +30,10 @@ $user = new User($db,$_SESSION['username']);
 $timeopt = maketimeopt();
 
 $result = "
+    <div class='page_header'>
     <h1>Settings</h1>
+    </div>
+    
     <div class='section_container'>
             <section>
                 <h2>JCM settings</h2>

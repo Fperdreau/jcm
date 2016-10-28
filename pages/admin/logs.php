@@ -26,8 +26,10 @@ require('../../includes/boot.php');
 $manager = AppLogger::manager(APP_NAME);
 
 $result = "
+    <div class='page_header'>
     <h1>System logs</h1>
     <p class='page_description'>You can find the logs of Journal Club Manager below.</p>
+    </div>
     
     <section>
         <h2>Logs</h2>

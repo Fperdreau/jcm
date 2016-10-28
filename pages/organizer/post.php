@@ -49,8 +49,11 @@ if (!empty($postlist)) {
 $options .= "</select>";
 
 $result = "
+    <div class='page_header'>
     <h1>News</h1>
     <p class='page_description'>Here you can add a post on the homepage.</p>
+    </div>
+    
     <div style='display: block; width: 100%;'>
         <div style='display: inline-block'>$options</div>
         <div style='display: inline-block'>or</div>

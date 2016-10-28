@@ -26,7 +26,10 @@ $news = $last_news->show(false);
 
 
 $result = "
+    <div class='page_header'>
     <h1>News</h1>
+    </div>
+    
         $news
 ";
 
