@@ -39,13 +39,13 @@ $result = "
             <p>You have the possibility to receive logs by email every time a task is executed.</p>
             <form method='post' action='php/form.php' class='form' id='config_form_site'>
                 <input type='hidden' name='config_modify' value='true'/>
-                <div class='formcontrol'>
-                    <label>Get notified by email</label>
+                <div class='form-group' style='width: 300px;'>
                     <select name='notify_admin_task'>
                         <option value='{$AppConfig->notify_admin_task}' selected>{$AppConfig->notify_admin_task}</option>
                         <option value='yes'>Yes</option>
                         <option value='no'>No</option>
                     </select>
+                    <label>Get notified by email</label>
                 </div>
                 <input type='submit' name='modify' value='Modify' class='processform'>
                 <div class='feedback' id='feedback_site'></div>
