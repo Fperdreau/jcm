@@ -829,7 +829,7 @@ class Presentation extends Presentations {
         $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype']:false;
 
         $user = new User($this->db, $_SESSION['username']);
-        return Presentation::displayform($user, $pub, $type, $prestype, $date);
+        return Presentation::form($user, $pub, $type, $prestype, $date);
     }
 
     /**
@@ -905,7 +905,7 @@ class Presentation extends Presentations {
      * @param bool $date
      * @return string
      */
-    public static function displayform(User $user, $Presentation=false, $submit="new", $type=false, $date=false) {
+    public static function form(User $user, $Presentation=false, $submit="new", $type=false, $date=false) {
         global $AppConfig, $db;
 
         if ($Presentation == false) {
@@ -934,8 +934,7 @@ class Presentation extends Presentations {
 
         // Make submission's type selection list
         $typeoptions = "";
-        $pres_type = $AppConfig->pres_type;
-        foreach ($pres_type as $types) {
+        foreach ($AppConfig->pres_type as $types) {
             if ($types == $type) {
                 $typeoptions .= "<option value='$types' selected>$types</option>";
             } else {
@@ -944,7 +943,6 @@ class Presentation extends Presentations {
         }
 
         // Text of the submit button
-        $submitxt = ucfirst($submit);
         $form = ($submit !== "wishpick") ? "
             <div class='feedback'></div>
             <div class='form_container'>
@@ -998,7 +996,7 @@ class Presentation extends Presentations {
                         </div>
                     </div>
                     <div class='submit_btns'>
-                        <input type='submit' name='$submit' value='$submitxt' id='submit' class='submit_pres'>
+                        <input type='submit' name='$submit' class='submit_pres'>
                         <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
                         <input type='hidden' name='$submit' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
@@ -1011,9 +1009,11 @@ class Presentation extends Presentations {
         if ($submit == 'suggest') {
             $result['title'] = "Make a wish";
         } elseif ($submit == "new") {
-            $result['title'] = "New presentation";
+            $result['title'] = "Add/Edit presentation";
         } elseif ($submit == "wishpick") {
             $result['title'] = "Select a wish";
+        } elseif ($submit == "edit") {
+            $result['title'] = 'Edit presentation';
         }
         $result['content'] = "
             <div>$selectopt</div>
