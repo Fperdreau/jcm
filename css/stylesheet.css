@@ -408,7 +408,6 @@ div.inputFeedback {
     font-size: 12px;
     color: #777;
     font-weight: 400;
-    text-transform: capitalize;
     border: none;
 }
 
@@ -444,7 +443,6 @@ div.inputFeedback {
     outline: none;
     height: auto;
 
-    text-transform: capitalize;
     border: none;
 
 }
@@ -599,11 +597,9 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     padding: 10px 5px;
     font-size: 20px;
     width: 30px;
-    border: 1px solid rgba(200, 100, 100, 1);
     line-height: 15px;
     /* vertical-align: baseline; */
     height: 30px;
-    border-radius: 50%;
     position: absolute;
     top: 5px;
     z-index: 3;
@@ -1784,13 +1780,14 @@ h3 {
 
 .log_content_container {
     display: inline-block;
-    min-width: 300px;
-    width: 70%;
+    min-width: 280px;
+    width: 80%;
     margin: 10px 0 0 0;
     padding: 5px;
     background: rgba(100,100,100,1);
     color: white;
     font-size: 12px;
+    box-sizing: border-box;
     overflow-y: auto;
     max-height: 400px;
     border: 1px solid rgba(50, 50, 50, .5);
@@ -1863,9 +1860,25 @@ h3 {
 }
 
 .plugLeft {
-    display: inline-block;
     vertical-align: top;
-    width: 200px;
+    width: 150px;
+}
+
+.plugHeader {
+    width: 100%;
+    background: rgb(214, 214, 214);
+    border-bottom: 2px solid rgb(50, 50, 50);
+    padding: 5px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.plug_header_panel {
+    display: inline-block;
+}
+
+.plug_header_panel.right {
+
 }
 
 .plugName {
@@ -1882,23 +1895,34 @@ h3 {
 }
 
 .optBar {
-    margin-top: 20px;
-    display: block;
+    display: inline-block;
     vertical-align: bottom;
+    float: right;
 }
 
 .plugSettings {
     min-width: 300px;
-    width: 70%;
     max-width: 100%;
     display: inline-block;
     margin-bottom: 10px;
+}
+
+.plugSettings .plug_settings_panel {
+    display: inline-block;
+    vertical-align: top;
+    margin-top: 5px;
+}
+
+.plugSettings .plug_settings_panel:first-child {
+    margin-right: 10px;
 }
 
 .plugSettings .description {
     font-size: 12px;
     padding: 5px;
     border: 1px solid rgba(100, 100, 100, .5);
+    margin: auto;
+    border-radius: 5px;
 }
 
 .plugSettings .description .version {
@@ -1986,6 +2010,7 @@ div.workBtn .loadBtn {
     background: url('../images/run.png') 50% 50%
     no-repeat;
     background-size: 20px 20px;
+    background-color: rgba( 255, 255, 255, 1);
 }
 
 .settingsBtn {
