@@ -60,19 +60,20 @@
                         close_modal(modal_id);
                     });
 
-                    var max_height=$(window).height();
-                    var modal_width=$(modal_id).outerWidth();
+                    var max_height = $(window).height();
+                    var modal_width = $(modal_id).outerWidth();
+                    var top = $(document).scrollTop();
                     overlayEL
                         .css({"display":"block",opacity:0})
                         .fadeTo(200,o.overlay);
                     $(modal_id).css({
-                        "display":"block",
-                        "position":"absolute",
-                        "opacity":0,
-                        "z-index":11000,
-                        "left":50+"%",
-                        "margin-left":-(modal_width/2)+"px",
-                        "top":o.top+"px"
+                        "display": "block",
+                        "position": "absolute",
+                        "opacity": 0,
+                        "z-index": 11000,
+                        "left": 50 + "%",
+                        "margin-left": -(modal_width/2) + "px",
+                        "top": top + "px"
                     });
                     $(modal_id).fadeTo(200,1);
                     $('.modal_section#'+section).css('max-height',0.9*max_height- o.top+'px');
