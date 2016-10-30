@@ -1925,7 +1925,6 @@ h3 {
 .plugSettings {
     min-width: 300px;
     max-width: 100%;
-    display: inline-block;
     margin-bottom: 10px;
 }
 
