@@ -1939,6 +1939,10 @@ h3 {
     margin-right: 10px;
 }
 
+.plug_settings_panel .form-group {
+    display: inline-block;
+}
+
 .plugSettings .description {
     font-size: 12px;
     padding: 5px;
@@ -1988,12 +1992,13 @@ h3 {
     background-color: rgba(207,81,81,1);
 }
 
-div.workBtn .loadBtn {
+div.workBtn.loadBtn {
     background-color: rgba( 255, 255, 255, 1);
     background-image: url('../images/small_loader.gif');
     background-position: 50% 50%;
     background-repeat: no-repeat;
     background-size: 20px 20px;
+    vertical-align: top;
 }
 
 .installBtn {

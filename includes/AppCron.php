@@ -531,11 +531,11 @@ class AppCron extends AppTable {
                             <form method='post' action='php/form.php'>
                                 <div class='plug_settings_panel'>
                                     <div>Date & Time</div>
-                                    <div class='form-group field_small'>
+                                    <div class='form-group inline_field field_small'>
                                         <input type='date' name='date' value='{$date}'/>
                                         <label>Date</label>
                                     </div>
-                                    <div class='form-group field_small'>
+                                    <div class='form-group inline_field field_small'>
                                         <input type='time' name='time' value='{$time}' />
                                         <label>Time</label>
                                     </div>
