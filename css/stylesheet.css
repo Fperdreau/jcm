@@ -1785,6 +1785,16 @@ h3 {
     background-image: url(../images/search.png);
 }
 
+.log_files_container {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.log_files_container>div {
+    display: inline-block;
+}
+
 .log_search_bar input[type="button"] {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
@@ -1803,7 +1813,7 @@ h3 {
 .log_content_container {
     display: inline-block;
     min-width: 280px;
-    width: 80%;
+    width: 60%;
     margin: 10px 0 0 0;
     padding: 5px;
     background: rgba(100,100,100,1);

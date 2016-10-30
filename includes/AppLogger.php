@@ -405,8 +405,11 @@ class AppLogger {
                         <input type='button' class='search_log' id='{$class_name}' />
                     </form>
                 </div>
-                <div class='log_list_container'>{$list}</div>
-                <div class='log_content_container' id='{$class_name}'>{$logs}</div>
+                <div class='log_files_container'>
+                    <div class='log_list_container'>{$list}</div>
+                    <div class='log_content_container' id='{$class_name}'>{$logs}</div>
+                </div>
+
             </div>
         ";
     }
