@@ -1962,6 +1962,7 @@ h3 {
     border: 2px dashed #ddd;
     display: none;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .plugLog {
@@ -2047,7 +2048,11 @@ div.workBtn.loadBtn {
     background-size: 20px 20px;
 }
 
-.settings .formcontrol {
+.settings {
+    margin-top: 10px;
+}
+
+.settings .form-group {
     display: inline-block;
 }
 

@@ -293,9 +293,11 @@ class AppPlugins extends AppTable {
 
             $plugin_list .= "
             <div class='plugDiv' id='plugin_$pluginName'>
-                <div class='plugLeft'>
-                    <div class='plugName'>$pluginName</div>
-                    <div class='optbar'>
+                <div class='plugHeader'>
+                    <div class='plug_header_panel'>
+                        <div class='plugName'>$pluginName</div>
+                    </div>
+                    <div class='optBar'>
                         <div class='optShow workBtn settingsBtn' data-op='plugin' data-name='$pluginName'></div>
                         $install_btn
                         $activate_btn
