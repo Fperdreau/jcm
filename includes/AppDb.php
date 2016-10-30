@@ -353,20 +353,28 @@ class AppDb {
      * @return bool
      */
     public function addcolumn($table_name,$col_name,$type,$after=null) {
-        // Check if column exists
-        $sql = "SELECT $col_name FROM $table_name";
-        $colexist = self::send_query($sql,true);
-        if (!$colexist) {
+        if (!in_array($col_name, $this->getcolumns($table_name))) {
             $sql = "ALTER TABLE $table_name ADD COLUMN $col_name $type";
             if (null!=$after) {
                 $sql .= " AFTER $after";
             }
 
-            if (self::send_query($sql)) {
-                return true;
-            } else {
-                return false;
-            }
+            return $this->send_query($sql);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Delete column from table
+     * @param string $table_name
+     * @param string $col_name
+     * @return bool|mysqli_result
+     */
+    public function delete_column($table_name, $col_name) {
+        if (in_array($col_name, $this->getcolumns($table_name))) {
+            $sql = "ALTER TABLE {$table_name} DROP COLUMN {$col_name}";
+            return $this->send_query($sql);
         } else {
             return false;
         }
