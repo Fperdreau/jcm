@@ -123,7 +123,7 @@ class Presentations extends AppTable {
      * @param null $user
      * @return array
      */
-    function getyearspub($filter = NULL,$user = NULL) {
+    public function getyearspub($filter = NULL,$user = NULL) {
         $sql = "SELECT YEAR(date),id_pres FROM $this->tablename WHERE title!='TBA' and ";
         $cond = array();
         if (null != $user) {
@@ -152,8 +152,8 @@ class Presentations extends AppTable {
      * @param null $user
      * @return string
      */
-    function getpublicationlist($filter = NULL,$user = NULL) {
-        $yearpub = self::getyearspub($filter,$user);
+    public function getpublicationlist($filter = NULL,$user = NULL) {
+        $yearpub = $this->getyearspub($filter,$user);
         if (empty($yearpub)) {
             return "Nothing submitted yet!";
         }

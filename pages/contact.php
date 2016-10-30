@@ -40,6 +40,10 @@ $jc_day = ucfirst($AppConfig->jc_day);
 // Lab information
 
 $result = "
+    <div class='page_header'>
+    <h1>Contact</h1>
+    </div>
+    
     <div class='section_container'>
         <section>
             <h2>Where</h2>

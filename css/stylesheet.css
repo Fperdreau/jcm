@@ -384,7 +384,10 @@ div.inputFeedback {
 
 .field_small {
     width: 100px;
-    display: inline-block;
+}
+
+.field_auto {
+    width: auto;
 }
 
 .inline_field {
@@ -2254,6 +2257,7 @@ div.loadBtn {
 /* *********************************************************************/
 .digest_section {
     border-bottom: 1px solid rgba(50, 50, 50, 1);
+    padding-top: 5px;
 }
 
 .digest_section #name {
@@ -2271,6 +2275,7 @@ div.loadBtn {
     display: inline-block;
     max-width: 300px;
     min-width: 100px;
+    vertical-align: top;
 }
 
 .digest_section #submit {

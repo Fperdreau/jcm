@@ -27,7 +27,7 @@ $userlist = $Users->generateuserslist();
 
 $result = "
 <div class='page_header'>
-<h1>Manage Users</h1>
+<h1>Users Manager</h1>
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 </div>
 <section>

@@ -205,7 +205,7 @@ class Posts extends AppTable {
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
                 $news .= "
-                <div style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+                <section style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
                     <div style='width: 60%; height: 20px; line-height: 20px; margin: 0; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
                     <div style='text-align: left; margin: auto; background-color: rgba(220,220,220,.2); padding: 10px;'>
                         $post->content
@@ -213,10 +213,11 @@ class Posts extends AppTable {
                     <div style='width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
                                 $post->day at $post->time, Posted by <span id='author_name'>$post->username</span>
                     </div>
-                </div>";
+                </section>";
             }
         } else {
-            $news = "No recent news";
+            $news = "<section style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+No recent news</section>";
         }
         return $news;
     }
@@ -254,22 +255,22 @@ class Posts extends AppTable {
                 <input type='hidden' name='postid' value='$post->postid'>
                 <input type='hidden' name='post_add' value='$op'>
                 <input type='hidden' name='username' value='$username'/>
-                <div class='formcontrol'>
-                    <label>Title</label>
-                    <input type='text' name='title' placeholder='Your title (max 255 characters)' value='$post->title' required>
+                <div class='form-group'>
+                    <input type='text' name='title' value='$post->title' required>
+                    <label>Title (255 c. max)</label>
                 </div>
-                <div class='formcontrol'>
-                    <label>Homepage</label>
+                <div class='form-group'>
                     <select name='homepage'>
                         <option value='$post->homepage'>$homepage</option>
                         <option value='1'>Yes</option>
                         <option value='0'>No</option>
                     </select>
+                    <label>Homepage</label>
                 </div>
-                <div class='formcontrol'>
-                    <label>Message</label>
+                <div class='form-group'>
                     <div class='post_txtarea' style='display: block; text-align: right;'>
                     </div>
+                    <label>Message</label>
                 </div>
             </form>";
         $result['content'] = $post->content;

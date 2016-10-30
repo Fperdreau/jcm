@@ -38,10 +38,15 @@ $result = "
     <h1>Archives</h1>
     </div>
     
-    <div class='feedback'></div>
-        <select name='year' class='archive_select'>
-            $options
-        </select>
+    <section>
+        <div class='section_content'>
+            <div class='feedback'></div>
+            <select name='year' class='archive_select'>
+                $options
+            </select>
+        </div>
+    </section>
+    
     <div id='archives_list'>
         $publist
     </div>";

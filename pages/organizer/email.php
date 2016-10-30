@@ -32,7 +32,7 @@ $contactForm = $MailManager->getContactForm($recipients_list);
 $result = "
     <div class='page_header'>
     <h1>Mailing</h1>
-    <p class='page_description'>Here you can send an email to users who agreed upon receiving email notifications.</p>
+    <p class='page_description'>Here you can send emails along with attached files to other JCM members.</p>
     </div>
     
     <section>

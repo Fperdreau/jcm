@@ -235,17 +235,17 @@ class DigestMaker extends AppTable {
                     <form method='post' action='php/form.php'>
                         <input type='hidden' name='modDigest' value='true'>
                         <input type='hidden' name='name' value='{$info['name']}'>
-                        <div class='formcontrol'>
-                            <label for='display'>Display</label>
+                        <div class='form-group inline_field field_auto'>
                             <select name='display'>
                                 {$display}
                             </select>
+                            <label for='display'>Display</label>
                         </div>
-                        <div class='formcontrol'>
-                            <label for='position'>Position</label>
+                        <div class='form-group inline_field field_auto'>
                             <select name='position'>
                                 {$positions}
                             </select>
+                            <label for='position'>Position</label>
                         </div>
                         <div id='submit'>
                             <input type='submit' class='processform' />
