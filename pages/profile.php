@@ -31,7 +31,9 @@ $notifStatus = ($user->notification == 1) ? "Yes":"No";
 $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
 $assignStatus = ($user->assign == 1) ? "Yes":"No";
 $result = "
-    <h1>Hello $user->fullname!</h1>
+    <div class='page_header'>
+        <h1>My Profile</h1>
+    </div>
 
     <div class='section_container'>
             <section>

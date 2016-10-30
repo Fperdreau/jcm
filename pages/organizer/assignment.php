@@ -24,6 +24,7 @@
 require('../../includes/boot.php');
 
 $Assignment = new Assignment($db);
+$Assignment->check();
 $content = $Assignment->showAll();
 // Send mail
 $result = "

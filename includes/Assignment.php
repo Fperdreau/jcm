@@ -60,10 +60,28 @@ class Assignment extends AppTable {
      */
     public function check() {
         if ($this->db->tableExists($this->tablename)) {
-            $this->getSession();
-            $this->addSessionType();
-            $this->addUsers();
+            $this->get_session_instance();
+            $this->update_types();
+            $this->update_users();
         }
+    }
+
+    /**
+     * Add missing session types and remove deleted ones
+     */
+    private function update_types() {
+        $this->add_types();
+
+        $this->delete_types();
+    }
+
+    /**
+     * Add missing users and remove deleted user accounts
+     */
+    private function update_users() {
+        $this->add_users();
+
+        $this->delete_users();
     }
 
     /**
@@ -87,7 +105,7 @@ class Assignment extends AppTable {
     /**
      * Get session instance
      */
-    private function getSession() {
+    private function get_session_instance() {
         if (is_null(self::$session)) {
             self::$session = new Session($this->db);
         }
@@ -110,29 +128,83 @@ class Assignment extends AppTable {
 
     /**
      * Adds session type to Assignment table
+     * @param array $types
      * @return bool
      */
-    private function addSessionType() {
-        $AppConfig = new AppConfig($this->db);
-
-        // Get session types
-        $session_types = array();
-        foreach ($AppConfig->session_type as $type) {
-            $session_types[] = self::prettyName($type, true);
-        }
-
-        $reg_types = $this->db->getcolumns($this->tablename);
-        $reg_types = array_values(array_diff($reg_types, array_keys($this->table_data)));
-        $diff = (array_diff($session_types, $reg_types));
-
-        if (!empty($diff)) {
-            foreach ($diff as $type) {
+    private function add_type(array $types=array()) {
+        if (!empty($types)) {
+            foreach ($types as $type) {
                 if (!$this->db->addcolumn($this->tablename, $type, 'INT NOT NULL DEFAULT 0')) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    /**
+     * Adds session type to Assignment table
+     * @param array $types
+     * @return bool
+     */
+    private function delete_type(array $types=array()) {
+        if (!empty($types)) {
+            foreach ($types as $type) {
+                if (!$this->db->delete_column($this->tablename, $type)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Add missing session types to db
+     * @return bool
+     */
+    private function add_types() {
+        $missing_types = (array_diff($this->get_session_types('app'), $this->get_session_types('db')));
+        return $this->add_type($missing_types);
+    }
+
+    /**
+     * Add missing session types to db
+     * @return bool
+     */
+    private function delete_types() {
+        $types = $this->get_session_types('app');
+        // Get users present in assignment table but not in users table
+        $to_remove = array();
+        foreach ($this->get_session_types('db') as $type) {
+            if (!in_array($type, $types)) {
+                $to_remove[] = $type;
+            }
+        }
+        return $this->delete_type($to_remove);
+    }
+
+    /**
+     * Get list of session types
+     * @param $source: information source
+     * @return array
+     */
+    private function get_session_types($source) {
+        if ($source === 'app') {
+            $AppConfig = new AppConfig($this->db);
+
+            // Get session types
+            $session_types = array();
+            foreach ($AppConfig->session_type as $type) {
+                $session_types[] = self::prettyName($type, true);
+            }
+
+        } elseif ($source === 'db') {
+            $reg_types = $this->db->getcolumns($this->tablename);
+            $session_types = array_values(array_diff($reg_types, array_keys($this->table_data)));
+        } else {
+            $session_types = array();
+        }
+        return $session_types;
     }
 
     /**
@@ -169,29 +241,44 @@ class Assignment extends AppTable {
      *
      * @return bool
      */
-    public function addUsers() {
+    public function add_users() {
         // Get users list
-        $Users = new Users($this->db);
-        $usersList = array();
-        foreach ($Users->getUsers(false) as $key=>$user) {
-            $usersList[] = $user['username'];
-        }
-
-        // Get list of users currently registered into the assignment table
-        $req = $this->db->send_query("SELECT username FROM {$this->tablename}");
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-
-        $AssignUsers = array();
-        foreach ($data as $key=>$user) {
-            $AssignUsers[] = $user['username'];
-        }
+        $usersList = $this->get_users_list('users');
+        $AssignUsers = $this->get_users_list('db');
 
         // Add users to the assignment table if not present yet
         $diff = array_values(array_diff($usersList, $AssignUsers));
-        foreach ($diff as $user) {
+        return $this->add_user($diff);
+    }
+
+    /**
+     * Delete users from assignment table
+     *
+     * @return bool
+     */
+    public function delete_users() {
+        // Get users list
+        $usersList = $this->get_users_list('users');
+
+        // Get users present in assignment table but not in users table
+        $to_remove = array();
+        foreach ($this->get_users_list('db') as $user) {
+            if (!in_array($user, $usersList)) {
+                $to_remove[] = $user;
+            }
+        }
+
+        // Add users to the assignment table if not present yet
+        return $this->delete_user($to_remove);
+    }
+
+    /**
+     * Add users to assignment table
+     * @param array $users
+     * @return bool
+     */
+    private function add_user(array $users=array()) {
+        foreach ($users as $user) {
             if (!$this->db->addcontent($this->tablename, array('username'=>$user))) {
                 return false;
             }
@@ -199,6 +286,47 @@ class Assignment extends AppTable {
         return true;
     }
 
+    /**
+     * Delete user from assignment table
+     * @param array $users
+     * @return bool
+     */
+    private function delete_user(array $users=array()) {
+        foreach ($users as $user) {
+            if (!$this->db->deletecontent($this->tablename, 'username', $user)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function get_users_list($source) {
+        $usersList = array();
+
+        if ($source === 'db') {
+            // Get list of users currently registered into the assignment table
+            $req = $this->db->send_query("SELECT username FROM {$this->tablename}");
+            $data = array();
+            while ($row = $req->fetch_assoc()) {
+                $data[] = $row;
+            }
+
+            foreach ($data as $key=>$user) {
+                $usersList[] = $user['username'];
+            }
+        } elseif ($source === 'users') {
+            // Get users list
+            $Users = new Users($this->db);
+            foreach ($Users->getUsers(false) as $key=>$user) {
+                $usersList[] = $user['username'];
+            }
+        } else {
+            $usersList = array();
+        }
+
+        return $usersList;
+
+    }
 
     /**
      * Get list of assignable users

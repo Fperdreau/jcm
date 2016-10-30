@@ -103,7 +103,7 @@ echo "
         <!-- Delete account section -->
         <div class='modal_section' id='user_delete' data-title='Delete Profile'>
             <div>Please, confirm your identity.</div>
-            <form id='confirmdeleteuser' method='post' action='php/form.php'>
+            <form id='confirmdeleteuser' method='post' action='php/form.php' autocomplete='off'>
                 <div><input type='hidden' name='delete_user' value='true'></div>
                 <div class='form-group'>
                     <input type='text' id='del_username' name='username' value='' required autocomplete='off'/>
