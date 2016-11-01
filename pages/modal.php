@@ -44,7 +44,7 @@ echo "
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'>
-                        <input type='submit' id='login_form' value='Log In' class='login'/>
+                        <input type='submit' id='login_form' value='Log In' class='processform login'/>
                     </div>
                     <div class='one_half last' style='text-align: right;'>
                         <input type='button' class='gotoregister' value='Sign Up'>
@@ -95,7 +95,7 @@ echo "
                 </div>
                 <div class='action_btns'>
                     <div class='one_half'><input type='submit' class='back_btn' value='Back'> <i class='fa fa-angle-double-left'></i> </div>
-                    <div class='one_half last'><input type='submit' class='register' value='Sign up'></div>
+                    <div class='one_half last'><input type='submit' class='register processform' value='Sign up'></div>
                 </div>
             </form>
         </div>
