@@ -114,6 +114,7 @@ label{
 input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
     background: inherit;
     color: rgb(0, 0, 0);
+    -webkit-box-shadow: 0 0 0 1000px rgba(255,255,255,.5) inset !important;
 }
 
 input[type='text'], input[type='email'], input[type='password'], input[type='date'], input[type='datetime-local'],
@@ -299,8 +300,9 @@ input[type="submit"]:active, input[type="button"]:active {
     text-align :center;
     min-width : 100%;
     min-height : 100%;
-    background : rgba(255,255,255,.9);
     margin : auto;
+    cursor: pointer;
+    background: rgba(255, 255, 255, .7);
 }
 
 .feedbackForm>p, .feedbackForm>div {
@@ -632,6 +634,61 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     right: inherit;
     left: inherit;
     z-index: 1;
+}
+
+/* Submit buttons */
+.processform_working, input[type="submit"].processform_working, button[type="submit"].processform_working {
+    background: rgba( 255, 255, 255, 1) url(../images/small_loader.gif) 10px 50% no-repeat;
+    background-size: 20px;
+}
+
+.processform_working:hover, input[type="submit"].processform_working:hover, button[type="submit"].processform_working:hover {
+    background: rgba( 255, 255, 255, 1) url(../images/small_loader.gif) 10px 50% no-repeat;
+    background-size: 20px;
+}
+
+.processform_success, input[type="submit"].processform_success, button[type="submit"].processform_success {
+    background: rgba( 255, 255, 255, 1) url(../images/success_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
+}
+
+.processform_failure, input[type="submit"].processform_failure, button[type="submit"].processform_failure {
+    background: rgba( 255, 255, 255, 1) url(../images/failure_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
+}
+
+input[type="submit"], input[type="button"], button[type="submit"] {
+    color: rgba(50, 50, 50, 1);
+    border: 1px solid rgba(207, 81, 81, 1);
+    transition: all 0.3s ease 0s;
+    opacity: 1;
+    cursor: pointer;
+    padding: 10px 10px 10px 40px;
+    font-size: 12px;
+    margin-right: 5px;
+    margin-top: 5px;
+    border-radius: 5px;
+    background: rgba( 255, 255, 255, 1) url(../images/next_black.png) 10px 50% no-repeat;
+    background-size: 12px;
+}
+
+input[type="submit"]:after, input[type="button"]:after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+}
+
+input[type="submit"]:hover, input[type="button"]:hover {
+    color: #FFF;
+    background: rgba(207, 81, 81, 1) url(../images/next_white.png) 10px 50% no-repeat;
+    background-size: 12px;
+}
+
+input[type="submit"]:active, input[type="button"]:active {
+    color: #FFF;
+    background:rgba(145, 73, 73, 1) url(../images/next_white.png) 10px 50% no-repeat;
+    background-size: 20px;
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
 }
 
 /* *********************************************************************/
@@ -2317,8 +2374,18 @@ div.loadBtn {
     display: inline-block;
     cursor: pointer;
     padding: 0;
-    margin: 5px;
+    margin: 0 2px 2px 0;
     font-size: 0;
+    border: 1px solid transparent;
+}
+
+.type_div:hover {
+    border: 1px solid rgba(207,81,81,1);
+}
+
+.type_div:hover > .type_name {
+    background-color:rgba(207,81,81,1);
+    color: #EEEEEE;
 }
 
 .type_div>div {
@@ -2326,7 +2393,8 @@ div.loadBtn {
     display: inline-block;
     vertical-align: middle;
     margin: 0;
-    line-height: 20px;
+    line-height: 30px;
+    height: 30px;
 }
 
 .type_name {
@@ -2338,17 +2406,12 @@ div.loadBtn {
     font-size: 12px;
 }
 
-.type_name:hover {
-    background-color:rgba(207,81,81,1);
-    color: #EEEEEE;
-}
-
 .type_del {
     position: relative;
-    width: 20px;
-    height: 20px;
-    background: rgba(255,255,255,1) url('../images/close.png') 50% 50% no-repeat;
-    background-size: 15px;
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,1) url('../images/trash.png') 50% 50% no-repeat;
+    background-size: 17px;
 }
 
 .type_del:hover {
@@ -2441,6 +2504,7 @@ div.loadBtn {
     border-radius: 10px;
     margin: 5px auto;
     padding: 10px; /* Some padding to make some more space for our text  */
+    min-height: 2px;
 }
 
 .warning {
