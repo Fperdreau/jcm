@@ -73,7 +73,7 @@
                         "z-index": 11000,
                         "left": 50 + "%",
                         "margin-left": -(modal_width/2) + "px",
-                        "top": top + "px"
+                        "top": (top + o.top) + "px"
                     });
                     $(modal_id).fadeTo(200,1);
                     $('.modal_section#'+section).css('max-height',0.9*max_height- o.top+'px');
