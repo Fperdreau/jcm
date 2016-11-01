@@ -52,6 +52,42 @@ var processForm = function(el,callback,url,timing) {
 };
 
 /**
+ * Add loading animation to submit button
+ * @param el
+ */
+function loadingButton(el) {
+    el.addClass('processform_working');
+    var type = el[0].tagName;
+    if (type == "INPUT") {
+        el.data('text', el.val());
+        el.val('In progress');
+    } else if (type == "BUTTON" || type == "DIV") {
+        el.data('text', el.html());
+        el.html('In progress');
+    }
+}
+
+function resetButton(el) {
+    setTimeout(function() {
+        el.removeClass('processform_success processform_working processform_failure');
+    }, 1000);
+}
+
+/**
+ * Loading animation for submit buttons
+ * @param el
+ */
+function removeLoadingButton(el) {
+    el.removeClass('processform_working');
+    var type = el[0].tagName;
+    if (type == "INPUT") {
+        el.val(el.data('text'));
+    } else if (type == "BUTTON" || type == "DIV") {
+        el.html(el.data('text'));
+    }
+}
+
+/**
  * Process Ajax requests
  * @param formid
  * @param data
@@ -60,23 +96,37 @@ var processForm = function(el,callback,url,timing) {
  * @param timing: duration of feedback message
  */
 var processAjax = function(formid, data, callback, url, timing) {
+    var btn = formid.find('.processform');
+
     jQuery.ajax({
         url: url,
         type: 'POST',
         async: true,
         data: data,
         beforeSend: function () {
-            loadingDiv(formid);
+            if (btn.length > 0) {
+                loadingButton(btn);
+            } else {
+                loadingDiv(formid);
+            }
         },
         complete: function () {
-            removeLoading(formid);
+            if (btn.length > 0) {
+                removeLoadingButton(btn);
+            } else {
+                removeLoading(formid);
+            }
         },
         success: function (data) {
             callback = (callback === undefined) ? false: callback;
-            validsubmitform(formid, data, callback, timing);
+            validsubmitform(formid, data, callback, timing, btn);
         },
         error: function() {
-            removeLoading(formid);
+            if (btn.length > 0) {
+                removeLoadingButton(btn);
+            } else {
+                removeLoading(formid);
+            }
         }
     });
 };
@@ -88,40 +138,30 @@ var processAjax = function(formid, data, callback, url, timing) {
  * @param callback: callback function (what to do after the feedback message. By default, we simply re-display the form
  * as it was)
  * @param timing: duration of feedback
+ * @param btn
  */
-var validsubmitform = function (el, data, callback, timing) {
+var validsubmitform = function (el, data, callback, timing, btn) {
     el = (el === undefined) ? $('body') : el;
     var result = jQuery.parseJSON(data);
     callback = (callback === undefined) ? false : callback;
     timing = (timing === undefined) ? 2000 : timing;
 
-    // Format msg
-    var msg = false;
-    if (result.status === true) {
-        msg = (result.msg === undefined) ? "<p class='sys_msg success'>DONE!</p>" :
-            "<p class='sys_msg success'>" + result.msg + "</p>";
-    } else if (result.status !== undefined) {
-        msg = (result.msg === undefined) ? "<p class='sys_msg warning'>Oops, something has gone wrong!</p>" :
-        "<p class='sys_msg warning'>" + result.msg + "</p>";
+    if (btn !== undefined && btn.length > 0) {
+        removeLoadingButton(btn);
+        if (result.status) {
+            btn.addClass('processform_success');
+        } else {
+            btn.addClass('processform_failure');
+        }
     }
 
     // Display feedback message and/or run callback function
-    if (msg !== false) {
-        // Append feedback layer
-        var width = el.width();
-        var height = el.height();
-        el.append("<div class='feedbackForm'></div>");
-
-        var feedbackForm = $('.feedbackForm');
-        feedbackForm
-            .css({width: width+'px', height: height+'px'})
-            .html(msg)
-            .fadeIn(200);
-
+    if (result.msg !== undefined) {
+        showFeedBack(el, result.status, result.msg);
         setTimeout(function() {
-            feedbackForm
-                .fadeOut(200)
-                .remove();
+            removeFeedBack(el);
+
+            if (btn !== undefined && btn.length > 0) resetButton(btn);
 
             // Run callback function
             if (callback !== false) {
@@ -129,13 +169,97 @@ var validsubmitform = function (el, data, callback, timing) {
             }
         }, timing);
     } else {
+
+        if (btn !== undefined && btn.length > 0) resetButton(btn);
+
         // Run callback function
         if (callback !== false) {
             callback(result);
         }
     }
-
 };
+
+/**
+ * Format feedback message
+ * @param status
+ * @param text
+ * @returns {boolean}
+ */
+function format_msg(status, text) {
+    // Format msg
+    var msg = false;
+    if (status === true) {
+        msg = (text === undefined) ? "<p class='sys_msg success'>DONE!</p>" :
+        "<p class='sys_msg success'>" + text + "</p>";
+    } else if (status !== undefined) {
+        msg = (text === undefined) ? "<p class='sys_msg warning'>Oops, something has gone wrong!</p>" :
+        "<p class='sys_msg warning'>" + text + "</p>";
+    }
+    return msg;
+}
+
+/**
+ * Remove feedback layer and message
+ * @param el
+ */
+function removeFeedBack(el) {
+
+    fade_inputs(el, false);
+    el.find('.feedbackForm')
+        .fadeIn(500)
+        .delay(200, function() {
+            $(this).remove();
+        });
+
+}
+
+/**
+ * Fades form's inputs
+ * @param el
+ * @param op
+ */
+function fade_inputs(el, op) {
+
+    if (op === true) {
+        el.children('input, select, .form-group').each(function() {
+            $(this).animate({opacity: 0.2});
+        });
+    } else {
+        el.children('input, select, .form-group').each(function() {
+            $(this).animate({opacity: 1.0}, 200);
+        });
+    }
+}
+
+/**
+ * Display feedback over a form
+ * @param el: form DOM
+ * @param status
+ * @param msg
+ */
+function showFeedBack(el, status, msg) {
+    // Append feedback layer
+    var width = el.width();
+    var height = el.height();
+    var text = format_msg(status, msg);
+
+    el.append("<div class='feedbackForm'></div>");
+    var feedbackForm = $('.feedbackForm');
+
+    fade_inputs(el, true);
+
+    feedbackForm
+        .css({left: 0, width: width + 'px', height: height + 'px'})
+        .html(text);
+
+    var text_el = feedbackForm.find('.sys_msg');
+    text_el
+        .empty()
+        .css({left: 0, display: 'none', width: 0.8*width + 'px'})
+        .animate({width: 'toggle', opacity: 1}, 300).delay(300, function() {
+            $(this).html(msg);
+        });
+}
 
 /**
  * Check whether every required fields have been filled up correctly
@@ -277,12 +401,16 @@ function modArray(data,prop,value) {
 }
 
 $(document).ready(function () {
-    $('body').on('click','.processform',function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var input = $(this);
-        var form = input.length > 0 ? $(input[0].form) : $();
-        processForm(form);
-    });
+    $('body')
+        .on('click','.processform', function (e) {
+            e.preventDefault();
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            processForm(form);
+        })
+
+        .on('click', '.feedbackForm', function() {
+            removeFeedBack($(this).parent('form'));
+        })
 
 });
