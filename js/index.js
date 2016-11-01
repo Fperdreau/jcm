@@ -864,7 +864,7 @@ $(document).ready(function () {
                 presid: presid,
                 date:date
             };
-            processAjax($('body'), data, null, "php/form.php");
+            processAjax($(this).closest('.session_div'), data, null, "php/form.php");
         })
 
         // Modify session time
@@ -1018,6 +1018,7 @@ $(document).ready(function () {
                 })
             }
             processAjax(form, data, callback, "php/form.php");
+            e.stopImmediatePropagation();
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1145,10 +1146,11 @@ $(document).ready(function () {
                 }
             };
             processForm(form, callback);
+            e.stopImmediatePropagation();
         })
 
         // Login form
-        .on('click',".login",function (e) {
+        .on('click'," .login",function (e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
@@ -1158,10 +1160,11 @@ $(document).ready(function () {
                 }
             };
             processForm(form, callback);
+            e.stopImmediatePropagation();
         })
 
         // Sign Up Form
-        .on('click',".register",function (e) {
+        .on('click', ".register",function (e) {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
@@ -1171,5 +1174,6 @@ $(document).ready(function () {
                 }
             };
             processForm(form, callback);
+            e.stopImmediatePropagation();
         });
 });
