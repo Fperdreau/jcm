@@ -72,8 +72,8 @@ $result = "
                 <div class='feedback' id='feedback_jcsession'></div>
                 <input type='hidden' name='config_modify' value='true'>
                 <div class='form-group'>
-                    <label>Room</label>
                     <input type='text' name='room' value='$AppConfig->room'>
+                    <label>Room</label>
                 </div>
                 <div class='form-group'>
                     <select name='jc_day'>
