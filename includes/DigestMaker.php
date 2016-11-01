@@ -248,7 +248,7 @@ class DigestMaker extends AppTable {
                             <label for='position'>Position</label>
                         </div>
                         <div id='submit'>
-                            <input type='submit' class='processform' />
+                            <input type='submit' value='Ok' class='processform' />
                         </div>
                     </form>
                 </div>
