@@ -655,7 +655,7 @@ if (!empty($_POST['del_pub'])) {
 }
 
 // Submit a new presentation
-if (!empty($_POST['new'])) {
+if (!empty($_POST['edit'])) {
     $Presentation = new Presentation($db);
     $result = $Presentation->edit($_POST);
     echo json_encode($result);

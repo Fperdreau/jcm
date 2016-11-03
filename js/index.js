@@ -912,7 +912,7 @@ $(document).ready(function () {
             e.preventDefault();
             var presid = $(this).val();
             var form = $($(this).data('target'));
-            showpubform(form, presid, 'new');
+            showpubform(form, presid, 'edit');
          })
 
         // Show download list
@@ -1007,7 +1007,7 @@ $(document).ready(function () {
                 }
             };
 
-            // Find tinyMCE textarea and gets their content
+            // Find tinyMCE textarea and gets their contentf
             var tinyMCE_el = form.find('.tinymce');
             if (tinyMCE_el.length > 0 && tinyMCE_el !== undefined) {
                 tinyMCE_el.each(function() {
@@ -1017,7 +1017,8 @@ $(document).ready(function () {
                     data = modArray(data, input_name, content);
                 })
             }
-            processAjax(form, data, callback, "php/form.php");
+            var div = $(this).closest('.form_container');
+            processAjax(div, data, callback, "php/form.php");
             e.stopImmediatePropagation();
         })
 
@@ -1042,7 +1043,7 @@ $(document).ready(function () {
             e.preventDefault();
             var id_pres = $(this).data('id');
             var date = $(this).data('date');
-            showpubform(modalpubform, id_pres, 'submit', date);
+            showpubform(modalpubform, id_pres, 'edit', date);
         })
 
         .on('click','#modal_trigger_newpub',function (e) {
@@ -1084,7 +1085,7 @@ $(document).ready(function () {
         .on('click','.modify_ref',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr("data-id");
-            showpubform(modalpubform, id_pres, 'new');
+            showpubform(modalpubform, id_pres, 'edit');
         })
 
 		// Show publication deletion confirmation

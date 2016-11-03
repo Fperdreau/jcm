@@ -866,7 +866,7 @@ class Presentation extends Presentations {
     public static function description($type) {
         $result = null;
         switch ($type) {
-            case "new":
+            case "edit":
                 $result = "
                 Book a Journal Club session to present a paper, your research, or a
             methodology topic. <br>
@@ -905,7 +905,7 @@ class Presentation extends Presentations {
      * @param bool $date
      * @return string
      */
-    public static function form(User $user, $Presentation=false, $submit="new", $type=false, $date=false) {
+    public static function form(User $user, $Presentation=false, $submit="edit", $type=false, $date=false) {
         global $AppConfig, $db;
 
         if ($Presentation == false) {
@@ -996,7 +996,7 @@ class Presentation extends Presentations {
                         </div>
                     </div>
                     <div class='submit_btns'>
-                        <input type='submit' name='$submit' class='submit_pres'>
+                        <input type='submit' name='$submit' class='submit_pres processform'>
                         <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
                         <input type='hidden' name='$submit' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
@@ -1008,12 +1008,10 @@ class Presentation extends Presentations {
 
         if ($submit == 'suggest') {
             $result['title'] = "Make a wish";
-        } elseif ($submit == "new") {
+        } elseif ($submit == "edit") {
             $result['title'] = "Add/Edit presentation";
         } elseif ($submit == "wishpick") {
             $result['title'] = "Select a wish";
-        } elseif ($submit == "edit") {
-            $result['title'] = 'Edit presentation';
         }
         $result['content'] = "
             <div>$selectopt</div>
@@ -1036,7 +1034,7 @@ class Presentation extends Presentations {
             <div class='{$class}'>
                 <div class='submitMenuContainer'>
                     <div class='submitMenuSection'>
-                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='new'>
+                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='edit'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
                                 <div class='text'>Submit</div>
