@@ -417,7 +417,7 @@ div.inputFeedback {
     font-size: 12px;
     color: #777;
     font-weight: 400;
-    border: none;
+    border: 1px solid transparent;
 }
 
 .form-group > textarea {
@@ -452,7 +452,7 @@ div.inputFeedback {
     outline: none;
     height: auto;
 
-    border: none;
+    border: 1px solid transparent;
 
 }
 
@@ -591,11 +591,17 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     text-indent: 14px;
 }
 
-.form-group > input.wrongField + label, .form-group > input.wrongField + label, .form-group > textarea.wrongField,
-.form-group > div.wrongField {
-    border: 2px solid rgba(207, 82, 82, .8);
+.form-group > input.wrongField, .form-group > select.wrongField, .form-group > textarea.wrongField, .form-group > div.wrongField {
     background-color: rgba(207, 82, 82, .1);
+}
+
+.form-group > input.wrongField + label, .form-group > input.wrongField + label, .form-group > textarea.wrongField + label,
+.form-group > div.wrongField + label {
     color: rgba(207, 82, 82, .8);
+}
+
+.form-group > input.wrongField:focus + label, .form-group > textarea.wrongField:focus + label, .form-group > select.wrongField:focus + label {
+    color: white;
 }
 
 .form-group > div.inputFeedback {
