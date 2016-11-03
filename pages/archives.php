@@ -25,8 +25,7 @@ require('../includes/boot.php');
 $years = $Presentations->get_years();
 // Select input (Years)
 $options = "
-<option value='' selected>Select a year</option>
-<option value='all'>All</option>";
+s<option value='all'>All</option>";
 foreach ($years as $year) {
     $options .= "<option value='$year'>$year</option>";
 }
@@ -39,11 +38,15 @@ $result = "
     </div>
     
     <section>
-        <div class='section_content'>
+        <div class='section_content tool_bar'>
             <div class='feedback'></div>
-            <select name='year' class='archive_select'>
-                $options
-            </select>
+            <div class='form-group inline_field' style='width: 200px'>
+                <select name='year' class='archive_select'>
+                    $options
+                </select>
+                <label>Filter by year</label>
+            </div>
+
         </div>
     </section>
     

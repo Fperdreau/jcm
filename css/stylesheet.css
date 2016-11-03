@@ -530,7 +530,7 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
 }
 
 .form-group > select:focus {
-    padding: 20px 15px 5px 15px;
+    padding: 20px 15px 4px 15px;
     border: 1px solid rgba(207, 81, 81, .5);
 }
 
@@ -1234,6 +1234,10 @@ section {
 section>.section_content {
     margin: auto;
     padding: 10px 10px 20px 10px;
+}
+
+section >.tool_bar {
+    padding: 10px 10px 10px 10px;
 }
 
 section>h2 {
