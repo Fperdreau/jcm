@@ -256,9 +256,8 @@ function showFeedBack(el, status, msg) {
     text_el
         .empty()
         .css({left: 0, display: 'none', width: 0.8*width + 'px'})
-        .animate({width: 'toggle', opacity: 1}, 300).delay(300, function() {
-            $(this).html(msg);
-        });
+        .html(msg)
+        .fadeIn(300);
 }
 
 /**
