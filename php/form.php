@@ -135,13 +135,13 @@ if (!empty($_POST['modCron'])) {
         $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
         $thisApp->frequency = implode(',', $frequency);
         if ($thisApp->update()) {
-            $result = $thisApp->time;
+            $result['status'] = true;
+            $result['msg'] = $thisApp->time;
         } else {
-            $result = false;
+            $result['status'] = false;
         }
-        
     } else {
-        $result = False;
+        $result['status'] = false;
     }
     echo json_encode($result);
     exit;
