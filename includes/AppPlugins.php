@@ -236,7 +236,7 @@ class AppPlugins extends AppTable {
      * @return string
      */
     public function displayOpt() {
-        $content = "<div style='font-weight: 600;'>Options</div>";
+        $content = "<h4 style='font-weight: 600;'>Options</h4>";
         if (!empty($this->options)) {
             $opt = '';
             foreach ($this->options as $optName=>$settings) {
@@ -250,7 +250,7 @@ class AppPlugins extends AppTable {
                     $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
                 }
                 $opt .= "
-                    <div class='form-group'>
+                    <div class='form-group inline_field field_auto'>
                         {$optProp}
                         <label for='{$optName}'>{$optName}</label>
                     </div>
@@ -259,7 +259,9 @@ class AppPlugins extends AppTable {
             $content .= "
                 <form method='post' action='php/form.php'>
                     {$opt}
-                    <input type='submit' class='modOpt' data-op='plugin' value='Modify'>
+                    <div class='submit_btns'>
+                        <input type='submit' class='modOpt' data-op='plugin' value='Modify'>
+                    </div>
                 </form>
                 
                 ";
@@ -310,14 +312,7 @@ class AppPlugins extends AppTable {
                         {$pluginDescription}
                     </div>
                     
-                    <div>
-                        <div class='settings'>
-                            <div class='form-group' style='width: 20%'>
-                                <input type='text' class='modSettings' data-name='$pluginName' data-op='plugin' data-option='page' value='" . $info['page'] . "'/>
-                                <label>Page</label>
-                            </div>
-                        </div>
-                        
+                    <div>                        
                         <div class='plugOpt' id='$pluginName'></div>
                     </div>
 
