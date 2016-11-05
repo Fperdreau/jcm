@@ -358,13 +358,13 @@ class AppPage extends AppTable {
             <li class='main_section' id='organizer'><a href='#' class='submenu_trigger' id='addmenu-organizer'>organizer</a></li>   
             <nav class='submenu' id='addmenu-organizer'>
                 <ul>
-                    <li><a href='index.php?page=organizer/sessions' class='menu-section' id='sessions'>Sessions</a></li>
-                    <li><a href='index.php?page=organizer/users' class='menu-section' id='users'>Users</a></li>
-                    <li><a href='index.php?page=organizer/email' class='menu-section' id='email'>Mailing</a></li>
-                    <li><a href='index.php?page=organizer/post' class='menu-section' id='post'>Posts</a></li>
-                    <li><a href='index.php?page=organizer/digest' class='menu-section' id='digest'>Digest</a></li>
-                    <li><a href='index.php?page=organizer/reminder' class='menu-section' id='reminder'>Reminder</a></li>
-                    <li><a href='index.php?page=organizer/assignment' class='menu-section' id='assignment'>Assignments</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/sessions' id='sessions'>Sessions</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/users' id='users'>Users</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/email' id='email'>Mailing</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/post' id='post'>Posts</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/digest' id='digest'>Digest</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/reminder' id='reminder'>Reminder</a></li>
+                    <li class='menu-section'><a href='index.php?page=organizer/assignment' id='assignment'>Assignments</a></li>
                 </ul>
             </nav>
         ";
@@ -379,10 +379,10 @@ class AppPage extends AppTable {
         <li class='main_section' id='admin'><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>
         <nav class='submenu' id='addmenu-admin'>
             <ul>
-                <li><a href='index.php?page=admin/settings' class='menu-section' id='settings'>Settings</a></li>
-                <li><a href='index.php?page=admin/plugins' class='menu-section' id='plugins'>Plugins</a></li>
-                <li><a href='index.php?page=admin/tasks' class='menu-section' id='tasks'>Scheduled Tasks</a></li>
-                <li><a href='index.php?page=admin/logs' class='menu-section' id='logs'>System logs</a></li>
+                <li class='menu-section'><a href='index.php?page=admin/settings' id='settings'>Settings</a></li>
+                <li class='menu-section'><a href='index.php?page=admin/plugins' id='plugins'>Plugins</a></li>
+                <li class='menu-section'><a href='index.php?page=admin/tasks' id='tasks'>Scheduled Tasks</a></li>
+                <li class='menu-section'><a href='index.php?page=admin/logs' id='logs'>System logs</a></li>
             </ul>
         </nav>
         ";
@@ -394,8 +394,8 @@ class AppPage extends AppTable {
      */
     public static function member_menu() {
         return "
-            <li class='main_section' id='submission'><a href='index.php?page=submission' class='menu-section' id='submission'>submit</a></li>
-            <li class='main_section' id='archives'><a href='index.php?page=archives' class='menu-section' id='archives'>archives</a></li>
+            <li class='main_section menu-section' id='submission'><a href='index.php?page=submission' id='submission'>submit</a></li>
+            <li class='main_section menu-section' id='archives'><a href='index.php?page=archives' id='archives'>archives</a></li>
         ";
     }
 
@@ -421,9 +421,9 @@ class AppPage extends AppTable {
         return "
             <nav>
                 <ul>
-                    <li class='main_section' id='home'><a href='index.php?page=home' class='menu-section' id='home'>home</a></li>
-                    <li class='main_section' id='news'><a href='index.php?page=news' class='menu-section' id='news'>news</a></li>
-                    <li class='main_section' id='contact'><a href='index.php?page=contact' class='menu-section' id='contact'>contact</a></li>
+                    <li class='main_section menu-section' id='home'><a href='index.php?page=home' id='home'>home</a></li>
+                    <li class='main_section menu-section' id='news'><a href='index.php?page=news' id='news'>news</a></li>
+                    <li class='main_section menu-section' id='contact'><a href='index.php?page=contact' id='contact'>contact</a></li>
                     {$member_menu}
                     {$organizer}
                     {$admin}
