@@ -42,8 +42,14 @@ if (isset($_GET['op'])) {
     $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
 
 // Submit a new presentation
-    if ($op == 'new') {
-        $content = Presentation::form($user, false, 'submit', false, $date);
+    if ($op == 'edit') {
+        if (!empty($_GET['id'])) {
+            $id_pres = htmlspecialchars($_GET['id']);
+            $Presentation = new Presentation($db,$id_pres);
+        } else {
+            $Presentation = false;
+        }
+        $content = Presentation::form($user, false, 'edit', false, $date);
 
 // Suggest a presentation
     } elseif ($op == 'suggest') {
@@ -81,7 +87,7 @@ $submitMenu = "
     <div class='submitMenu_fixed'>
         <div class='submitMenuContainer'>
             <div class='submitMenuSection'>
-                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=new' . "' class='load_content' data-section='submission_form' data-type='submit'>
+                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=edit' . "' class='load_content' data-section='submission_form' data-type='submit'>
                    <div class='icon_container'>
                         <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
                         <div class='text'>Submit</div>

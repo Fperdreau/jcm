@@ -230,7 +230,7 @@ class Presentations extends AppTable {
          <form method='post' action='php/form.php' class='form'>
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
-              <div class='form-group'>
+              <div class='form-group field_auto' style='margin: auto; width: 250px;'>
                 <select name='id' id='select_wish' data-target='{$target}'>
                     $option
                 </select>

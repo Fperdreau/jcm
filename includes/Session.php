@@ -317,7 +317,7 @@ class Sessions extends AppTable {
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
         $contactURL = URL_TO_APP."index.php?page=contact";
-        $editUrl = URL_TO_APP."index.php?page=submission&op=mod_pub&id={$info['presid']}&user={$user->username}";
+        $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
