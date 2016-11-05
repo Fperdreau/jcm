@@ -307,8 +307,18 @@ input[type="submit"]:active, input[type="button"]:active {
 
 .feedbackForm>p, .feedbackForm>div {
     position: absolute;
-    top: 40%;
-    left: 40%;
+    top: 15px;
+
+    z-index: 2;
+    width: 300px;
+    max-width: 300px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+}
+
+.feedbackForm > .feedbackText {
+
 }
 
 /* Change background color of invalid fields */
@@ -349,7 +359,8 @@ div.inputFeedback {
     display: inline-block;
     font-weight: 100;
     color: #fff;
-    background: rgba(200, 100, 100, 1);
+    background: rgba( 255, 255, 255, 1) url(../images/failure_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
     width: 20px;
     text-align: center;
     height: 20px;
@@ -607,7 +618,8 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
 .form-group > div.inputFeedback {
     font-weight: 500;
     color: rgba(200, 100, 100, .8);
-    background: white;
+    background: transparent url(../images/failure_icon.png) 10px -2px no-repeat !important;
+    background-size: 20px !important;
     text-align: center;
     padding: 10px 5px;
     font-size: 20px;
@@ -2512,27 +2524,29 @@ div.loadBtn {
 
 .sys_msg {
     border-radius: 10px;
-    margin: 5px auto;
-    padding: 10px; /* Some padding to make some more space for our text  */
-    min-height: 2px;
+    padding: 10px 0 10px 40px;
+    word-wrap: break-word;
 }
 
 .warning {
     color: rgb(113, 57, 56);;
-    background-color: rgba(226,186,176,1); /* Add a background color to our status message   */
     border: 1px solid rgb(154, 125, 118); /* Add a border arround our status message   */
+    background: rgba(226,186,176,1) url(../images/failure_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
 }
 
 .status {
     color: rgba(41, 53, 82, 1);;
-    background-color: rgba(150, 188, 212, 1); /* Add a background color to our status message   */
     border: 1px solid rgb(61, 94, 123); /* Add a border arround our status message   */
+    background: rgba(150, 188, 212, 1) url(../images/info_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
 }
 
 .success {
     color: rgba(45, 72, 33, 1);
-    background-color: rgba(164, 216, 141, 1); /* Add a background color to our status message   */
     border: 1px solid rgb(117, 154, 100); /* Add a border arround our status message   */
+    background: rgba(164, 216, 141, 1) url(../images/success_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
 }
 
 /* *********************************************************************/
