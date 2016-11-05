@@ -393,10 +393,12 @@ class AppLogger {
      * @return string
      */
     public static function manager($class_name, $log_name=null) {
-        $name = self::get_logs($class_name)[0];
-        $list = self::show_list(self::get_logs($class_name), $name, $log_name);
-        $logs = self::show($name, $log_name);
-        return "
+        $name = self::get_logs($class_name);
+        if (!empty($name)) {
+            $name = $name[0];
+            $list = self::show_list(self::get_logs($class_name), $name, $log_name);
+            $logs = self::show($name, $log_name);
+            return "
             <div class='log_container' id='{$class_name}'>
                 <div class='log_search_bar'>
                     <form method='post' action='" . URL_TO_APP . "/php/form.php?show_log=true'>
@@ -412,6 +414,14 @@ class AppLogger {
 
             </div>
         ";
+        } else {
+            return "
+            <div class='log_container' id='{$class_name}'>
+                Sorry, there is nothing to show.
+            </div>
+            ";
+        }
+
     }
 
     /**
