@@ -57,14 +57,6 @@ var processForm = function(el,callback,url,timing) {
  */
 function loadingButton(el) {
     el.addClass('processform_working');
-    var type = el[0].tagName;
-    if (type == "INPUT") {
-        el.data('text', el.val());
-        el.val('In progress');
-    } else if (type == "BUTTON" || type == "DIV") {
-        el.data('text', el.html());
-        el.html('In progress');
-    }
 }
 
 function resetButton(el) {
@@ -79,12 +71,6 @@ function resetButton(el) {
  */
 function removeLoadingButton(el) {
     el.removeClass('processform_working');
-    var type = el[0].tagName;
-    if (type == "INPUT") {
-        el.val(el.data('text'));
-    } else if (type == "BUTTON" || type == "DIV") {
-        el.html(el.data('text'));
-    }
 }
 
 /**
@@ -96,7 +82,7 @@ function removeLoadingButton(el) {
  * @param timing: duration of feedback message
  */
 var processAjax = function(formid, data, callback, url, timing) {
-    var btn = formid.find('.processform');
+    var btn = formid.find('input[type="submit"], .processform');
 
     jQuery.ajax({
         url: url,
@@ -178,6 +164,7 @@ var validsubmitform = function (el, data, callback, timing, btn) {
         }
     }
 };
+
 
 /**
  * Format feedback message
@@ -263,9 +250,12 @@ function showFeedBack(el, status, msg) {
 /**
  * Check whether every required fields have been filled up correctly
  * @param el: DOM element
+ * @param btn: submit button
  * @returns {boolean}
  */
-var checkform = function(el) {
+var checkform = function(el, btn) {
+    btn = (btn === undefined) ?el.find("input[type=submit]:focus") : btn;
+
     var valid = true;
     el.closest('.inputFeedback').remove();
     var msg = "* Required";
@@ -302,7 +292,7 @@ var checkform = function(el) {
 
         if (!thisField) {
             $(this).addClass('wrongField');
-            $(this).parent('div').append("<div class='inputFeedback' style='display: none;'>*</div>");
+            $(this).parent('div').append("<div class='inputFeedback' style='display: none;'></div>");
             $(this).parent('div').find('.inputFeedback').animate({width:'toggle'});
         }
 
@@ -343,9 +333,8 @@ var checkform = function(el) {
 
     // Show feedback message next to the submit button
     if (!valid) {
-        var submitBtn = el.find('button[type="submit"], input[type="submit"]');
         el.find('.feedbackSubmit').remove();
-        submitBtn
+        btn
             .before("<div class='feedbackSubmit' style='display: none;'>"+msg+"</div>");
         el.find('.feedbackSubmit').animate({width:'toggle'},350);
     }
@@ -410,6 +399,5 @@ $(document).ready(function () {
 
         .on('click', '.feedbackForm', function() {
             removeFeedBack($(this).parent('form'));
-        })
-
+        });
 });
