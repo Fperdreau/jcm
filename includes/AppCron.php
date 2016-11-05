@@ -158,7 +158,6 @@ class AppCron extends AppTable {
             }
             return $logs;
         } else {
-            $logs['msg'] = null;
             return $logs;
         }
     }
