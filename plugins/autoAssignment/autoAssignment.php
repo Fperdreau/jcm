@@ -176,7 +176,7 @@ class autoAssignment extends AppPlugins {
         $User = new Users($this->db);
         $usersList = $User->getUsers(true);
         if (empty($usersList)) {
-            $result['msg'] = 'There is not enought assignable members';
+            $result['msg'] = 'There is not enough assignable members';
             $result['status'] = false;
             return $result;
         };

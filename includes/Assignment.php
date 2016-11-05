@@ -134,7 +134,7 @@ class Assignment extends AppTable {
     private function add_type(array $types=array()) {
         if (!empty($types)) {
             foreach ($types as $type) {
-                if (!$this->db->addcolumn($this->tablename, $type, 'INT NOT NULL DEFAULT 0')) {
+                if (!$this->db->addcolumn($this->tablename, $type, "INT NOT NULL DEFAULT '0'")) {
                     return false;
                 }
             }
