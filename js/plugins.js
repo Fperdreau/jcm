@@ -121,11 +121,15 @@ $(document).ready(function() {
 
         .on('click', '.modCron', function(e) {
             e.preventDefault();
+            e.stopImmediatePropagation();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
             var name = form.find('input[name="modCron"]').val();
             var callback = function(json) {
-                $('#cron_time_'+name).html(json);
+                var result = jQuery.parseJSON(json);
+                if (result.status) {
+                    $('#cron_time_'+name).html(json).fadeIn(200);
+                }
             };
             processForm(form, callback);
         })
