@@ -75,8 +75,8 @@ $menu = AppPage::menu();
                  ";
                 } else {
                     $showlogin = "
-                <div><a href='index.php?page=profile' class='menu-section' id='profile'><img src='images/profile.png' alt='profile'></a></div>
-                <div><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
+                <div class='menu-section'><a href='index.php?page=profile' id='profile'><img src='images/profile.png' alt='profile'></a></div>
+                <div class='menu-section'><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
                 }
                 echo $showlogin;
                 ?>

@@ -142,8 +142,8 @@ echo "
         <div class='modal_section' id='pub_delete' data-title='Delete Presentation'>
             <div>Do you want to delete this presentation?</div>
             <div class='action_btns'>
-                <div class='one_half'><a href='' class='pub_btn pub_back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
-                <div class='one_half last'><a href='' class='btn btn_red' id='confirm_pubdel'>Delete</a></div>
+                <div class='one_half'><button class='pub_back_btn fa-angle-double-left'>Back</button></div>
+                <div class='one_half last'><input type='submit' id='confirm_pubdel' value='Delete'></div>
             </div>
         </div>
 

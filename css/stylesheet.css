@@ -675,7 +675,7 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     background-size: 20px;
 }
 
-input[type="submit"], input[type="button"], button[type="submit"] {
+input[type="submit"], input[type="button"], button, button[type="submit"] {
     color: rgba(50, 50, 50, 1);
     border: 1px solid rgba(207, 81, 81, 1);
     transition: all 0.3s ease 0s;
@@ -690,19 +690,19 @@ input[type="submit"], input[type="button"], button[type="submit"] {
     background-size: 12px;
 }
 
-input[type="submit"]:after, input[type="button"]:after {
+input[type="submit"]:after, input[type="button"]:after, button:after, button[type="submit"]:after {
     content: '';
     position: absolute;
     z-index: -1;
 }
 
-input[type="submit"]:hover, input[type="button"]:hover {
+input[type="submit"]:hover, input[type="button"]:hover, button:hover, button[type="submit"]:hover {
     color: #FFF;
     background: rgba(207, 81, 81, 1) url(../images/next_white.png) 10px 50% no-repeat;
     background-size: 12px;
 }
 
-input[type="submit"]:active, input[type="button"]:active {
+input[type="submit"]:active, input[type="button"]:active, button:active, button[type="submit"]:active {
     color: #FFF;
     background:rgba(145, 73, 73, 1) url(../images/next_white.png) 10px 50% no-repeat;
     background-size: 20px;
@@ -1563,7 +1563,7 @@ h3 {
     position: relative;
     padding: 10px 20px;
     text-align: center;
-    background-color: rgba(207,81,81,.3);
+    background-color: rgba(207,81,81,.9);
     margin-top: 10px;
     color: rgba(255,255,255,1);
     cursor: pointer;
