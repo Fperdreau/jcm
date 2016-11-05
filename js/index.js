@@ -362,21 +362,21 @@ $(document).ready(function () {
         .on('click',".menu-section",function (e) {
             e.preventDefault();
             e.stopPropagation();
-
+            var link = $(this).find('a');
             $(".menu-section").each(function() {
-                $(this).parent('li').removeClass("activepage");
+                $(this).removeClass("activepage");
             });
 
-            $(this).closest('li').addClass("activepage");
+            $(this).addClass("activepage");
 
-            if ($(this).is('[id]')) {
+            if (link.is('[id]')) {
                 // Parse url
-                var query = $(this).attr("href");
+                var query = link.attr("href");
                 var vars = query.split("&");
                 var pair = vars[0].split("=");
                 var page_to_load = pair[1];
 
-                var param = ($(this).is('[data-param]'))? $(this).attr('data-param'):false;
+                var param = (link.is('[data-param]'))? link.attr('data-param') : false;
                 getPage(page_to_load, param);
                 $('.submenu, .dropdown').hide();
             }
