@@ -148,7 +148,11 @@ $result = "
         <div class='plugins'></div>
         
     </div>
-    <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
+    <section>
+        <div class='section_content'>
+            <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
+        </div>
+    </section>
 
 ";
 
