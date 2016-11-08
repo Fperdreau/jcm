@@ -37,7 +37,7 @@ $logs = $AppCron->execute_all();
 
 // Send logs to admins
 if (!empty($logs)) {
-    if ($AppConfig->notify_admin_task) {
+    if ($AppConfig->notify_admin_task === "yes") {
         $AppCron->notify_admin($logs);
     }
 }
