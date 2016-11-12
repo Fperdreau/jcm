@@ -285,7 +285,7 @@ var checkform = function(el, btn) {
         }
 
         // Check if provided email is valid
-        if ($(this).val().length > 0 && $(this).attr('type') == 'email' && !checkemail($(this).val())) {
+        if ($(this).val() !== null && $(this).val().length > 0 && $(this).attr('type') == 'email' && !checkemail($(this).val())) {
             msg = "Invalid email";
             thisField = false;
         }
@@ -395,6 +395,16 @@ $(document).ready(function () {
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
             processForm(form);
+        })
+
+        .on('blur', 'input, select, textarea', function(e) {
+            if ($(this).is(':valid') && $(this).val() !== null && $(this).val().length > 0) {
+                var inputFeedback = $(this).siblings('.inputFeedback');
+                if (inputFeedback !== undefined) {
+                    inputFeedback.fadeOut(200);
+                }
+                $(this).removeClass('wrongField');
+            }
         })
 
         .on('click', '.feedbackForm', function() {
