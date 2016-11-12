@@ -64,7 +64,7 @@ class AppConfig extends AppTable {
     public $session_type;
     public $pres_type;
     public static $session_type_default = array("Journal Club", "Business Meeting");
-    public static $pres_type_default = array("paper","research","methodology","guest","minute");
+    public static $pres_type_default = array("paper", "research", "methodology", "guest", "minute");
 
     /**
      * Lab info
@@ -132,9 +132,7 @@ class AppConfig extends AppTable {
             $value = (in_array($varname, array("session_type", "pres_type"))) ? json_decode($row['value'], true) : htmlspecialchars_decode($row['value']);
             if (property_exists(get_class($this), $varname)) {
                 $prop = new ReflectionProperty(get_class($this), $varname);
-                if ($prop->isStatic()) {
-                    $this::$$varname = $value;
-                } else {
+                if (!$prop->isStatic()) {
                     $this->$varname = $value;
                 }
             }

@@ -249,6 +249,14 @@ if (!empty($_POST['operation'])) {
         $AppConfig->setup($op);
         $AppConfig->get();
 
+        if (is_null($AppConfig->pres_type) && empty($AppConfig->pres_type)) {
+            $AppConfig->pres_type = $AppConfig::$pres_type_default;
+        }
+
+        if (is_null($AppConfig->session_type) && empty($AppConfig->session_type)) {
+            $AppConfig->session_type = $AppConfig::$session_type_default;
+        }
+
         // Patching variable type for AppConfig->session_type and AppConfig->pres_type
         if (!is_array($AppConfig->session_type)) {
             $types = explode(',', $AppConfig->session_type);
@@ -553,7 +561,7 @@ if (!empty($_POST['getpagecontent'])) {
 		<h2>$title</h2>
 		<section>
 		    <div class='feedback'></div>
-			<div id='operation'>$operation</div>
+			<div class='section_content' id='operation'>$operation</div>
 		</section>
 	";
     $result['step'] = $step;
