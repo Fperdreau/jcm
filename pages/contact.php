@@ -83,7 +83,7 @@ $result = "
                 </div>
                 <div class='form-group' style='width: 100%;'>
                     <select name='admin_mail' required>
-                        <option value='none' selected='selected'>Select an organizer</option>
+                        <option value='none' selected disabled>Select an organizer</option>
                         $mail_option
                     </select>
                     <label for='admin_mail'>Organizer</label>
