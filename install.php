@@ -253,17 +253,17 @@ if (!empty($_POST['operation'])) {
         if (!is_array($AppConfig->session_type)) {
             $types = explode(',', $AppConfig->session_type);
             $types = array_filter($types, function($value) { return $value !== ''; });
-            $_POST['session_type'] = array_unique(array_merge(AppConfig::session_type_default, $types));
+            $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default, $types));
         } elseif (count($AppConfig->session_type) !== count($AppConfig->session_type, COUNT_RECURSIVE)) {
-            $_POST['session_type'] = array_unique(array_merge(AppConfig::session_type_default,
+            $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default,
                 array_keys($AppConfig->session_type)));
         }
         if (!is_array($AppConfig->pres_type)) {
             $types = explode(',', $AppConfig->pres_type);
             $types = array_filter($types, function($value) { return $value !== ''; });
-            $_POST['pres_type'] = array_unique(array_merge(AppConfig::pres_type_default, $types));
+            $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default, $types));
         } elseif (count($AppConfig->pres_type) !== count($AppConfig->pres_type, COUNT_RECURSIVE)) {
-            $_POST['pres_type'] = array_unique(array_merge(AppConfig::pres_type_default,
+            $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default,
                 array_keys($AppConfig->pres_type)));
         }
 

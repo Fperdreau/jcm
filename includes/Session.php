@@ -517,7 +517,7 @@ class Session extends Sessions {
         parent::__construct($db);
         $AppConfig = new AppConfig($this->db);
         $this->time = "$AppConfig->jc_time_from, $AppConfig->jc_time_to";
-        $this->type = AppConfig::session_type_default[0];
+        $this->type = AppConfig::$session_type_default[0];
         $this->date = $date;
 
         if ($date != null) {

@@ -63,8 +63,8 @@ class AppConfig extends AppTable {
     public $max_nb_session = 1;
     public $session_type;
     public $pres_type;
-    const session_type_default = array("Journal Club", "Business Meeting");
-    const pres_type_default = array("paper","research","methodology","guest","minute");
+    public static $session_type_default = array("Journal Club", "Business Meeting");
+    public static $pres_type_default = array("paper","research","methodology","guest","minute");
 
     /**
      * Lab info

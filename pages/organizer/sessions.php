@@ -39,7 +39,7 @@ foreach ($AppConfig->session_type as $type) {
             </div>
         </div>
     ";
-    if ($type == AppConfig::session_type_default) {
+    if ($type == AppConfig::$session_type_default) {
         $opttypedflt .= "<option value='$type' selected>$type</option>";
     } else {
         $opttypedflt .= "<option value='$type'>$type</option>";

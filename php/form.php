@@ -980,7 +980,7 @@ if (!empty($_POST['del_type'])) {
     $divid = $class.'_'.$typename;
     $result['status'] = true;
     if ($class == "session") {
-        if (in_array($typename, AppConfig::session_type_default)) {
+        if (in_array($typename, AppConfig::$session_type_default)) {
             $result['status'] = false;
             $result['msg'] = "Default types cannot be deleted";
         } else {
@@ -990,7 +990,7 @@ if (!empty($_POST['del_type'])) {
         }
 
     } else {
-        if (in_array($typename, AppConfig::pres_type_default)) {
+        if (in_array($typename, AppConfig::$pres_type_default)) {
             $result['status'] = false;
             $result['msg'] = "Default types cannot be deleted";
         } else {
