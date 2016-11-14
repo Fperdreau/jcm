@@ -155,8 +155,13 @@ class AppDb {
         } else {
             $config = self::$default;
         }
-        foreach ($config as $key=>$value) {
-            $this->$key = $value;
+        foreach (self::$default as $key=>$value) {
+            if (key_exists($key, $config)) {
+                $this->$key = $config[$key];
+            } else {
+                $this->$key = $value;
+                $config[$key] = $value;
+            }
         }
         return $config;
     }
@@ -191,24 +196,25 @@ class AppDb {
 
     /**
      * Test credentials and throws exceptions
+     * @param array $config
      * @return array
      */
-    function testdb($config) {
+    function testdb(array $config) {
         $link = @mysqli_connect($config['host'],$config['username'],$config['passw']);
         if (!$link) {
             $result['status'] = false;
-            $result['msg'] = "Failed to connect to the database<br>";
+            $result['msg'] = "Failed to connect to the database";
             return $result;
         }
 
         if (!@mysqli_select_db($link,$config['dbname'])) {
             $result['status'] = false;
-            $result['msg'] = "Database '".$config['dbname']."' cannot be selected<br/>";
+            $result['msg'] = "Database '".$config['dbname']."' cannot be selected";
             AppLogger::get_instance(APP_NAME)->critical($result['msg']);
             return $result;
         }
         $result['status'] = true;
-        $result['msg'] = "Connected!";
+        $result['msg'] = "Connection successful";
         return $result;
     }
 

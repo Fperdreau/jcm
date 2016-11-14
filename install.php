@@ -202,181 +202,179 @@ Process Installation
 
 if (!empty($_POST['operation'])) {
     $operation = $_POST['operation'];
+    set_time_limit(60);
 
-    // STEP 1: Check database credentials provided by the user
-    if ($operation == "db_info") {
-        $result = $db->testdb($_POST);
-        echo json_encode($result);
-        exit;
-    }
+    switch ($operation) {
+        case "db_info":
+            // STEP 1: Check database credentials provided by the user
+            $result = $db->testdb($_POST);
+            break;
+        case "do_conf":
+            // STEP 2: Write database credentials to config.php file
+            $result = $AppConfig::createConfig($_POST);
+            break;
+        case "backup":
+            // STEP 3: Do Backups before making any modifications to the db
+            include('cronjobs/DbBackup.php');
+            $backup = new DbBackup($db);
+            $backup->run();
+            $result['msg'] = "Backup is complete!";
+            $result['status'] = true;
+            AppLogger::get_instance(APP_NAME)->info($result['msg']);
+            break;
+        case "install_db":
+            // STEP 4: Configure database
 
-    // STEP 2: Write database credentials to config.php file
-    if ($operation == "do_conf") {
-        echo json_encode($AppConfig::createConfig($_POST));
-        exit;
-    }
+            $op = htmlspecialchars($_POST['op']);
+            $op = $op == "new";
 
-    // STEP 3: Do Backups before making any modifications to the db
-    if ($operation == "backup") {
-        include('cronjobs/DbBackup.php');
-        $backup = new DbBackup($db);
-        $backup->run();
-        $result['msg'] = "Backup is complete!";
-        $result['status'] = true;
-        AppLogger::get_instance(APP_NAME)->info($result['msg']);
-        echo json_encode($result);
-        exit;
-    }
+            // Tables to create
+            $tables_to_create = $db->tablesname;
 
-    // STEP 4: Configure database
-    if ($operation == "install_db") {
+            // Get default application settings
+            $AppConfig = new AppConfig($db, false);
+            $version = $AppConfig::version; // New version number
+            if ($op === true) {
+                $AppConfig->get();
+            }
+            $_POST['version'] = $version;
 
-        $op = htmlspecialchars($_POST['op']);
-        $op = $op == "new";
-
-        // Tables to create
-        $tables_to_create = $db->tablesname;
-
-        // Get default application settings
-        $AppConfig = new AppConfig($db, false);
-        $version = $AppConfig::version; // New version number
-        if ($op === true) {
+            // Create config table
+            $AppConfig->setup($op);
             $AppConfig->get();
-        }
-        $_POST['version'] = $version;
 
-        // Create config table
-        $AppConfig->setup($op);
-        $AppConfig->get();
+            if (is_null($AppConfig->pres_type) && empty($AppConfig->pres_type)) {
+                $AppConfig->pres_type = $AppConfig::$pres_type_default;
+            }
 
-        if (is_null($AppConfig->pres_type) && empty($AppConfig->pres_type)) {
-            $AppConfig->pres_type = $AppConfig::$pres_type_default;
-        }
+            if (is_null($AppConfig->session_type) && empty($AppConfig->session_type)) {
+                $AppConfig->session_type = $AppConfig::$session_type_default;
+            }
 
-        if (is_null($AppConfig->session_type) && empty($AppConfig->session_type)) {
-            $AppConfig->session_type = $AppConfig::$session_type_default;
-        }
+            // Patching variable type for AppConfig->session_type and AppConfig->pres_type
+            if (!is_array($AppConfig->session_type)) {
+                $types = explode(',', $AppConfig->session_type);
+                $types = array_filter($types, function($value) { return $value !== ''; });
+                $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default, $types));
+            } elseif (count($AppConfig->session_type) !== count($AppConfig->session_type, COUNT_RECURSIVE)) {
+                $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default,
+                    array_keys($AppConfig->session_type)));
+            }
+            if (!is_array($AppConfig->pres_type)) {
+                $types = explode(',', $AppConfig->pres_type);
+                $types = array_filter($types, function($value) { return $value !== ''; });
+                $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default, $types));
+            } elseif (count($AppConfig->pres_type) !== count($AppConfig->pres_type, COUNT_RECURSIVE)) {
+                $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default,
+                    array_keys($AppConfig->pres_type)));
+            }
 
-        // Patching variable type for AppConfig->session_type and AppConfig->pres_type
-        if (!is_array($AppConfig->session_type)) {
-            $types = explode(',', $AppConfig->session_type);
-            $types = array_filter($types, function($value) { return $value !== ''; });
-            $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default, $types));
-        } elseif (count($AppConfig->session_type) !== count($AppConfig->session_type, COUNT_RECURSIVE)) {
-            $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default,
-                array_keys($AppConfig->session_type)));
-        }
-        if (!is_array($AppConfig->pres_type)) {
-            $types = explode(',', $AppConfig->pres_type);
-            $types = array_filter($types, function($value) { return $value !== ''; });
-            $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default, $types));
-        } elseif (count($AppConfig->pres_type) !== count($AppConfig->pres_type, COUNT_RECURSIVE)) {
-            $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default,
-                array_keys($AppConfig->pres_type)));
-        }
+            $AppConfig->update($_POST);
 
-        $AppConfig->update($_POST);
+            // Create users table
+            $Users = new Users($db);
+            $Users->setup($op);
 
-        // Create users table
-        $Users = new Users($db);
-        $Users->setup($op);
+            // Create Post table
+            $Posts = new Posts($db);
+            $Posts->setup($op);
 
-        // Create Post table
-        $Posts = new Posts($db);
-        $Posts->setup($op);
+            // Create Media table
+            $Media = new Uploads($db);
+            $Media->setup($op);
 
-        // Create Media table
-        $Media = new Uploads($db);
-        $Media->setup($op);
+            // Create MailManager table
+            $MailManager = new MailManager($db);
+            $MailManager->setup($op);
 
-        // Create MailManager table
-        $MailManager = new MailManager($db);
-        $MailManager->setup($op);
+            // Create Presentation table
+            $Presentations = new Presentations($db);
+            $Presentations->setup($op);
 
-        // Create Presentation table
-        $Presentations = new Presentations($db);
-        $Presentations->setup($op);
+            // Create Session table
+            $Sessions = new Sessions($db);
+            $Sessions->setup($op);
 
-        // Create Session table
-        $Sessions = new Sessions($db);
-        $Sessions->setup($op);
+            // Create Plugins table
+            $Plugins = new AppPlugins($db);
+            $Plugins->setup($op);
 
-        // Create Plugins table
-        $Plugins = new AppPlugins($db);
-        $Plugins->setup($op);
+            // Create CronJobs table
+            $CronJobs = new AppCron($db);
+            $CronJobs->setup($op);
 
-        // Create CronJobs table
-        $CronJobs = new AppCron($db);
-        $CronJobs->setup($op);
+            // Page table
+            $AppPage = new AppPage($db);
+            $AppPage->setup($op);
+            $AppPage->getPages();
 
-        // Page table
-        $AppPage = new AppPage($db);
-        $AppPage->setup($op);
-        $AppPage->getPages();
+            // Digest table
+            $DigestMaker = new DigestMaker($db);
+            $DigestMaker->setup($op);
 
-        // Digest table
-        $DigestMaker = new DigestMaker($db);
-        $DigestMaker->setup($op);
+            // Reminder table
+            $DigestMaker = new ReminderMaker($db);
+            $DigestMaker->setup($op);
 
-        // Reminder table
-        $DigestMaker = new ReminderMaker($db);
-        $DigestMaker->setup($op);
+            // Assignment table
+            $Assignment = new Assignment($db);
+            $Assignment->setup($op);
+            $Assignment->check();
+            $Assignment->getPresentations();
 
-        // Assignment table
-        $Assignment = new Assignment($db);
-        $Assignment->setup($op);
-        $Assignment->check();
-        $Assignment->getPresentations();
+            // Availability table
+            $Availability = new Availability($db);
+            $Availability->setup($op);
 
-        // Availability table
-        $Availability = new Availability($db);
-        $Availability->setup($op);
-        
-        // Apply patch if required
-        if ($op == false) {
-            patching();
-        }
+            // Apply patch if required
+            if ($op == false) {
+                patching();
+            }
 
-        $result['msg'] = "Database installation complete!";
-        $result['status'] = true;
-        AppLogger::get_instance(APP_NAME, 'Install')->info($result['msg']);
+            $result['msg'] = "Database installation complete!";
+            $result['status'] = true;
+            AppLogger::get_instance(APP_NAME, 'Install')->info($result['msg']);
+            break;
 
-        echo json_encode($result);
-        exit;
-    }
+        case "checkDb":
+            // STEP 5:Check consistency between presentations and sessions table
+            $session_date = $db->getinfo($db->tablesname['Session'],'date');
 
-    // STEP 5:Check consistency between presentations and sessions table
-    if ($operation == "checkDb") {
-        $session_date = $db->getinfo($db->tablesname['Session'],'date');
-
-        $sql = "SELECT date,jc_time FROM " . $db->tablesname['Presentation'];
-        $req = $db->send_query($sql);
-        while ($row = mysqli_fetch_assoc($req)) {
-            $date = $row['date'];
-            $time = $row['jc_time'];
-            if (!in_array($date, $session_date)) {
-                $session = new Session($db);
-                if (!$session->make(array('date'=>$date,'time'=>$time))) {
-                    $result['status'] = false;
-                    $result['msg'] = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
-                    echo json_encode($result);
-                    exit;
+            $sql = "SELECT date,jc_time FROM " . $db->tablesname['Presentation'];
+            $req = $db->send_query($sql);
+            while ($row = mysqli_fetch_assoc($req)) {
+                $date = $row['date'];
+                $time = $row['jc_time'];
+                if (!in_array($date, $session_date)) {
+                    $session = new Session($db);
+                    if (!$session->make(array('date'=>$date,'time'=>$time))) {
+                        $result['status'] = false;
+                        $result['msg'] = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
+                        echo json_encode($result);
+                        exit;
+                    }
                 }
             }
-        }
-        $result['status'] = true;
-        $result['msg'] = "<p class='sys_msg success'> '" . $db->tablesname['Session'] . "' updated</p>";
-        echo json_encode($result);
-        exit;
-    }
+            $result['status'] = true;
+            $result['msg'] = "'" . $db->tablesname['Session'] . "' updated";
+            break;
 
-    // Final step: create admin account (for new installation only)
-    if ($operation == 'admin_creation') {
-        $user = new User($db);
-        $result = $user->make($_POST);
-        echo json_encode($result);
-        exit;
+        case "settings":
+            $AppConfig = new AppConfig($db);
+            $result['status'] = $AppConfig->update($_POST);
+            break;
+        case "admin_creation":
+            // Final step: create admin account (for new installation only)
+            $user = new User($db);
+            $result = $user->make($_POST);
+            break;
+        default:
+            $result = false;
+            break;
     }
+    echo json_encode($result);
+    exit;
+
 }
 
 /**
@@ -428,14 +426,13 @@ if (!empty($_POST['getpagecontent'])) {
 
         $title = "Step 1: Database configuration";
         $operation = "
-			<form action='' method='post' name='install' id='db_info'>
+			<form action='install.php' method='post'>
                 <input type='hidden' name='version' value='" . AppConfig::version. "'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='db_info'/>
-				<input type='hidden' name='db_info' value='true' />
                 <div class='form-group'>
-    				<label for='host'>Host Name</label>
     				<input name='host' type='text' value='$host' required autocomplete='on'>
+                    <label for='host'>Host Name</label>
                 </div>
                 <div class='form-group'>
     				<input name='username' type='text' value='$username' required autocomplete='on'>
@@ -466,10 +463,10 @@ if (!empty($_POST['getpagecontent'])) {
 
         $title = "Step 2: Application configuration";
         $operation = "
-            <form action='' method='post' name='install' id='install_db'>
+            <form action='install.php' method='post'>
                 <input type='hidden' name='version' value='" . AppConfig::version. "'>
                 <input type='hidden' name='op' value='$op'/>
-                <input type='hidden' name='operation' value='install_db'/>
+                <input type='hidden' name='operation' value='settings'/>
                 <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
 
                 <h3>Mailing service</h3>
@@ -513,7 +510,7 @@ if (!empty($_POST['getpagecontent'])) {
 
                 <div class='submit_btns'>
                     <input type='submit' value='Test settings' class='test_email_settings'> 
-                    <input type='submit' value='Next' class='proceed'>
+                    <input type='submit' value='Next' class='processform'>
                 </div>
             </form>
             <div class='feedback'></div>
@@ -522,7 +519,7 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 3: Admin account creation";
         $operation = "
             <div class='feedback'></div>
-			<form id='admin_creation'>
+			<form action='install.php'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='admin_creation'/>
                 <input type='hidden' name='status' value='admin'/>
@@ -572,7 +569,7 @@ if (!empty($_POST['getpagecontent'])) {
 
 ?>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -589,6 +586,42 @@ if (!empty($_POST['getpagecontent'])) {
             margin: 2% auto;
             border: 1px solid #eeeeee;
         }
+
+        .progressText_container {
+            width: 250px;
+            height: auto;
+            border-radius: 5px;
+            background: rgba(100, 100, 100, 0.68);
+            z-index: 95;
+            text-align: center;
+            padding: 10px;
+            margin: 50px auto;
+            color: white;
+        }
+
+        .progressText_container > div {
+            text-align: center;
+        }
+
+        .progressText_container > .text {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 5px 10px;
+        }
+
+        .progressBar_container {
+            height: 30px;
+            border: 1px solid white;
+            border-radius: 5px;
+        }
+
+        .progressBar {
+            background: rgba(100, 100, 100, 1);
+            height: 100%;
+            border-radius: 5px;
+        }
+
     </style>
 
     <!-- JQuery -->
@@ -599,7 +632,9 @@ if (!empty($_POST['getpagecontent'])) {
     <!-- Bunch of jQuery functions -->
     <script type="text/javascript">
 
-        // Get url params ($_GET)
+        /**
+         * Get URL parameters
+         */
         function getParams() {
             var url = window.location.href;
             var splitted = url.split("?");
@@ -615,8 +650,13 @@ if (!empty($_POST['getpagecontent'])) {
             return params;
         }
 
-        // Get page content
-        function getpagecontent(step,op) {
+        /**
+         * Get view
+         * @param step: view to load
+         * @param op: update or make new installation
+         */
+        function getpagecontent(step_to_load, op) {
+            step = step_to_load;
             var stateObj = { page: 'install' };
             var div = $('#pagecontent');
 
@@ -632,10 +672,11 @@ if (!empty($_POST['getpagecontent'])) {
          * Show loading animation
          */
         function loadingDiv(el) {
-            el
-                .css('position','relative')
-                .append("<div class='loadingDiv' style='width: 100%; height: 100%;'></div>")
-                .show();
+            el.css('position', 'relative');
+            if (el.find('.loadingDiv').length == 0) {
+                el.append("<div class='loadingDiv'></div>");
+            }
+            el.find('.loadingDiv').css('position', 'absolute').fadeIn();
         }
 
         /**
@@ -650,32 +691,27 @@ if (!empty($_POST['getpagecontent'])) {
         }
 
         /**
-         * Create configuration file
+         * Render progression bar
          */
-        function makeConfigFile(data) {
-            data = modOperation(data,'do_conf');
-            var operationDiv = $('#operation');
-            processAjax(operationDiv,data,false,'install.php');
+        function progressbar(el, percent, msg) {
+            el.css('position', 'absolute');
+            if (el.find('.progressText_container').length == 0) {
+                el.append('<div class="progressText_container">' +
+                    '<div class="text"></div>' +
+                    '<div class="progressBar_container"><div class="progressBar"></div>' +
+                    '</div>');
+            }
+            var TextContainer = el.find('.text');
+            TextContainer.html(msg);
+
+            var progressBar = el.find('.progressBar_container');
+            var width = progressBar.width();
+            progressBar.children('.progressBar').css({'width': percent * width + 'px'});
         }
 
         /**
-         *  Do a backup of the db before making any modification
+         * Update operation
          */
-        function doBackup() {
-            var data = {operation: "backup"};
-            var operationDiv = $('#operation');
-            processAjax(operationDiv,data,false,'install.php');
-        }
-
-        /**
-         *  Check consistency between session/presentation tables
-         */
-        function checkDb() {
-            var data = {operation: "checkDb"};
-            var operationDiv = $('#operation');
-            processAjax(operationDiv,data,false,'install.php');
-        }
-
         function modOperation(data,operation) {
             var i;
             // Find and replace `content` if there
@@ -687,6 +723,99 @@ if (!empty($_POST['getpagecontent'])) {
             }
             return data;
         }
+
+        /**
+         * Go to next installation step
+         **/
+        function gonext() {
+            step = parseInt(step) + 1;
+            getpagecontent(step, op);
+            return true;
+        }
+
+        /**
+         * Application installation
+         * @param input
+         * @returns {boolean}
+         */
+        function process(input) {
+            step++;
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var operation = form.find('input[name="operation"]').val();
+            op = form.find('input[name="op"]').val();
+            var data = form.serializeArray();
+            var operationDiv = $('#operation');
+            var url = form.attr('action');
+            // Check form validity
+            if (!checkform(form)) return false;
+
+            loadingDiv(operationDiv);
+
+            var queue = [
+                {url: url, operation: 'db_info', data: data, text: 'Connecting to database'},
+                {url: url, operation: 'do_conf', data: data, text: 'Creating configuration file'},
+                {url: url, operation: 'backup', data: data, text: 'Backup files and database'},
+                {url: url, operation: 'install_db', data: data, text: 'Installing application'},
+                {url: url, operation: 'checkDb', data: data, text: 'Checking database integrity'}
+            ];
+            var fb = $('.loadingDiv');
+            var lastAction = function() {
+                progressbar(fb, 1, 'Installation complete');
+                setTimeout(function() {
+                    gonext();
+                    return true;
+                }, 1000);
+            };
+            recursive_ajax(queue, fb, queue.length, lastAction);
+            return true;
+        }
+
+        /**
+         * Run installation steps using recursive call
+         * @param queue
+         * @param el
+         * @param init_queue_length
+         * @param lastAction: function to execute once the queue is empty
+         */
+        function recursive_ajax(queue, el, init_queue_length, lastAction) {
+            var percent = 1 - (queue.length / init_queue_length);
+            if (queue.length > 0) {
+                var dataToProcess = modOperation(queue[0].data, queue[0].operation);
+                jQuery.ajax({
+                    url: queue[0].url,
+                    type: 'post',
+                    data: dataToProcess,
+                    async: true,
+                    timeout: 20000,
+                    beforeSend: function() {
+                        progressbar(el, percent, queue[0].text);
+                    },
+                    success: function(data) {
+                        var result = jQuery.parseJSON(data);
+                        if (result.status) {
+                            progressbar(el, percent, result.msg);
+                            queue.shift();
+                            recursive_ajax(queue, el, init_queue_length, lastAction);
+                        } else {
+                            removeLoading(el);
+                            progressbar(el, percent, result.msg);
+                            return false;
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        removeLoading(el);
+                        progressbar(el, percent, textStatus);
+                    }
+                });
+            } else {
+                if (lastAction !== undefined) {
+                    lastAction();
+                }
+            }
+        }
+
+        var step = 1;
+        var op = 'new';
 
         $(document).ready(function () {
 
@@ -716,44 +845,35 @@ if (!empty($_POST['getpagecontent'])) {
                     window.location = "index.php";
                 })
 
-                // Step 1->3: Launch database setup
-                .on('click','.proceed',function(e) {
+                .on('click', "input[type='submit']", function(e) {
                     e.preventDefault();
-                    var input = $(this);
-                    var form = input.length > 0 ? $(input[0].form) : $();
-                    var op = form.find('input[name="op"]').val();
-                    var operation = form.find('input[name="operation"]').val();
-                    var data = form.serializeArray();
-                    var callback = false;
-                    var operationDiv = $('#operation');
-
-                    if (!checkform(form)) return false;
-
-                    if (operation === 'db_info') {
-                        callback = function() {
-
-                            // Create configuration file
-                            makeConfigFile(data);
-
-                            // Go to the next step
-                            getpagecontent(3,op);
-                        };
-                    } else if (operation === 'install_db') {
-                        // First we backup the db before making any modifications
-                        doBackup();
-
-                        callback = function() {
-                            // Check database consistency
-                            checkDb();
-                            // Go to next step
-                            if (op !== "update") {
-                                getpagecontent(4,op);
-                            } else {
-                                getpagecontent(5,op);
-                            }
-                        };
+                    e.stopPropagation();
+                    if (!$(this).hasClass('processform')) {
+                        process($(this));
+                    } else {
+                        return false;
                     }
-                    processAjax(operationDiv,data,callback,'install.php');
+                })
+
+                .on('click',".processform",function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var form = $(this).length > 0 ? $($(this)[0].form) : $();
+                    var op = form.find('input[name="op"]').val();
+                    var url = form.attr('action');
+                    if (!checkform(form)) {return false;}
+                    var callback = function(result) {
+                        if (result.status == true) {
+                            if (step == 3 && op == 'new') {
+                                getpagecontent(4, op);
+                            } else if (step == 3 && op !== 'new') {
+                                getpagecontent(5, op);
+                            } else {
+                                gonext();
+                            }
+                        }
+                    };
+                    processForm(form,callback,url);
                 })
 
                 // Test email host settings
