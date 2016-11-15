@@ -381,6 +381,8 @@ if (!empty($_POST['operation'])) {
  * Get page content
  *
  */
+$result = null;
+
 if (!empty($_POST['getpagecontent'])) {
     $step = htmlspecialchars($_POST['getpagecontent']);
     $_SESSION['step'] = $step;
@@ -401,17 +403,17 @@ if (!empty($_POST['getpagecontent'])) {
         if ($version == false) {
             $operation = "
                 <p>Hello</p>
-                <p>It seems that <i>Journal Club Manager</i> has never been installed here before.</p>
+                <p>It seems that <span class='appname'>" . AppConfig::app_name . "</span>  has never been installed here before.</p>
                 <p>We are going to start from scratch... but do not worry, it is all automatic. We will guide you through the installation steps and you will only be required to provide us with some information regarding the hosting environment.</p>
                 <p>Click on the 'next' button once you are ready to start.</p>
-                <p>Thank you for your interest in <i>Journal Club Manager</i>
+                <p>Thank you for your interest in <span class='appname'>" . AppConfig::app_name . "</span> 
                 <p style='text-align: center'><input type='button' value='Start' class='start' data-op='new'></p>";
         } else {
             $operation = "
                 <p>Hello</p>
-                <p>The current version of <i>Journal Club Manager</i> installed here is $version. You are about to install the version $new_version.</p>
+                <p>The current version of <span class='appname'>" . AppConfig::app_name . "</span>  installed here is <span style='font-weight: 500'>{$version}</span>. You are about to install the version <span style='font-weight: 500'>{$new_version}</span>.</p>
                 <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
-                <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <i>Journal Club Manager</i> database!!</p>
+                <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <span class='appname'>" . AppConfig::app_name . "</span>  database!!</p>
                 <p style='text-align: center'>
                 <input type='button' value='New installation'  class='start' data-op='new'>
                 <input type='button' value='Update' class='start' data-op='update'>
@@ -554,15 +556,17 @@ if (!empty($_POST['getpagecontent'])) {
 		<p style='text-align: right'><input type='button' value='Finish' class='finish'></p>";
     }
 
+    $result['title'] = $title;
     $result['content'] = "
-		<h2>$title</h2>
 		<section>
-		    <div class='feedback'></div>
 			<div class='section_content' id='operation'>$operation</div>
 		</section>
 	";
     $result['step'] = $step;
     $result['op'] = $op;
+}
+
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
     echo json_encode($result);
     exit;
 }
@@ -579,24 +583,180 @@ if (!empty($_POST['getpagecontent'])) {
     <link type='text/css' rel='stylesheet' href="css/stylesheet.min.css"/>
 
     <style type="text/css">
+        body {
+            background: rgb(49, 49, 49);
+        }
+
         .box {
-            background: #FFFFFF;
+            max-width: 600px;
+            min-width: 300px;
             width: 60%;
             padding: 20px;
-            margin: 2% auto;
+            margin: auto;
+        }
+
+        .box > div {
+            margin: auto;
+        }
+
+        header {
+            position: relative;
+            width: 100%;
+            height: auto;
+            box-sizing: border-box;
+            min-width: 100%;
+            box-shadow: none !important;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        header > div {
+            display: block;
+            height: auto;
+        }
+
+        #page_title {
+            text-align: center;
+            font-size: 40px;
+            color: rgb(255, 255, 255);
+            font-weight: 500;
+            box-sizing: border-box;
+        }
+
+        main {
+            min-height: 400px;
+        }
+
+        section {
+            border-radius: 5px;
+        }
+
+        #operation {
+            width: 70%;
+            margin: 20px auto;
+            min-width: 300px;
+            box-sizing: border-box;
+        }
+
+        #section_title {
+            font-size: 30px;
             border: 1px solid #eeeeee;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            font-weight: 500;
+            text-transform: capitalize;
+            background: white;
+            color: rgb(49, 49, 49);
+            margin-bottom: 50px;
+            margin-top: 30px;
+
+        }
+
+        #appTitle {
+            text-transform: uppercase;
+            color: rgb(255, 255, 255);
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .appname {
+            font-weight: 500;
+            color: rgb(49, 49, 49);
+            font-style: italic;
+        }
+
+        #appVersion {
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+            color: rgb(212, 212, 212);
+            margin-top: 0;
+            font-size: .6em;
+            font-weight: 200;
+        }
+
+        #page_container {
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        footer {
+            background-color: rgba(255, 255, 255, 0.1);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5vh;
+            line-height: 5vh;
+            padding: 0 5px;
+            box-sizing: border-box;
+        }
+
+        footer > div {
+            display: inline-block;
+        }
+
+        footer #appTitle {
+            text-transform: uppercase;
+            color: rgb(255, 255, 255);
+            margin-top: 0;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        footer #appVersion {
+            border-top: none !important;
+            color: rgb(212, 212, 212);
+            font-size: .8em;
+            font-weight: 200;
+        }
+
+        footer #sign {
+            float: right;
+            padding: 0;
+            margin: 0;
+        }
+
+        footer #sign a {
+            color: white;
+        }
+
+        footer #sign a:hover {
+            color: rgba(255, 255, 255, .8);
+        }
+
+        #hidden_container {
+            width: 200%;
+        }
+
+        #hidden_container > div {
+            display: inline-block;
+            width: 49.8%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            vertical-align: top;
+            float: left;
+        }
+
+        .progress_layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            background: rgba(255, 255, 255, 1);
+            z-index: 10;
         }
 
         .progressText_container {
-            width: 250px;
-            height: auto;
-            border-radius: 5px;
-            background: rgba(100, 100, 100, 0.68);
-            z-index: 95;
+            width: 100%;
+            height: 100%;
             text-align: center;
-            padding: 10px;
-            margin: 50px auto;
-            color: white;
+            color: rgb(49, 49, 49);
+            position: relative;
         }
 
         .progressText_container > div {
@@ -611,8 +771,7 @@ if (!empty($_POST['getpagecontent'])) {
         }
 
         .progressBar_container {
-            height: 30px;
-            border: 1px solid white;
+            height: 2px;
             border-radius: 5px;
         }
 
@@ -620,6 +779,17 @@ if (!empty($_POST['getpagecontent'])) {
             background: rgba(100, 100, 100, 1);
             height: 100%;
             border-radius: 5px;
+        }
+
+        .progressBar_loading {
+            width: 30px;
+            height: 30px;
+            margin: 20px auto;
+            background: rgba( 255, 255, 255, .7)
+            url('images/spinner.gif')
+            50% 50%
+            no-repeat;
+            background-size: 100%;
         }
 
     </style>
@@ -652,20 +822,50 @@ if (!empty($_POST['getpagecontent'])) {
 
         /**
          * Get view
-         * @param step: view to load
+         * @param step_to_load: view to load
          * @param op: update or make new installation
          */
         function getpagecontent(step_to_load, op) {
             step = step_to_load;
             var stateObj = { page: 'install' };
-            var div = $('#pagecontent');
+            var div = $('main');
 
             var callback = function(result) {
                 history.pushState(stateObj, 'install', "install.php?step=" + result.step + "&op=" + result.op);
-                $('#pagecontent').html(result.content).fadeIn(200);
+                pageTransition(result);
             };
             var data = {getpagecontent: step, op: op};
             processAjax(div,data,callback,'install.php');
+        }
+
+        function pageTransition(content) {
+            var container = $('#hidden_container');
+            var current_content = container.find('#current_content');
+
+            if (container.find('#next_content').length == 0) {
+                container.append('<div id="next_content"></div>');
+                renderSection(current_content, content);
+                return true;
+            }
+
+            var next_content = container.find('#next_content');
+            renderSection(next_content, content);
+
+            current_content.animate({'margin-left': '-100%', 'opacity': 0}, 1000, function() {
+                var next_content = $(this).siblings('#next_content');
+                next_content.attr('id', 'current_content');
+                next_content.after('<div id="next_content"></div>');
+                $(this).remove();
+
+            });
+
+        }
+
+        function renderSection(section, content) {
+            var defaultHtml = '<div class="box"><div id="section_title"></div><div id="section_content"></div></div>';
+            section.html(defaultHtml);
+            section.find('#section_content').html(content.content);
+            section.find('#section_title').html(content.title);
         }
 
         /**
@@ -694,12 +894,15 @@ if (!empty($_POST['getpagecontent'])) {
          * Render progression bar
          */
         function progressbar(el, percent, msg) {
-            el.css('position', 'absolute');
-            if (el.find('.progressText_container').length == 0) {
-                el.append('<div class="progressText_container">' +
+            el.css('position', 'relative');
+            el.find(".progress_layer").remove();
+            el.append('<div class="progress_layer"></div>');
+            var layer = el.find('.progress_layer');
+            if (layer.find('.progressText_container').length == 0) {
+                layer.append('<div class="progressText_container">' +
                     '<div class="text"></div>' +
                     '<div class="progressBar_container"><div class="progressBar"></div>' +
-                    '</div>');
+                    '<div class="progressBar_loading"></div></div>');
             }
             var TextContainer = el.find('.text');
             TextContainer.html(msg);
@@ -707,6 +910,10 @@ if (!empty($_POST['getpagecontent'])) {
             var progressBar = el.find('.progressBar_container');
             var width = progressBar.width();
             progressBar.children('.progressBar').css({'width': percent * width + 'px'});
+        }
+
+        function remove_progressbar(el) {
+            el.find(".progress_layer").remove();
         }
 
         /**
@@ -739,7 +946,6 @@ if (!empty($_POST['getpagecontent'])) {
          * @returns {boolean}
          */
         function process(input) {
-            step++;
             var form = input.length > 0 ? $(input[0].form) : $();
             var operation = form.find('input[name="operation"]').val();
             op = form.find('input[name="op"]').val();
@@ -749,8 +955,6 @@ if (!empty($_POST['getpagecontent'])) {
             // Check form validity
             if (!checkform(form)) return false;
 
-            loadingDiv(operationDiv);
-
             var queue = [
                 {url: url, operation: 'db_info', data: data, text: 'Connecting to database'},
                 {url: url, operation: 'do_conf', data: data, text: 'Creating configuration file'},
@@ -758,15 +962,16 @@ if (!empty($_POST['getpagecontent'])) {
                 {url: url, operation: 'install_db', data: data, text: 'Installing application'},
                 {url: url, operation: 'checkDb', data: data, text: 'Checking database integrity'}
             ];
-            var fb = $('.loadingDiv');
+
             var lastAction = function() {
-                progressbar(fb, 1, 'Installation complete');
+                progressbar(operationDiv, 1, 'Installation complete');
                 setTimeout(function() {
+                    remove_progressbar(operationDiv);
                     gonext();
                     return true;
                 }, 1000);
             };
-            recursive_ajax(queue, fb, queue.length, lastAction);
+            recursive_ajax(queue, operationDiv, queue.length, lastAction);
             return true;
         }
 
@@ -795,16 +1000,21 @@ if (!empty($_POST['getpagecontent'])) {
                         if (result.status) {
                             progressbar(el, percent, result.msg);
                             queue.shift();
-                            recursive_ajax(queue, el, init_queue_length, lastAction);
+                            setTimeout(function() {
+                                recursive_ajax(queue, el, init_queue_length, lastAction);
+                            }, 1000);
                         } else {
-                            removeLoading(el);
                             progressbar(el, percent, result.msg);
                             return false;
                         }
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
-                        removeLoading(el);
                         progressbar(el, percent, textStatus);
+                        setTimeout(function() {
+                            remove_progressbar(el);
+                            return true;
+                        }, 3000);
+
                     }
                 });
             } else {
@@ -819,7 +1029,7 @@ if (!empty($_POST['getpagecontent'])) {
 
         $(document).ready(function () {
 
-            $('.mainbody')
+            $('body')
                 .ready(function() {
                     // Get step
                     var params = getParams();
@@ -864,7 +1074,7 @@ if (!empty($_POST['getpagecontent'])) {
                     if (!checkform(form)) {return false;}
                     var callback = function(result) {
                         if (result.status == true) {
-                            if (step == 3 && op == 'new') {
+                            if (step == 3 && op === 'new') {
                                 getpagecontent(4, op);
                             } else if (step == 3 && op !== 'new') {
                                 getpagecontent(5, op);
@@ -901,34 +1111,40 @@ if (!empty($_POST['getpagecontent'])) {
                 });
         });
     </script>
-    <title>Journal Club Manager - Installation</title>
+    <title><?php echo AppConfig::app_name; ?>  - Installation</title>
 </head>
 
-<body class="mainbody" style="background: #FdFdFd;">
+<body>
 
-<div id="bodytable">
     <!-- Header section -->
-    <div class="box" style='text-align: center; font-size: 1.7em; color: rgba(68,68,68,1); font-weight: 300;'>
-        Journal Club Manager - Installation
-    </div>
+    <header>
+        <div class="box" id="page_title">
+            <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
+            <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
+        </div>
+    </header>
 
     <!-- Core section -->
-    <div class="box" style="min-height: 400px;">
-        <div id="pagecontent" style="padding: 20px 0;"></div>
-    </div>
+    <main>
+        <div id="page_container">
+            <div id="hidden_container">
+                <div id="current_content">
+                    <div class="box">
+                        <div id="section_title"><?php echo $result['title']; ?></div>
+                        <div id="section_content"><?php echo $result['content']; ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <!-- Footer section -->
-    <footer id="footer"  style='width: 60%; padding: 20px; margin: 2% auto;'>
-        <div id="colBar"></div>
+    <footer>
         <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
         <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
         <div id="sign">
-            <div><a href="<?php echo AppConfig::repository; ?>" target='_blank'>Sources</a></div>
-            <div><a href="http://www.gnu.org/licenses/agpl-3.0.html" target='_blank'><?php echo AppConfig::license; ?></a></div>
-            <div><a href="http://www.florianperdreau.fr" target='_blank'><?php echo AppConfig::copyright . ' ' .  AppConfig::author; ?></a></div>
+            <a href="<?php echo AppConfig::repository?>" target='_blank'><?php echo AppConfig::copyright; ?></a>
         </div>
     </footer>
-</div>
 
 </body>
 
