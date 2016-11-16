@@ -122,13 +122,12 @@ function getPage(page, urlparam) {
         },
         success: function (data) {
             var json = jQuery.parseJSON(data);
-            var page_name = json.pageName.split('_');
 
             // Change url and push it to history
             var stateObj = { page: json.pageName };
             var url = (urlparam === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + urlparam;
             history.pushState(stateObj, json.pageName, url);
-            displayPage(page, json, urlparam);
+            displayPage(page, json);
         }
     });
 }
@@ -140,13 +139,8 @@ function getPage(page, urlparam) {
  * @param data
  * @param param
  */
-var displayPage = function (page, data, param) {
-    var pagetoload = data.pageName;
+var displayPage = function (page, data) {
     var plugins = data.plugins;
-    var stateObj = { page: pagetoload };
-    var url = (param === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + param;
-
-    history.pushState(stateObj, pagetoload, url);
 
     pageTransition(data);
 
@@ -161,7 +155,6 @@ var displayPage = function (page, data, param) {
 
     // Load availability calendar
     loadCalendarAvailability();
-
 };
 
 function pageTransition(content) {
