@@ -117,9 +117,7 @@ if (!is_null($section_content)) {
 }
 
 $result = "
-    <div class='page_header'>
     {$submitMenu}
-    </div>
     <div class='submission_container'>{$form_section}</div> 
 ";
 echo $result;
