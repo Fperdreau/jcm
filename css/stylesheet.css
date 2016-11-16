@@ -1270,6 +1270,11 @@ footer {
     padding: 5px;
 }
 
+#page_icon > img {
+    width: 30px;
+    height: auto;
+}
+
 .page_description {
     text-align: justify;
     margin: 10px auto 10px auto;
@@ -1370,7 +1375,7 @@ section>h2 {
 h1 {
     display: block;
     color: #555555;
-    font-size: 1.5em;
+    font-size: 1.3em;
     text-transform: uppercase;
 }
 
