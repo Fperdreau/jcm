@@ -367,29 +367,17 @@ if (!empty($_POST['getPage'])) {
     $content['content'] = null;
     $content['AppStatus'] = $AppConfig->status;
 
-    // Get page content
-    if (!$Page::exist($page)) {
-        $content['content'] = AppPage::notFound();
-    } else {
-        $status = $Page->check_login();
-        if ($content['AppStatus'] == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
-            if ($status['status'] == false) {
-                $content['content']  = $status['msg'];
-            } else {
-                // Start buffering
-                ob_start("ob_gzhandler");
-
-                require(PATH_TO_PAGES . $page . '.php');
-
-                // End of buffering
-                $content['content']  = ob_get_clean();
-
-            }
-
+    $status = $Page->check_login();
+    if ($content['AppStatus'] == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
+        if ($status['status'] == false) {
+            $content['content']  = $status['msg'];
         } else {
-            $content['content'] = AppPage::maintenance();
+            $content['content'] = $Page::render($page);
         }
+    } else {
+        $content['content'] = AppPage::maintenance();
     }
+
     echo json_encode($content);
     exit;
 }
