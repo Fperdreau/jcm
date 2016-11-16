@@ -100,18 +100,20 @@ var loadCalendarAvailability = function() {
  * @param urlparam
  */
 function getPage(page, urlparam) {
+    var params = getParams();
     if (page === undefined) {
-        var params = getParams();
         page = (params.page === undefined) ? 'home' : params.page;
     }
 
     urlparam = (urlparam === undefined) ? parseurl() : urlparam;
     urlparam = (urlparam === false || urlparam === "") ? false : urlparam;
+
     var el = $('main');
+    params['getPage'] = page;
 
     jQuery.ajax({
         url: 'php/form.php',
-        data: {getPage: page},
+        data: params,
         type: 'POST',
         async: true,
         beforeSend: function () {
