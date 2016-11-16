@@ -20,6 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+require_once('../includes/boot.php');
+
 $user = new User($db);
 
 // Modify user password

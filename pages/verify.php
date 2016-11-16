@@ -20,6 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+require_once('../includes/boot.php');
+
 if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
     $hash = htmlspecialchars($_GET['hash']);
     $email = htmlspecialchars($_GET['email']);
