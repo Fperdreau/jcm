@@ -366,9 +366,8 @@ if (!empty($_POST['getPage'])) {
     $content['description'] = $Page->meta_description;
     $content['content'] = null;
     $content['AppStatus'] = $AppConfig->status;
-
     $status = $Page->check_login();
-    if ($content['AppStatus'] == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
+    if ($content['AppStatus'] == 'On' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
         if ($status['status'] == false) {
             $content['content']  = $status['msg'];
         } else {
