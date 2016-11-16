@@ -165,38 +165,44 @@ class AppPage extends AppTable {
      * @return string
      */
     public static function forbidden() {
-        return "
-        <section>
-            <div class='section_content'>
-                <p class='sys_msg warning'>Sorry, you do not have the permission to access this page</p>
-            </div>
-        </section>
-        ";
+        return self::render('error/403');
     }
 
+    /**
+     * Render Error 404 - page not found
+     * @return mixed|string
+     */
     public static function notFound() {
-        return "
-            <section>
-                <div class='section_content'>
-                    If you were looking for the answer to the question:
-                    <p style='font-size: 1.4em; text-align: center;'>What is the universe?</p>
-                    I can tell you it is 42.
-                    <p>But since you were looking for a page that does not exist, then I can tell you:</p>
-                    <p style='font-size: 2em; text-align: center;'>ERROR 404</p>
-                </div>               
-            </section>
-        ";
+        return self::render('error/404');
     }
 
+    /**
+     * Render Error 503
+     * @return mixed|string
+     */
     public static function maintenance() {
-        return "
-            <section>
-                <div class='section_content'>
-                    <div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div>
-                    <div> the website is currently under maintenance.</div>
-                </div>
-            </section>
-        ";
+        return self::render('error/503');
+    }
+
+    /**
+     * Render page content
+     * @param $page
+     * @return mixed|string
+     */
+    public static function render($page) {
+        if (!self::exist($page)) {
+            return self::notFound();
+        } else {
+            require('../includes/boot.php');
+
+            // Start buffering
+            ob_start("ob_gzhandler");
+
+            require(PATH_TO_PAGES . $page . '.php');
+
+            // End of buffering
+            return ob_get_clean();
+        }
     }
 
     /**
