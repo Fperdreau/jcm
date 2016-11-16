@@ -128,6 +128,9 @@ class MailManager extends AppTable {
      */
     public function show($mail_id) {
         $data = $this->get($mail_id);
+        if (is_null($data)) {
+            return null;
+        }
         $attachments = (!empty($data['attachments'])) ? explode(',', $data['attachments']):array();
         return self::showEmail($data, $attachments);
     }
