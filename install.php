@@ -685,6 +685,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             line-height: 5vh;
             padding: 0 5px;
             box-sizing: border-box;
+            min-height: 0;
+            text-align: left;
+            margin: 0;
         }
 
         footer > div {
