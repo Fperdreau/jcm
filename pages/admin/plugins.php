@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../../includes/boot.php');
-
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 
@@ -30,7 +28,6 @@ $plugins = new AppPlugins($db);
 $plugin_list = $plugins->show();
 $result = "
     <div class='page_header'>
-    <h1>Plugins</h1>
     <p class='page_description'>Here you can install, activate or deactivate plugins and manage their settings.
     Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
     </div>
@@ -42,5 +39,4 @@ $result = "
     </section>
 ";
 
-echo json_encode($result);
-exit;
+echo $result;

@@ -20,7 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once('../includes/boot.php');
 $last_news = new Posts($db);
 $sessions = new Sessions($db);
 $presentations = new Presentations($db);
@@ -33,7 +32,6 @@ if (isset($_SESSION['logok']) && $_SESSION['logok']) {
 } else {
     $submitMenu = null;
 }
-
 
 $result = "
     $submitMenu
@@ -69,6 +67,4 @@ $result = "
         </section>
     </div>
 ";
-
-echo json_encode($result);
-exit;
+echo $result;

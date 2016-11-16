@@ -20,7 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
 if (!empty($_GET['id'])) {
     if (isset($_SESSION['username'])) {
         $user = new User($db, $_SESSION['username']);
@@ -43,4 +42,4 @@ if (!empty($_GET['id'])) {
 
 $content = "<section><div class='section_content'>{$content}</div></section>";
 
-echo json_encode($content);
+echo $content;

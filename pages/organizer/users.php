@@ -17,8 +17,6 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-require('../../includes/boot.php');
-
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 
@@ -27,7 +25,6 @@ $userlist = $Users->generateuserslist();
 
 $result = "
 <div class='page_header'>
-<h1>Users Manager</h1>
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 </div>
 <section>
@@ -40,5 +37,4 @@ $result = "
     </div>
 </section>";
 
-echo json_encode($result);
-exit;
+echo $result;

@@ -675,12 +675,6 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             font-weight: 200;
         }
 
-        #page_container {
-            overflow: hidden;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
         footer {
             background-color: rgba(255, 255, 255, 0.1);
             position: fixed;
@@ -724,6 +718,12 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
 
         footer #sign a:hover {
             color: rgba(255, 255, 255, .8);
+        }
+
+        #page_container {
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         #hidden_container {

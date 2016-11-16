@@ -20,18 +20,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
 $last_news = new Posts($db);
 $news = $last_news->show(false);
 
 
-$result = "
-    <div class='page_header'>
-    <h1>News</h1>
-    </div>
-    
+$result = "    
         $news
 ";
 
-echo json_encode($result);
-exit;
+echo $result;

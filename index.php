@@ -84,11 +84,19 @@ $menu = AppPage::menu();
         </header>
 
         <!-- Core section -->
-        <div id="core">
-            <div id="pagecontent">
-                <div id="plugins"></div>
+        <main id="core">
+            <div id="page_container">
+                <div id="hidden_container">
+                    <div id="current_content">
+                        <div class="wrapper">
+                            <div id="section_title"></div>
+                            <div id="section_content"></div>
+                        </div>
+                        <div id="plugins"></div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
 
         <!-- Footer section -->
         <footer id="footer">

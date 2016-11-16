@@ -59,6 +59,13 @@ a:hover {
     color: rgba(50, 50, 50, 1);
 }
 
+.wrapper {
+    width: 70%;
+    max-width: 800px;
+    min-width: 320px;
+    margin: 50px auto 0 auto;
+}
+
 /* *********************************************************************/
 /* Forms & Input field
 /* *********************************************************************/
@@ -1102,7 +1109,7 @@ nav.submenu li:hover>a {
 /* *********************************************************************/
 /* HTML Structure
 /* *********************************************************************/
-#core {
+main {
     position: relative;
     max-width: 100%;
     min-width: 320px;
@@ -1112,7 +1119,27 @@ nav.submenu li:hover>a {
     min-height: 768px;
 }
 
-#footer {
+#page_container {
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#hidden_container {
+    width: 200%;
+}
+
+#hidden_container > div {
+    display: inline-block;
+    width: 49.8%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    vertical-align: top;
+    float: left;
+}
+
+footer {
     position: relative;
     z-index: 0;
     width: 100%;
@@ -1214,6 +1241,33 @@ nav.submenu li:hover>a {
     border: 1px solid;
     border-color: #e5e6e9 #dfe0e4 #d0d1d5;
     background-color: rgba(255,255,255,1);
+}
+
+#section_title {
+    position: relative;
+    box-sizing: border-box;
+    text-align: left;
+    display: block;
+    font-size: 16px;
+    margin: 10px auto 10px auto;
+    padding: 10px;
+    min-width: 320px;
+    border-radius: 3px;
+    border: 1px solid;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+    background-color: rgba(255,255,255,1);
+}
+
+#section_title > div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#page_icon {
+    border: 2px solid rgb(50, 50 ,50);
+    border-radius: 10px;
+    margin-right: 10px;
+    padding: 5px;
 }
 
 .page_description {
@@ -2523,9 +2577,10 @@ div.loadBtn {
 }
 
 .sys_msg {
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 10px 0 10px 40px;
     word-wrap: break-word;
+    font-weight: 500;
 }
 
 .warning {

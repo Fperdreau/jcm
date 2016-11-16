@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../../includes/boot.php');
-
 // Show an empty form
 $user = new User($db,$_SESSION['username']);
 $post = new Posts($db);
@@ -50,7 +48,6 @@ $options .= "</select>";
 
 $result = "
     <div class='page_header'>
-    <h1>News</h1>
     <p class='page_description'>Here you can add a post on the homepage.</p>
     </div>
     
@@ -70,5 +67,4 @@ $result = "
     </section>
     ";
 
-echo json_encode($result);
-exit;
+echo $result;

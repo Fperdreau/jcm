@@ -21,21 +21,17 @@
  */
 
 // Declare classes
-require('../../includes/boot.php');
-
 $Assignment = new Assignment($db);
 $Assignment->check();
-$content = $Assignment->showAll();
+$section_content = $Assignment->showAll();
 // Send mail
 $result = "
     <div class='page_header'>
-    <h1>Presentations assignments</h1>
     <p class='page_description'>List of members's number of assignments per sessions' type.</p>
     </div>
     <section>
         <h2>Members list</h2>
-        <div class='section_content'>{$content}</div>
+        <div class='section_content'>{$section_content}</div>
     </section>";
 
-echo json_encode($result);
-exit;
+echo $result;

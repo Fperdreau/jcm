@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
-
 $user = new User($db);
 
 // Modify user password
@@ -63,5 +61,4 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
         </section>";
 }
 
-echo json_encode($result);
-exit;
+echo $result;

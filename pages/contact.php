@@ -20,7 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
 $admin = $Users->getadmin();
 
 $mail_option = "";
@@ -39,11 +38,7 @@ $admin_contact = "$organizers";
 $jc_day = ucfirst($AppConfig->jc_day);
 // Lab information
 
-$result = "
-    <div class='page_header'>
-    <h1>Contact</h1>
-    </div>
-    
+$result = "   
     <div class='section_container'>
         <section>
             <h2>Where</h2>
@@ -106,5 +101,4 @@ $result = "
     </div>
 ";
 
-echo json_encode($result);
-exit;
+echo $result;

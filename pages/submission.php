@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
-
 // Declare classes
 if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
     echo json_encode(AppPage::login_required());
@@ -34,7 +32,7 @@ $user = new User($db, $username);
 // Get options
 $result = null;
 $submit_form = null;
-$content = null;
+$section_content = null;
 
 if (isset($_GET['op'])) {
     $op = htmlspecialchars($_GET['op']);
@@ -49,11 +47,11 @@ if (isset($_GET['op'])) {
         } else {
             $Presentation = false;
         }
-        $content = Presentation::form($user, false, 'edit', false, $date);
+        $section_content = Presentation::form($user, false, 'edit', false, $date);
 
 // Suggest a presentation
     } elseif ($op == 'suggest') {
-        $content = Presentation::form($user, false, "suggest");
+        $section_content = Presentation::form($user, false, "suggest");
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
@@ -71,14 +69,14 @@ if (isset($_GET['op'])) {
             $submit_form = "";
         }
 
-        $content['title'] = "Select a wish";
-        $content['description'] = $Presentation::description('wishpick');
-        $content['content'] = $selectopt;
+        $section_content['title'] = "Select a wish";
+        $section_content['description'] = $Presentation::description('wishpick');
+        $section_content['content'] = $selectopt;
 
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
         $Presentation = new Presentation($db, $_GET['id']);
-        $content = Presentation::form($user, $Presentation, 'submit');
+        $section_content = Presentation::form($user, $Presentation, 'submit');
     }
 }
 
@@ -114,16 +112,14 @@ $submitMenu = "
     </div>";
 
 $form_section = null;
-if (!is_null($content)) {
-    $form_section = $Presentation::format_section($content);
+if (!is_null($section_content)) {
+    $form_section = $Presentation::format_section($section_content);
 }
 
 $result = "
     <div class='page_header'>
-    <h1>Submission</h1>
     {$submitMenu}
     </div>
     <div class='submission_container'>{$form_section}</div> 
 ";
-echo json_encode($result);
-exit;
+echo $result;

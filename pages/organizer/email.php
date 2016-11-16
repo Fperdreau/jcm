@@ -20,9 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-require('../../includes/boot.php');
-
 // Get contact form
 $recipients_list = isset($_GET['recipients_list']) ? $_GET['recipients_list'] : null;
 $MailManager = new MailManager($db);
@@ -31,7 +28,6 @@ $contactForm = $MailManager->getContactForm($recipients_list);
 // Send mail
 $result = "
     <div class='page_header'>
-    <h1>Mailing</h1>
     <p class='page_description'>Here you can send emails along with attached files to other JCM members.</p>
     </div>
     
@@ -39,5 +35,4 @@ $result = "
         <div class='section_content'>{$contactForm}</div>
     </section>";
 
-echo json_encode($result);
-exit;
+echo $result;

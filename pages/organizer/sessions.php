@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../../includes/boot.php');
-
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 
@@ -60,7 +58,6 @@ foreach ($AppConfig->pres_type as $type) {
 
 $result = "
 <div class='page_header'>
-<h1>Sessions Manager</h1>
 <p class='page_description'>Here you can manage the journal club sessions, change their type, time, etc.</p>
 </div>
 <div class='section_container'>
@@ -154,5 +151,4 @@ $result = "
     </div>
 </div>";
 
-echo json_encode($result);
-exit;
+echo $result;

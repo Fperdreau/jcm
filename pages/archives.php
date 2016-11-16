@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
-
 $years = $Presentations->get_years();
 // Select input (Years)
 $options = "
@@ -32,11 +30,7 @@ foreach ($years as $year) {
 
 $publist = $Presentations->getpublicationlist();
 
-$result = "
-    <div class='page_header'>
-    <h1>Archives</h1>
-    </div>
-    
+$result = "    
     <section>
         <div class='section_content tool_bar'>
             <div class='feedback'></div>
@@ -54,5 +48,4 @@ $result = "
         $publist
     </div>";
 
-echo json_encode($result);
-exit;
+echo $result;

@@ -84,7 +84,7 @@ class AppPage extends AppTable {
      */
     public function get($name=null) {
         $this->name = ($name == null) ? $this->name : $name;
-        $sql = "SELECT * FROM $this->tablename WHERE name='$this->name'";
+        $sql = "SELECT * FROM {$this->tablename} WHERE name='{$this->name}'";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_assoc($req);
         if (!empty($data)) {
@@ -142,7 +142,7 @@ class AppPage extends AppTable {
             $user = new User($this->db,$_SESSION['username']);
             if ($levels[$user->status]>=$this->status || $this->status == -1) {
                 $result['status'] = true;
-                $result['msg'] = null;
+                $result['msg'] = $user->status;
             } else {
                 $result['msg'] = self::forbidden();
                 $result['status'] = false;
@@ -152,14 +152,50 @@ class AppPage extends AppTable {
     }
 
     /**
+     * Check if page exists
+     * @param $page: page name
+     * @return bool
+     */
+    public static function exist($page) {
+        return is_file(PATH_TO_PAGES . $page . '.php');
+    }
+
+    /**
      * Forbidden access
      * @return string
      */
     public static function forbidden() {
         return "
-        <div id='content'>
-            <p class='sys_msg warning'>Sorry, you do not have the permission to access this page</p>
-        </div>
+        <section>
+            <div class='section_content'>
+                <p class='sys_msg warning'>Sorry, you do not have the permission to access this page</p>
+            </div>
+        </section>
+        ";
+    }
+
+    public static function notFound() {
+        return "
+            <section>
+                <div class='section_content'>
+                    If you were looking for the answer to the question:
+                    <p style='font-size: 1.4em; text-align: center;'>What is the universe?</p>
+                    I can tell you it is 42.
+                    <p>But since you were looking for a page that does not exist, then I can tell you:</p>
+                    <p style='font-size: 2em; text-align: center;'>ERROR 404</p>
+                </div>               
+            </section>
+        ";
+    }
+
+    public static function maintenance() {
+        return "
+            <section>
+                <div class='section_content'>
+                    <div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div>
+                    <div> the website is currently under maintenance.</div>
+                </div>
+            </section>
         ";
     }
 

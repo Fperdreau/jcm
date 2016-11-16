@@ -350,21 +350,47 @@ Pages Management
 // Get Pages
 if (!empty($_POST['getPage'])) {
     $page = htmlspecialchars($_POST['getPage']);
-    $AppStatus = $AppConfig->status;
-    if ($AppStatus) {
-        $Page = new AppPage($db, $page);
-        $Plugins = new AppPlugins($db);
+    $split = explode('/', $page);
+    $page_name = implode('\\\\', $split);
 
-        $result = $Page->check_login();
+    $Page = new AppPage($db, $page_name);
+    $Plugins = new AppPlugins($db);
 
-        $result['plugins'] = $Plugins->getPlugins($page);
-        $result['pageName'] = $Page->name;
-        $result['title'] = $Page->meta_title;
-        $result['keywords'] = $Page->meta_keywords;
-        $result['description'] = $Page->meta_description;
+    $content = array();
+    $content['title'] = $Page->name;
+    $content['plugins'] = $Plugins->getPlugins($page);
+    $content['pageName'] = end($split);
+    $content['parent'] = $split[0];
+    $content['title'] = $Page->meta_title;
+    $content['keywords'] = $Page->meta_keywords;
+    $content['description'] = $Page->meta_description;
+    $content['content'] = null;
+    $content['AppStatus'] = $AppConfig->status;
+
+    // Get page content
+    if (!$Page::exist($page)) {
+        $content['content'] = AppPage::notFound();
+    } else {
+        $status = $Page->check_login();
+        if ($content['AppStatus'] == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
+            if ($status['status'] == false) {
+                $content['content']  = $status['msg'];
+            } else {
+                // Start buffering
+                ob_start("ob_gzhandler");
+
+                require(PATH_TO_PAGES . $page . '.php');
+
+                // End of buffering
+                $content['content']  = ob_get_clean();
+
+            }
+
+        } else {
+            $content['content'] = AppPage::maintenance();
+        }
     }
-    $result['AppStatus'] = $AppStatus;
-    echo json_encode($result);
+    echo json_encode($content);
     exit;
 }
 

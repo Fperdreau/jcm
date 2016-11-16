@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
-
 if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
     $hash = htmlspecialchars($_GET['hash']);
     $email = htmlspecialchars($_GET['email']);
@@ -43,5 +41,4 @@ if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) 
             </div>
     	</section>";
 }
-echo json_encode($result);
-exit;
+echo $result;

@@ -20,14 +20,11 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../../includes/boot.php');
-
 // Declare classes
 $manager = AppLogger::manager(APP_NAME);
 
 $result = "
     <div class='page_header'>
-    <h1>System logs</h1>
     <p class='page_description'>You can find the logs of Journal Club Manager below.</p>
     </div>
     
@@ -42,5 +39,4 @@ $result = "
 
 ";
 
-echo json_encode($result);
-exit;
+echo $result;

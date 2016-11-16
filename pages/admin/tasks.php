@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../../includes/boot.php');
-
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 $AppCron = new AppCron($db);
@@ -29,7 +27,6 @@ $AppCron = new AppCron($db);
 $cronOpt = $AppCron->show();
 $result = "
     <div class='page_header'>
-    <h1>Scheduled tasks</h1>
     <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
     Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
     either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
@@ -65,5 +62,4 @@ $result = "
     </section>
 ";
 
-echo json_encode($result);
-exit;
+echo $result;

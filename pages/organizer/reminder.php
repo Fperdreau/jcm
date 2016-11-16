@@ -20,21 +20,17 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-require('../../includes/boot.php');
-
 $Reminder = new ReminderMaker($db);
-$content = $Reminder->edit();
+$section_content = $Reminder->edit();
 // Send mail
 $result = "
     <div class='page_header'>
-    <h1>Reminder Maker</h1>
     <p class='page_description'>Here you can customize and preview the reminder email that will be sent to the JCM members.</p>
     </div>
     <section>
         <h2>Reminder Sections</h2>
         <div class='section_content'>
-            {$content}
+            {$section_content}
             <div class='submit_btns'>
             <input type='submit' value='Preview' class='mail_preview' id='reminder' />
             </div>
@@ -43,5 +39,4 @@ $result = "
     <section class='mail_preview_container' style='display: none;'>
     </section> ";
 
-echo json_encode($result);
-exit;
+echo $result;

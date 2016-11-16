@@ -20,8 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../../includes/boot.php');
-
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 
@@ -29,11 +27,7 @@ $user = new User($db,$_SESSION['username']);
 // Make hours options list
 $timeopt = maketimeopt();
 
-$result = "
-    <div class='page_header'>
-    <h1>Settings</h1>
-    </div>
-    
+$result = "    
     <div class='section_container'>
             <section>
                 <h2>JCM settings</h2>
@@ -153,5 +147,4 @@ $result = "
             </section>
 ";
 
-echo json_encode($result);
-exit;
+echo $result;

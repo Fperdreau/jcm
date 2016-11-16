@@ -107,70 +107,13 @@ function getPage(page, urlparam) {
 
     urlparam = (urlparam === undefined) ? parseurl() : urlparam;
     urlparam = (urlparam === false || urlparam === "") ? false : urlparam;
+    var el = $('main');
 
     jQuery.ajax({
         url: 'php/form.php',
         data: {getPage: page},
         type: 'POST',
         async: true,
-        success: function (data) {
-            var json = jQuery.parseJSON(data);
-            var page_name = json.pageName.split('_');
-
-            // Change url and push it to history
-            var stateObj = { page: json.pageName };
-            var url = (urlparam === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + urlparam;
-            history.pushState(stateObj, json.pageName, url);
-
-            if (json.AppStatus === 'Off' && page_name[0] !== 'admin') {
-                $('#pagecontent')
-                    .html("<div id='content'><div style='vertical-align: middle; margin-top: 20%; text-align: center;'>" +
-                    "<div style='font-size: 1.6em; font-weight: 600; margin-bottom: 20px;'>Sorry</div><div> the website is currently under maintenance.</div></div></div>")
-                    .fadeIn(200);
-            } else {
-                if (json.pageName === null) {
-                    $('#pagecontent')
-                        .html("<div id='nopage'>If you were looking for the answer to the question:" +
-                            "<p style='font-size: 1.4em; text-align: center;'>What is the universe?</p> " +
-                            "I can tell you it is 42. " +
-                            "<p>But since you were looking for a page that does not exist, then I can tell you:</p>" +
-                            "<p style='font-size: 2em; text-align: center;'>ERROR 404</p></div>")
-                        .fadeIn(200);
-                } else {
-                    if (json.status) {
-                        displayPage(page, json.pageName, urlparam, json.plugins);
-
-                    } else {
-                        $('#pagecontent')
-                            .html(json.msg)
-                            .fadeIn(200);
-                        $('.leanModal#user_login')
-                            .leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" })
-                            .click();
-                    }
-                }
-            }
-        }
-    });
-}
-
-/**
- * Load page content by clicking on a menu section
- *
- * @param page
- * @param pagetoload
- * @param param
- * @param plugins
- */
-var displayPage = function (page, pagetoload, param, plugins) {
-    var stateObj = { page: pagetoload };
-    var url = (param === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + param;
-    var el = $('#pagecontent');
-    jQuery.ajax({
-        url: 'pages/' + pagetoload + '.php',
-        type: 'GET',
-        async: true,
-        data: param,
         beforeSend: function () {
             loadingDiv(el);
         },
@@ -179,29 +122,75 @@ var displayPage = function (page, pagetoload, param, plugins) {
         },
         success: function (data) {
             var json = jQuery.parseJSON(data);
-            history.pushState(stateObj, pagetoload, url);
+            var page_name = json.pageName.split('_');
 
-            el.hide().html(json);
-
-            $("section").each(function () {
-                $(this).fadeIn(200);
-            });
-
-            // Display Plugins
-            showPlugins(page, plugins);
-
-            // Load TinyMCE
-            tinymcesetup();
-
-            // Load JCM calendar
-            loadCalendarSessions();
-
-            // Load availability calendar
-            loadCalendarAvailability();
-
+            // Change url and push it to history
+            var stateObj = { page: json.pageName };
+            var url = (urlparam === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + urlparam;
+            history.pushState(stateObj, json.pageName, url);
+            displayPage(page, json, urlparam);
         }
     });
+}
+
+/**
+ * Load page content by clicking on a menu section
+ *
+ * @param page
+ * @param data
+ * @param param
+ */
+var displayPage = function (page, data, param) {
+    var pagetoload = data.pageName;
+    var plugins = data.plugins;
+    var stateObj = { page: pagetoload };
+    var url = (param === false) ? "index.php?page=" + page : "index.php?page=" + page + "&" + param;
+
+    history.pushState(stateObj, pagetoload, url);
+
+    pageTransition(data);
+
+    // Display Plugins
+    showPlugins(page, plugins);
+
+    // Load TinyMCE
+    tinymcesetup();
+
+    // Load JCM calendar
+    loadCalendarSessions();
+
+    // Load availability calendar
+    loadCalendarAvailability();
+
 };
+
+function pageTransition(content) {
+    var container = $('#hidden_container');
+    var current_content = container.find('#current_content');
+
+    if (container.find('#next_content').length == 0) {
+        container.append('<div id="next_content"></div>');
+        renderSection(current_content, content);
+        return true;
+    }
+
+    var next_content = container.find('#next_content');
+    renderSection(next_content, content);
+
+    current_content.animate({'margin-left': '-100%', 'opacity': 0}, 1000, function() {
+        var next_content = $(this).siblings('#next_content');
+        next_content.attr('id', 'current_content');
+        next_content.after('<div id="next_content"></div>');
+        $(this).remove();
+    });
+}
+
+function renderSection(section, content) {
+    var defaultHtml = '<div class="wrapper"><div id="section_title"></div><div id="section_content"></div></div>';
+    section.html(defaultHtml);
+    section.find('#section_content').html(content.content);
+    section.find('#section_title').html("<div id='page_icon'><img src='images/" + content.parent + "_bk.png'></div><div><h1>" + content.pageName + "</h1></div>");
+}
 
 /**
  * Parse URL
