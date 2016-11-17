@@ -238,6 +238,7 @@ if (!empty($_POST['operation'])) {
                 $AppConfig->get();
             }
             $_POST['version'] = $version;
+            $_POST{"site_url"} = URL_TO_APP;
 
             // Create config table
             $AppConfig->setup($op);

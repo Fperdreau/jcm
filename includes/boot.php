@@ -83,7 +83,6 @@ $db = new AppDb();
 $AppConfig = new AppConfig($db);
 if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
 
-
 $AppPage = new AppPage($db);
 $Presentations = new Presentations($db);
 $Users = new Users($db);

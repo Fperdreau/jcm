@@ -136,6 +136,10 @@ class AppDb {
         );
     }
 
+    public static function get_instance() {
+        return new self();
+    }
+
     /**
      * Get db config
      * @return bool|array

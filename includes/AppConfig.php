@@ -199,7 +199,6 @@ class AppConfig extends AppTable {
         }
     }
 
-
     /**
      * Gets config value
      * @param string $variable
@@ -207,7 +206,8 @@ class AppConfig extends AppTable {
      */
     public function getConfig($variable) {
         $sql = "SELECT * FROM {$this->tablename} WHERE variable='{$variable}'";
-        return $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->db->send_query($sql)->fetch_assoc();
+        return $data['value'];
     }
 
     /**
@@ -216,20 +216,26 @@ class AppConfig extends AppTable {
      * @return string
      */
     public function getAppUrl($lang=null) {
-        if (is_null(self::$site_url) || !is_null($lang)) {
-            $root = explode('/',  dirname($_SERVER['PHP_SELF']));
-            $root = '/' . $root[1];
-            self::$site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' )
-                . $_SERVER['HTTP_HOST'] . $root .'/';
+        if (php_sapi_name() !== 'cli') {
+            if (is_null(self::$site_url) || !is_null($lang)) {
+                $root = explode('/',  dirname($_SERVER['PHP_SELF']));
+                $root = '/' . $root[1];
+                self::$site_url = ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://' )
+                    . $_SERVER['HTTP_HOST'] . $root .'/';
 
-            if(substr(self::$site_url, -2) == '//') {
-                self::$site_url = substr(self::$site_url, 0, -1);
-            }
+                if(substr(self::$site_url, -2) == '//') {
+                    self::$site_url = substr(self::$site_url, 0, -1);
+                }
 
-            if (!(is_null($lang))) {
-                self::$site_url .= $lang.'/';
+                if (!(is_null($lang))) {
+                    self::$site_url .= $lang.'/';
+                }
             }
+        } else {
+            $self = new self(AppDb::get_instance());
+            self::$site_url = $self->getConfig('site_url');
         }
+
         $_SESSION['BASE_URL'] = self::$site_url;
         return self::$site_url;
     }
