@@ -28,7 +28,7 @@ $news = $last_news->show(true);
 $futurepres = $sessions->showfuturesession(4);
 $wishlist = $presentations->getwishlist(10,true);
 if (isset($_SESSION['logok']) && $_SESSION['logok']) {
-    $submitMenu = Presentation::submitMenu('float');
+    $submitMenu = Presentation::submitMenu('fixed');
 } else {
     $submitMenu = null;
 }
