@@ -402,8 +402,6 @@ class AppPage extends AppTable {
                 <ul>
                     <li class='menu-section'><a href='index.php?page=organizer/sessions' id='sessions'>Sessions</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/users' id='users'>Users</a></li>
-                    <li class='menu-section'><a href='index.php?page=member/email' id='email'>Mailing</a></li>
-                    <li class='menu-section'><a href='index.php?page=organizer/post' id='post'>Posts</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/digest' id='digest'>Digest</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/reminder' id='reminder'>Reminder</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/assignment' id='assignment'>Assignments</a></li>
@@ -436,8 +434,15 @@ class AppPage extends AppTable {
      */
     public static function member_menu() {
         return "
-            <li class='main_section menu-section' id='submission'><a href='index.php?page=member/submission' id='submission'>submit</a></li>
-            <li class='main_section menu-section' id='archives'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
+        <li class='main_section' id='admin'><a href='#' class='submenu_trigger' id='addmenu-member'>My tools</a></li>
+        <nav class='submenu' id='addmenu-member'>
+            <ul>
+                <li class='menu-section'><a href='index.php?page=member/submission' id='submission'>submit</a></li>
+                <li class='menu-section'><a href='index.php?page=member/email' id='archives'>email</a></li>
+                <li class='menu-section'><a href='index.php?page=member/post' id='post'>Posts</a></li>
+                <li class='menu-section'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
+            </ul>
+        </nav>
         ";
     }
 
