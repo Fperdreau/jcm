@@ -30,15 +30,28 @@
  * Manage $_SESSION.
  */
 class SessionInstance {
+
+    /**
+     * @var $_instance: session instance
+     */
     protected static $_instance;
-    private static $timeout = 3600;
+
+    /**
+     * Maximum duration of session
+     */
+    const timeout = 3600;
+
+    /**
+     * Warning timing (in seconds)
+     */
+    const warning = 300;
 
     /**
      * Constructor
      */
     private function __construct() {
         session_start();
-        session_set_cookie_params(self::$timeout);
+        session_set_cookie_params(self::timeout);
     }
 
     /**
