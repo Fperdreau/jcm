@@ -263,6 +263,8 @@ class AppPage extends AppTable {
                         $status = 2;
                     } elseif ($element == "organizer" || $parent == "organizer") {
                         $status = 1;
+                    } elseif ($element == "member") {
+                        $status = 0;
                     } else {
                         $status = -1;
                     }
@@ -302,7 +304,6 @@ class AppPage extends AppTable {
      */
     public function showOpt() {
         $pages = $this->getPages();
-        var_dump($pages); exit;
         $sql = "SELECT name FROM ".$this->tablename;
         $req = $this->db->send_query($sql);
         $pageSettings = "";
@@ -311,7 +312,6 @@ class AppPage extends AppTable {
             $thisPage = new AppPage($this->db,$pageName);
             $pageList = "<option value='none'>None</option>";
             foreach ($pages as $key=>$name) {
-                var_dump($name);
                 $selectOpt = ($name == $thisPage->parent) ? "selected":"";
                 $pageList .= "<option value='$name' $selectOpt>$name</option>";
             }
@@ -402,7 +402,7 @@ class AppPage extends AppTable {
                 <ul>
                     <li class='menu-section'><a href='index.php?page=organizer/sessions' id='sessions'>Sessions</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/users' id='users'>Users</a></li>
-                    <li class='menu-section'><a href='index.php?page=organizer/email' id='email'>Mailing</a></li>
+                    <li class='menu-section'><a href='index.php?page=member/email' id='email'>Mailing</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/post' id='post'>Posts</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/digest' id='digest'>Digest</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/reminder' id='reminder'>Reminder</a></li>
@@ -436,8 +436,8 @@ class AppPage extends AppTable {
      */
     public static function member_menu() {
         return "
-            <li class='main_section menu-section' id='submission'><a href='index.php?page=submission' id='submission'>submit</a></li>
-            <li class='main_section menu-section' id='archives'><a href='index.php?page=archives' id='archives'>archives</a></li>
+            <li class='main_section menu-section' id='submission'><a href='index.php?page=member/submission' id='submission'>submit</a></li>
+            <li class='main_section menu-section' id='archives'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
         ";
     }
 
