@@ -262,7 +262,7 @@ class AppMail {
         $show_in_browser = (is_null($email_id)) ? null:
             "<a href='" . URL_TO_APP."pages/mail.php?mail_id={$email_id}"
             . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
-        $profile_url = URL_TO_APP.'index.php?page=profile';
+        $profile_url = URL_TO_APP.'index.php?page=member/profile';
         $css_title = "
                 color: rgba(255,255,255,1);
                 text-align: left;
