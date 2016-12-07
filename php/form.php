@@ -366,6 +366,7 @@ if (!empty($_POST['getPage'])) {
     $content['description'] = $Page->meta_description;
     $content['content'] = null;
     $content['AppStatus'] = $AppConfig->status;
+    $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk.png')) ? $content['pageName']: $content['parent'];
     $status = $Page->check_login();
     if ($content['AppStatus'] == 'On' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
         if ($status['status'] == false) {
@@ -511,6 +512,20 @@ if (!empty($_POST['logout'])) {
     session_destroy();
     echo json_encode(AppConfig::$site_url);
     exit;
+}
+
+// Check login status
+if (!empty($_POST['check_login'])) {
+    if (isset($_SESSION['logok']) & $_SESSION['logok'] == true) {
+        $result = array(
+            "start"=>$_SESSION['login_start'],
+            "expire"=>$_SESSION['login_expire'],
+            "warning"=>$_SESSION['login_warning']
+        );
+        echo json_encode($result);
+    } else {
+        echo json_encode(false);
+    }
 }
 
 // Check login
