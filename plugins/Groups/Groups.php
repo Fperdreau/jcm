@@ -457,7 +457,7 @@ class Groups extends AppPlugins {
         }
         
         return "
-                <h2>Your group</h2>
+                <h2>My group</h2>
                 <div class='section_content'>
                 {$groupContact}
                 {$groupContent}
