@@ -22,22 +22,22 @@
 
 require_once('../includes/boot.php');
 
-if (!empty($_GET['hash']) && !empty($_GET['email']) && !empty($_GET['result'])) {
-    $hash = htmlspecialchars($_GET['hash']);
-    $email = htmlspecialchars($_GET['email']);
-    $result = htmlspecialchars($_GET['result']);
+if (!empty($_POST['hash']) && !empty($_POST['email']) && !empty($_POST['result'])) {
+    $hash = htmlspecialchars($_POST['hash']);
+    $email = htmlspecialchars($_POST['email']);
+    $result = htmlspecialchars($_POST['result']);
     $user = new User($db);
     $valid = $user -> check_account_activation($hash,$email,$result);
     $msg = ($valid['status']) ? "<div class='sys_msg success'>".$valid['msg']."</div>":"<div class='sys_msg warning'>".$valid['msg']."</div>";
     $result = "
         <section>
-            <h2>Activation</h2>
+            <h2>Account Activation</h2>
 			<div class='section_content'>$msg</div>
     	</section>";
 } else {
     $result = "
         <section>
-            <h2>Activation</h2>
+            <h2>Account Activation</h2>
             <div class='section_content'>
             <div class='sys_msg warning'>Incorrect email or hash id.</div>
             </div>

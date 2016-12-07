@@ -25,9 +25,9 @@ require_once('../includes/boot.php');
 $user = new User($db);
 
 // Modify user password
-if (!empty($_GET['hash']) && !empty($_GET['email'])) {
-    $hash = htmlspecialchars($_GET['hash']);
-    $email = htmlspecialchars($_GET['email']);
+if (!empty($_POST['hash']) && !empty($_POST['email'])) {
+    $hash = htmlspecialchars($_POST['hash']);
+    $email = htmlspecialchars($_POST['email']);
     $username = $db ->getinfo($db->tablesname['User'],'username',array("email"),array("'$email'"));
     $user->get($username);
     if ($user->hash == $hash) {
@@ -36,7 +36,7 @@ if (!empty($_GET['hash']) && !empty($_GET['email'])) {
                 <input type='hidden' name='conf_changepw' value='true'/>
                 <input type='hidden' name='username' value='$username' id='ch_username'/>
                 <div class='form-group'>
-                    <input type='password' name='password' value='' required/>
+                    <input type='password' name='password' class='passwordChecker' value='' required/>
                     <label for='password'>New Password</label>
                 </div>
                 <div class='form-group'>

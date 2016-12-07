@@ -26,7 +26,7 @@ if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
     exit();
 }
 
-$username = (isset($_GET['user'])) ? $_GET['user']:$_SESSION['username'];
+$username = (isset($_POST['user'])) ? $_POST['user']:$_SESSION['username'];
 $user = new User($db, $username);
 
 // Get options
@@ -34,16 +34,16 @@ $result = null;
 $submit_form = null;
 $section_content = null;
 
-if (isset($_GET['op'])) {
-    $op = htmlspecialchars($_GET['op']);
+if (isset($_POST['op'])) {
+    $op = htmlspecialchars($_POST['op']);
     $result = "Oops";
-    $date = (!empty($_GET['date'])) ? htmlspecialchars($_GET['date']): false;
-
+    $date = (!empty($_POST['date'])) ? htmlspecialchars($_POST['date']): false;
 // Submit a new presentation
     if ($op == 'edit') {
-        if (!empty($_GET['id'])) {
-            $id_pres = htmlspecialchars($_GET['id']);
+        if (!empty($_POST['id'])) {
+            $id_pres = htmlspecialchars($_POST['id']);
             $Presentation = new Presentation($db,$id_pres);
+            $date = $Presentation->date;
         } else {
             $Presentation = false;
         }
@@ -55,15 +55,15 @@ if (isset($_GET['op'])) {
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
-        if (!empty($_GET['id'])) {
-            $id_pres = htmlspecialchars($_GET['id']);
+        if (!empty($_POST['id'])) {
+            $id_pres = htmlspecialchars($_POST['id']);
             $Presentation = new Presentation($db,$id_pres);
         } else {
             $Presentation = false;
         }
 
         $selectopt = $Presentations->generate_selectwishlist('.submission_container');
-        if (!empty($_GET['id']) || !empty($_POST['update'])) { // a wish has been selected
+        if (!empty($_POST['id']) || !empty($_POST['update'])) { // a wish has been selected
             $submit_form = Presentation::form($user, $Presentation,'submit');
         } else {
             $submit_form = "";
@@ -75,7 +75,7 @@ if (isset($_GET['op'])) {
 
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
-        $Presentation = new Presentation($db, $_GET['id']);
+        $Presentation = new Presentation($db, $_POST['id']);
         $section_content = Presentation::form($user, $Presentation, 'submit');
     }
 }
