@@ -4,7 +4,9 @@
 ### Changes
 - Corrected minor errors (PHP STRICT errors)
 - Fixed compatibility issues with Php 5.4
+- Improved user interface and page loading speed
 - Corrected bug that prevented the user to delete his/her account
+- Automatically log out user if inactive for more than a given duration
 
 ### Mailing
 - Added possibility to hide recipients list.
