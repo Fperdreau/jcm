@@ -123,7 +123,7 @@ class Groups extends AppPlugins {
         $next_session = $this->get_next_session();
 
         // 1: Check if group has not been made yet for the next session
-        if ($next_session->type !== 'none' && !$this->group_exist($next_session->date)) {
+        if ($next_session !== false && $next_session->type !== 'none' && !$this->group_exist($next_session->date)) {
             // 2: Clear the group table
             $this->clearTable();
 
@@ -446,7 +446,7 @@ class Groups extends AppPlugins {
             }
             $ids = implode(',', $ids);
             $groupContact = "
-                <div class='div_button'><a href='" . AppConfig::$site_url . 'index.php?page=email&recipients_list=' . $ids . "'>Contact my group</a></div>";
+                <div class='div_button'><a href='" . AppConfig::$site_url . 'index.php?page=member/email&recipients_list=' . $ids . "'>Contact my group</a></div>";
             $groupContent = "
                 <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
                 <div>{$content}</div>
