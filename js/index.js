@@ -260,7 +260,6 @@ function check_login() {
     } else {
         var currentTime = Math.floor(new Date().getTime() / 1000);
         var remainingTime = login_expire - currentTime; // Seconds before expiration
-        console.log(remainingTime);
         if (remainingTime <= login_warning && remainingTime > 0) {
             var ms = 1000*Math.round(remainingTime); // round to nearest second
             var d = new Date(ms);
