@@ -104,9 +104,7 @@ $menu = AppPage::menu();
             <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
             <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
             <div id="sign">
-                <div><a href="<?php echo AppConfig::repository; ?>" target='_blank'>Sources</a></div>
-                <div><a href="http://www.gnu.org/licenses/agpl-3.0.html" target='_blank'><?php echo AppConfig::license; ?></a></div>
-                <div><a href="http://www.florianperdreau.fr" target='_blank'><?php echo AppConfig::copyright . ' ' .  AppConfig::author; ?></a></div>
+                <a href="<?php echo AppConfig::repository?>" target='_blank'><?php echo AppConfig::copyright; ?></a>
             </div>
         </footer>
 

@@ -1154,7 +1154,7 @@ footer {
 	min-height: 100px;
 	text-align: center;
 	vertical-align: middle;
-    margin: 20px auto;
+    margin: 0 auto;
 	background-color: rgba(50,50,50,1);
     padding: 0;
 }
@@ -1172,7 +1172,7 @@ footer {
 }
 
 #sign a {
-    color:  rgba(207,81,81,1);
+    color:  white;
 }
 
 #sign a:hover {
@@ -1182,9 +1182,10 @@ footer {
 #appTitle {
     text-transform: uppercase;
     color: #cccccc;
-    margin-top: 20px;
+    margin-top: 0;
     font-size: 1.1em;
     font-weight: 500;
+    padding-top: 10px;
 }
 
 #appVersion {
@@ -1199,7 +1200,7 @@ footer {
     display: block;
     width: 100%;
     background: rgba(150,150,150,.5);
-    height: 30px;
+    height: 5px;
 }
 
 /* *********************************************************************/
