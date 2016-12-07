@@ -590,6 +590,14 @@ class User extends Users {
     }
 
     /**
+     * Check if user is logged in
+     * @return bool
+     */
+    public static function is_logged() {
+        return isset($_SESSION['logok']) && $_SESSION['logok'] == true;
+    }
+
+    /**
      * Set User's status (delete/activate/deactivate/permission level)
      * @param $newstatus
      * @return string
