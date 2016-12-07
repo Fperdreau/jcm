@@ -184,7 +184,7 @@ function renderSection(section, content) {
     var defaultHtml = '<div class="wrapper"><div id="section_title"></div><div id="section_content"></div></div>';
     section.html(defaultHtml);
     section.find('#section_content').html(content.content);
-    section.find('#section_title').html("<div id='page_icon'><img src='images/" + content.parent + "_bk.png'></div><div><h1>" + content.pageName + "</h1></div>");
+    section.find('#section_title').html("<div id='page_icon'><img src='images/" + content.icon + "_bk.png'></div><div><h1>" + content.pageName + "</h1></div>");
 }
 
 /**
