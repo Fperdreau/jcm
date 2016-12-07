@@ -557,6 +557,9 @@ class User extends Users {
             if ($this->active == 1) {
                 if ($this -> check_pwd($password) == true) {
                     $_SESSION['logok'] = true;
+                    $_SESSION['login_start'] = time();
+                    $_SESSION['login_expire'] = $_SESSION['login_start'] + SessionInstance::timeout;
+                    $_SESSION['login_warning'] = SessionInstance::warning;
                     $_SESSION['username'] = $this -> username;
                     $_SESSION['status'] = $this -> status;
                     $result['msg'] = "Hi $this->fullname,<br> welcome back!";
