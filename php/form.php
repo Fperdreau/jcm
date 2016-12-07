@@ -516,7 +516,22 @@ if (!empty($_POST['logout'])) {
 
 // Check login status
 if (!empty($_POST['check_login'])) {
-    if (isset($_SESSION['logok']) & $_SESSION['logok'] == true) {
+    if (User::is_logged()) {
+        $result = array(
+            "start"=>$_SESSION['login_start'],
+            "expire"=>$_SESSION['login_expire'],
+            "warning"=>$_SESSION['login_warning']
+        );
+        echo json_encode($result);
+    } else {
+        echo json_encode(false);
+    }
+}
+
+// Extend session duration
+if (!empty($_POST['extend_login'])) {
+    if (User::is_logged()) {
+        $_SESSION['login_expire'] = time() + SessionInstance::timeout;
         $result = array(
             "start"=>$_SESSION['login_start'],
             "expire"=>$_SESSION['login_expire'],
