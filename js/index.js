@@ -200,7 +200,7 @@ function renderCalendarCallback(date, data) {
  */
 var logoutTemplate = "<div class='logoutWarning'><div class='logout_msg'></div><div class='logout_button'>OK</div></div>";
 var logout = function () {
-    if ($('.logoutWarning').length == 0) {
+    if (logoutContainer.length == 0) {
         $('body').append(logoutTemplate);
     }
 
@@ -214,8 +214,8 @@ var logout = function () {
         success: function (data) {
             var json = jQuery.parseJSON(data);
 
-            var logoutContainer = $('.logoutWarning');
             logoutContainer.find('.logout_msg').html("You have been logged out");
+            logoutContainer.find('.logout_button').html("OK");
             logoutContainer.fadeIn(200);
 
             setTimeout(function () {
@@ -230,12 +230,11 @@ var logout = function () {
 };
 
 var login_start = null, login_expire = null, login_warning = null;
-
+var logoutContainer = $('.logoutWarning');
 /**
  * Check login status and expiration
  */
 function check_login() {
-    var logoutContainer = $('.logoutWarning');
     if (logoutContainer.length == 0) {
         $('body').append(logoutTemplate);
         logoutContainer = $('.logoutWarning');
@@ -261,12 +260,14 @@ function check_login() {
     } else {
         var currentTime = Math.floor(new Date().getTime() / 1000);
         var remainingTime = login_expire - currentTime; // Seconds before expiration
+        console.log(remainingTime);
         if (remainingTime <= login_warning && remainingTime > 0) {
             var ms = 1000*Math.round(remainingTime); // round to nearest second
             var d = new Date(ms);
             var minutes = (d.getUTCMinutes() < 10) ? '0'+d.getUTCMinutes(): d.getUTCMinutes();
             var secondes = (d.getUTCSeconds() < 10) ? '0'+d.getUTCSeconds(): d.getUTCSeconds();
             logoutContainer.find('.logout_msg').html('You will be automatically logged out in ' + minutes + ':' + secondes + ' due to inactivity');
+            logoutContainer.find('.logout_button').addClass('extend_session').html('Extend');
             if (!logoutContainer.is(':visible')) {
                 logoutContainer.fadeIn(200);
             }
@@ -274,6 +275,28 @@ function check_login() {
             logout();
         }
     }
+}
+
+/**
+ * Extend session
+ */
+function extend_session() {
+    // Check login status
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: {extend_login: true},
+        type: "post",
+        async: true,
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            if (json !== false) {
+                login_start = json.start;
+                login_expire = json.expire;
+                login_warning = json.warning;
+                logoutContainer.hide();
+            }
+        }
+    });
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1077,7 +1100,11 @@ $(document).ready(function () {
         })
 
         .on('click', '.logout_button', function(e) {
-            $('.logoutWarning').fadeOut(200).remove();
+            $('.logoutWarning').fadeOut(200).toggle();
+        })
+
+        .on('click', '.extend_session', function(e) {
+            extend_session();
         })
 
         // Show publication information on click
