@@ -943,6 +943,10 @@ nav li#admin {
     background-image: url("../images/admin.png");
 }
 
+nav li#tools {
+    background-image: url("../images/tools.png");
+}
+
 nav li#submission {
     background-image: url("../images/add_paper_white.png");
 }
