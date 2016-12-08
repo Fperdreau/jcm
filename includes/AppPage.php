@@ -439,7 +439,7 @@ class AppPage extends AppTable {
             <ul>
                 <li class='menu-section'><a href='index.php?page=member/submission' id='submission'>submit a presentation</a></li>
                 <li class='menu-section'><a href='index.php?page=member/email' id='archives'>email</a></li>
-                <li class='menu-section'><a href='index.php?page=member/post' id='post'>Posts</a></li>
+                <li class='menu-section'><a href='index.php?page=member/post' id='post'>Add a news</a></li>
                 <li class='menu-section'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
             </ul>
         </nav>
