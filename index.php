@@ -68,7 +68,7 @@ $menu = AppPage::menu();
          Login box-->
             <div id='login_box'>
                 <?php
-                if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
+                if (!User::is_logged()) {
                     $showlogin = "
                 <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login.png' alt='login'></div>
                 <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup.png' alt='signup'></div>
