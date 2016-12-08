@@ -207,7 +207,9 @@ class Posts extends AppTable {
                 $day = date('d M y',strtotime($post->date));
                 $news .= "
                 <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
-                    <div style='width: 60%; height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold; border-bottom: 1px solid #555555;'>$post->title</div>
+                    <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'>$post->title</div>
+                    <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 2px solid #555555;'></div>
+
                     <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
                         $post->content
                     </div>
