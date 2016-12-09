@@ -54,9 +54,11 @@ function getPlugins(page, callback) {
  */
 function showPlugins(page, result) {
     var key;
+    var page_id = page.split('/');
+
     for (key in result) {
         var plugin = result[key];
-        if (plugin.page == page) {
+        if (plugin.page == page_id[page_id.length-1]) {
             $(".plugins")
                 .fadeOut(200)
                 .append("<section>"+plugin.display+"</section>")
