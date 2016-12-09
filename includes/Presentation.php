@@ -872,14 +872,14 @@ class Presentation extends Presentations {
             methodology topic. <br>
             Fill in the form below, select a date (only available dates are selectable) and it's all done!
             Your submission will be automatically added to our database.<br>
-            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!
+            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
                 ";
                 break;
             case "suggest":
                 $result = "
                 Here you can suggest a paper that somebody else could present at a Journal Club session.
                 Fill in the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
-                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!
+                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
                 ";
                 break;
             case "wishpick":
@@ -887,7 +887,7 @@ class Presentation extends Presentations {
                 Here you can choose a suggested paper from the wishlist that you would like to present.<br>
                 The form below will be automatically filled in with the data provided by the user who suggested the selected paper.
                 Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
-                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=profile'>profile page</a>!
+                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
                 ";
                 break;
 
