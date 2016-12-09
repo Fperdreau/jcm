@@ -86,4 +86,27 @@ class SessionInstance {
     public function get($key) {
         return $_SESSION[$key];
     }
+
+    /**
+     * Check if session has started
+     * @return bool
+     */
+    public static function is_started() {
+        return session_status() !== PHP_SESSION_NONE;
+    }
+
+    /**
+     * Destroy session instance
+     * @return bool
+     */
+    public static function destroy() {
+        if (self::is_started()) {
+            $_SESSION = array();
+            unset($_SESSION);
+            session_destroy();
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
