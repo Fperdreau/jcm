@@ -357,11 +357,10 @@ if (!empty($_POST['getPage'])) {
     $Plugins = new AppPlugins($db);
 
     $content = array();
-    $content['title'] = $Page->name;
     $content['plugins'] = $Plugins->getPlugins($page_id);
     $content['pageName'] = end($split);
     $content['parent'] = $split[0];
-    $content['title'] = $Page->meta_title;
+    $content['title'] = (!empty($Page->meta_title)) ? $Page->meta_title : $page_id;
     $content['keywords'] = $Page->meta_keywords;
     $content['description'] = $Page->meta_description;
     $content['content'] = null;
@@ -370,12 +369,21 @@ if (!empty($_POST['getPage'])) {
     $status = $Page->check_login();
     if ($content['AppStatus'] == 'On' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
         if ($status['status'] == false) {
-            $content['content']  = $status['msg'];
+            $result = $status['msg'];
         } else {
-            $content['content'] = $Page::render($page);
+            if (!AppPage::exist($page)) {
+                $result = AppPage::notFound();
+            } else {
+                $result['content'] = AppPage::render($page);
+            }
         }
     } else {
-        $content['content'] = AppPage::maintenance();
+        $result = AppPage::maintenance();
+    }
+
+    // Update content
+    foreach ($result as $key=>$value) {
+        $content[$key] = $value;
     }
 
     echo json_encode($content);
@@ -507,10 +515,9 @@ Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Logout
 if (!empty($_POST['logout'])) {
-    $_SESSION = array();
-    unset($_SESSION);
-    session_destroy();
-    echo json_encode(AppConfig::$site_url);
+    if (SessionInstance::destroy()) {
+        echo json_encode(AppConfig::$site_url);
+    }
     exit;
 }
 

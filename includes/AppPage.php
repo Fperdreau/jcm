@@ -45,6 +45,9 @@ class AppPage extends AppTable {
         "primary"=>"id"
     );
 
+    // Access levels
+    public static $levels = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
+
     public $name; // Page name
     public $filename; // Page file
     public $parent; // Page's parent
@@ -128,19 +131,19 @@ class AppPage extends AppTable {
      * @return bool
      */
     public function check_login() {
-        if ((!isset($_SESSION['logok']) || $_SESSION['logok'] == false)) {
-            if ($this->status > -1) {
+        $split = explode('\\', $this->name);
+        $page_level = (in_array($split[0], array_keys(self::$levels))) ? $split[0] : 'none';
+        if (!User::is_logged()) {
+            if (self::$levels[$page_level] > -1) {
                 $result['msg'] = self::login_required();
-
                 $result['status'] = false;
             } else {
                 $result['status'] = true;
                 $result['msg'] = null;
             }
         } else {
-            $levels = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
-            $user = new User($this->db,$_SESSION['username']);
-            if ($levels[$user->status]>=$this->status || $this->status == -1) {
+            $user = new User($this->db, $_SESSION['username']);
+            if (self::$levels[$user->status]>=self::$levels[$page_level] || self::$levels[$page_level] == -1) {
                 $result['status'] = true;
                 $result['msg'] = $user->status;
             } else {
@@ -162,26 +165,35 @@ class AppPage extends AppTable {
 
     /**
      * Forbidden access
-     * @return string
+     * @return array
      */
     public static function forbidden() {
-        return self::render('error/403');
+        $result['content'] = self::render('error/403');
+        $result['title'] = 'Error 403';
+        $result['icon'] = 'error';
+        return $result;
     }
 
     /**
      * Render Error 404 - page not found
-     * @return mixed|string
+     * @return array
      */
     public static function notFound() {
-        return self::render('error/404');
+        $result['content'] = self::render('error/404');
+        $result['title'] = 'Error 404';
+        $result['icon'] = 'error';
+        return $result;
     }
 
     /**
      * Render Error 503
-     * @return mixed|string
+     * @return array
      */
     public static function maintenance() {
-        return self::render('error/503');
+        $result['content'] = self::render('error/503');
+        $result['title'] = 'Error 503';
+        $result['icon'] = 'error';
+        return $result;
     }
 
     /**
@@ -190,19 +202,17 @@ class AppPage extends AppTable {
      * @return mixed|string
      */
     public static function render($page) {
-        if (!self::exist($page)) {
-            return self::notFound();
-        } else {
-            require('../includes/boot.php');
 
-            // Start buffering
-            ob_start("ob_gzhandler");
+        require('../includes/boot.php');
 
-            require(PATH_TO_PAGES . $page . '.php');
+        // Start buffering
+        ob_start("ob_gzhandler");
 
-            // End of buffering
-            return ob_get_clean();
-        }
+        require(PATH_TO_PAGES . $page . '.php');
+
+        // End of buffering
+        return ob_get_clean();
+
     }
 
     /**
@@ -210,13 +220,10 @@ class AppPage extends AppTable {
      * @return string
      */
     public static function login_required() {
-        return "
-        <div id='content'>
-            <p class='sys_msg warning'>You must <a class='leanModal' id='user_login' href='' data-section='user_login'>
-            Sign In</a> or <a class='leanModal' id='user_register' href='' data-section='user_register'>
-            Sign Up</a> in order to access this page!</p>
-        </div>
-        ";
+        $result['content'] = self::render('error/401');
+        $result['title'] = 'Restricted area';
+        $result['icon'] = 'error';
+        return $result;
     }
 
     /**
