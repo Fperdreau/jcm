@@ -1277,15 +1277,14 @@ footer {
 }
 
 #page_icon {
-    border: 2px solid rgb(50, 50 ,50);
-    border-radius: 10px;
     margin-right: 10px;
     padding: 5px;
 }
 
 #page_icon > img {
-    width: 30px;
+    width: 40px;
     height: auto;
+    vertical-align: middle;
 }
 
 .page_description {
