@@ -92,7 +92,7 @@ $menu = AppPage::menu();
                             <div id="section_title"></div>
                             <div id="section_content"></div>
                         </div>
-                        <div id="plugins"></div>
+                        <div class="plugins"></div>
                     </div>
                 </div>
             </div>
