@@ -596,7 +596,7 @@ class User extends Users {
      * @return bool
      */
     public static function is_logged() {
-        return isset($_SESSION['logok']) && $_SESSION['logok'] == true;
+        return SessionInstance::is_started() && isset($_SESSION['logok']) && $_SESSION['logok'] == true;
     }
 
     /**
