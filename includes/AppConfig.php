@@ -42,7 +42,7 @@ class AppConfig extends AppTable {
      *
      */
     const app_name = "Journal Club Manager"; // Application's name
-    const version = "1.4.4 - beta"; // Application's version
+    const version = "1.4.4"; // Application's version
     const author = "Florian Perdreau"; // Application's authors
     const repository = "https://github.com/Fperdreau/jcm"; // Application's sources
     const sitetitle = "Journal Club Manager"; //
