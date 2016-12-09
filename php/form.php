@@ -351,14 +351,14 @@ Pages Management
 if (!empty($_POST['getPage'])) {
     $page = htmlspecialchars($_POST['getPage']);
     $split = explode('/', $page);
+    $page_id = end($split);
     $page_name = implode('\\\\', $split);
-
     $Page = new AppPage($db, $page_name);
     $Plugins = new AppPlugins($db);
 
     $content = array();
     $content['title'] = $Page->name;
-    $content['plugins'] = $Plugins->getPlugins($page);
+    $content['plugins'] = $Plugins->getPlugins($page_id);
     $content['pageName'] = end($split);
     $content['parent'] = $split[0];
     $content['title'] = $Page->meta_title;
