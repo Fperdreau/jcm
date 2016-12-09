@@ -129,6 +129,7 @@ class Users extends AppTable {
                 <div class='user_select user_firstname' data-filter='firstname'>First Name</div>
                 <div class='user_select user_lastname' data-filter='lastname'>Last Name</div>
                 <div class='user_select user_email' data-filter='email'>Email</div>
+                <div class='user_select user_email' data-filter='email'>Position</div>
                 <div class='user_select user_small' data-filter='active'>Activated</div>
                 <div class='user_select user_small' data-filter='nbpres'>Submissions</div>
                 <div class='user_select user_op' data-filter='status'>Status</div>
@@ -166,6 +167,7 @@ class Users extends AppTable {
                 <div class='user_firstname'>$user->firstname</div>
                 <div class='user_lastname'>$user->lastname</div>
                 <div class='user_email'>$user->email</div>
+                <div class='user_email'>$user->position</div>
                 <div class='user_small'>$cur_trage</div>
                 <div class='user_small'>$nbpres</div>
                 <div class='user_op'>
