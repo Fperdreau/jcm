@@ -71,13 +71,13 @@ class AppPage extends AppTable {
     }
 
     /**
-     * Register cronjobs to the table
+     * Register page to the table
      * @param array $post
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
         $class_vars = get_class_vars('AppPage');
-        $content = $this->parsenewdata($class_vars,$post);
+        $content = $this->parsenewdata($class_vars,$post, array('levels'));
         return $this->db->addcontent($this->tablename,$content);
     }
 
