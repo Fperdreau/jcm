@@ -1023,7 +1023,7 @@ nav .activepage {
     background: rgba(207, 81, 81, 1) no-repeat 5px 50%;
 }
 
-.topnav nav li.activepage a {
+nav li.activepage a {
     color: white;
 }
 
