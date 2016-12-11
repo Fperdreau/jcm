@@ -920,35 +920,35 @@ nav li:first-letter {
 }
 
 nav li#home {
-    background-image: url("../images/home.png");
+    background-image: url("../images/home_wi_25x25.png");
 }
 
 nav li#archives {
-    background-image: url("../images/archives.png");
+    background-image: url("../images/archives_wi_25x25.png");
 }
 
 nav li#news {
-    background-image: url("../images/news.png");
+    background-image: url("../images/news_wi_25x25.png");
 }
 
 nav li#contact {
-    background-image: url("../images/contact.png");
+    background-image: url("../images/contact_wi_25x25.png");
 }
 
 nav li#organizer {
-    background-image: url("../images/organizer.png");
+    background-image: url("../images/organizer_wi_25x25.png");
 }
 
 nav li#admin {
-    background-image: url("../images/admin.png");
+    background-image: url("../images/admin_wi_25x25.png");
 }
 
 nav li#tools {
-    background-image: url("../images/tools.png");
+    background-image: url("../images/tools_wi_25x25.png");
 }
 
 nav li#submission {
-    background-image: url("../images/add_paper_white.png");
+    background-image: url("../images/submission_wi_25x25.png");
 }
 
 .main_section {
@@ -1282,8 +1282,6 @@ footer {
 }
 
 #page_icon > img {
-    width: 40px;
-    height: auto;
     vertical-align: middle;
 }
 

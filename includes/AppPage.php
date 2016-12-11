@@ -170,7 +170,7 @@ class AppPage extends AppTable {
     public static function forbidden() {
         $result['content'] = self::render('error/403');
         $result['title'] = 'Error 403';
-        $result['icon'] = 'error';
+        $result['header'] = self::header('Error 403', 'error');
         return $result;
     }
 
@@ -181,7 +181,7 @@ class AppPage extends AppTable {
     public static function notFound() {
         $result['content'] = self::render('error/404');
         $result['title'] = 'Error 404';
-        $result['icon'] = 'error';
+        $result['header'] = self::header('Error 404', 'error');
         return $result;
     }
 
@@ -192,8 +192,22 @@ class AppPage extends AppTable {
     public static function maintenance() {
         $result['content'] = self::render('error/503');
         $result['title'] = 'Error 503';
-        $result['icon'] = 'error';
+        $result['header'] = self::header('Error 503', 'error');
         return $result;
+    }
+
+    /**
+     * Render page header
+     * @param string $icon: icon name
+     * @param string $title: page title
+     * @return string
+     */
+    public static function header($title, $icon=null) {
+        if (is_null($icon)) {
+            $icon = $title;
+        }
+
+        return "<div id='page_icon'><img src='images/{$icon}_bk_40x40.png'></div><div><h1>{$title}</h1></div>";
     }
 
     /**
@@ -222,7 +236,7 @@ class AppPage extends AppTable {
     public static function login_required() {
         $result['content'] = self::render('error/401');
         $result['title'] = 'Restricted area';
-        $result['icon'] = 'error';
+        $result['header'] = self::header('Restricted area', 'error');
         return $result;
     }
 
@@ -445,8 +459,8 @@ class AppPage extends AppTable {
         <nav class='submenu' id='addmenu-member'>
             <ul>
                 <li class='menu-section'><a href='index.php?page=member/submission' id='submission'>submit a presentation</a></li>
-                <li class='menu-section'><a href='index.php?page=member/email' id='archives'>email</a></li>
-                <li class='menu-section'><a href='index.php?page=member/post' id='post'>Add a news</a></li>
+                <li class='menu-section'><a href='index.php?page=member/email' id='email'>email</a></li>
+                <li class='menu-section'><a href='index.php?page=member/news' id='news'>Add a news</a></li>
                 <li class='menu-section'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
             </ul>
         </nav>

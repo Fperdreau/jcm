@@ -139,7 +139,6 @@ function getPage(page, urlparam) {
  *
  * @param page
  * @param data
- * @param param
  */
 var displayPage = function (page, data) {
     var plugins = data.plugins;
@@ -159,6 +158,11 @@ var displayPage = function (page, data) {
     loadCalendarAvailability();
 };
 
+/**
+ * Animate page transition
+ * @param content
+ * @returns {boolean}
+ */
 function pageTransition(content) {
     var container = $('#hidden_container');
     var current_content = container.find('#current_content');
@@ -180,11 +184,16 @@ function pageTransition(content) {
     });
 }
 
+/**
+ * Render page content and header
+ * @param section
+ * @param content
+ */
 function renderSection(section, content) {
     var defaultHtml = '<div class="wrapper"><div id="section_title"></div><div id="section_content"></div></div>';
     section.html(defaultHtml);
     section.find('#section_content').html(content.content);
-    section.find('#section_title').html("<div id='page_icon'><img src='images/" + content.icon + "_bk.png'></div><div><h1>" + content.title + "</h1></div>");
+    section.find('#section_title').html(content.header);
 }
 
 /**

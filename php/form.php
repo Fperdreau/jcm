@@ -365,7 +365,7 @@ if (!empty($_POST['getPage'])) {
     $content['description'] = $Page->meta_description;
     $content['content'] = null;
     $content['AppStatus'] = $AppConfig->status;
-    $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk.png')) ? $content['pageName']: $content['parent'];
+    $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk_40x40.png')) ? $content['pageName']: $content['parent'];
     $status = $Page->check_login();
     if ($content['AppStatus'] == 'On' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
         if ($status['status'] == false) {
@@ -375,6 +375,7 @@ if (!empty($_POST['getPage'])) {
                 $result = AppPage::notFound();
             } else {
                 $result['content'] = AppPage::render($page);
+                $result['header'] = AppPage::header($page_id, $content['icon']);
             }
         }
     } else {
