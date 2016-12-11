@@ -966,6 +966,7 @@ nav li#submission {
 }
 
 .topnav nav li:hover {
+    background-color: rgba(207,81,81,1);
     color: white;
 }
 
@@ -1018,10 +1019,8 @@ nav.submenu li:hover, nav.submenu .activepage {
 
 nav .activepage {
     color: white;
-    background: rgb(25, 25, 25);
-    background-position: 5px 50%;
     background-size: 25px;
-    background-repeat: no-repeat;
+    background: rgba(207, 81, 81, 1) no-repeat 5px 50%;
 }
 
 .topnav nav li.activepage a {
