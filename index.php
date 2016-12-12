@@ -70,13 +70,13 @@ $menu = AppPage::menu();
                 <?php
                 if (!User::is_logged()) {
                     $showlogin = "
-                <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login.png' alt='login'></div>
-                <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup.png' alt='signup'></div>
+                <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login_bk.png' alt='login'></div>
+                <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup_bk.png' alt='signup'></div>
                  ";
                 } else {
                     $showlogin = "
                 <div class='menu-section'><a href='index.php?page=member/profile' id='profile'><img src='images/profile_bk_25x25.png' alt='profile'></a></div>
-                <div class='menu-section'><a href='#' class='menu-section' id='logout'><img src='images/logout.png' alt='logout'></a></div>";
+                <div class='menu-section'><a href='#' class='menu-section' id='logout'><img src='images/logout_bk.png' alt='logout'></a></div>";
                 }
                 echo $showlogin;
                 ?>
