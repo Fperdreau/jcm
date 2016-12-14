@@ -951,6 +951,10 @@ nav li#submission {
     background-image: url("../images/submission_wi_25x25.png");
 }
 
+nav li#help {
+    background-image: url("../images/help_wi_25x25.png");
+}
+
 .main_section {
     background-position: 5px 50%;
     background-size: 25px;

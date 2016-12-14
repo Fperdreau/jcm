@@ -467,6 +467,18 @@ class AppPage extends AppTable {
         ";
     }
 
+    public static function help_menu() {
+        return "
+        <li class='main_section' id='help'><a href='#' class='submenu_trigger' id='addmenu-member'>Help</a></li>
+        <nav class='submenu' id='addmenu-member'>
+            <ul>
+                <li class='menu-section'><a href='index.php?page=help' id='help'>Help</a></li>
+                <li class='menu-section'><a href='index.php?page=about' id='email'>About JCM</a></li>
+            </ul>
+        </nav>
+        ";
+    }
+
     /**
      * Render main menu
      * @return string
@@ -492,6 +504,7 @@ class AppPage extends AppTable {
                     <li class='main_section menu-section' id='home'><a href='index.php?page=home' id='home'>home</a></li>
                     <li class='main_section menu-section' id='news'><a href='index.php?page=news' id='news'>news</a></li>
                     <li class='main_section menu-section' id='contact'><a href='index.php?page=contact' id='contact'>contact</a></li>
+                    " . self::help_menu() . "
                     {$member_menu}
                     {$organizer}
                     {$admin}
