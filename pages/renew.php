@@ -52,14 +52,18 @@ if (!empty($_POST['hash']) && !empty($_POST['email'])) {
     }
     $result = "
         <section style='width: 300px;'>
-            <h2>Change password</h2>
-            <div class='section_content'>$content</div>
+            <div class=\"section_content\">
+                <h2>Change password</h2>
+                <div class='section_content'>$content</div>
+            </div>
         </section>";
 } else {
     $result = "
         <section style='width: 300px;'>
-            <h2>Change password</h2>
-            <div class='section_content'><div class='sys_msg warning'>Incorrect email or hash id.</div></div>
+            <div class=\"section_content\">
+                <h2>Change password</h2>
+                <div class='section_content'><div class='sys_msg warning'>Incorrect email or hash id.</div></div>
+            </div>
         </section>";
 }
 
