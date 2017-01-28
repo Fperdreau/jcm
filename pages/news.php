@@ -21,11 +21,4 @@
  */
 
 $last_news = new Posts($db);
-$news = $last_news->show(false);
-
-
-$result = "    
-        $news
-";
-
-echo $result;
+echo $last_news->show(false);
