@@ -1,391 +1,1112 @@
-# Journal Club Manager
-Version 1.4.3 | Copyright © 2014 Florian Perdreau
-
-![Computer version](./media/computer.png)
-*Computer version*
-
-![Mobile version](./media/mobile.png)
-*Mobile version*
-
-Summary
-=======
-1. [Introduction](#introduction)
-2. [License](#license)
-3. [System Requirements](#system-requirements)
-4. [Installation](#installation)
-5. [Sections](#sections)
-6. [Registration](#registration-procedure)
-
-Introduction
-============
-
-*Journal Club Manager* is a web-application made to help labs and researchers in managing their journal clubs or talks.
-
-Users who signed up to this web-application can schedule, modify or delete their presentations and add or delete files attached to their presentations.
-
-Users can also suggest presentations (“make a wish”) that other users could present instead of them. If one chooses to make this wish true, he or she can then modify the content of this presentation, add some files, etc. and choose a date for giving his or her presentation.
-
-*Journal Club Manager* also includes a mailing system (requires CRON jobs installed on the running server) to notify users about upcoming journal club sessions, recent news posted by the organizers on the website or the last wishes made by the other users.
-
-Finally, Journal Club Manager comes along with an administration interface allowing administrators and organizers of the journal club to manage the different presentations, users, to export/back-up the database, to configure the application (frequency of email notifications, etc.). Particularly, they can manage the different types of sessions (e.g. a journal club session or a business meeting), the types of presentation (paper, research topic, business, methodology or guest speaker), the number of presentations per session and the chairman.
-
-License
-=======
-
-Copyright © 2014 Florian Perdreau
-
-*Journal Club Manager* is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-
-*Journal Club Manager* is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License along with *Journal Club Manager*. If not, see \<http://www.gnu.org/licenses/\>.
-
-External sources
-----------------
-
-*Journal Club Manager* also depends on external open-sources dependencies:
-
--   ***PHPMailer***, Copyright © 2014 Marcus Bointon, licensed under the [LGPL 2.1]: <http://www.gnu.org/licenses/lgpl-2.1.html>.
-
--   ***html2text***, Copyright © 2010 Jevon Wright and others, licensed under the [LGPL 2.1]: <http://www.gnu.org/licenses/lgpl-2.1.html>.
-
--   ***TinyMCE*** Copyright © Moxiecode Systems AB, licensed under the [LGPL 2.1]: <http://www.gnu.org/licenses/lgpl-2.1.html>.
-
-System Requirements
-===================
-
--   A web server running PHP 5.2 or later
-
--   MySQLi (5.0 or later)
-
--   CRON table (on Linux servers) or scheduled tasks (on Microsoft Windows servers) *\*required for email notifications*
-
--   SMTP server (or a Google Mail account)
-
-Installation
-============
-
-Updating from version 1.2.1 or earlier
-----------------------------------
-The Journal Club Manager has sensibly changed since its very first versions. If you are running with one of these versions,
-you can upgrade to the newest version of the JCM but you will need to follow a specific procedure:
-0. Save your previous config file (path_to_JCM/admin/config/config.php) somewhere outside the application.
-1. Overwrite all the JCM's folders already present on your server EXCEPT the "uploads" folder.
-2. Copy your previous config file (the one you saved in step 0) to the new config folder
-(path_to_JCM/config/config.php).
-3. Update your JCM version by running <http://www.mydomain.com/jcm/install.php> and follow the steps described in the
-next sections.
-4. Congrats!
-
-Step 1: Upload files on the server
-----------------------------------
-
-### Using GIT
-
-Simply clone the Journal Club Manager repository (https://github.com/Fperdreau/jcm.git) at the root of your web-server.
-
-### Using FTP
-
--   Upload the “jcm” folder to the root of your web-server using a FTP client (e.g. FileZilla).
-
--   Make sure that you have the writing permissions for all the folders and files (set folders chmod to 0755 and files chmod to 0644).
-
-Step 2: Preparation of the database
------------------------------------
-
-Go to your SQL database interface (e.g. PHPmyadmin) and create a new database (if you have the rights, however, ask your admin for the name of the database). That’s it!
-
-Step 3: Online installer
-------------------------
-
-In your favorite web-browser, go to the URL: <http://www.mydomain.com/jcm/install.php>.
-
-### Step 0: New installation or update
-
-![Installation Step 0](./media/install1.png)
-
-The installer will automatically check for the presence of previous installations of the Journal Club Manager.
-
-If no previous installation is found, then you will only have the option to start a new installation. This will create all the required SQL tables, folders and files.
-
-Otherwise, you will also have the option of updating a previous installation. Do not worry, this will not overwrite your preexistent data!
-
-### Step 1 : Database configuration
-
-![Installation - Database configuration](./media/install2.png)
-
-***Hostname***: Your SQL hostname (e.g.: sql.mydomain.com)
-
-***User name***: your SQL username (the one you may use to access PHPMyAdmin).
-
-***Password***: your SQL password (The same you are using to access PHPMyAdmin).
-
-***Database name***: the name of the database you have created at the Step 3 of the preparation phase.
-
-***Database prefix***: Choose a prefix that will be used to create tables in your database (e.g.: jcm).
-
-\*Make sure the prefix you choose if not already used by other applications installed on your server.
-
-### Step 2: Application configuration
-
-![Installation - Application settings](./media/install3.png)
-
-#### Journal Club Manager – Mailing service
-An (optional) feature of the *Journal Club Manager* allows to send notifications, reminders or assignment to users by
-
-email. To use this feature, you need to set the mailing system and particularly the SMTP host. You can either choose to use
-
-the SMTP host of your server (if there is) or to use the one of any email provider (GMAIL, OUTLOOK, etc.).
-
-**Send Email address:** your journal club email
-
-**Sender Name:** Name associated to the email address
-
-**Email host:** SMTP host address (e.g. smtp.gmail.com if you are using a GMAIL address).
-
-**SMTP access:** Security protocol (SSL/TLS/none).
-
-\**Note that using SSL/TLS requires that SSL PHP extension is installed on your web-server.*
-
-**Email username:** your email username
-
-**Email password:** your email password.
-
-Step 3 : Creation of the admin account (only for new installation)
-------------------------------------------------------------------
-
-**Username:** choose a username for your admin account
-
-**Password:** choose a password for your admin account
-
-**Confirm password:** re-enter your password
-
-**Email:** provide an email address that will be associated with the admin account.
-
-Step 4: Delete installation files
----------------------------------
-
-For security reasons, you must delete installation files from your web-server. Go to your FTP and:
-
--   Delete the “install.php” file located at the root of the “jcm” folder.
-
-Step 5 (optional): Set plugins
-------------------------------
-![Plugins](./media/plugins.png)
-
-Go to Admin>Plugins. Here you can install JCM plugins and modify their settings.
-
-### List of built-in plugins:
-
-**Assignment**: Automatically assigns members of the JCM (who agreed upon being assigned by settings the corresponding
-option on their profile page) as speakers to the future sessions. The number of sessions to plan in advance can be set
-in the plugin's settings.
-
-**Groups**: Automatically creates groups of users based on the number of presentations scheduled for the upcoming session.
-Users will be notified by email about their group's information. If the different groups are meeting in different rooms,
-then the rooms can be specified in the plugin's settings (rooms must be comma-separated).
-
-Step 6 (optional): Set automatic scheduled tasks (e.g. email notification)
----------------------------------------------------------------
-Journal Club Manager relies on scheduled tasks in order to automatically send notifications, reminders or assignments by email,
-or simply to backup files and database.
-
-In order to do so, you need to set CRON jobs on your server (if your server is running on Linux) or scheduled tasks (if it’s running on MS Windows) pointing
-to the PHP script 'run.php' located in the 'jcm/cronjobs' folder and to make it run every hour.
-
-Here are tutorials to automatically run PHP file:
-
--   on MS Windows: <https://www.drupal.org/node/31506>
-
--   on Linux: <http://www.thegeekstuff.com/2011/07/php-cron-job/>
-
-Once done, scheduled tasks can be managed from the Journal Club Manager (Admin>Scheduled Tasks).
-
-![Scheduled tasks manager](./media/cron.png)
-
-From there, you can  install/uninstall, activate/deactivate tasks, modify their running time and options.
-
-### List of built-in scheduled tasks:
-**Mailing:** send weekly digest including the last news, details about the upcoming session, the list of the future
-sessions and the list of the newest wishes.
-
-**Notification**: Send list of last submissions by email.
-
-**Reminder**: send reminder for the upcoming session.
-
-**SpeakerAssignment**: automatically assigned speakers to each presentation by pseudo-randomly picking up one organizer.
-The simple rule is that all organizers must have been a chair once for this particular session type (e.g. journal club,
-group meeting, etc.) before an organizer can be selected again as a chair.
-
-**MakeGroup**: Split users into groups for one session (1 group per presentation)
-
-**DbBackup.php**: do a backup copy of the database and save it into a .sql file that can be found in “jcm/backup/mysql” folder.
-
-**FullBackup**: do a backup copy of the database and of all the files and store it in an archive that can be found in
-“jcm/backup/complete” folder.
-
-**MailSender**: Checks whether all emails have been sent and sends them otherwise. It also cleans the mailing database
-by deleting the oldest emails. The number of days of email storage can be defined in the task's settings (default is 10 days).
-
-
-Sections
-========
-
-Submission
------------
-
-Accessible from the submission menu on the Home page.
-
-![Submission](./media/submit.png)
-
-### Submit a new publication
-
-Select a publication type :
-
--   Paper: a published article
-
--   Research: your own research
-
--   Methodology: a methodology topic
-
--   Guest: a guest speaker.
-
-**Speaker:** Name of the invited speaker (you do not need to fill this field if you are presenting).
-
-**Date:** Choose a date for your presentation (only available dates are selectable).
-
-**Title:** submission title
-
-**Abstract:** submission abstract (2000 characters maximum)
-
-**Authors:** Authors of the article or of the research.
-
-**File:** pdf of the article, or slides, etc.
-
-### Suggest a paper:
-
-**Title:** Article’s title
-
-**Abstract:** Article’s abstract
-
-**Authors:** Name of the authors
-
-**File:** PDF of the article.
-
-### Select a paper from the wish list
-
-**Choose a wish:** select a paper from the wish list (the list may be empty if no papers have been suggested yet).
-
-Check that all the fields are properly filled in and choose a date for your presentation.
-
-Archives
---------
-
-Here, you can find all the previous presentations and download the associated files. Archives can be filtered by year.
-
-Contact
--------
-
-![Contact page](./media/contact.png)
-
-Here you can find information relative to the journal club (address, time, map) and contact the organizers by email.
-
-My profile
-----------
-
-![Profile](./media/profile.png)
-
-Every user can access his/her own profile page and manage his/her account and submissions.
-
-Admin interface
----------------
-This interface is only accessible to admins and organizers.
-
-### Settings (requires admin level)
-
-Here are all configurable settings of the website
-
-#### Site parameters:
-
-![Application settings](./media/settings.png)
-
-**Status:** Turn the application on or off.
-
-**Allowed file types:** Types of files than can be uploaded by users (comma-separated).
-
-**Maximum file size:** Maximum size of uploads (in KB)
-
-#### Lab Information
-
-![Lab information](./media/lab_info.png)
-
-Here you may precise your lab’s name and address.
-
-**Google Map’s URL (to show your location on the Contact page):**
-
-1.  Go to Google Map website and search for your location.
-
-2.  Still on the Google Map website, look for the settings icon at the bottom right of the page (the little gray wheel), click on it and go to “Share or integrate the map”, then “Integrate the map”.
-
-![Setup of Google Maps](./media/googlemap.png)
-
-1.  Choose the “Small size” and copy the address (as shown below). Then only paste the actual url starting with https://www.google.com/maps.... (\*without the HTML tags) to the Google Map’s URL field of the Journal Club Manager.
-
-#### Email host information
-
-Please, refer to the 3<sup>rd</sup> installation step above.
-
-### Users
-
-Here you can change users’ status (admin/organizer/member), deactivate, activate or delete users’ account.
-
-### Mailing
-
-Here you can send an email notification to the mailing list.
-
-### Posts
-
-Here you can add/edit news and choose whether they should appear on the home page.
-
-### Sessions
-
-Here you can manage the journal club sessions, change their type, time, etc.
-
-![Session manager](./media/session.png)
-
-#### Journal Club parameters
-
-**Room:** Room of the journal club
-
-**Day:** Day of the journal club.
-
-**Time (from/to):** set starting and ending time of the JC session.
-
-**Presentation/session:** maximum number of presentations per session.
-
-#### Session/Presentation
-
-Here, you can set the default type of session and add or delete types of sessions and presentations.
-
-#### Manage sessions
-
-Here, you can manage the sessions individually: modify the type, time or speakers.
-
-### Pages
-
-From this section, you can set access levels to the different parts of the Journal Club Manager and modify their meta-data.
-
-Registration procedure
-======================
-
-1.  The new user must fill up all the fields (First name, last name, username, password, email, academic position)
-
-![Registration 1](./media/registration1.png)
-
-2.  An email is sent to the admin/organizers for verification (click on authorize or deny accordingly)
-
-![Registration 2](./media/registration2.png)
-
-3.  Finally, the user receives a confirmation email if his/her registration has been confirmed.
-
-![Registration 3](./media/registration3.png)
+<script type="text/javascript">
+
+    /**
+     * parse headings structure
+     * @params level: heading level to find ('h' + level)
+     * @params el: container selector
+     * @returns {Object}
+     */
+    function parseTree(level, el) {
+        level = (level === undefined) ? 1 : level;
+        el = (el === undefined) ? $('.help_section_container') : el;
+        var tree = {};
+        var i = 0;
+        el.find('h' + level).each(function() {
+            var title = $(this).find('a').text();
+            var id = $(this).attr('id');
+            var next_el = $(this).closest('.help_section_container').find('.help_section_container');
+            var next_level = level + 1;
+            if (id !== 'summary') {
+                tree[i] = {};
+                tree[i]['id'] = id;
+                tree[i]['title'] = title;
+                tree[i]['subtree'] = parseTree(next_level, next_el);
+                i++;
+            }
+
+        });
+        return tree;
+    }
+
+    /**
+     * Render menu
+     * @param tree: headings structure
+     * @returns {string}
+     */
+    function renderMenu(tree) {
+        var menu_elements = '';
+        for (var i=0; i<Object.keys(tree).length; i++) {
+            var menu_element = "<a href='#" + tree[i]['id'] + "'>" + tree[i]['title'] + "</a>";
+            if (Object.keys(tree[i]['subtree']).length > 0) {
+                var sub_menu = renderMenu(tree[i]['subtree']);
+                menu_elements += "<li>" + menu_element +
+                    "<ul>" + sub_menu + "</ul>" +
+                    "</li>";
+            } else {
+                menu_elements += "<li>" + menu_element + "</li>";
+            }
+        }
+
+        return menu_elements;
+    }
+
+    $(document).ready(function() {
+        $('.help_menu_container').html('<ol>' + renderMenu(parseTree()) + '</ol>');
+    });
+</script>
+
+<section class="content">
+    <div class="section_content">
+
+        <div class="help_summary_container">
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h1 id="summary"><a href="#summary" name="summary">Summary</a></h1>
+                </div>
+                <div class="help_section_content help_menu_container">
+                    <!-- Menu generated by js -->
+                </div>
+            </div>
+
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="introduction"><a href="#introduction" name="introduction">Introduction</a></h1>
+            </div>
+            <div class="help_section_content">
+                <div class="help_section_content_first">
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is a web-application designed to help labs in managing their journal clubs and presentations.
+                        Members can easily create an account and from there submit, edit and delete their presentations, or suggest papers for future sessions.</p>
+
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> comes with a complete administration interface allowing admins and organisers to manage the sessions
+                        (their date, type, time, number of presentations, etc.), to post news, send emails to the other members, create group of members and a lot more!</p>
+
+                    <p>Finally, <span class="appName"><?php echo AppConfig::app_name; ?></span> relies on several automated features that make the organization of journal clubs an easy and effortless task.</p>
+                    <ul>
+                        <li><span class="help_bullet_bold">Mailing system</span>: <span class="appName"><?php echo AppConfig::app_name; ?></span> includes a mailing system to notify members about upcoming journal club sessions, recent news or the last wishes added by the other users.</li>
+                        <li><span class="help_bullet_bold">Automatic assignment</span>: <span class="appName"><?php echo AppConfig::app_name; ?></span> can automatically assign members as speaker for the future sessions</li>
+                        <li><span class="help_bullet_bold">Automatic backup</span>: <span class="appName"><?php echo AppConfig::app_name; ?></span> can automatically update databases and application files</li>
+                    </ul>
+
+                </div>
+                <div class="help_section_content_last">
+                    <a href="<?php echo URL_TO_IMG; ?>help/home.png">
+                        <img class="help_img" src="<?php echo URL_TO_APP; ?>/images/help/home.png">
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="license"><a href="#license" name="license">License</a></h1>
+            </div>
+            <div class="help_section_content">
+                <div class="help_section_full">
+                    <p>Copyright © 2014 Florian Perdreau</p>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.</p>
+                    <p>You should have received a copy of the GNU Affero General Public License along with <span class="appName"><?php echo AppConfig::app_name; ?></span> . If not, see <<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>></p>
+                    <h2 id="external-sources"><a href="#external-sources" name="external-sources">External sources</a></h2>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> also depends on external open-sources dependencies:</p>
+                    <ul>
+                        <li>
+                            <p><strong><em>PHPMailer</em></strong>, Copyright © 2014 Marcus Bointon, licensed under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
+                        </li>
+                        <li>
+                            <p><strong><em>html2text</em></strong>, Copyright © 2010 Jevon Wright and others, licensed under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
+                        </li>
+                        <li>
+                            <p><strong><em>TinyMCE</em></strong> Copyright © Moxiecode Systems AB, licensed under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="system-requirements"><a href="#system-requirements" name="system-requirements">System Requirements</a></h1>
+            </div>
+            <div class="help_section_content">
+                <div class="help_section_full">
+                    <ul>
+                        <li>A web server running PHP 5.4 or later</li>
+                        <li>MySQLi (5.0 or later)</li>
+                        <li>CRON table (on Linux servers) or scheduled tasks (on Microsoft Windows servers) <em>*required
+                                for email notifications</em></li>
+                        <li>SMTP server (or a Google Mail account)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+
+            <div class="help_section_header">
+                <h1 id="installation"><a href="#installation" name="installation">Installation</a></h1>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="updating-from-version-121-or-earlier"><a href="#updating-from-version-121-or-earlier" name="updating-from-version-121-or-earlier">0. Upgrading from version 1.2.1 or earlier</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <p>The <span class="appName"><?php echo AppConfig::app_name; ?></span> has sensibly changed since its very first versions. If you are running with one of these versions,
+                        you can upgrade to the newest version of the JCM but you will need to follow a specific procedure:
+                    <ol>
+                        <li>Save your previous config file (path_to_JCM/admin/config/config.php) somewhere outside the application.</li>
+                        <li>Overwrite all the JCM's folders already present on your server EXCEPT the &quot;uploads&quot; folder.</li>
+                        <li>Copy your previous config file (the one you saved in step 1) to the new config folder
+                            (path_to_JCM/config/config.php).</li>
+                        <li>Update your JCM version by running <a href="http://www.mydomain.com/jcm/install.php">http://www.mydomain.com/jcm/install.php</a> and follow the steps described in the
+                            next sections.</li>
+                        <li>Congrats!</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="step-1-upload-files-on-the-server"><a href="#step-1-upload-files-on-the-server" name="step-1-upload-files-on-the-server">1. Upload files on the server</a></h2>
+                </div>
+
+                <div class="help_section_content">
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="using-git"><a href="#using-git" name="using-git">Using GIT</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <p>Simply clone the <span class="appName"><?php echo AppConfig::app_name; ?></span> repository (<a href="https://github.com/Fperdreau/jcm.git">https://github.com/Fperdreau/jcm.git</a>) at the root of your web-server.</p>
+                        </div>
+                    </div>
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="using-ftp"><a href="#using-ftp" name="using-ftp">Using FTP</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <ol>
+                                <li>Download JCM <a href="https://github.com/Fperdreau/jcm/releases">here</a></li>
+                                <li>Unzip the archive</li>
+                                <li>Upload the “jcm” folder to the root of your web-server using your favorite FTP client (e.g. FileZilla).</li>
+                                <li>Make sure that you have the writing permissions for all the folders and files (set folders chmod to 0755 and files chmod to 0644).</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="step-2-preparation-of-the-database"><a href="#step-2-preparation-of-the-database" name="step-2-preparation-of-the-database">2. Preparation of the database</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <p>Go to your SQL database interface (e.g. PHPmyadmin) and create a new database (if you have the rights, however, ask your admin for the name of the database). That’s it!</p>
+                </div>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="step-3-online-installer"><a href="#step-3-online-installer" name="step-3-online-installer">
+                            3. Online installer</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <p>In your favorite web-browser, go to the URL: <a href="http://www.mydomain.com/jcm/install.php">
+                            http://www.mydomain.com/jcm/install.php</a>.</p>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-0-new-installation-or-update"><a href="#step-0-new-installation-or-update"
+                                                                          name="step-0-new-installation-or-update">Step
+                                    0: New installation or update</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_first img_container">
+                                <a href="<?php echo URL_TO_IMG; ?>help/installation_step.png">
+                                    <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/installation_step.png"
+                                         alt="Installation Step 0" />
+                                </a>
+                            </div>
+                            <div class="help_section_content_last">
+                                <p>The installer will automatically check for the presence of previous installations of
+                                    the <span class="appName"><?php echo AppConfig::app_name; ?></span>.</p>
+                                <p>If no previous installation is found, then you will only have the option to start a
+                                    new installation. This will create all the required SQL tables, folders and files.
+                                </p>
+                                <p>Otherwise, you will also have the option of updating a previous installation. Do not
+                                    worry, this will not overwrite your preexistent data!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-1-database-configuration"><a href="#step-1-database-configuration"
+                                                                      name="step-1-database-configuration">Step 1 :
+                                    Database configuration</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_first">
+                                <p><strong><em>Hostname</em></strong>: Your SQL hostname (e.g.: sql.mydomain.com)</p>
+                                <p><strong><em>User name</em></strong>: your SQL username (the one you may use to access
+                                    PHPMyAdmin).</p>
+                                <p><strong><em>Password</em></strong>: your SQL password (The same you are using to
+                                    access PHPMyAdmin).</p>
+                                <p><strong><em>Database name</em></strong>: the name of the database you have created at
+                                    the Step 3 of the preparation phase.</p>
+                                <p><strong><em>Database prefix</em></strong>: Choose a prefix that will be used to
+                                    create tables in your database (e.g.: jcm).</p>
+                                <p>*Make sure the prefix you choose if not already used by other applications installed
+                                    on your server.</p>
+                            </div>
+                            <div class="help_section_content_last img_container">
+                                <a href="<?php echo URL_TO_IMG; ?>help/installation_step1.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/installation_step1.png"
+                                     alt="Installation - Database configuration" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-2-application-configuration"><a href="#step-2-application-configuration"
+                                                                         name="step-2-application-configuration">Step 2:
+                                    Application configuration</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_first img_container">
+                                <a href="<?php echo URL_TO_IMG; ?>help/installation_step2.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/installation_step2.png"
+                                     alt="Installation - Application settings" />
+                                </a>
+                            </div>
+                            <div class="help_section_content_last">
+                                <p>Many features of <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                                    requires the ability to send emails (notifications, reminders or assignments to
+                                    users)</p>
+                                <p>To use these features, you need to set the mailing system and particularly the SMTP
+                                host. You can either choose to use your own SMTP server (if there is) or to use the one
+                                    of any email provider (GMAIL, OUTLOOK, etc.).</p>
+                                <p><strong>Send Email address:</strong> your journal club email</p>
+                                <p><strong>Sender Name:</strong> Name associated to the email address</p>
+                                <p><strong>Email host:</strong> SMTP host address (e.g. smtp.gmail.com if you are using
+                                    a GMAIL address).</p>
+                                <p><strong>SMTP access:</strong> Security protocol (SSL/TLS/none).</p>
+                                <p>*<em>Note that using SSL/TLS requires that SSL PHP extension is installed on your
+                                        web-server.</em></p>
+                                <p><strong>Email username:</strong> your email username</p>
+                                <p><strong>Email password:</strong> your email password.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-3-creation-of-the-admin-account-only-for-new-installation"><a
+                                        href="#step-3-creation-of-the-admin-account-only-for-new-installation"
+                                        name="step-3-creation-of-the-admin-account-only-for-new-installation">Step 3 :
+                                    Creation of the admin account (only for new installation)</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_first">
+                                <p><strong>Username:</strong> choose a username for your admin account</p>
+                                <p><strong>Password:</strong> choose a password for your admin account</p>
+                                <p><strong>Confirm password:</strong> re-enter your password</p>
+                                <p><strong>Email:</strong> provide an email address that will be associated with the
+                                    admin account.</p>
+                            </div>
+                            <div class="help_section_content_last img_container">
+                                <a href="<?php echo URL_TO_IMG; ?>help/installation_step3.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/installation_step3.png"
+                                     alt="Installation - Application settings" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-4-delete-installation-files"><a href="#step-4-delete-installation-files"
+                                                                         name="step-4-delete-installation-files">Step 4:
+                                    Delete installation files</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_full">
+                                <p>For security reasons, we recommend to delete installation files from your web-server.
+                                    Go to your FTP and delete the “install.php” file located at the root of the “jcm”
+                                    folder.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-5-optional-set-plugins"><a href="#step-5-optional-set-plugins"
+                                                                    name="step-5-optional-set-plugins">
+                                    Step 5 (optional): Set plugins</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_full">
+                                <p>Go to Admin&gt;Plugins. Here you can install JCM plugins and modify their settings.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="step-6-optional-set-automatic-scheduled-tasks-eg-email-notification"><a
+                                        href="#step-6-optional-set-automatic-scheduled-tasks-eg-email-notification"
+                                        name="step-6-optional-set-automatic-scheduled-tasks-eg-email-notification">
+                                    Step 6 (optional): Set automatic scheduled tasks (e.g. email notification)</a>
+                            </h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_full">
+                                <p>Go to Admin&gt;Scheduled tasks. Here you can install and set scheduled tasks.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="sections"><a href="#sections" name="sections">My Tools</a></h1>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="submission"><a href="#submission" name="submission">Submission</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <div class="help_section_content_first">
+                        JCM members have the possibility to either submit a new presentation (<em>Submit</em>), to
+                        suggest a presentation to other members (<em>Make a wish</em>)
+                        or to submit a presentation suggested by other members (<em>Select a wish</em>).
+                    </div>
+                    <div class="help_section_content_last img_container">
+                        <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/submission_menu.png"
+                                                      alt="Submission" />
+                    </div>
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="submit-a-new-publication"><a href="#submit-a-new-publication"
+                                                                 name="submit-a-new-publication">Submit or suggest a
+                                    presentation</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_first img_container">
+                                <p><a href="<?php echo URL_TO_IMG; ?>help/submission.png">
+                                        <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/submission.png"
+                                             alt="Submission" /></a>
+                                </p>
+                            </div>
+                            <div class="help_section_content_last">
+                                <ul>
+                                    <li><strong>Type:</strong> Select a presentation type. Default JCM presentation
+                                        types are: paper (research article), research (user's own research),
+                                        methodology (methodology discussion), guest (guest speaker).
+                                    </li>
+                                    <li><strong>Speaker (for guest's presentation onky):</strong> Name of the invited
+                                        speaker</li>
+                                    <li><strong>Date:</strong> Date of your presentation</li>
+                                    <li><strong>Title:</strong> Your presentation title</li>
+                                    <li><strong>Abstract:</strong> Your presentation abstract</li>
+                                    <li><strong>Authors (for paper presentation only):</strong> Authors of the
+                                        paper</li>
+                                    <li><strong>File:</strong> Files associated to the presentation (pdf, slides, etc.)
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="suggest-a-paper"><a href="#suggest-a-paper" name="suggest-a-paper">Make a wish</a>
+                            </h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_full">
+                                <p>The procedure for making a wish (suggest a presentation) is similar to submitting a
+                                    new presentation except that the user
+                                    does not have to provide a date (see <a href="#submit-a-new-publication">Submit a
+                                        new presentation</a>).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help_section_container">
+                        <div class="help_section_header">
+                            <h3 id="select-a-paper-from-the-wish-list"><a href="#select-a-paper-from-the-wish-list"
+                                                                          name="select-a-paper-from-the-wish-list">
+                                    Select a paper from the wish list</a></h3>
+                        </div>
+                        <div class="help_section_content">
+                            <div class="help_section_content_full">
+                                <p>You can choose to submit a presentation suggested by other members. To do so, click
+                                    on "Select a wish" in submission menu. You will be prompted
+                                with a selection list of all suggested presentations. Select the one you wish to
+                                    present, and choose a date for your presentation. You can also edit the presentation
+                                    information and/or add/delete files attached to this presentation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="send-email"><a href="#send-email" name="send-email">Send emails</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <div class="help_section_content_full">
+                        <p>You can send an email to other JCM members from My Tools>Email.</p>
+                    </div>
+                    <div class="help_section_content_first">
+                        <p><a href="<?php echo URL_TO_IMG; ?>help/mailing.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/mailing.png" alt="email" />
+                            </a>
+                        </p>
+                    </div>
+                    <div class="help_section_content_last">
+                        <ul>
+                            <li><strong>Attach files (optional):</strong> You can either <span
+                                        class="important_action">drag & drop</span> files you want to attach to your
+                                emails or upload them by clicking on the "Add Files" buttons</li>
+                            <li><strong>Select recipients:</strong> In the selection list,
+                                <span class="important_action">select the members</span> (one at a time) to whom you
+                                want to send your email and <span class="important_action">click on the big "+"
+                                    button</span> to add them to the
+                                    selection list. If you want to add all of the JCM members to the recipient list,
+                                    then simply select "All" from the selection list.</li>
+                            <li><strong>Hide recipients:</strong> if set to "yes", then recipients email addresses
+                                and identities will not be visible. Note that this will also prevent recipients to
+                                "reply to all".</li>
+                            <li><strong>Subject:</strong> Your email's subject</li>
+                            <li><strong>Message:</strong> Your email's content</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="add-news"><a href="#add-news" name="add-news">Add a news</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <div class="help_section_content_full">
+                        <p><span class="appName"><?php echo AppConfig::app_name; ?></span> includes a blog-like section
+                            ("News", accessible from the main menu) where members can post announcements or news that
+                            might be interesting to the other members of visitors. The latest news are also displayed on
+                            the application home page and can be included in the weekly digest email. News can be posted
+                            from <span class="menu_path">My Tools>Add a news</span>.
+                        </p>
+                    </div>
+                    <div class="help_section_content_first">
+                        <p><a href="<?php echo URL_TO_IMG; ?>help/add_news.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/add_news.png" alt="add_news" />
+                            </a>
+                        </p>
+                    </div>
+                    <div class="help_section_content_last">
+                        <p>You can either <span class="important_action">add a new post</span> or
+                            <span class="important_action">edit</span> an already existing one. Previous posts are
+                            accessible from the selection list.</p>
+                        <ul>
+                            <li><strong>Title:</strong> Your post's title (255 characters length maximum)</li>
+                            <li><strong>Homepage:</strong> Display your post on the home page</li>
+                            <li><strong>Message:</strong> Content of your post.</li>
+                        </ul>
+                        <p>Once every field is filled in, you can click on the "Add" button to post your news.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="archives"><a href="#archives" name="archives">Archives</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <div class="help_section_content_full">
+                        <p>Here, you can find all the previous presentations and download the associated files. Archives
+                            can be filtered by year.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="profile"><a href="#profile" name="profile">My profile</a></h1>
+            </div>
+            <div class="help_section_content">
+                <div class="help_section_full">
+                    <p>Every user can access his/her own profile page and modify his/her account information, manage
+                        submissions or availabilities.</p>
+                </div>
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="profile-information"><a href="#profile-information" name="profile-information">My
+                                information</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_first img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/profile_personal_info.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/profile_personal_info.png"
+                                     alt="My personal information" /></a>
+                        </div>
+                        <div class="help_section_content_last">
+                            <p>Here, you can find and modify your personal and login information.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="contact-information"><a href="#contact-information" name="contact-information">Contact
+                                information</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_first">
+                            <p>Here, you can edit your contact information and the way you want to interact with
+                                <span class="appName"><?php echo AppConfig::app_name; ?></span>.</p>
+                            <ul>
+                                <li><strong>Email</strong>: Your email address</li>
+                                <li><strong>Email notifications</strong>: If set to "Yes", then you will receive
+                                    notifications from <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                                    by email (e.g. new submissions, etc.)</li>
+                                <li><strong>Reminders</strong>: if set to "Yes", then you will receive reminders about
+                                    upcoming journal club sessions
+                                and about your own presentations</li>
+                                <li><strong>Assignment</strong>: if set to "Yes", then you allow
+                                    <span class="appName"><?php echo AppConfig::app_name; ?></span> to automatically
+                                    assign you to future sessions as speaker</li>
+                            </ul>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/profile_contact_info.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/profile_contact_info.png" alt="My
+                            contact information" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="my-availability"><a href="#my-availability" name="my-availability">My
+                                Availability</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_first img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/profile_availability.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/profile_availability.png"
+                                 alt="My availability" />
+                            </a>
+                        </div>
+                        <div class="help_section_content_last">
+                            <p>Here you can inform <span class="appName"><?php echo AppConfig::app_name; ?></span> about
+                                the dates on which you are not available for presenting.</p>
+                            <p>To do so, simply click on a date of your choice.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="organizer"><a href="#organizer" name="organizer">Organizer</a></h1>
+            </div>
+            <div class="help_section_content">
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="session-manager"><a href="#session-manager" name="session-manager">Session manager</a>
+                        </h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>Here you can find information relative to the journal club (address, time, map) and
+                                contact the organizers by email.</p>
+                        </div>
+                        <div class="help_section_content_first img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/organizer_sessions.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/organizer_sessions.png"
+                                 alt="Session manager" />
+                            </a>
+                        </div>
+                        <div class="help_secon help_section_content_last">
+                            <ul>
+                                <li><strong>Session settings:</strong> Here you can specify the meeting room, journal
+                                    club time and day, as well as the number of presentations per session.</li>
+                                <li><strong>Session/Presentation:</strong> You can set the default meeting type (e.g.
+                                    journal club, business meeting), and add or delete session and presentation types
+                                </li>
+                                <li><strong>Manage sessions:</strong> Modify information of individual sessions (session
+                                    type, time, or speakers). If a new speaker is selected, this will automatically
+                                    cancel the assignment of the previously selected speaker. She or he will then
+                                    receive a notification email about this change.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="reminder-digest-manager"><a href="#reminder-digest-manager"
+                                                            name="reminder-digest-manager">Reminder & Digest emails
+                                manager</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>Reminder & Digest emails manager are accessible from <span class="menu_path">Organizer>
+                                    Reminder</span> and <span class="menu_path">Organizer>Digest</span> respectively.
+                            </p>
+                        </div>
+                        <div class="help_section_content_first">
+                            <p>The reminder and digest emails manager allows you editing the content of reminder and digest
+                            emails. From these pages, you can select which and how information should appear in the
+                                emails.</p>
+                            <p>Once you have validated your modifications, you can preview the email content by clicking
+                            on the <span class="important_action">Preview</span> button.</p>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/organizer_digest.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/organizer_digest.png" alt="Digest
+                            manager" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="assignments"><a href="#assignments" name="assignments">Assignments</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>Automatic assignments of speakers can be monitored from <span class="menu_path">
+                                    Organizer>Assignments</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="admin"><a href="#admin" name="admin">Admin</a></h1>
+            </div>
+            <div class="help_section_content">
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="settings"><a href="#settings" name="settings">Settings</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>Here you can find information relative to the journal club (address, time, map) and
+                                contact the organizers by email.</p>
+                        </div>
+
+                        <div class="help_section_container">
+                            <div class="help_section_header">
+                                <h3 id="jcm-settings"><a href="#jcm-settings" name="jcm-settings">JCM settings</a></h3>
+                            </div>
+                            <div class="help_section_content">
+                                <div class="help_section_content_last img_container">
+                                    <a href="<?php echo URL_TO_IMG; ?>help/admin_settings_jcm_settings.png">
+                                    <img class="help_img"
+                                         src="<?php echo URL_TO_IMG; ?>help/admin_settings_jcm_settings.png"
+                                         alt="JCM settings" />
+                                    </a>
+                                </div>
+                                <div class="help_section_content_first">
+                                    <ul>
+                                        <li><strong>Status:</strong> Application status. If set to "Off", the
+                                            web-application will not be accessible for all users except for users with
+                                            "admin" rights.</li>
+                                        <li><strong>Allowed file types:</strong> List of file extensions that can be
+                                            uploaded by users. Extensions must be comma-separated</li>
+                                        <li><strong>Maximum file size:</strong> Maximum allowed size for uploaded files
+                                            (in KB)
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="help_section_container">
+                            <div class="help_section_header">
+                                <h3 id="email-host-information"><a href="#email-host-information"
+                                                                   name="email-host-information">Email host
+                                        information</a></h3>
+                            </div>
+                            <div class="help_section_content">
+                                <div class="help_section_content_full">
+                                    This section allows you editing your email host information. You can test your
+                                    settings before making any modifications by clicking on the button "Test settings".
+                                    This will send a test email to the email address specified in the "Email test
+                                    address" field.
+                                </div>
+                                <div class="help_section_content_first img_container">
+                                    <a href="<?php echo URL_TO_IMG; ?>help/admin_settings_email.png">
+                                    <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/admin_settings_email.png"
+                                         alt="Email host settings" />
+                                    </a>
+                                </div>
+                                <div class="help_section_content_last">
+                                    <ul>
+                                        <li><strong>Send Email address:</strong> your journal club email</li>
+                                        <li><strong>Sender Name:</strong> Name associated to the email address</li>
+                                        <li><strong>Email host:</strong> SMTP host address (e.g. smtp.gmail.com if you
+                                            are using a GMAIL address).</li>
+                                        <li><strong>SMTP access:</strong> Security protocol (SSL/TLS/none).</li>
+                                        <li>*<em>Note that using SSL/TLS requires that SSL PHP extension is installed on
+                                                your web-server.</em></li>
+                                        <li><strong>Email username:</strong> your email username</li>
+                                        <li><strong>Email password:</strong> your email password.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="help_section_container">
+                            <div class="help_section_header">
+                                <h3 id="lab-information"><a href="#lab-information" name="lab-information">Lab
+                                        information</a></h3>
+                            </div>
+                            <div class="help_section_content">
+                                <div class="help_section_content_full">
+                                    This section allows you editing your lab information.
+                                </div>
+                                <div class="help_section_content_first img_container">
+                                    <a href="<?php echo URL_TO_IMG; ?>help/lab_info_googlemap.png">
+                                    <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/lab_info_googlemap.png"
+                                         alt="Google map" />
+                                    </a>
+                                </div>
+                                <div class="help_section_content_last">
+                                    <p><strong>Google Map’s URL (to show your location on the Contact page):</strong></p>
+                                    <ol>
+                                        <li>
+                                            Go to Google Map website and search for your location.
+                                        </li>
+                                        <li>
+                                            Still on the Google Map website, look for the settings icon at the bottom
+                                            right of the page (the little gray wheel), click on it and go to “Share or
+                                            integrate the map”, then “Integrate the map”.
+                                        </li>
+                                        <li>*without the HTML tags) to the Google Map’s URL field of the <span
+                                                    class="appName"><?php echo AppConfig::app_name; ?></span>.Choose
+                                            the “Small size” and copy the address (as shown below). Then only paste the
+                                            actual url starting with <a href="https://www.google.com/maps">
+                                                https://www.google.com/maps</a>.... (</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="users-manager"><a href="#users-manager" name="users-manager">Users manager</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_first">
+                            <p>Users account and status can be managed from <span class="menu_path">Admin>Users</span>.
+                            </p>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/admin_users.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/admin_users.png"
+                                 alt="Users manager" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="plugins"><a href="#plugins" name="plugins">Plugins</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_full">
+                            <p><span class="appName"><?php echo AppConfig::app_name; ?></span>'s plugins and their
+                                settings are accessible from <span class="menu_path">Admin>plugins</span>.</p>
+                        </div>
+                        <div class="help_section_content_first">
+                            List of available operations:
+                            <div class="icon_list_container">
+                                <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>install_btn.png"></div>
+                                <div class="icon_list_text">Install plugin</div>
+                            </div>
+                            <div class="icon_list_container">
+                                <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>trash.png"></div>
+                                <div class="icon_list_text">Uninstall plugin</div>
+                            </div>
+                            <div class="icon_list_container">
+                                <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>settings.png"></div>
+                                <div class="icon_list_text">Show plugin's settings</div>
+                            </div>
+                            <div class="icon_list_container">
+                                <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>on.png"></div>
+                                <div class="icon_list_text">Activate/deactivate plugin</div>
+                            </div>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/admin_plugins.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/admin_plugins.png">
+                            </a>
+                        </div>
+                        <div class="help_section_content_full">
+                            <div class="help_section_content">
+                                <div class="help_section_header">
+                                    <h3 id="list-of-built-in-plugins"><a href="#list-of-built-in-plugins"
+                                                                         name="list-of-built-in-plugins">List of
+                                            built-in plugins:</a></h3>
+                                </div>
+                                <p><strong>AutoAssignment</strong>: Automatically assigns members of the JCM (who agreed
+                                    upon being assigned by settings the corresponding option on their profile page) as
+                                    speakers to the future sessions. The number of sessions to plan in advance can be
+                                    set in the plugin's settings.</p>
+                                <p><strong>Groups</strong>: Automatically creates groups of users based on the number of
+                                    presentations scheduled for the upcoming session.
+                                    Users will be notified by email about their group's information. If the different
+                                    groups are meeting in different rooms, then the rooms can be specified in the
+                                    plugin's settings (rooms must be comma-separated).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="scheduled-tasks"><a href="#scheduled-tasks" name="scheduled-tasks">Scheduled tasks</a>
+                        </h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_full">
+                            <p><span class="appName"><?php echo AppConfig::app_name; ?></span> relies on scheduled tasks
+                                in
+                                order to automatically send notifications, reminders or assignments by email,
+                                or simply to backup files and database.</p>
+                            <p>In order to do so, you need to set CRON jobs on your server (if your server is running on
+                                Linux) or scheduled tasks (if it’s running on MS Windows) pointing to the PHP script
+                                'run.php' located in the 'jcm/cronjobs' folder and to make it run every hour.
+                            </p>
+                            <p>Here are tutorials to automatically run PHP file:</p>
+                            <ul>
+                                <li>
+                                    <p>on MS Windows: <a href="https://www.drupal.org/node/31506">
+                                            https://www.drupal.org/node/31506</a></p>
+                                </li>
+                                <li>
+                                    <p>on Linux: <a href="http://www.thegeekstuff.com/2011/07/php-cron-job/">
+                                            http://www.thegeekstuff.com/2011/07/php-cron-job/</a></p>
+                                </li>
+                            </ul>
+                            <p>Once done, scheduled tasks can be managed from the <span class="appName">
+                                    <?php echo AppConfig::app_name; ?></span>
+                                (<span class="menu_path">Admin&gt;Scheduled Tasks</span>).</p>
+                        </div>
+                        <div class="help_section_content_first">
+                            <div class="help_section_container">
+                                <div class="help_section_header">
+                                    <h3 id="how-to-schedule-a-task"><a href="#how-to-schedule-a-task"
+                                                                       name="how-to-schedule-a-task">How to schedule a
+                                            task</a></h3>
+                                </div>
+                                <div class="help_section_content">
+                                    <div class="help_section_content_full">
+                                        <p>
+                                            First, the task must be installed and activated. Then, in
+                                            <span class="menu_path">Date & Time</span> section, select a date and a time
+                                            when the task should be executed.</p>
+                                        <p>You also have the possibility to repeat the task automatically. To do so, in
+                                            <span class="menu_path">Frequency</span>, define how often the task should
+                                            be executed (every x month, x days, x hours, and x minutes).</p>
+                                        <p>Finally, click on the "Update" button to save your settings</p>
+                                    </div>
+                                    <div class="help_section_content_first">
+                                        List of available operations:
+                                        <div class="icon_list_container">
+                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>install_btn.png"></div>
+                                            <div class="icon_list_text">Install task</div>
+                                        </div>
+                                        <div class="icon_list_container">
+                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>trash.png"></div>
+                                            <div class="icon_list_text">Uninstall task</div>
+                                        </div>
+                                        <div class="icon_list_container">
+                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>settings.png"></div>
+                                            <div class="icon_list_text">Show task's settings</div>
+                                        </div>
+                                        <div class="icon_list_container">
+                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>on.png">
+                                            </div>
+                                            <div class="icon_list_text">Activate/deactivate task</div>
+                                        </div>
+                                        <div class="icon_list_container">
+                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>run.png">
+                                            </div>
+                                            <div class="icon_list_text">Execute scheduled task</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <p><img src="<?php echo URL_TO_IMG; ?>help/admin_scheduled_tasks.png"  class="help_img"
+                                    alt="Scheduled tasks manager" /></p>
+                        </div>
+
+                        <div class="help_section_container">
+                            <div class="help_section_header">
+                                <h3 id="list-of-built-in-scheduled-tasks"><a href="#list-of-built-in-scheduled-tasks"
+                                                                             name="list-of-built-in-scheduled-tasks">
+                                        List of built-in scheduled tasks:</a></h3>
+                            </div>
+                            <div class="help_section_content">
+                                <p><strong>Mailing:</strong> send weekly digest including the last news, details about
+                                    the
+                                    upcoming session, the list of the future
+                                    sessions and the list of the newest wishes.</p>
+                                <p><strong>Notification</strong>: Send list of last submissions by email.</p>
+                                <p><strong>Reminder</strong>: send reminder for the upcoming session.</p>
+                                <p><strong>SpeakerAssignment</strong>: automatically assigned speakers to each
+                                    presentation by
+                                    pseudo-randomly picking up one organizer.
+                                    The simple rule is that all organizers must have been a chair once for this
+                                    particular
+                                    session type (e.g. journal club,
+                                    group meeting, etc.) before an organizer can be selected again as a chair.</p>
+                                <p><strong>MakeGroup</strong>: Split users into groups for one session (1 group per
+                                    presentation)</p>
+                                <p><strong>DbBackup.php</strong>: do a backup copy of the database and save it into a
+                                    .sql file
+                                    that can be found in “jcm/backup/mysql” folder.</p>
+                                <p><strong>FullBackup</strong>: do a backup copy of the database and of all the files
+                                    and store
+                                    it in an archive that can be found in
+                                    “jcm/backup/complete” folder.</p>
+                                <p><strong>MailSender</strong>: Checks whether all emails have been sent and sends them
+                                    otherwise. It also cleans the mailing database
+                                    by deleting the oldest emails. The number of days of email storage can be defined
+                                    in the
+                                    task's settings (default is 10 days).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="admin-logs"><a href="#admin-logs" name="admin-logs">System logs</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>System logs are accessible from <span class="menu_path">Admin>System logs</span>.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="contact"><a href="#contact" name="contact">Pages</a></h1>
+            </div>
+            <div class="help_section_content">
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="home"><a href="#home" name="home">Home</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_first">
+                            <p>This is the home page of your <span class="appName"><?php echo AppConfig::app_name; ?>
+                                </span>.
+                            Here, you can find the last posted news, information about the upcoming sessions and the
+                            wish list.</p>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/home.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/home.png" alt="Contact page" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="contact"><a href="#contact" name="contact">Contact</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>Here you can find information relative to the journal club (address, time, map) and
+                                contact the organizers by email.</p>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/contact.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/contact.png" alt="Contact page" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="news"><a href="#news" name="news">News</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_full">
+                            <p>All news posted on your <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                                will be accessible from this page.<p>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/news.png">
+                            <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/news.png" alt="News page" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="help_section_container">
+            <div class="help_section_header">
+                <h1 id="create-account"><a href="#create-account" name="create-account">Create an account</a></h1>
+            </div>
+            <div class="help_section_content">
+                <div class="help_section_full">
+                    <ol>
+                        <li>First, go to your <span class="appName"><?php echo AppConfig::app_name; ?></span> page.</li>
+                        <li>Click on the sign up icon (top-right of the page)</li>
+                        <li>You will be prompted with a form. Simply fill it in with your information (all fields are
+                            required)</li>
+                        <li>Click on the sign-up button to submit your form. You're done!</li>
+                    </ol>
+                    <p>You will receive a confirmation email as soon as your account has been activated by the admins or
+                        organizers.</p>
+                    <p>Once done, you can login to your <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                        by clicking on the login button (top-right of the page) and provide your login information.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
