@@ -603,6 +603,9 @@ $(document).ready(function () {
             var div = $('.select_emails_container').find('.select_emails_list');
             $('.select_emails_container').find('.select_emails_list').find('.mailing_recipients_empty').remove();
             var email_input = form.find("input[name='emails']");
+            if (id === "all") {
+                $("#make_news").find("option[value='yes']").prop('selected', true);
+            }
 
             jQuery.ajax({
                 url: 'php/form.php',

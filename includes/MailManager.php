@@ -325,12 +325,19 @@ class MailManager extends AppTable {
                         {$recipients_list}
                     </div>
                     <div>
-                        <div class='form-group'>
+                        <div class='form-group field_auto inline_field email_option'>
                             <select name='undisclosed'>
                                 <option value='yes'>Yes</option>
                                 <option value='no' selected>No</option>
                             </select>
                             <label>Hide recipients</label>
+                        </div>
+                        <div class='form-group field_auto inline_field email_option'>
+                            <select id='make_news' name='make_news'>
+                                <option value='yes'>Yes</option>
+                                <option value='no' selected>No</option>
+                            </select>
+                            <label>Add as news</label>
                         </div>
                     </div>
                 </div>

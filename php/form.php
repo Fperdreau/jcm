@@ -897,6 +897,7 @@ if (!empty($_POST['mailing_send'])) {
     $ids = explode(',',$_POST['emails']); // Recipients list
     $content['attachments'] = $_POST['attachments']; // Attached files
     $disclose = htmlspecialchars($_POST['undisclosed']) == 'yes'; // Do we show recipients list?
+    $make_news = htmlspecialchars($_POST['make_news']) == 'yes'; // Do we show recipients list?
     $user = new User($db);
     $MailManager = new MailManager($db);
 
@@ -908,6 +909,15 @@ if (!empty($_POST['mailing_send'])) {
     }
     
     $result = $MailManager->send($content, $mailing_list, $disclose);
+
+    if ($make_news) {
+        $news = new Posts($db);
+        $news->make(array(
+            'title'=>$content['subject'],
+            'content'=>$content['body'],
+            'homepage'=>1
+        ));
+    }
 
     echo json_encode($result);
     exit;
