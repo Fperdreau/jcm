@@ -319,7 +319,7 @@ class MailManager extends AppTable {
                             <option value='all'>All</option>
                             {$mailing_list}
                         </select>
-                        <button type='submit' class='add_email addBtn'></button>
+                        <!--<button type='submit' class='add_email addBtn'></button>-->
                     </div>
                     <div class='select_emails_list'>
                         {$recipients_list}
