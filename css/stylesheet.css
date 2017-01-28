@@ -2170,7 +2170,7 @@ div.workBtn.loadBtn {
 
 .uninstallBtn {
     background: rgba( 255, 255, 255, 1)
-    url('../images/delete.png')
+    url('../images/trash.png')
     50% 50%
     no-repeat;
     background-size: 20px 20px;
@@ -3036,7 +3036,6 @@ input.dateinput {
     padding: 2px;
     margin: 2px;
     box-sizing: border-box;
-
 }
 
 .calendar_legend>div {
@@ -3045,4 +3044,111 @@ input.dateinput {
     font-size: 15px;
     margin: 2px;
     box-sizing: border-box;
+}
+
+/* About page */
+.subTitle {
+    padding-left: 10px;
+    margin-top: -18px;
+    margin-bottom: 10px;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1em;
+    color: rgb(150, 150, 150);
+}
+
+.title_lvl2 {
+    font-size: 1.1em;
+    color: rgb(120, 120, 120);
+    font-weight: 400;
+    padding: 10px 0 4px 0;
+}
+
+/* Help */
+.appName {
+    font-style: italic;
+    font-weight: 400;
+}
+
+.help_section_container {
+    margin-bottom: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: block !important;
+}
+
+.help_section_container a {
+    color: rgba(207,81,81,1);
+}
+
+.help_section_container a:hover {
+    color: #222;
+}
+
+.help_section_container li {
+    text-transform: none;
+}
+
+.help_section_header > h1 {
+    margin: 20px 0 5px 7px;
+}
+
+.help_section_header > h2 {
+    margin: 15px 0 5px 5px;
+}
+
+.help_section_header > h3 {
+    border: none !important;
+    margin: 10px 0 5px 3px;
+}
+
+.help_section_content > div {
+    display: inline-block;
+    vertical-align: top;
+    padding: 0 10px 0 10px;
+    box-sizing: border-box;
+}
+
+.help_section_content_first, .help_section_content_last {
+    width: 48%;
+    min-width: 300px;
+}
+
+.help_section_container > .img_container {
+    text-align: center;
+}
+
+.help_section_content_full {
+    width: 100%;
+}
+
+.help_img {
+    width: 90%;
+    text-align: center;
+    vertical-align: top;
+}
+
+.important_action {
+    font-style: italic;
+    font-weight: 400;
+}
+
+.menu_path {
+    font-style: italic;
+    font-weight: 400;
+    color: rgba(207,81,81,1);
+}
+
+.icon_list_container > div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.icon_list_icon {
+    text-align: center;
+}
+
+.icon_list_icon > img {
+    width: 25px;
+    height: auto;
 }
