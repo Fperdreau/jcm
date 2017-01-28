@@ -594,6 +594,39 @@ $(document).ready(function () {
             });
         })
 
+        .on('change', '.select_emails_selector', function(e) {
+            e.preventDefault();
+            var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var name = input.find('option:selected').html();
+            var id = input.val();
+            var div = $('.select_emails_container').find('.select_emails_list');
+            $('.select_emails_container').find('.select_emails_list').find('.mailing_recipients_empty').remove();
+            var email_input = form.find("input[name='emails']");
+
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'post',
+                data: {
+                    add_emails: id
+                },
+                success: function (data) {
+                    var json = jQuery.parseJSON(data);
+                    if (json.status) {
+                        if (email_input !== undefined && email_input.length > 0) {
+                            var emails = email_input.val().split(',');
+                            emails.push(json.ids);
+                            emails = (emails[0] === "") ? emails.slice(1,emails.length):emails;
+                            email_input.val(emails.join(','));
+                        } else {
+                            form.append("<input name='emails' type='hidden' value='"+json.ids+"'/>");
+                        }
+                        div.append(json.content);
+                    }
+                }
+            });
+        })
+
         .on('click', '.added_email_delete', function (e) {
             var form = $(this).closest('form');
             var id = $(this).attr('id');
