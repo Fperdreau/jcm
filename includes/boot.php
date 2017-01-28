@@ -82,6 +82,7 @@ $Corelogger = AppLogger::get_instance('core');
 $db = new AppDb();
 $AppConfig = new AppConfig($db);
 if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
+if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "/images/");
 
 $AppPage = new AppPage($db);
 $Presentations = new Presentations($db);
