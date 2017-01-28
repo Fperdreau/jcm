@@ -400,7 +400,7 @@ if (!empty($_POST['getpagecontent'])) {
     $_SESSION['installed_version'] = $version;
 
     if ($step == 1) {
-        $title = "Welcome to the Journal Club Manager";
+        $title = "Welcome!";
         if ($version == false) {
             $operation = "
                 <p>Hello</p>
@@ -608,7 +608,12 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             min-width: 100%;
             box-shadow: none !important;
             text-align: center;
+            padding: 0;
             background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        header .box {
+            padding: 10px;
         }
 
         header > div {
@@ -626,6 +631,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
 
         main {
             min-height: 400px;
+            padding: 0;
         }
 
         section {
@@ -654,10 +660,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
 
         }
 
-        #appTitle {
+        header #appTitle {
             text-transform: uppercase;
             color: rgb(255, 255, 255);
-            margin-top: 20px;
+            margin-top: 0px;
             font-size: 1.1em;
             font-weight: 500;
         }
@@ -678,11 +684,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
 
         footer {
             background-color: rgba(255, 255, 255, 0.1);
-            position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 5vh;
+            height: auto;
             line-height: 5vh;
             padding: 0 5px;
             box-sizing: border-box;
@@ -713,7 +718,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         footer #sign {
             float: right;
             padding: 0;
-            margin: 0;
+            margin: 10px 0 0 0;
         }
 
         footer #sign a {
