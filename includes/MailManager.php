@@ -262,7 +262,7 @@ class MailManager extends AppTable {
         return "
             <div class='added_email' id='{$info['id']}'>
                 <div class='added_email_name'>{$info['fullname']}</div>
-                <div class='added_email_delete' id='{$info['id']}'><img src='images/close.png'></div>
+                <div class='added_email_delete' id='{$info['id']}'><img src='images/trash.png'></div>
             </div>
         ";
     }
