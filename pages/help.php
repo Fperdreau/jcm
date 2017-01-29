@@ -18,6 +18,7 @@
             var next_level = level + 1;
             if (id !== 'summary') {
                 tree[i] = {};
+                tree[i]['level'] = 'h' + level;
                 tree[i]['id'] = id;
                 tree[i]['title'] = title;
                 tree[i]['subtree'] = parseTree(next_level, next_el);
@@ -39,11 +40,11 @@
             var menu_element = "<a href='#" + tree[i]['id'] + "'>" + tree[i]['title'] + "</a>";
             if (Object.keys(tree[i]['subtree']).length > 0) {
                 var sub_menu = renderMenu(tree[i]['subtree']);
-                menu_elements += "<li>" + menu_element +
+                menu_elements += "<li class='" + tree[i]['level'] + "'>" + menu_element +
                     "<ul>" + sub_menu + "</ul>" +
                     "</li>";
             } else {
-                menu_elements += "<li>" + menu_element + "</li>";
+                menu_elements += "<li class='" + tree[i]['level'] + "'>" + menu_element + "</li>";
             }
         }
 
@@ -76,17 +77,29 @@
             </div>
             <div class="help_section_content">
                 <div class="help_section_content_first">
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is a web-application designed to help labs in managing their journal clubs and presentations.
-                        Members can easily create an account and from there submit, edit and delete their presentations, or suggest papers for future sessions.</p>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is a web-application designed to
+                        help labs in managing their journal clubs and presentations.
+                        Members can easily create an account and from there submit, edit and delete their presentations,
+                        or suggest papers for future sessions.</p>
 
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> comes with a complete administration interface allowing admins and organisers to manage the sessions
-                        (their date, type, time, number of presentations, etc.), to post news, send emails to the other members, create group of members and a lot more!</p>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> comes with a complete
+                        administration interface allowing admins and organisers to manage the sessions
+                        (their date, type, time, number of presentations, etc.), to post news, send emails to the other
+                        members, create group of members and a lot more!</p>
 
-                    <p>Finally, <span class="appName"><?php echo AppConfig::app_name; ?></span> relies on several automated features that make the organization of journal clubs an easy and effortless task.</p>
+                    <p>Finally, <span class="appName"><?php echo AppConfig::app_name; ?></span> relies on several
+                        automated features that make the organization of journal clubs an easy and effortless task.</p>
                     <ul>
-                        <li><span class="help_bullet_bold">Mailing system</span>: <span class="appName"><?php echo AppConfig::app_name; ?></span> includes a mailing system to notify members about upcoming journal club sessions, recent news or the last wishes added by the other users.</li>
-                        <li><span class="help_bullet_bold">Automatic assignment</span>: <span class="appName"><?php echo AppConfig::app_name; ?></span> can automatically assign members as speaker for the future sessions</li>
-                        <li><span class="help_bullet_bold">Automatic backup</span>: <span class="appName"><?php echo AppConfig::app_name; ?></span> can automatically update databases and application files</li>
+                        <li><span class="help_bullet_bold">Mailing system</span>: <span class="appName">
+                                <?php echo AppConfig::app_name; ?></span> includes a mailing system to notify members
+                            about upcoming journal club sessions, recent news or the last wishes added by the other
+                            users.</li>
+                        <li><span class="help_bullet_bold">Automatic assignment</span>: <span class="appName">
+                                <?php echo AppConfig::app_name; ?></span> can automatically assign members as speaker
+                            for the future sessions</li>
+                        <li><span class="help_bullet_bold">Automatic backup</span>: <span class="appName">
+                                <?php echo AppConfig::app_name; ?></span> can automatically update databases and
+                            application files</li>
                     </ul>
 
                 </div>
@@ -105,20 +118,36 @@
             <div class="help_section_content">
                 <div class="help_section_full">
                     <p>Copyright © 2014 Florian Perdreau</p>
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.</p>
-                    <p>You should have received a copy of the GNU Affero General Public License along with <span class="appName"><?php echo AppConfig::app_name; ?></span> . If not, see <<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>></p>
-                    <h2 id="external-sources"><a href="#external-sources" name="external-sources">External sources</a></h2>
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> also depends on external open-sources dependencies:</p>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is free software: you can
+                        redistribute it and/or modify it under the terms of the GNU Affero General Public License as
+                        published by the Free Software Foundation, either version 3 of the License, or (at your option)
+                        any later version.</p>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is distributed in the hope that
+                        it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+                        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License
+                        for more details.</p>
+                    <p>You should have received a copy of the GNU Affero General Public License along with
+                        <span class="appName"><?php echo AppConfig::app_name; ?></span> . If not, see <
+                        <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>></p>
+                    <h2 id="external-sources"><a href="#external-sources" name="external-sources">External sources</a>
+                    </h2>
+                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> also depends on external
+                        open-sources dependencies:</p>
                     <ul>
                         <li>
-                            <p><strong><em>PHPMailer</em></strong>, Copyright © 2014 Marcus Bointon, licensed under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
+                            <p><strong><em>PHPMailer</em></strong>, Copyright © 2014 Marcus Bointon, licensed under the
+                                [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">
+                                    http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
                         </li>
                         <li>
-                            <p><strong><em>html2text</em></strong>, Copyright © 2010 Jevon Wright and others, licensed under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
+                            <p><strong><em>html2text</em></strong>, Copyright © 2010 Jevon Wright and others, licensed
+                                under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">
+                                    http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
                         </li>
                         <li>
-                            <p><strong><em>TinyMCE</em></strong> Copyright © Moxiecode Systems AB, licensed under the [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
+                            <p><strong><em>TinyMCE</em></strong> Copyright © Moxiecode Systems AB, licensed under the
+                                [LGPL 2.1]: <a href="http://www.gnu.org/licenses/lgpl-2.1.html">
+                                    http://www.gnu.org/licenses/lgpl-2.1.html</a>.</p>
                         </li>
                     </ul>
                 </div>
@@ -127,15 +156,16 @@
 
         <div class="help_section_container">
             <div class="help_section_header">
-                <h1 id="system-requirements"><a href="#system-requirements" name="system-requirements">System Requirements</a></h1>
+                <h1 id="system-requirements"><a href="#system-requirements" name="system-requirements">
+                        System Requirements</a></h1>
             </div>
             <div class="help_section_content">
                 <div class="help_section_full">
                     <ul>
                         <li>A web server running PHP 5.4 or later</li>
                         <li>MySQLi (5.0 or later)</li>
-                        <li>CRON table (on Linux servers) or scheduled tasks (on Microsoft Windows servers) <em>*required
-                                for email notifications</em></li>
+                        <li>CRON table (on Linux servers) or scheduled tasks (on Microsoft Windows servers)
+                            <em>*required for email notifications</em></li>
                         <li>SMTP server (or a Google Mail account)</li>
                     </ul>
                 </div>
@@ -150,17 +180,24 @@
 
             <div class="help_section_container">
                 <div class="help_section_header">
-                    <h2 id="updating-from-version-121-or-earlier"><a href="#updating-from-version-121-or-earlier" name="updating-from-version-121-or-earlier">0. Upgrading from version 1.2.1 or earlier</a></h2>
+                    <h2 id="updating-from-version-121-or-earlier"><a href="#updating-from-version-121-or-earlier"
+                                                                     name="updating-from-version-121-or-earlier">
+                            0. Upgrading from version 1.2.1 or earlier</a></h2>
                 </div>
                 <div class="help_section_content">
-                    <p>The <span class="appName"><?php echo AppConfig::app_name; ?></span> has sensibly changed since its very first versions. If you are running with one of these versions,
-                        you can upgrade to the newest version of the JCM but you will need to follow a specific procedure:
+                    <p>The <span class="appName"><?php echo AppConfig::app_name; ?></span> has sensibly changed since
+                        its very first versions. If you are running with one of these versions,
+                        you can upgrade to the newest version of the JCM but you will need to follow a specific
+                        procedure:
                     <ol>
-                        <li>Save your previous config file (path_to_JCM/admin/config/config.php) somewhere outside the application.</li>
-                        <li>Overwrite all the JCM's folders already present on your server EXCEPT the &quot;uploads&quot; folder.</li>
+                        <li>Save your previous config file (path_to_JCM/admin/config/config.php) somewhere outside the
+                            application.</li>
+                        <li>Overwrite all the JCM's folders already present on your server EXCEPT the &quot;uploads&quot; folder.
+                        </li>
                         <li>Copy your previous config file (the one you saved in step 1) to the new config folder
                             (path_to_JCM/config/config.php).</li>
-                        <li>Update your JCM version by running <a href="http://www.mydomain.com/jcm/install.php">http://www.mydomain.com/jcm/install.php</a> and follow the steps described in the
+                        <li>Update your JCM version by running <a href="http://www.mydomain.com/jcm/install.php">
+                                http://www.mydomain.com/jcm/install.php</a> and follow the steps described in the
                             next sections.</li>
                         <li>Congrats!</li>
                     </ol>
@@ -169,7 +206,9 @@
 
             <div class="help_section_container">
                 <div class="help_section_header">
-                    <h2 id="step-1-upload-files-on-the-server"><a href="#step-1-upload-files-on-the-server" name="step-1-upload-files-on-the-server">1. Upload files on the server</a></h2>
+                    <h2 id="step-1-upload-files-on-the-server"><a href="#step-1-upload-files-on-the-server"
+                                                                  name="step-1-upload-files-on-the-server">
+                            1. Upload files on the server</a></h2>
                 </div>
 
                 <div class="help_section_content">
@@ -178,7 +217,9 @@
                             <h3 id="using-git"><a href="#using-git" name="using-git">Using GIT</a></h3>
                         </div>
                         <div class="help_section_content">
-                            <p>Simply clone the <span class="appName"><?php echo AppConfig::app_name; ?></span> repository (<a href="https://github.com/Fperdreau/jcm.git">https://github.com/Fperdreau/jcm.git</a>) at the root of your web-server.</p>
+                            <p>Simply clone the <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                                repository (<a href="https://github.com/Fperdreau/jcm.git">
+                                    https://github.com/Fperdreau/jcm.git</a>) at the root of your web-server.</p>
                         </div>
                     </div>
                     <div class="help_section_container">
@@ -189,8 +230,10 @@
                             <ol>
                                 <li>Download JCM <a href="https://github.com/Fperdreau/jcm/releases">here</a></li>
                                 <li>Unzip the archive</li>
-                                <li>Upload the “jcm” folder to the root of your web-server using your favorite FTP client (e.g. FileZilla).</li>
-                                <li>Make sure that you have the writing permissions for all the folders and files (set folders chmod to 0755 and files chmod to 0644).</li>
+                                <li>Upload the “jcm” folder to the root of your web-server using your favorite FTP
+                                    client (e.g. FileZilla).</li>
+                                <li>Make sure that you have the writing permissions for all the folders and files
+                                    (set folders chmod to 0755 and files chmod to 0644).</li>
                             </ol>
                         </div>
                     </div>
@@ -200,10 +243,13 @@
 
             <div class="help_section_container">
                 <div class="help_section_header">
-                    <h2 id="step-2-preparation-of-the-database"><a href="#step-2-preparation-of-the-database" name="step-2-preparation-of-the-database">2. Preparation of the database</a></h2>
+                    <h2 id="step-2-preparation-of-the-database"><a href="#step-2-preparation-of-the-database"
+                                                                   name="step-2-preparation-of-the-database">
+                            2. Preparation of the database</a></h2>
                 </div>
                 <div class="help_section_content">
-                    <p>Go to your SQL database interface (e.g. PHPmyadmin) and create a new database (if you have the rights, however, ask your admin for the name of the database). That’s it!</p>
+                    <p>Go to your SQL database interface (e.g. PHPmyadmin) and create a new database (if you have the
+                        rights, however, ask your admin for the name of the database). That’s it!</p>
                 </div>
             </div>
 
@@ -468,7 +514,8 @@
                 </div>
                 <div class="help_section_content">
                     <div class="help_section_content_full">
-                        <p>You can send an email to other JCM members from My Tools>Email.</p>
+                        <p>You can send an email to other JCM members from <span class="menu_path">My Tools>Email</span>
+                            .</p>
                     </div>
                     <div class="help_section_content_first">
                         <p><a href="<?php echo URL_TO_IMG; ?>help/mailing.png">
@@ -483,10 +530,10 @@
                                 emails or upload them by clicking on the "Add Files" buttons</li>
                             <li><strong>Select recipients:</strong> In the selection list,
                                 <span class="important_action">select the members</span> (one at a time) to whom you
-                                want to send your email and <span class="important_action">click on the big "+"
-                                    button</span> to add them to the
-                                    selection list. If you want to add all of the JCM members to the recipient list,
-                                    then simply select "All" from the selection list.</li>
+                                want to send your email. If you want to add all of the JCM members to the recipient list,
+                                then simply select "All" from the selection list. Selected members appear in the
+                                recipients field. You can remove previously added members by clicking on the trash icon
+                                next to the member's name</li>
                             <li><strong>Hide recipients:</strong> if set to "yes", then recipients email addresses
                                 and identities will not be visible. Note that this will also prevent recipients to
                                 "reply to all".</li>
@@ -672,9 +719,9 @@
                             </p>
                         </div>
                         <div class="help_section_content_first">
-                            <p>The reminder and digest emails manager allows you editing the content of reminder and digest
-                            emails. From these pages, you can select which and how information should appear in the
-                                emails.</p>
+                            <p>The reminder and digest emails manager allows you editing the content of reminder and
+                                digest emails. From these pages, you can select which and how information should appear
+                                in the emails.</p>
                             <p>Once you have validated your modifications, you can preview the email content by clicking
                             on the <span class="important_action">Preview</span> button.</p>
                         </div>
@@ -796,7 +843,8 @@
                                     </a>
                                 </div>
                                 <div class="help_section_content_last">
-                                    <p><strong>Google Map’s URL (to show your location on the Contact page):</strong></p>
+                                    <p><strong>Google Map’s URL (to show your location on the Contact page):</strong>
+                                    </p>
                                     <ol>
                                         <li>
                                             Go to Google Map website and search for your location.
@@ -943,24 +991,29 @@
                                     <div class="help_section_content_first">
                                         List of available operations:
                                         <div class="icon_list_container">
-                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>install_btn.png"></div>
+                                            <div class="icon_list_icon">
+                                                <img src="<?php echo URL_TO_IMG; ?>install_btn.png"></div>
                                             <div class="icon_list_text">Install task</div>
                                         </div>
                                         <div class="icon_list_container">
-                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>trash.png"></div>
+                                            <div class="icon_list_icon">
+                                                <img src="<?php echo URL_TO_IMG; ?>trash.png"></div>
                                             <div class="icon_list_text">Uninstall task</div>
                                         </div>
                                         <div class="icon_list_container">
-                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>settings.png"></div>
+                                            <div class="icon_list_icon">
+                                                <img src="<?php echo URL_TO_IMG; ?>settings.png"></div>
                                             <div class="icon_list_text">Show task's settings</div>
                                         </div>
                                         <div class="icon_list_container">
-                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>on.png">
+                                            <div class="icon_list_icon">
+                                                <img src="<?php echo URL_TO_IMG; ?>on.png">
                                             </div>
                                             <div class="icon_list_text">Activate/deactivate task</div>
                                         </div>
                                         <div class="icon_list_container">
-                                            <div class="icon_list_icon"><img src="<?php echo URL_TO_IMG; ?>run.png">
+                                            <div class="icon_list_icon">
+                                                <img src="<?php echo URL_TO_IMG; ?>run.png">
                                             </div>
                                             <div class="icon_list_text">Execute scheduled task</div>
                                         </div>
