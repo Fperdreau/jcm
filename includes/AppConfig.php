@@ -42,11 +42,11 @@ class AppConfig extends AppTable {
      *
      */
     const app_name = "Journal Club Manager"; // Application's name
-    const version = "1.4.4"; // Application's version
+    const version = "1.5.0"; // Application's version
     const author = "Florian Perdreau"; // Application's authors
     const repository = "https://github.com/Fperdreau/jcm"; // Application's sources
     const sitetitle = "Journal Club Manager"; //
-    const copyright = "&copy; 2014-2016";
+    const copyright = "&copy; 2014-2017";
     const license = "GNU AGPL v3";
     public $status = 'On'; // Application's status (on or off)
     public static $site_url; // Web path to application
