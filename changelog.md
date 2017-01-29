@@ -1,18 +1,22 @@
 # Journal Club Manager &copy; 2014
 
-## Release: 1.4.4
+## Release: 1.5.0
 ### Changes
 - Corrected minor errors (PHP STRICT errors)
 - Fixed compatibility issues with Php 5.4
 - Improved user interface and page loading speed
 - Corrected bug that prevented the user to delete his/her account
 - Automatically log out user if inactive for more than a given duration
+- Added Help section.
+- Added About section.
 
 ### Mailing
 - Added possibility to hide recipients list.
 - Added possibility to test email host settings without modifying JCM's configuration during the installation process
  and on Admin>Settings page.
 - Added possibility to reply to email sent through JCM if sender is a human.
+- Added option to publish email's content as news.
+- Automatically add recipients to list when selected from dropdown menu (no need to click the 'add' button)
 
 ### Assignments
 - Send reminder to user about his/her upcoming presentation
