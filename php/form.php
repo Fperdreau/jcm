@@ -350,8 +350,15 @@ Pages Management
 // Get Pages
 if (!empty($_POST['getPage'])) {
     $page = htmlspecialchars($_POST['getPage']);
+    if (strpos($page, "#")) {
+        // Remove hashtags
+        $page = substr($page, 0, strpos($page, "#"));
+    }
     $split = explode('/', $page);
+
+    // Get page id
     $page_id = end($split);
+
     $page_name = implode('\\\\', $split);
     $Page = new AppPage($db, $page_name);
     $Plugins = new AppPlugins($db);
@@ -375,7 +382,7 @@ if (!empty($_POST['getPage'])) {
                 $result = AppPage::notFound();
             } else {
                 $result['content'] = AppPage::render($page);
-                $result['header'] = AppPage::header($page_id, $content['icon']);
+                $result['header'] = AppPage::header($page, $content['icon']);
             }
         }
     } else {
