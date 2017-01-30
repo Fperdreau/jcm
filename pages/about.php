@@ -12,7 +12,7 @@
         <div>
             <div class="title_lvl2">License</div>
             <span class="app_name">Journal Club Manager</span>
-            <div>Copyright Florian Perdreau, &copy; 2014-2016 [<a href="http://www.gnu.org/licenses/">AGPL 3.0</a>]</div>
+            <div>Copyright Florian Perdreau, &copy; 2014-2017 [<a href="http://www.gnu.org/licenses/">AGPL 3.0</a>]</div>
         </div>
     </div>
 </section>
