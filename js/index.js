@@ -720,7 +720,7 @@ $(document).ready(function () {
                     showpostform(false);
                 }
             };
-            processAjax('.postcontent', data, callback, "php/form.php");
+            processAjax($('.postcontent'), data, callback, "php/form.php");
         })
 
         // Add a news to the homepage
