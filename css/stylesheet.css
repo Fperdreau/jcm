@@ -1161,7 +1161,7 @@ footer {
 	min-height: 100px;
 	text-align: center;
 	vertical-align: middle;
-    margin: 0 auto;
+    margin: 10px auto 0 auto;
 	background-color: rgba(50,50,50,1);
     padding: 0;
 }
