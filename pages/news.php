@@ -21,4 +21,6 @@
  */
 
 $last_news = new Posts($db);
-echo $last_news->show(false);
+$category = (isset($_POST['category'])) ? htmlspecialchars($_POST['category']) : null;
+$curr_page = (isset($_POST['curr_page'])) ? htmlspecialchars($_POST['curr_page']) : 1;
+echo $last_news->index($category, $curr_page);
