@@ -3179,3 +3179,124 @@ input.dateinput {
     width: 25px;
     height: auto;
 }
+
+
+/* *********************************************************************/
+/* Pagination menu
+/* *********************************************************************/
+.paging_container {
+    width: 100%;
+    text-align: center;
+    left: 0;
+    bottom: 10px;
+    margin-top: 20px;
+}
+
+.paging_container > div {
+    display: inline-block;
+    width: 300px;
+    margin: auto;
+    text-align: justify;
+    background-color: rgba(255, 255, 255, 1);
+    padding: 0;
+    bottom: 10px;
+}
+
+#paging_menu {
+    display: inline-block;
+    width: 300px;
+    margin: auto;
+    text-align: justify;
+    padding: 0;
+    bottom: 10px;
+
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+    background-color: rgba(255,255,255,1);
+}
+
+#paging_menu>div {
+    display: inline-block;
+}
+
+#paging_nav {
+    width: 100%;
+    text-align: center;
+    font-weight: 400;
+}
+
+#paging_nav div {
+    display: inline-block;
+    margin: 2px;
+    vertical-align: middle;
+    width: 20px;
+    height: 20px;
+}
+
+#paging_nav img {
+    width: 15px;
+    height: auto;
+    vertical-align: middle;
+}
+
+#paging_nav a:hover {
+    font-weight: 600;
+}
+
+#paging_nav #paging_current {
+    font-weight: 600;
+    border: 1px solid black;
+}
+
+#paging_nav #paging_next {
+    font-weight: 400;
+}
+
+#paging_nav #paging_last {
+    font-weight: 400;
+}
+
+.pp_selector_container {
+    right: 0;
+    width: 35%;
+    text-align: center;
+    padding: 2px;
+    border-left: 2px solid rgba(50, 50, 50, .3);
+}
+
+.gallery_menu_container {
+    box-sizing: border-box;
+}
+
+.gallery_menu_container>div {
+    display: inline-block;
+    width: 45%;
+}
+
+.gallery_menu_container label {
+    font-weight: 400;
+}
+
+.gallery_menu_container select {
+    font-size: 12px;
+    max-width: 100%;
+}
+
+.gallery_menu_container .disabled_select {
+    font-size: 12px;
+}
+
+.gallery_menu {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.gallery_menu > div {
+    display: inline-block;
+    width: 300px;
+    margin: auto;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 1);
+    padding: 5px 8px;
+    bottom: 10px;
+}
