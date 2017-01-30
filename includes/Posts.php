@@ -225,7 +225,7 @@ class Posts extends AppTable {
      * @return string
      */
     public function index($category=null, $page_number=1) {
-        $pp = 2;
+        $pp = 10;
         $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
         $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
         $count = $this->getCount($category);
