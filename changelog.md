@@ -9,6 +9,7 @@
 - Automatically log out user if inactive for more than a given duration
 - Added Help section.
 - Added About section.
+- Added pagination for News page.
 
 ### Mailing
 - Added possibility to hide recipients list.
