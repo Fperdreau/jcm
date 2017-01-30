@@ -163,7 +163,7 @@
                 <div class="help_section_full">
                     <ul>
                         <li>A web server running PHP 5.4 or later</li>
-                        <li>MySQLi (5.0 or later)</li>
+                        <li>MySQL (5.0 or later)</li>
                         <li>CRON table (on Linux servers) or scheduled tasks (on Microsoft Windows servers)
                             <em>*required for email notifications</em></li>
                         <li>SMTP server (or a Google Mail account)</li>
@@ -631,8 +631,7 @@
                                     notifications from <span class="appName"><?php echo AppConfig::app_name; ?></span>
                                     by email (e.g. new submissions, etc.)</li>
                                 <li><strong>Reminders</strong>: if set to "Yes", then you will receive reminders about
-                                    upcoming journal club sessions
-                                and about your own presentations</li>
+                                    upcoming journal club sessions and about your own presentations</li>
                                 <li><strong>Assignment</strong>: if set to "Yes", then you allow
                                     <span class="appName"><?php echo AppConfig::app_name; ?></span> to automatically
                                     assign you to future sessions as speaker</li>
@@ -663,6 +662,50 @@
                             <p>Here you can inform <span class="appName"><?php echo AppConfig::app_name; ?></span> about
                                 the dates on which you are not available for presenting.</p>
                             <p>To do so, simply click on a date of your choice.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="change-my-password"><a href="#change-my-password" name="change-my-password">How do I
+                                change my password?</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_first">
+                            <p>From <span class="menu_path">Profile>Personal information</span>, click on the link
+                                "change my password".</p>
+                            <p>An email will be automatically sent to your email address with further
+                                instructions.</p>
+                        </div>
+                        <div class="help_section_content_last img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/profile_changepwd.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/profile_changepwd.png"
+                                     alt="My availability" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help_section_container">
+                    <div class="help_section_header">
+                        <h2 id="delete-my-account"><a href="#delete-my-account" name="delete-my-account">How do I delete
+                                my account?</a></h2>
+                    </div>
+                    <div class="help_section_content">
+                        <div class="help_section_content_first img_container">
+                            <a href="<?php echo URL_TO_IMG; ?>help/profile_availability.png">
+                                <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/profile_delete_account.png"
+                                     alt="My availability" />
+                            </a>
+                        </div>
+                        <div class="help_section_content_last">
+                            <p>To delete your account, simply click the big red "Delete my account" at the
+                                <span class="menu_path">bottom of your profile page</span>.</p>
+                            <p>You will be prompted with a dialog to provide your login information.</p>
+                            <p>Finally, click on "Delete my account" to confirm the operation.</p>
+                            <div class='sys_msg warning'>Deleted accounts cannot be recovered. All your account
+                                information will be lost.</div>
                         </div>
                     </div>
                 </div>
