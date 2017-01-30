@@ -170,61 +170,127 @@ class Posts extends AppTable {
 
     /**
      * Get the newest posts
-     * @param bool $homepage
-     * @return bool|array
+     * @param int $limit: number of items
+     * @return array|bool
      */
-    public function getlastnews($homepage=false) {
-        $sql = "SELECT postid from $this->tablename";
-        if ($homepage == true) $sql .= " WHERE homepage='1'";
-        $sql .= " ORDER BY date DESC";
+    public function getlastnews($limit=3) {
+        $sql = "SELECT postid from {$this->tablename} ORDER BY date DESC LIMIT 0, {$limit}";
         $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row['postid'];
+        }
+        return $data;
+    }
+
+    /**
+     * Get all or a subset of the posted news
+     * @param $category: news category
+     * @param $order: order of display (asc, desc)
+     * @param $page: current page number
+     * @param $pp: number of items shown per page
+     * @return array
+     */
+    public function getLimited($category, $order='date ASC', $page, $pp) {
+        $sql = "
+            SELECT postid
+            FROM {$this->tablename}
+            ORDER BY {$order} LIMIT $page, $pp";
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row{'postid'};
+        }
+        return $data;
+    }
+
+    /**
+     * Count total number of entries
+     * @param string $id: category name
+     * @return int
+     */
+    public function getCount($id) {
+        $req = $this->db->send_query("SELECT * FROM {$this->tablename}");
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
         }
-        if (!empty($data)) {
-            $post_ids = array();
-            foreach ($data as $key=>$info) {
-                $post_ids[] = $info['postid'];
-            }
-            return $post_ids;
-        } else {
-            return false;
-        }
+        return count($data);
     }
 
     /**
      * Show post on the homepage
-     * @param bool $homepage: only display news for homepage
+     * @param null $category
+     * @param int $page_number: current page number
      * @return string
      */
-    public function show($homepage=false) {
-        $posts_ids = self::getlastnews($homepage);
-        if ($posts_ids !== false) {
+    public function index($category=null, $page_number=1) {
+        $pp = 2;
+        $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
+        $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
+        $count = $this->getCount($category);
+        $posts_ids = $this->getLimited($category, 'date DESC', $page_index, $pp);
+        $pagination = new Pagination();
+        if (!empty($posts_ids)) {
+            $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
+            foreach ($posts_ids as $id) {
+                $post = new self($this->db,$id);
+                $news .= self::display($post);
+            }
+        } else {
+            $news = self::nothing();
+        }
+        return $news;
+    }
+
+    /**
+     * Show last posted news
+     * @return string
+     */
+    public function show_last() {
+        $posts_ids = self::getlastnews();
+        if (!empty($posts_ids)) {
             $news = "";
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
-                $day = date('d M y',strtotime($post->date));
-                $news .= "
-                <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
-                    <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'>$post->title</div>
-                    <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 2px solid #555555;'></div>
-
-                    <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
-                        $post->content
-                    </div>
-                    <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
-                        <div style='text-align: left'>$day at $post->time</div>
-                        <div style='text-align: right'>Posted by <span id='author_name'>$post->username</span></div>
-                    </div>
-                </div>";
+                $news .= self::display($post);
             }
         } else {
-            $news = "<section style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; 
-                    background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
-                    No recent news</section>";
+            $news = self::nothing();
         }
         return $news;
+    }
+
+    /**
+     * Render "Nothing to show" message
+     * @return string
+     */
+    public static function nothing() {
+        return "<section style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; 
+                    background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
+                    No recent news</section>";
+    }
+
+    /**
+     * Render news
+     * @param $post
+     * @return string
+     */
+    public static function display($post) {
+        $day = date('d M y',strtotime($post->date));
+        return "
+            <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
+                <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'>$post->title</div>
+                <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 2px solid #555555;'></div>
+
+                <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
+                    $post->content
+                </div>
+                <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
+                    <div style='text-align: left'>$day at $post->time</div>
+                    <div style='text-align: right'>Posted by <span id='author_name'>$post->username</span></div>
+                </div>
+            </div>";
     }
 
     /**
@@ -233,7 +299,7 @@ class Posts extends AppTable {
      * @param bool $postid
      * @return mixed
      */
-    public function showpost($username,$postid=false) {
+    public function form($username, $postid=false) {
         if (false == $postid) {
             $post = new self($this->db);
             $op = "post_add";
@@ -246,11 +312,6 @@ class Posts extends AppTable {
             $del_btn = "<input type='button' class='post_del' id='submit' data-id='$post->postid' value='Delete'/>";
         }
 
-        if ($post->homepage == 0) {
-            $homepage = "No";
-        } else {
-            $homepage = "Yes";
-        }
         $result['form'] = "
             <form method='post' action='php/form.php' id='post_form'>
                 <div class='submit_btns'>
@@ -263,14 +324,6 @@ class Posts extends AppTable {
                 <div class='form-group'>
                     <input type='text' name='title' value='$post->title' required>
                     <label>Title (255 c. max)</label>
-                </div>
-                <div class='form-group'>
-                    <select name='homepage'>
-                        <option value='$post->homepage'>$homepage</option>
-                        <option value='1'>Yes</option>
-                        <option value='0'>No</option>
-                    </select>
-                    <label>Homepage</label>
                 </div>
                 <div class='form-group'>
                     <div class='post_txtarea' style='display: block; text-align: right;'>
