@@ -24,7 +24,7 @@ $last_news = new Posts($db);
 $sessions = new Sessions($db);
 $presentations = new Presentations($db);
 
-$news = $last_news->show(true);
+$news = $last_news->show_last();
 $futurepres = $sessions->showfuturesession(4);
 $wishlist = $presentations->getwishlist(10,true);
 if (isset($_SESSION['logok']) && $_SESSION['logok']) {
