@@ -37,7 +37,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
 ##Requirements:
 * A web server running PHP 5.4 or later
-* MySQLi (5.0 or later)
+* MySQL (5.0 or later)
 * CRON table (Linux)/Scheduled task (Windows) *(required for email notifications)*
 * SMTP server or a Google Mail account
 
