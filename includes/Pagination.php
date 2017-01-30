@@ -69,11 +69,11 @@ class Pagination {
     public static function paging_menu($paging_info) {
         $content = "";
         if ($paging_info['curr_page'] > 1) {
-            $first_url = $paging_info['curr_url'].'/1';
-            $prev_url = $paging_info['curr_url'].'/'.($paging_info['curr_page']-1);
+            $first_url = $paging_info['curr_url'].'1';
+            $prev_url = $paging_info['curr_url'].($paging_info['curr_page']-1);
             $content .= "
-                <div><a href='{$first_url}' title='Page 1' id='paging_first'><img src='".PATH_TO_IMG.'first_arrow.png'."'></a></div>
-                <div><a href='{$prev_url}' title='" . ($paging_info['curr_page'] - 1) . "'  id='paging_prev'><img src='".PATH_TO_IMG.'prev.png'."'></a></div>";
+                <div><a href='{$first_url}' title='Page 1' id='paging_first'><img src='".URL_TO_IMG.'first_arrow.png'."'></a></div>
+                <div><a href='{$prev_url}' title='" . ($paging_info['curr_page'] - 1) . "'  id='paging_prev'><img src='".URL_TO_IMG.'prev.png'."'></a></div>";
         }
 
         //setup starting point
@@ -88,9 +88,8 @@ class Pagination {
 
         // If the current page >= $max then show link to 1st page
         if ($paging_info['curr_page'] >= $max) {
-            $page_url = $paging_info['curr_url'].'/1';
-            $content .= "<div><a href='$page_url' title='Page 1'>1</a></div>
-            ..";
+            $page_url = $paging_info['curr_url'].'1';
+            $content .= "<div><a href='$page_url' title='Page 1'>1</a></div>...";
         }
 
         // Loop though max number of pages shown and show links either side equal to $max / 2
@@ -103,14 +102,14 @@ class Pagination {
             if ($paging_info['curr_page'] == $i) {
                 $content .= "<div id='paging_current'>{$i}</div>";
             } else {
-                $page_url = $paging_info['curr_url'].'/'.$i;
+                $page_url = $paging_info['curr_url'].$i;
                 $content .= "<div><a href='{$page_url}' title='Page {$i}'>{$i}</a></div>";
             }
         }
 
         // If the current page is less than say the last page minus $max pages divided by 2
         if ($paging_info['curr_page'] < ($paging_info['pages'] - floor($max / 2))) {
-            $page_url = $paging_info['curr_url'].'/'.$paging_info['pages'];
+            $page_url = $paging_info['curr_url'].$paging_info['pages'];
 
             $content .= "
             <div>..</div>
@@ -120,11 +119,11 @@ class Pagination {
 
         //<!-- Show last two pages if we're not near them -->
         if ($paging_info['curr_page'] < $paging_info['pages']) {
-            $last_url = $paging_info['curr_url'].'/'.$paging_info['tot_rows'];
-            $next_url = $paging_info['curr_url'].'/'.($paging_info['curr_page']+1);
+            $last_url = $paging_info['curr_url'].$paging_info['tot_rows'];
+            $next_url = $paging_info['curr_url'].($paging_info['curr_page']+1);
             $content .= "
-            <div><a href='{$next_url}' title='Page ". ($paging_info['curr_page'] + 1). "' id='paging_next'><img src='".PATH_TO_IMG.'next.png'."'></a></div>
-            <div><a href='{$last_url}' title='Page {$paging_info['pages']}' id='paging_last'><img src='".PATH_TO_IMG.'last_arrow.png'."'></a></div>
+            <div><a href='{$next_url}' title='Page ". ($paging_info['curr_page'] + 1). "' id='paging_next'><img src='".URL_TO_IMG.'next.png'."'></a></div>
+            <div><a href='{$last_url}' title='Page {$paging_info['pages']}' id='paging_last'><img src='".URL_TO_IMG.'last_arrow.png'."'></a></div>
             ";
         }
 
