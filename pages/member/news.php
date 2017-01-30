@@ -28,7 +28,7 @@ $post = new Posts($db);
 $postlist = $db->getinfo($db->tablesname['Posts'],"postid");
 $options = "
     <select class='select_post' data-user='$user->fullname'>
-        <option value='' selected>Select a post to modify</option>
+        <option value='' selected disabled>Select a post to modify</option>
     ";
 if (!empty($postlist)) {
 
