@@ -995,7 +995,7 @@ if (!empty($_POST['post_show'])) {
     $username = htmlspecialchars($_SESSION['username']);
     $user = new User($db,$username);
     $post = new Posts($db,$postid);
-    $result = $post->showpost($user->fullname,$postid);
+    $result = $post->form($user->fullname,$postid);
     echo json_encode($result);
     exit;
 }
