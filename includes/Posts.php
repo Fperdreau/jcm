@@ -100,11 +100,11 @@ class Posts extends AppTable {
 
     /**
      * Get post content
-     * @param $postid
+     * @param $id
      * @return bool
      */
-    public function get($postid) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE postid='{$postid}'";
+    public function get($id) {
+        $sql = "SELECT * FROM {$this->tablename} WHERE postid='{$id}'";
         $req = $this->db->send_query($sql);
         $row = mysqli_fetch_assoc($req);
         if (!empty($row)) {
@@ -236,7 +236,7 @@ class Posts extends AppTable {
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
                 $user = new User($this->db, $post->username);
-                $news .= self::display($post, $user->fullname);
+                $news .= self::display($post, $user->fullname, true);
             }
         } else {
             $news = self::nothing();
@@ -264,6 +264,17 @@ class Posts extends AppTable {
     }
 
     /**
+     * Show news details
+     * @param $id
+     * @return string
+     */
+    public function show($id) {
+        $this->get($id);
+        $user = new User($this->db, $this->username);
+        return self::display($this, $user->fullname, false);
+    }
+
+    /**
      * Render "Nothing to show" message
      * @return string
      */
@@ -275,25 +286,121 @@ class Posts extends AppTable {
 
     /**
      * Render news
-     * @param $post: post information
-     * @param $user_name: full name of author
+     * @param Posts $post : post information
+     * @param $user_name : full name of author
+     * @param bool $limit
      * @return string
      */
-    public static function display($post, $user_name) {
+    public static function display(Posts $post, $user_name, $limit=true) {
+        $char_limit = 1000;
+        $url = URL_TO_APP . 'index.php?page=news&show=' . $post->postid;
         $day = date('d M y',strtotime($post->date));
+        $txt_content = htmlspecialchars_decode($post->content);
+        $content = ($limit && strlen($txt_content) > $char_limit) ? substr($txt_content, 0, $char_limit) . "..." : $txt_content;
+        $show_more = ($limit && strlen($txt_content) > $char_limit) ? "<span class='blog_more'><a href='{$url}'>"._('Show more')."</a></span>" : null;
         return "
             <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
-                <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'>$post->title</div>
+                <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'><a href='{$url}'>{$post->title}</a></div>
                 <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 2px solid #555555;'></div>
 
                 <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
-                    $post->content
+                    $content
+                    $show_more
                 </div>
-                <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
-                    <div style='text-align: left'>$day at $post->time</div>
+                <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(50,50,50,1); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
+                    <div class='news_time_container'>
+                        <div><img src='" . URL_TO_IMG . 'calendar_wi.png' . "'></div>
+                        <div>$day at $post->time</div>
+                    </div>
                     <div style='text-align: right'>Posted by <span id='author_name'>$user_name</span></div>
                 </div>
             </div>";
+    }
+
+    /**
+     * Get all items filtered by username
+     * @param array|null $id: search array (array('username'=>$user_name))
+     * @return array
+     */
+    public function all(array $id=null) {
+        if (!is_null($id)) {
+            $search = array();
+            foreach ($id as $field=>$value) {
+                $search[] = "{$field}='{$value}'";
+            }
+            $search = "WHERE " . implode('AND ', $search);
+        } else {
+            $search = null;
+        }
+
+        $sql = "SELECT * FROM {$this->tablename} {$search}";
+
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    /**
+     * Generate selection list of news (for editing)
+     * @param User $user
+     * @return string
+     */
+    public function get_selection_list(User $user) {
+        // Get all posted news if user has at least the organizer level, otherwise only get user's posts.
+        $post_list = (AppPage::$levels[$user->status] >= 1) ? $this->all() : $this->all(array('username'=>$user->username));
+        if (!empty($post_list)) {
+            return self::selection_menu($post_list);
+        } else {
+            return self::nothing();
+        }
+    }
+
+    /**
+     * Render selection list
+     * @param array $data
+     * @return string
+     */
+    public static function selection_list(array $data) {
+        $options = "";
+        foreach ($data as $key=>$item) {
+            $day = date('d M y',strtotime($item['date']));
+            $options .= "<option value='{$item['postid']}'><b><strong>{$day}</strong> |</b> {$item['title']}</option>";
+        }
+        return "
+            <select class='select_post'>
+                <option value='' selected disabled>Select a post to modify</option>
+                {$options}
+            </select>";
+    }
+
+    public static function selection_menu(array $data) {
+        $content = null;
+        foreach ($data as $key=>$item) {
+            $day = date('d M y', strtotime($item['date']));
+            $content .= "
+                <tr class='list-container-row news-details el_to_del' id='{$item['postid']}'>
+                    <td>{$day}</td>
+                    <td>{$item['username']}</td>
+                    <td>{$item['title']}</td>
+                    <td class='action_cell'>
+                        <div class='action_icon'><a href='' class='edit_post'><img src='" . URL_TO_IMG . 'edit.png' . "' /></a></div>
+                        <div class='action_icon'><a href='' class='delete' id='{$item['postid']}' 
+                        data-params='Posts/delete/{$item['postid']}'><img src='" . URL_TO_IMG . 'trash.png' . "' /></a></div>
+                    </td>
+                </tr>";
+        }
+        return "<table class='table_container'>
+                    <tr class='list-container-header'>
+                        <td>Date</td>
+                        <td>Author</td>
+                        <td>Title</td>
+                        <td>Actions</td>
+                    </tr>
+                    {$content}
+                </table>";
     }
 
     /**
@@ -339,7 +446,7 @@ class Posts extends AppTable {
     }
 
     /**
-     *
+     * Display last news in digest email
      * @param null $username
      * @return mixed
      */
