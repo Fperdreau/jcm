@@ -21,48 +21,26 @@
  */
 
 // Show an empty form
-$user = new User($db,$_SESSION['username']);
+$user = new User($db, $_SESSION['username']);
 $post = new Posts($db);
 
-// Make post selection list
-$postlist = $db->getinfo($db->tablesname['Posts'],"postid");
-$options = "
-    <select class='select_post' data-user='$user->fullname'>
-        <option value='' selected disabled>Select a post to modify</option>
-    ";
-if (!empty($postlist)) {
-
-    foreach ($postlist as $postid) {
-        $post = new Posts($db,$postid);
-        if ($post->homepage==1) {
-            $style = "style='background-color: rgba(207,81,81,.3);'";
-        } else {
-            $style = "";
-        }
-        $options .= "<option value='$post->postid' $style><b>$post->date |</b> $post->title</option>";
-    }
-} else {
-    $options .= "<option value='false'>Nohting yet</option>";
-}
-$options .= "</select>";
+$options = $post->get_selection_list($user);
 
 $result = "
     <div class='page_header'>
-    <p class='page_description'>Here you can add a post on the homepage.</p>
+    <p class='page_description'>From this page you can add a news or edit your previous posts. Unless you have organizer
+    or admin privileges, you will only be able to view and edit your news.</p>
     </div>
     
-    <div style='display: block; width: 100%;'>
-        <div style='display: inline-block'>$options</div>
-        <div style='display: inline-block'>or</div>
-        <div style='display: inline-block'>
-            <input type='button' id='submit' class='post_new' value='Add a new post'/>
-        </div>
-    </div>
     <section>
-        <h2>New post</h2>
+        <h2>Add/Edit News</h2>
         <div class='section_content'>
-            <div class='feedback'></div>
+            <div class='action_btns'>
+                <input type='button' id='submit' class='post_new' value='Add a news'/>
+            </div>
             <div class='postcontent'></div>
+            <div class='feedback'></div>
+            {$options}
         </div>
     </section>
     ";
