@@ -279,6 +279,7 @@ if (!empty($_POST['operation'])) {
             // Create Post table
             $Posts = new Posts($db);
             $Posts->setup($op);
+            $Posts->patch_table();
 
             // Create Media table
             $Media = new Uploads($db);
