@@ -20,7 +20,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$last_news = new Posts($db);
-$category = (isset($_POST['category'])) ? htmlspecialchars($_POST['category']) : null;
-$curr_page = (isset($_POST['curr_page'])) ? htmlspecialchars($_POST['curr_page']) : 1;
-echo $last_news->index($category, $curr_page);
+$news = new Posts($db);
+
+if (!empty($_POST['show'])) {
+    echo $news->show(htmlspecialchars($_POST['show']));
+} else {
+    $category = (isset($_POST['category'])) ? htmlspecialchars($_POST['category']) : null;
+    $curr_page = (isset($_POST['curr_page'])) ? htmlspecialchars($_POST['curr_page']) : 1;
+    echo $news->index($category, $curr_page);
+}
