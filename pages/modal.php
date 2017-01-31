@@ -146,6 +146,15 @@ echo "
                 <div class='one_half last'><input type='submit' id='confirm_pubdel' value='Delete'></div>
             </div>
         </div>
+        
+        <!-- Delete confirmation section -->
+        <div class='modal_section' id='conf_delete' data-title='Delete Confirmation'>
+            <div>Do you want to delete this item?</div>
+            <div class='action_btns'>
+                <div class='one_half'><a href='' class='btn close_modal'><i class='fa fa-angle-double-left'></i> Cancel</a></div>
+                <div class='one_half last'><a href='' class='btn btn_red confirm_delete'>Delete</a></div>
+            </div>
+        </div>
 
         <div class='feedback'></div>
         <div class='modal_close'></div>
