@@ -128,4 +128,23 @@ class AppTable {
         return $data;
     }
 
+    /**
+     * @param $id
+     * @return array
+     */
+    public function search($id) {
+        $search = array();
+        foreach ($id as $field=>$value) {
+            $search[] = "{$field}='{$value}'";
+        }
+        $search = implode('AND ', $search);
+        $sql = "SELECT * FROM {$this->tablename} WHERE {$search}";
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = mysqli_fetch_assoc($req)) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
 }
