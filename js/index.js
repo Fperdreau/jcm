@@ -86,6 +86,30 @@ var showpostform = function (postid) {
     processAjax(el, data, callback, "php/form.php");
 };
 
+/**
+ * Render dialog window to ask for confirmation
+ * @param el
+ */
+function delete_confirmation(el) {
+    // Show deletion confirmation dialog
+    var params = el.data('params');
+    var el_id = el.attr('id');
+    el.leanModal();
+    console.log(params);
+    show_section('conf_delete');
+    var dom = $(".modal_section#conf_delete");
+    if (dom.find('input[name="url"]').length > 0) {
+        dom.find('input[name="url"]').remove();
+    }
+    if (dom.find('input[name="el_id"]').length > 0) {
+        dom.find('input[name="el_id"]').remove();
+    }
+
+    dom
+        .append('<input type=hidden name="url" value="' + params + '"/>')
+        .append('<input type=hidden name="el_id" value="' + el_id + '"/>');
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  jQuery DataPicker
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -704,6 +728,12 @@ $(document).ready(function () {
             showpostform(postid);
         })
 
+        .on('click','.edit_post',function (e) {
+            e.preventDefault();
+            var postid = $(this).closest('.news-details').attr('id');
+            showpostform(postid);
+        })
+
         // Add a new post
         .on('click','.post_new',function (e) {
             e.preventDefault();
@@ -730,7 +760,7 @@ $(document).ready(function () {
             if (!checkform(form)) {return false;}
             var callback = function (result) {
                 if (result.status === true) {
-                    showpostform(false);
+                    form.fadeOut();
                 }
             };
             var data = form.serializeArray();
@@ -1192,6 +1222,33 @@ $(document).ready(function () {
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+        .on('mouseover', '.delete', function() {
+            $(this).leanModal();
+        })
+
+        .on('click', '.delete', function(e) {
+            e.preventDefault();
+            delete_confirmation($(this));
+        })
+
+        .on('click', '.confirm_delete', function(e) {
+            e.preventDefault();
+            var formid = $(".modal_section#delete_confirmation");
+            var el_id = $('input[name="el_id"]').val();
+            var url_params = $('input[name="url"]').val();
+            var callback = function(result) {
+                if (result.status === true) {
+                    close_modal();
+                    $('.el_to_del#' + el_id).remove();
+                }
+                return false;
+            };
+            var data = {'delete_item': true, 'params': url_params};
+            console.log(data);
+            processAjax(formid, data, callback, 'php/form.php');
+        })
+
 		// Show publication modification form
         .on('click','.modify_ref',function (e) {
             e.preventDefault();
