@@ -235,7 +235,8 @@ class Posts extends AppTable {
             $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
-                $news .= self::display($post);
+                $user = new User($this->db, $post->username);
+                $news .= self::display($post, $user->fullname);
             }
         } else {
             $news = self::nothing();
@@ -253,7 +254,8 @@ class Posts extends AppTable {
             $news = "";
             foreach ($posts_ids as $id) {
                 $post = new self($this->db,$id);
-                $news .= self::display($post);
+                $user = new User($this->db, $post->username);
+                $news .= self::display($post, $user->fullname);
             }
         } else {
             $news = self::nothing();
@@ -273,10 +275,11 @@ class Posts extends AppTable {
 
     /**
      * Render news
-     * @param $post
+     * @param $post: post information
+     * @param $user_name: full name of author
      * @return string
      */
-    public static function display($post) {
+    public static function display($post, $user_name) {
         $day = date('d M y',strtotime($post->date));
         return "
             <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
@@ -288,7 +291,7 @@ class Posts extends AppTable {
                 </div>
                 <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(60,60,60,.9); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
                     <div style='text-align: left'>$day at $post->time</div>
-                    <div style='text-align: right'>Posted by <span id='author_name'>$post->username</span></div>
+                    <div style='text-align: right'>Posted by <span id='author_name'>$user_name</span></div>
                 </div>
             </div>";
     }
@@ -351,5 +354,21 @@ class Posts extends AppTable {
         $content['body'] = $last_news->content;
         $content['title'] = 'Last News';
         return $content;
+    }
+
+    /**
+     * Convert post username
+     */
+    public function patch_table () {
+        $sql = "SELECT * FROM {$this->tablename}";
+        $req = $this->db->send_query($sql);
+        $user = new User($this->db);
+        while ($row = mysqli_fetch_assoc($req)) {
+            $data = $user->search(array('fullname'=>$row['username']));
+            if (!empty($data)) {
+                $cur_post = new Posts($this->db, $row['postid']);
+                $cur_post->update(array('username'=>$data[0]['username']));
+            }
+        }
     }
 }
