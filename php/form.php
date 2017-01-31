@@ -40,7 +40,17 @@ if (!empty($_POST['isLogged'])) {
 
 if (!empty($_POST['load_content'])) {
     $url = htmlspecialchars($_POST['load_content']);
+}
 
+if (!empty($_POST['delete_item'])) {
+    $params = explode('/', htmlspecialchars($_POST['params']));
+    $class_name = $params[0];
+    $action = $params[1];
+    $id = $params[2];
+    $obj = new $class_name($db);
+    $result['status'] = $obj->$action($id);
+    echo json_encode($result);
+    exit;
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -365,7 +375,7 @@ if (!empty($_POST['getPage'])) {
 
     $content = array();
     $content['plugins'] = $Plugins->getPlugins($page_id);
-    $content['pageName'] = end($split);
+    $content['pageName'] = $page_id;
     $content['parent'] = $split[0];
     $content['title'] = (!empty($Page->meta_title)) ? $Page->meta_title : $page_id;
     $content['keywords'] = $Page->meta_keywords;
@@ -382,7 +392,7 @@ if (!empty($_POST['getPage'])) {
                 $result = AppPage::notFound();
             } else {
                 $result['content'] = AppPage::render($page);
-                $result['header'] = AppPage::header($page, $content['icon']);
+                $result['header'] = AppPage::header($page_id, $content['icon']);
             }
         }
     } else {
@@ -897,10 +907,7 @@ if (!empty($_POST['mailing_send'])) {
         }
         $content[$key] = $value;
     }
-//    $content['body'] = $_POST['spec_msg']; // Message
-//    $content['subject'] = $_POST['spec_head']; // Title
-//    $content['mail_from'] = $_POST['mail_from']; // Sender email
-//    $content['mail_from_name'] = $_POST['mail_from']; // Sender email
+
     $ids = explode(',',$_POST['emails']); // Recipients list
     $content['attachments'] = $_POST['attachments']; // Attached files
     $disclose = htmlspecialchars($_POST['undisclosed']) == 'yes'; // Do we show recipients list?
@@ -922,13 +929,13 @@ if (!empty($_POST['mailing_send'])) {
         $news->make(array(
             'title'=>$content['subject'],
             'content'=>$content['body'],
+            'username'=>$_SESSION['username'],
             'homepage'=>1
         ));
     }
 
     echo json_encode($result);
     exit;
-
 }
 
 // Add emails to recipients list
