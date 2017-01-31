@@ -1288,7 +1288,7 @@ footer {
     vertical-align: middle;
 }
 
-.page_description {
+.page_description_old {
     text-align: justify;
     margin: 10px auto 10px auto;
     width: 80%;
@@ -1297,6 +1297,18 @@ footer {
     font-size: 14px; /* Set message font size  */
     padding: 10px; /* Some padding to make some more space for our text  */
     border: 2px dashed rgba(207,81,81,.5); /* Add a border arround our status message   */
+}
+
+.page_description {
+    border-radius: 5px;
+    padding: 10px 0 10px 40px;
+    word-wrap: break-word;
+    font-weight: 500;
+    margin: 10px;
+    color: rgba(41, 53, 82, 1);;
+    border: 1px solid rgb(61, 94, 123); /* Add a border arround our status message   */
+    background: rgba(150, 188, 212, 1) url(../images/info_icon.png) 10px 50% no-repeat;
+    background-size: 20px;
 }
 
 section {
@@ -1873,6 +1885,87 @@ h3 {
 
 .submission {
     position: relative;
+}
+
+/* *********************************************************************/
+/* Lists / Table-like
+/* *********************************************************************/
+.table_container {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+}
+
+.table_container td {
+    padding: 2px;
+}
+
+.justified_container {
+    text-align: justify;
+    width: 100%;
+}
+
+.justified_container>div{
+    vertical-align: top;
+    display: inline-block;
+}
+
+.justified_container::after{
+    width: 100%;
+    content: "";
+    display: inline-block;
+}
+
+.list-container-header {
+    background-color: rgba(220, 220, 220, 1);
+    font-weight: 500;
+}
+
+.list-container-header a {
+    color: #000000;
+}
+
+.list-container-row {
+    position: relative;
+    width: 100%;
+    margin-top: 5px;
+    border-bottom: 1px solid rgba(220, 220, 220, 1);
+    text-align: left;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+.list-container-row div {
+    display: inline-block;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.list-container-row .list-container-row-form {
+    width: 100%;
+    vertical-align: middle;
+}
+
+.list-container-row-form div {
+    display: inline-block;
+}
+
+.action_cell > div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.action_icon {
+    box-sizing: border-box;
+    padding: 2px;
+    text-align: center;
+    background-color: rgba(255,255,255,1);
+    border-radius: 50%;
+}
+
+.action_icon img {
+    width: 20px;
+    height: 20px;
 }
 
 /* *********************************************************************/
@@ -3074,6 +3167,21 @@ input.dateinput {
     text-align: center;
 }
 
+/* News */
+.news_time_container {
+    text-align: left;
+}
+
+.news_time_container > div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.news_time_container img {
+    width: 20px;
+    height: auto;
+}
+
 /* Help */
 .appName {
     font-style: italic;
@@ -3184,7 +3292,6 @@ input.dateinput {
     height: auto;
 }
 
-
 /* *********************************************************************/
 /* Pagination menu
 /* *********************************************************************/
@@ -3265,42 +3372,4 @@ input.dateinput {
     text-align: center;
     padding: 2px;
     border-left: 2px solid rgba(50, 50, 50, .3);
-}
-
-.gallery_menu_container {
-    box-sizing: border-box;
-}
-
-.gallery_menu_container>div {
-    display: inline-block;
-    width: 45%;
-}
-
-.gallery_menu_container label {
-    font-weight: 400;
-}
-
-.gallery_menu_container select {
-    font-size: 12px;
-    max-width: 100%;
-}
-
-.gallery_menu_container .disabled_select {
-    font-size: 12px;
-}
-
-.gallery_menu {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.gallery_menu > div {
-    display: inline-block;
-    width: 300px;
-    margin: auto;
-    text-align: center;
-    background-color: rgba(255, 255, 255, 1);
-    padding: 5px 8px;
-    bottom: 10px;
 }
