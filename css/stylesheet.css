@@ -3170,16 +3170,11 @@ input.dateinput {
 /* News */
 .news_time_container {
     text-align: left;
-}
-
-.news_time_container > div {
-    display: inline-block;
-    vertical-align: middle;
-}
-
-.news_time_container img {
-    width: 20px;
-    height: auto;
+    background-image: url("../images/calendar_wi.png");
+    background-position: 5px 50%;
+    background-size: 20px;
+    background-repeat: no-repeat;
+    padding: 5px 0 5px 27px;
 }
 
 /* Help */

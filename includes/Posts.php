@@ -309,8 +309,7 @@ class Posts extends AppTable {
                 </div>
                 <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(50,50,50,1); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
                     <div class='news_time_container'>
-                        <div><img src='" . URL_TO_IMG . 'calendar_wi.png' . "'></div>
-                        <div>$day at $post->time</div>
+                        $day at $post->time
                     </div>
                     <div style='text-align: right'>Posted by <span id='author_name'>$user_name</span></div>
                 </div>
