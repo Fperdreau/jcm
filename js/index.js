@@ -718,14 +718,13 @@ $(document).ready(function () {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var el = $('.mailing_container');
-            $(this).leanModal();
 
             // Check if recipients have been added
             var div = $('.select_emails_container').find('.select_emails_list');
             div.find('.mailing_recipients_empty').remove();
             if (!$.trim( div.html() ).length) {
                 div.html('<p class="mailing_recipients_empty sys_msg warning leanmodal" id="warning">You must select ' +
-                    'recipients before sending your email by clicking on the "+" button!</p>');
+                    'recipients before sending your email!</p>');
                 return true;
             }
 
