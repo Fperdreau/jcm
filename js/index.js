@@ -60,7 +60,6 @@ var showpubform = function (formel, idpress, type, date, prestype, destination) 
 
     // Load JCM calendar
     loadCalendarSessions();
-
 };
 
 /**
@@ -95,7 +94,6 @@ function delete_confirmation(el) {
     var params = el.data('params');
     var el_id = el.attr('id');
     el.leanModal();
-    console.log(params);
     show_section('conf_delete');
     var dom = $(".modal_section#conf_delete");
     if (dom.find('input[name="url"]').length > 0) {
@@ -108,6 +106,48 @@ function delete_confirmation(el) {
     dom
         .append('<input type=hidden name="url" value="' + params + '"/>')
         .append('<input type=hidden name="el_id" value="' + el_id + '"/>');
+}
+
+/**
+ * Render a confirmation box
+ * @param txt: message to display in dialog box
+ * @param txt_btn: text of confirmation button
+ * @param callback: callback function (called if user has confirmed)
+ */
+function confirmation_box(txt, txt_btn, callback) {
+    var container = $('.modalContainer');
+
+    // Remove confirmation section if it already exist
+    if (container.find('.modal_section#confirmation_box').length > 0) {
+        container.find('.modal_section#confirmation_box').remove();
+    }
+
+    // Render section
+    var html = "<div class='modal_section' id='confirmation_box' data-title='Confirmation'>" +
+        "<div class='sys_msg warning'>" + txt + "</div>" +
+        "<div class='action_btns'>" +
+        "<div class='one_half'><input type='submit' name='cancel' class='pub_back_btn fa-angle-double-left' " +
+        "value='Cancel'></div>" +
+        "<div class='one_half last'><input type='submit' name='confirmation' value='" + txt_btn + "'></div>" +
+        "</div>" +
+        "</div>";
+    container.find('.popupBody').append(html);
+
+    // Show  section
+    show_section('confirmation_box');
+
+    var section = $('.modal_section#confirmation_box');
+    
+    // User has confirmed
+    section.find("input[name='confirmation']").click(function() {
+        close_modal('.modalContainer#modal');
+        callback();
+    });
+
+    // User cancelled
+    section.find("input[name='cancel']").click(function() {
+        close_modal('.modalContainer#modal');
+    });
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -669,11 +709,17 @@ $(document).ready(function () {
             div.remove();
         })
 
+        .on('mouseover', '.mailing_send', function(e) {
+            $(this).leanModal();
+        })
+
 		// Send an email to the mailing list
         .on('click','.mailing_send',function (e) {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var el = $('.mailing_container');
+            $(this).leanModal();
+
             // Check if recipients have been added
             var div = $('.select_emails_container').find('.select_emails_list');
             div.find('.mailing_recipients_empty').remove();
@@ -686,17 +732,34 @@ $(document).ready(function () {
             // Check if form has been filled in properly
             if (!checkform(form)) {return false;}
 
-            var data = form.serializeArray();
-            var content = tinyMCE.get('spec_msg').getContent();
-            var attachments = [];
-            form.find('input.upl_link').each(function() {
-                attachments.push($(this).val());
-            });
-            attachments = attachments.join(',');
-            data = modArray(data, 'body', content);
-            data = modArray(data, 'attachments', attachments);
+            var callback = function() {
+                // Get data
+                var data = form.serializeArray();
+                var content = tinyMCE.get('spec_msg').getContent();
+                var attachments = [];
+                form.find('input.upl_link').each(function() {
+                    attachments.push($(this).val());
+                });
+                attachments = attachments.join(',');
+                data = modArray(data, 'body', content);
+                data = modArray(data, 'attachments', attachments);
 
-            processAjax(el, data, null, "php/form.php");
+                // Process data
+                processAjax(el, data, null, "php/form.php");
+            };
+
+            // Shall we publish this email content as news (in case the email is sent to everyone).
+            var id = $('.select_emails_selector').val();
+            if ($('#make_news').val() === 'yes') {
+                var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
+                    'published as a news.' + ' Do you want to continue?';
+                confirmation_box(msg, 'Continue', callback);
+                return false;
+            } else {
+                callback();
+                return true;
+            }
+
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
