@@ -63,7 +63,7 @@ $result = "
 <div class='section_container'>
     <div class='section_left'>
     <section>
-        <h2>Sessions settings</h2>
+        <h2>Default Session Settings</h2>
         <div class='section_content'>
             <form method='post' action='php/form.php' class='form' id='config_form_session'>
                 <div class='feedback' id='feedback_jcsession'></div>
