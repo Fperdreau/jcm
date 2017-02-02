@@ -37,7 +37,7 @@
             var defaults={
                 top:100,
                 overlay:0.5,
-                closeButton:null};
+                closeButton: null};
 
             var overlay=$("<div id='lean_overlay'></div>");
 
