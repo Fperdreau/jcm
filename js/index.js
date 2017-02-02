@@ -140,13 +140,13 @@ function confirmation_box(txt, txt_btn, callback) {
     
     // User has confirmed
     section.find("input[name='confirmation']").click(function() {
-        close_modal('.modalContainer#modal');
+        close_modal();
         callback();
     });
 
     // User cancelled
     section.find("input[name='cancel']").click(function() {
-        close_modal('.modalContainer#modal');
+        close_modal();
     });
 }
 
@@ -709,13 +709,10 @@ $(document).ready(function () {
             div.remove();
         })
 
-        .on('mouseover', '.mailing_send', function(e) {
-            $(this).leanModal();
-        })
-
 		// Send an email to the mailing list
         .on('click','.mailing_send',function (e) {
             e.preventDefault();
+
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var el = $('.mailing_container');
 
@@ -750,15 +747,19 @@ $(document).ready(function () {
             // Shall we publish this email content as news (in case the email is sent to everyone).
             var id = $('.select_emails_selector').val();
             if ($('#make_news').val() === 'yes') {
+                if ($(this).data('leanModal') === undefined) {
+                    $(this).leanModal();
+                    $(this).data('leanModal', true);
+                    $(this).click();
+                }
                 var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
                     'published as a news.' + ' Do you want to continue?';
                 confirmation_box(msg, 'Continue', callback);
-                return false;
             } else {
                 callback();
-                return true;
+                close_modal();
             }
-
+            return true;
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
