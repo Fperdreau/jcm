@@ -100,11 +100,10 @@ class MailSender extends AppCron {
                 $email['attachments'] = null;
             }
             if (self::$AppMail->send_mail($recipients, $email['subject'], $email['content'], $email['attachments'])) {
-                $result = $this->Manager->update(array('status'=>1), $email['mail_id']);
+                $this->Manager->update(array('status'=>1), $email['mail_id']);
                 $sent += 1;
-            } else {
-                $result = false;
             }
+            sleep(2); // Add some time interval before processing the next email
         }
 
         return "{$sent} emails have been sent.";
