@@ -174,7 +174,7 @@ class AppDb {
      * Connects to DB and throws exceptions
      * @return mysqli|null
      */
-    function bdd_connect() {
+    public function bdd_connect() {
         $this->bdd = mysqli_connect($this->host,$this->username,$this->passw);
         if (!$this->bdd) {
             $result['status'] = false;
@@ -242,21 +242,6 @@ class AppDb {
         }
         $this->apptables = $table_list;
         return $this->apptables;
-    }
-
-    /**
-     * Get columns names
-     * @param $tablename
-     * @return array
-     */
-    public function getcolumns($tablename) {
-        $sql = "SHOW COLUMNS FROM $tablename";
-        $req = self::send_query($sql);
-        $keys = array();
-        while ($row = mysqli_fetch_array($req)) {
-            $keys[] = $row['Field'];
-        }
-        return $keys;
     }
 
     /**
@@ -363,10 +348,10 @@ class AppDb {
      * @return bool
      */
     public function addcolumn($table_name,$col_name,$type,$after=null) {
-        if (!in_array($col_name, $this->getcolumns($table_name))) {
-            $sql = "ALTER TABLE $table_name ADD COLUMN $col_name $type";
-            if (null!=$after) {
-                $sql .= " AFTER $after";
+        if (!$this->iscolumn($table_name, $col_name)) {
+            $sql = "ALTER TABLE {$table_name} ADD COLUMN {$col_name} {$type}";
+            if (!is_null($after)) {
+                $sql .= " AFTER {$after}";
             }
 
             return $this->send_query($sql);
@@ -382,12 +367,38 @@ class AppDb {
      * @return bool|mysqli_result
      */
     public function delete_column($table_name, $col_name) {
-        if (in_array($col_name, $this->getcolumns($table_name))) {
+        if ($this->iscolumn($table_name, $col_name)) {
             $sql = "ALTER TABLE {$table_name} DROP COLUMN {$col_name}";
             return $this->send_query($sql);
         } else {
             return false;
         }
+    }
+
+    /**
+     * This function check if the specified column exists
+     * :param string $table: table name
+     * :param string $column: column name
+     * :return bool
+     */
+    public function iscolumn($table, $column){
+        $cols = $this->getcolumns($table);
+        return in_array($column,$cols);
+    }
+
+    /**
+     * Get columns names
+     * @param $tablename
+     * @return array
+     */
+    public function getcolumns($tablename) {
+        $sql = "SHOW COLUMNS FROM {$tablename}";
+        $req = $this->send_query($sql);
+        $keys = array();
+        while ($row = mysqli_fetch_array($req)) {
+            $keys[] = $row['Field'];
+        }
+        return $keys;
     }
 
     /**
