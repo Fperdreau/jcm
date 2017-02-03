@@ -85,15 +85,26 @@ class MailSender extends AppCron {
      * Sends emails
      */
     public function run() {
-        $result = false;
+
+        // Process emails
+        $result = $this->process_mails();
 
         // Clean DB
         $this->clean();
 
+        return $result;
+    }
+
+    /**
+     * Attempt to send emails that haven't been successfully sent in the past
+     * @return string
+     */
+    public function process_mails() {
         // Get Mail API
         $this->getMailer();
 
         $sent = 0;
+        $to_be_sent = count($this->Manager->all(array('status'=>0)));
         foreach ($this->Manager->all(array('status'=>0)) as $key=>$email) {
             $recipients = explode(',', $email['recipients']);
             if ($email['attachments'] == '') {
@@ -105,8 +116,9 @@ class MailSender extends AppCron {
             }
             sleep(2); // Add some time interval before processing the next email
         }
-
-        return "{$sent} emails have been sent.";
+        $msg = "{$sent}/{$to_be_sent} emails have been sent.";
+        AppCron::get_logger()->log($msg);
+        return $msg;
     }
 
     /**
@@ -117,18 +129,25 @@ class MailSender extends AppCron {
     public function clean($day=null) {
         $day = (is_null($day)) ? $this->options['nb_version']['value']: $day;
         $date_limit = date('Y-m-d',strtotime("now - $day day"));
-        $sql = "SELECT * FROM {$this->Manager->tablename} WHERE date<={$date_limit} and status='1'";
+        $sql = "SELECT * FROM {$this->Manager->tablename} WHERE date>={$date_limit} and status=1";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
         }
-        
+
+        $to_delete = count($data);
+        $count = 0;
         foreach ($data as $key=>$email) {
             if (!$this->db->deletecontent($this->Manager->tablename, 'mail_id', $email['mail_id'])) {
                 return false;
+            } else {
+                $count += 1;
             }
         }
+
+        $msg = "{$count}/{$to_delete} emails have been deleted.";
+        AppCron::get_logger()->log($msg);
         return true;
     }
 }

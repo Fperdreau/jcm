@@ -46,6 +46,7 @@ class AppCron extends AppTable {
         "path"=>array('VARCHAR(255)',false),
         "status"=>array('CHAR(3)',false),
         "options"=>array('TEXT',false),
+        "running"=>array('INT(1) NOT NULL',0),
         "primary"=>"id"
     );
 
@@ -84,6 +85,12 @@ class AppCron extends AppTable {
      * @var bool $installed
      */
     public $installed = 0;
+
+    /**
+     * Is this task currently running
+     * @var int
+     */
+    public $running = 0;
 
     /**
      * Task's settings
@@ -129,8 +136,13 @@ class AppCron extends AppTable {
         $this->time = ($this->time === '1970-01-01 00:00:00') ? date('Y-m-d H:i:s', time()) : $this->time;
     }
 
+    /**
+     * Factory for logger
+     * @return AppLogger
+     */
     public static function get_logger() {
         self::$logger = AppLogger::get_instance(get_class());
+        return self::$logger;
     }
 
     /**
@@ -176,26 +188,38 @@ class AppCron extends AppTable {
         $thisJob = $this->instantiate($task_name);
         $thisJob->get();
 
-        $this::$logger->log("Task '$task_name' starts");
-        $result = null;
+        $logs = array();
 
-        // Run job
-        try {
-            $result = $thisJob->run();
-            $logs[] = $this::$logger->log("Task '$task_name' result: $result");
-        } catch (Exception $e) {
-            $logs[] = $this::$logger->log("Execution of '$task_name' encountered an error: " . $e->getMessage());
-        }
+        if ($thisJob->running == 0) {
+            $thisJob->running = 1;
+            $thisJob->update(array('running'=>1));
 
-        // Update new running time
-        $newTime = $thisJob->updateTime();
-        if ($newTime['status']) {
-            $logs[] = $this::$logger->log("$task_name: Next running time: {$newTime['msg']}");
+            $this::$logger->log("Task '{$task_name}' starts");
+            $result = null;
+
+            // Run job
+            try {
+                $result = $thisJob->run();
+                $logs[] = $this::$logger->log("Task '$task_name' result: $result");
+            } catch (Exception $e) {
+                $logs[] = $this::$logger->log("Execution of '$task_name' encountered an error: " . $e->getMessage());
+            }
+
+            // Update new running time
+            $newTime = $thisJob->updateTime();
+            if ($newTime['status']) {
+                $logs[] = $this::$logger->log("$task_name: Next running time: {$newTime['msg']}");
+            } else {
+                $logs[] = $this::$logger->log("$task_name: Could not update the next running time");
+            }
+
+            $thisJob->running = 0;
+            $thisJob->update(array('running'=>0));
+            $logs[] = $this::$logger->log("Task '$task_name' completed");
         } else {
-            $logs[] = $this::$logger->log("$task_name: Could not update the next running time");
-        }
+            $this::$logger->log("Task '{$task_name}' is already running");
 
-        $logs[] = $this::$logger->log("Task '$task_name' completed");
+        }
 
         return $logs;
     }
@@ -299,7 +323,7 @@ class AppCron extends AppTable {
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return: object
+     * @return AppCron:
      */
     public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/cronjobs/';
@@ -382,7 +406,8 @@ class AppCron extends AppTable {
                     'time'=>$thisPlugin->time,
                     'frequency'=>$thisPlugin->frequency,
                     'options'=>$thisPlugin->options,
-                    'description'=>$thisPlugin::$description
+                    'description'=>$thisPlugin::$description,
+                    'running'=>$thisPlugin->running
                 );
             }
         }
@@ -497,6 +522,10 @@ class AppCron extends AppTable {
                 $activate_btn = "<div class='activateDep workBtn activateBtn' data-type='cron' data-op='On' data-name='$cronName'></div>";
             }
 
+            // Icon showing if task is currently being executed
+            $css_running = ($info['running'] == 1) ? 'is_running' : 'not_running';
+            $running_icon = "<div class='task_running_icon {$css_running}'></div>";
+
             $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
 
             $datetime = $info['time'];
@@ -514,9 +543,10 @@ class AppCron extends AppTable {
                     </div>
                     <div class='optBar'>
                         <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
-                        $install_btn
-                        $runBtn
-                        $activate_btn
+                        {$install_btn}
+                        {$runBtn}
+                        {$activate_btn}
+                        {$running_icon}
                     </div>
                 </div>
 
