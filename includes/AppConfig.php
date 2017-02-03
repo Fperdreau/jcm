@@ -295,4 +295,43 @@ class AppConfig extends AppTable {
         AppLogger::get_instance(APP_NAME, get_class())->log($result);
         return $result;
     }
+
+    /**
+     * Patch session type format
+     */
+    public function patch_session_types() {
+        if (is_null($this->session_type) && empty($this->session_type)) {
+            $this->session_type = self::$session_type_default;
+        }
+
+        // Patching variable type for AppConfig->session_type and AppConfig->pres_type
+        if (!is_array($this->session_type)) {
+            $types = explode(',', $this->session_type);
+            $types = array_filter($types, function($value) { return $value !== ''; });
+            $_POST['session_type'] = array_unique(array_merge(self::$session_type_default, $types));
+        } elseif (count($this->session_type) !== count($this->session_type, COUNT_RECURSIVE)) {
+            $_POST['session_type'] = array_unique(array_merge(self::$session_type_default,
+                array_keys($this->session_type)));
+        }
+    }
+
+    /**
+     * Patch session type format
+     */
+    public function patch_presentation_types() {
+        if (is_null($this->pres_type) && empty($this->pres_type)) {
+            $this->pres_type = self::$pres_type_default;
+        }
+
+        // Patching variable type for AppConfig->session_type and AppConfig->pres_type
+        if (!is_array($this->pres_type)) {
+            $types = explode(',', $this->pres_type);
+            $types = array_filter($types, function($value) { return $value !== ''; });
+            $_POST['pres_type'] = array_unique(array_merge(self::$pres_type_default, $types));
+        } elseif (count($this->pres_type) !== count($this->pres_type, COUNT_RECURSIVE)) {
+            $_POST['pres_type'] = array_unique(array_merge(self::$pres_type_default,
+                array_keys($this->pres_type)));
+        }
+    }
+
 }
