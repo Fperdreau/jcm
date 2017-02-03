@@ -60,19 +60,6 @@ class ReminderMaker extends AppTable {
     // MODEL
 
     /**
-     * @return mixed
-     */
-    public function all() {
-        $sql = "SELECT * FROM {$this->tablename} ORDER BY position ASC";
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-
-    /**
      * @param array $post
      * @return bool|mysqli_result
      */
@@ -144,8 +131,7 @@ class ReminderMaker extends AppTable {
     public function makeDigest($username) {
         $user = new User($this->db, $username);
         $string = "";
-        $data = $this->all();
-        foreach ($data as $key=>$item) {
+        foreach ($this->all() as $key=>$item) {
             if ($item['display'] == 1) {
                 $section = new $item['name']($this->db);
                 $string .= self::showSection($section->makeReminder($username));
@@ -169,7 +155,7 @@ class ReminderMaker extends AppTable {
      * @return string
      */
     public function edit() {
-        $data = $this->all();
+        $data = $this->all(null, array('dir'=>'asc', 'order'=>'position'));
         return self::form($data);
     }
 

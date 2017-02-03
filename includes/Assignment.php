@@ -329,6 +329,25 @@ class Assignment extends AppTable {
     }
 
     /**
+     * Gets whole table
+     * @param array $id
+     * @param array $filter
+     * @return array
+     */
+    public function all(array $id=null, array $filter=null) {
+        $sql = "SELECT p.*, u.fullname
+                FROM {$this->tablename} p
+                LEFT JOIN {$this->db->tablesname['User']} u
+                ON p.username=u.username";
+        $req = $this->db->send_query($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
+    /**
      * Get list of assignable users
      *
      * @param string $session_type : session type (pretty formatted: eg. "Journal Club" => "journal_club")

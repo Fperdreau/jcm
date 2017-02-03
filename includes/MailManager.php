@@ -97,21 +97,6 @@ class MailManager extends AppTable {
     }
 
     /**
-     * Get all emails
-     * @param null $status
-     * @return mixed
-     */
-    public function all($status=null) {
-        $where = (!is_null($status)) ? "WHERE status=0":null;
-        $req = $this->db->send_query("SELECT * FROM {$this->tablename} {$where} ORDER BY date");
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-
-    /**
      * Update email
      * @param $post
      * @param $id
@@ -241,7 +226,7 @@ class MailManager extends AppTable {
         }
 
         $mailing_list = "";
-        foreach ( $user->all() as $key=>$info) {
+        foreach ( $user->all_but_admin() as $key=>$info) {
             $selected = (!is_null($recipients_list) && $info['fullname'] === $recipients_list[0]['fullname']) ? 'selected' : null;
             if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
         }

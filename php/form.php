@@ -944,7 +944,7 @@ if (!empty($_POST['add_emails'])) {
     $icon = "images/close.png";
     $user = new User($db);
     if (strtolower($id) === 'all') {
-        $users = $user->all();
+        $users = $user->all_but_admin();
         $content = "";
         $ids = array();
         foreach ($users as $key=>$info) {

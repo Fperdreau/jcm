@@ -85,16 +85,21 @@ class AppTable {
      * @return mixed
      */
     public function setup($op=False) {
-        if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
-            $result['status'] = True;
-            $result['msg'] = "'$this->tablename' created";
-            AppLogger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
-        } else {
-            $result['status'] = False;
-            $result['msg'] = "'$this->tablename' not created";
-            AppLogger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
+        try {
+            if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+                $result['status'] = True;
+                $result['msg'] = "'$this->tablename' created";
+                AppLogger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
+            } else {
+                $result['status'] = False;
+                $result['msg'] = "'$this->tablename' not created";
+                AppLogger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
+            }
+            return $result;
+        } catch (Exception $e) {
+            AppLogger::get_instance(APP_NAME, get_class($this))->critical($e);
+            return false;
         }
-        return $result;
     }
 
     /**
@@ -112,14 +117,26 @@ class AppTable {
     }
 
     /**
-     * Gets whole table
-     * @return array
+     * Retrieve all elements from the selected table
+     * @param array $id
+     * @param array $filter
+     * @return array|mixed
      */
-    public function all() {
-        $sql = "SELECT p.*, u.fullname
-                FROM {$this->tablename} p
-                LEFT JOIN {$this->db->tablesname['User']} u
-                ON p.username=u.username";
+    public function all(array $id=array(), array $filter=null) {
+        $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
+        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir:null;
+
+        if (!is_null($id)) {
+            $search = array();
+            foreach ($id as $field=>$value) {
+                $search[] = "{$field}='{$value}'";
+            }
+            $search = "WHERE " . implode('AND ', $search);
+        } else {
+            $search = null;
+        }
+
+        $sql = "SELECT * FROM {$this->tablename} {$search} {$param}";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {

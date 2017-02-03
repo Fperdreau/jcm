@@ -94,7 +94,7 @@ class MailSender extends AppCron {
         $this->getMailer();
 
         $sent = 0;
-        foreach ($this->Manager->all(0) as $key=>$email) {
+        foreach ($this->Manager->all(array('status'=>0)) as $key=>$email) {
             $recipients = explode(',', $email['recipients']);
             if ($email['attachments'] == '') {
                 $email['attachments'] = null;

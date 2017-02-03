@@ -99,9 +99,10 @@ class Users extends AppTable {
     }
 
     /**
-     * @return array|null
+     * Get all activated members except admins
+     * @return array
      */
-    public function all() {
+    public function all_but_admin() {
         $sql = "SELECT * FROM $this->tablename WHERE active=1 and status!='admin' ORDER BY fullname";
         $req = $this->db->send_query($sql);
         $data = array();

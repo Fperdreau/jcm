@@ -317,32 +317,6 @@ class Posts extends AppTable {
     }
 
     /**
-     * Get all items filtered by username
-     * @param array|null $id: search array (array('username'=>$user_name))
-     * @return array
-     */
-    public function all(array $id=null) {
-        if (!is_null($id)) {
-            $search = array();
-            foreach ($id as $field=>$value) {
-                $search[] = "{$field}='{$value}'";
-            }
-            $search = "WHERE " . implode('AND ', $search);
-        } else {
-            $search = null;
-        }
-
-        $sql = "SELECT * FROM {$this->tablename} {$search}";
-
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = mysqli_fetch_assoc($req)) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-
-    /**
      * Generate selection list of news (for editing)
      * @param User $user
      * @return string
