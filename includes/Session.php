@@ -34,9 +34,13 @@ class Sessions extends AppTable {
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "date" => array("DATE", false),
         "status" => array("CHAR(10)", "FREE"),
+        "room" => array("CHAR(10)", false),
         "time" => array("VARCHAR(200)", false),
         "type" => array("CHAR(30) NOT NULL"),
         "nbpres" => array("INT(2)", 0),
+        "slots" => array("INT(2)", 0),
+        "repeated" => array("INT(1) NOT NULL", 0),
+        "frequency" => array("INT(2)", 0),
         "primary" => "id");
 
     public $max_nb_session;
@@ -200,7 +204,7 @@ class Sessions extends AppTable {
                     <div class='session_type'>
                         <div class='form-group' style='width: 100%;'>
                             <select class='mod_session_type' name='type'>
-                            $type_options
+                            {$type_options}
                             </select>
                             <label>Type</label>
                         </div>
@@ -208,17 +212,21 @@ class Sessions extends AppTable {
                     <div class='session_time'>
                         <div class='form-group field_small inline_field'>
                             <select class='mod_session' name='time_from'>
-                                <option value='$timefrom' selected>$timefrom</option>
-                                $timeopt
+                                <option value='{$timefrom}' selected>{$timefrom}</option>
+                                {$timeopt}
                             </select>
                             <label>From</label>
                         </div>
                         <div class='form-group field_small inline_field'>
                             <select class='mod_session' name='time_to'>
-                                <option value='$timeto' selected>$timeto</option>
-                                $timeopt
+                                <option value='{$timeto}' selected>{$timeto}</option>
+                                {$timeopt}
                             </select>
                             <label>To</label>
+                        </div>
+                        <div class='form-group field_small inline_field'>
+                            <input type='text' class='mod_session' name='room' value='{$session->room}' />
+                            <label>Room</label>
                         </div>
                     </div>";
         }
@@ -492,6 +500,10 @@ class Sessions extends AppTable {
         }
         return $result;
     }
+
+    public function patch_session_info() {
+        $this->all();
+    }
 }
 
 
@@ -506,6 +518,10 @@ class Session extends Sessions {
     public $time;
     public $type;
     public $nbpres = 0;
+    public $room;
+    public $slots;
+    public $repeated = false;
+    public $frequency;
     public $presids = array();
     public $speakers = array();
 
@@ -519,6 +535,7 @@ class Session extends Sessions {
         $this->time = "$AppConfig->jc_time_from, $AppConfig->jc_time_to";
         $this->type = AppConfig::$session_type_default[0];
         $this->date = $date;
+        $this->room = $AppConfig->room; // Default room number
 
         if ($date != null) {
             self::get($date);
