@@ -25,9 +25,9 @@
  */
 
 // Import html2text class
-require_once(PATH_TO_LIBS."html2text-0.2.2/html2text.php");
-require_once(PATH_TO_LIBS.'PHPMailer-master/class.phpmailer.php');
-require_once(PATH_TO_LIBS.'PHPMailer-master/class.smtp.php');
+require_once(PATH_TO_LIBS . "html2text-0.2.2/html2text.php");
+require_once(PATH_TO_LIBS . 'PHPMailer/class.phpmailer.php');
+require_once(PATH_TO_LIBS . 'PHPMailer/class.smtp.php');
 
 /**
  * Class AppMail
@@ -180,6 +180,9 @@ class AppMail {
      * @param bool $undisclosed : hide (true) recipients list
      * @param array $settings: email host settings (for testing)
      * @return bool : success or failure
+     *
+     * @throws phpmailerException
+     * @throws Exception
      */
     function send_mail($to, $subject, $body, $attachment = null, $undisclosed=true, array $settings=null) {
         $mail = new PHPMailer();
@@ -241,14 +244,18 @@ class AppMail {
             }
         }
 
-        if ($rep = $mail->send()) {
+        try {
+            $mail->send();
             $mail->clearAddresses();
             $mail->clearAttachments();
             return true;
-        } else {
+        } catch (phpmailerException $e) {
+            AppLogger::get_instance('jcm')->warning($e->errorMessage()); //Catch error messages from PHPMailer
+            return false;
+        } catch (Exception $e) {
+            AppLogger::get_instance('jcm')->warning($e->getMessage()); //Catch error messages from anything else
             return false;
         }
-
     }
 
     /**
