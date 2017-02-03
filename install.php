@@ -243,33 +243,8 @@ if (!empty($_POST['operation'])) {
             // Create config table
             $AppConfig->setup($op);
             $AppConfig->get();
-
-            if (is_null($AppConfig->pres_type) && empty($AppConfig->pres_type)) {
-                $AppConfig->pres_type = $AppConfig::$pres_type_default;
-            }
-
-            if (is_null($AppConfig->session_type) && empty($AppConfig->session_type)) {
-                $AppConfig->session_type = $AppConfig::$session_type_default;
-            }
-
-            // Patching variable type for AppConfig->session_type and AppConfig->pres_type
-            if (!is_array($AppConfig->session_type)) {
-                $types = explode(',', $AppConfig->session_type);
-                $types = array_filter($types, function($value) { return $value !== ''; });
-                $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default, $types));
-            } elseif (count($AppConfig->session_type) !== count($AppConfig->session_type, COUNT_RECURSIVE)) {
-                $_POST['session_type'] = array_unique(array_merge(AppConfig::$session_type_default,
-                    array_keys($AppConfig->session_type)));
-            }
-            if (!is_array($AppConfig->pres_type)) {
-                $types = explode(',', $AppConfig->pres_type);
-                $types = array_filter($types, function($value) { return $value !== ''; });
-                $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default, $types));
-            } elseif (count($AppConfig->pres_type) !== count($AppConfig->pres_type, COUNT_RECURSIVE)) {
-                $_POST['pres_type'] = array_unique(array_merge(AppConfig::$pres_type_default,
-                    array_keys($AppConfig->pres_type)));
-            }
-
+            $AppConfig->patch_presentation_types();
+            $AppConfig->patch_session_types();
             $AppConfig->update($_POST);
 
             // Create users table
