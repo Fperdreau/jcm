@@ -117,7 +117,7 @@ class MailSender extends AppCron {
     public function clean($day=null) {
         $day = (is_null($day)) ? $this->options['nb_version']['value']: $day;
         $date_limit = date('Y-m-d',strtotime("now - $day day"));
-        $sql = "SELECT * FROM {$this->Manager->tablename} WHERE date>={$date_limit} and status='1'";
+        $sql = "SELECT * FROM {$this->Manager->tablename} WHERE date<={$date_limit} and status='1'";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
