@@ -41,6 +41,8 @@ class Sessions extends AppTable {
         "slots" => array("INT(2)", 0),
         "repeated" => array("INT(1) NOT NULL", 0),
         "frequency" => array("INT(2)", 0),
+        "start_date" => array("DATE", false),
+        "end_date" => array("DATE", false),
         "primary" => "id");
 
     public $max_nb_session;
@@ -513,6 +515,7 @@ class Session extends Sessions {
  * Instantiates session objects
  */
 
+    public $id;
     public $date;
     public $status = "FREE";
     public $time;
@@ -522,6 +525,8 @@ class Session extends Sessions {
     public $slots;
     public $repeated = false;
     public $frequency;
+    public $start_date;
+    public $end_date;
     public $presids = array();
     public $speakers = array();
 
