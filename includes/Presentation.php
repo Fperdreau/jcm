@@ -44,6 +44,7 @@ class Presentations extends AppTable {
         "summary" => array("TEXT(5000)", false),
         "orator" => array("CHAR(50)", false),
         "notified" => array("INT(1) NOT NULL", 0),
+        "session_id" => array("INT", false),
         "primary" => "id"
     );
 
@@ -54,6 +55,26 @@ class Presentations extends AppTable {
     function __construct(AppDb $db){
         parent::__construct($db, "Presentation", $this->table_data);
         $this->registerDigest();
+    }
+
+    /**
+     * Add session id to presentation info
+     */
+    public function patch_presentation_id() {
+        foreach ($this->all() as $key=>$item) {
+            $pres_obj = new Presentation($this->db, $item['presid']);
+            $pres_obj->update(array('session_id'=>$this->get_session_id($pres_obj->date)));
+        }
+    }
+
+    /**
+     * Get session id from presentation date
+     * @param $date
+     * @return mixed
+     */
+    private function get_session_id($date) {
+        $session = new Session($this->db, $date);
+        return $session->id;
     }
 
     /**
