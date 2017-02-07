@@ -1088,7 +1088,7 @@ if (!empty($_POST['del_type'])) {
 if (!empty($_POST['show_session'])) {
     $date = htmlspecialchars($_POST['show_session']);
     $status = htmlspecialchars($_POST['status']);
-    $result = $Sessions->managesessions($date,$status);
+    $result = $Sessions->sessionManager($date,$status);
     echo json_encode($result);
     exit;
 }

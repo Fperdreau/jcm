@@ -23,7 +23,7 @@
 // Declare classes
 $user = new User($db,$_SESSION['username']);
 
-$Sessionslist = $Sessions->managesessions();
+$Sessionslist = $Sessions->sessionManager();
 $timeopt = maketimeopt();
 
 //Get session types

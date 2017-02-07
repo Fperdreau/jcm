@@ -43,6 +43,8 @@ class Sessions extends AppTable {
         "frequency" => array("INT(2)", 0),
         "start_date" => array("DATE", false),
         "end_date" => array("DATE", false),
+        "start_time" => array("TIME", false),
+        "end_time" => array("TIME", false),
         "primary" => "id");
 
     public $max_nb_session;
@@ -158,13 +160,14 @@ class Sessions extends AppTable {
      * @param string $status
      * @return string
      */
-    public function managesessions($date=null,$status='admin') {
+    public function sessionManager($date=null, $status='admin') {
+        // Get next JC date
         if ($date == null) {
             $date = $this->getjcdates(1);
             $date = $date[0];
         }
 
-        $content = "";
+        // Check if session exists, otherwise create one
         if ($this->dateexists($date)) {
             $session = new Session($this->db,$date);
         } else {
@@ -173,86 +176,135 @@ class Sessions extends AppTable {
             $session->get();
         }
 
-        // Get type options
-        $AppConfig = new AppConfig($this->db);
+        // Get presentations
+        $nbPres = max($session->slots, count($session->presids));
+        $presentations = "";
+        for ($i=0;$i<$nbPres;$i++) {
+            $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
+            $pres = new Presentation($this->db,$presid);
+            $presentations .= Presentation::inSessionEdit($pres, $status, $date);
+        }
+
+        // Get session types
+        $config = new AppConfig(AppDb::get_instance());
+        return self::sessionEditor($session, $presentations, $config->session_type);
+    }
+
+    private static function empty_session() {
+        return "
+            <div class='session_div' id='session_{$session->date}' data-id='{$session->date}'>
+            <div class='session_header'>
+                <div class='session_date'>{$session->date}</div>
+                <div class='session_status'>{$session->type}</div>
+            </div>
+            <div class='session_core'>
+                <div class='session_settings'>
+                    {$settings}
+                </div>
+
+                <div class='session_presentations'>
+                    <h3>Presentations</h3>
+                    {$presentations}
+                </div>
+            </div>
+        </div>
+        ";
+    }
+
+    /**
+     * Generate session type selection list
+     * @param array $data
+     * @param $session_type
+     * @return string
+     */
+    private static function type_list(array $data, $session_type) {
         $type_options = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
-        foreach ($AppConfig->session_type as $type) {
-            if ($type === $session->type) {
+        foreach ($data as $type) {
+            if ($type === $session_type) {
                 $type_options .= "<option value='$type' selected>$type</option>";
             } else {
                 $type_options .= "<option value='$type'>$type</option>";
             }
         }
+        return $type_options;
+    }
 
-        // Get time
-        $timeopt = maketimeopt();
+    /**
+     * Render session settings panel
+     * @param Session $session
+     * @param array $types
+     * @return string
+     */
+    public static function session_settings(Session $session, array $types) {
+        $type_list = self::type_list($types, $session->type);
 
         $time = explode(',',$session->time);
-        $timefrom = $time[0];
-        $timeto = $time[1];
+        $time_from = $time[0];
+        $time_to = $time[1];
 
-        // Get presentations
-        $nbPres = max($AppConfig->max_nb_session,count($session->presids));
-        $presentations = "";
-        for ($i=0;$i<$nbPres;$i++) {
-            $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
-            $pres = new Presentation($this->db,$presid);
-            $presentations .= $pres->showinsession($status,$date);
-        }
+        return "
+            <h3>Settings</h3>
+            <div class='session_type'>
+                <div class='form-group' style='width: 100%;'>
+                    <select class='mod_session_type' name='type'>
+                    {$type_list}
+                    </select>
+                    <label>Type</label>
+                </div>
+            </div>
+            <div class='session_time'>
+                <div class='form-group field_small inline_field'>
+                    <input type='time' class='mod_session' name='time_from' value='{$time_from}' />
+                    <label>From</label>
+                </div>
+                <div class='form-group field_small inline_field'>
+                    <input type='time' class='mod_session' name='time_from' value='{$time_to}' />
+                    <label>To</label>
+                </div>
+                <div class='form-group field_small inline_field'>
+                    <input type='text' class='mod_session' name='room' value='{$session->room}' />
+                    <label>Room</label>
+                </div>
+            </div>";
+    }
 
-        $settings = "";
-        if ($status == "admin") {
-            $settings = "<h3>Settings</h3>
-                    <div class='session_type'>
-                        <div class='form-group' style='width: 100%;'>
-                            <select class='mod_session_type' name='type'>
-                            {$type_options}
-                            </select>
-                            <label>Type</label>
-                        </div>
-                    </div>
-                    <div class='session_time'>
-                        <div class='form-group field_small inline_field'>
-                            <select class='mod_session' name='time_from'>
-                                <option value='{$timefrom}' selected>{$timefrom}</option>
-                                {$timeopt}
-                            </select>
-                            <label>From</label>
-                        </div>
-                        <div class='form-group field_small inline_field'>
-                            <select class='mod_session' name='time_to'>
-                                <option value='{$timeto}' selected>{$timeto}</option>
-                                {$timeopt}
-                            </select>
-                            <label>To</label>
-                        </div>
-                        <div class='form-group field_small inline_field'>
-                            <input type='text' class='mod_session' name='room' value='{$session->room}' />
-                            <label>Room</label>
-                        </div>
-                    </div>";
-        }
-
-        $content .= "
-        <div class='session_div' id='session_$session->date' data-id='$session->date'>
+    /**
+     * Render session editor
+     * @param Session $session
+     * @param $presentations
+     * @param array $types
+     * @return string
+     */
+    public static function sessionEditor(Session $session, $presentations, array $types) {
+        $settings = self::session_settings($session, $types);
+        return "
+            <div class='session_div' id='session_{$session->date}' data-id='{$session->date}'>
             <div class='session_header'>
-                <div class='session_date'>$session->date</div>
-                <div class='session_status'>$session->type</div>
+                <div class='session_date'>{$session->date}</div>
+                <div class='session_status'>{$session->type}</div>
             </div>
             <div class='session_core'>
                 <div class='session_settings'>
-                    $settings
+                    {$settings}
                 </div>
 
                 <div class='session_presentations'>
                     <h3>Presentations</h3>
-                    $presentations
+                    {$presentations}
                 </div>
             </div>
         </div>
         ";
+    }
+
+    private static function presentations_list(array $data) {
+        $content = null;
+        foreach ($data as $key=>$item) {
+            $content .= Presentation::inManager($item);
+        }
         return $content;
     }
+
 
     /**
      * Display the upcoming presentation(home page/mail)
@@ -701,7 +753,7 @@ class Session extends Sessions {
         for ($i=0;$i<$max;$i++) {
             $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
             $pub = new Presentation($this->db,$presid);
-            $content .= $pub->showinsession($mail,$this->date);
+            $content .= $pub->inSession($pub, $mail, $this->date);
         }
         return $content;
     }
