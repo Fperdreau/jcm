@@ -182,7 +182,7 @@ class Sessions extends AppTable {
         for ($i=0;$i<$nbPres;$i++) {
             $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
             $pres = new Presentation($this->db,$presid);
-            $presentations .= Presentation::inSessionEdit($pres, $status, $date);
+            $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres, $status, $date));
         }
 
         // Get session types
@@ -238,9 +238,9 @@ class Sessions extends AppTable {
     public static function session_settings(Session $session, array $types) {
         $type_list = self::type_list($types, $session->type);
 
-        $time = explode(',',$session->time);
+        $time = explode(',', $session->time);
         $time_from = $time[0];
-        $time_to = $time[1];
+        $time_to = str_replace(' ', '', $time[1]);
 
         return "
             <h3>Settings</h3>
@@ -264,6 +264,10 @@ class Sessions extends AppTable {
                 <div class='form-group field_small inline_field'>
                     <input type='text' class='mod_session' name='room' value='{$session->room}' />
                     <label>Room</label>
+                </div>
+                <div class='form-group field_small inline_field'>
+                    <input type='number' class='mod_session' name='slots' value='{$session->slots}' />
+                    <label>Slots</label>
                 </div>
             </div>";
     }
@@ -329,7 +333,7 @@ class Sessions extends AppTable {
      * @param null $mail
      * @return string
      */
-    public function showfuturesession($nsession = 4,$mail=null) {
+    public function showfuturesession($nsession = 4, $mail=null) {
         // Get future planned dates
         $dates = $this->getsessions(1);
         $dates = ($dates == false) ? false: $dates[0];
@@ -341,7 +345,7 @@ class Sessions extends AppTable {
         $content = "";
         foreach ($jc_days as $day) {
             $session = new Session($this->db,$day);
-            $sessioncontent = $session->showsession($mail);
+            $sessioncontent = $session->show_session($mail);
 
             $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
             $date = date('d M y',strtotime($session->date));
@@ -561,6 +565,11 @@ class Sessions extends AppTable {
 }
 
 
+class SessionView {
+
+}
+
+
 class Session extends Sessions {
 /**
  * Child class of Sessions
@@ -593,6 +602,7 @@ class Session extends Sessions {
         $this->type = AppConfig::$session_type_default[0];
         $this->date = $date;
         $this->room = $AppConfig->room; // Default room number
+        $this->slots = $AppConfig->max_nb_session;
 
         if ($date != null) {
             self::get($date);
@@ -662,11 +672,13 @@ class Session extends Sessions {
         $class_vars = get_class_vars("Session");
         $sql = "SELECT * FROM $this->tablename WHERE date='$this->date'";
         $req = $this->db -> send_query($sql);
-        $data = mysqli_fetch_assoc($req);
+        $data = $req->fetch_assoc();
         if (!empty($data)) {
             foreach ($data as $varname=>$value) {
                 if (array_key_exists($varname,$class_vars)) {
-                    $this->$varname = htmlspecialchars_decode($value);
+                    if (!empty($value)) {
+                        $this->$varname = htmlspecialchars_decode($value);
+                    }
                 }
             }
             $this->updatestatus();
@@ -742,20 +754,112 @@ class Session extends Sessions {
      * @param bool $mail
      * @return string
      */
-    public function showsession($mail=true) {
-        if ($this->type == 'none')
-            return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
-                    font-weight: 300; overflow: hidden;'>
-                    <b>No Journal Club this day</b></div>";
+    public function show_session($mail=true) {
+        if ($this->type == 'none') return self::no_session();
 
         $content = "";
-        $max = (count($this->presids) < $this->max_nb_session) ? $this->max_nb_session:count($this->presids);
+        $max = (count($this->presids) < $this->slots) ? $this->slots:count($this->presids);
         for ($i=0;$i<$max;$i++) {
             $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
             $pub = new Presentation($this->db,$presid);
-            $content .= $pub->inSession($pub, $mail, $this->date);
+            if (!empty($pub->id_pres)) {
+                $speaker = new User(AppDb::get_instance(), $pub->orator);
+                $content .= self::slotContainer(Presentation::inSessionSimple($pub, $speaker->fullname), $pub->id_pres);
+            } else {
+                $content .= self::emptySlot($this->date);
+            }
+
         }
         return $content;
+    }
+
+    /**
+     * Get session types
+     * @return array
+     */
+    public static function session_type() {
+        $Sessionstype = "";
+        $opttypedflt = "";
+        foreach (AppConfig::getInstance()->session_type as $type) {
+            $Sessionstype .= self::render_type($type, 'session');
+            if ($type == AppConfig::$session_type_default) {
+                $opttypedflt .= "<option value='$type' selected>$type</option>";
+            } else {
+                $opttypedflt .= "<option value='$type'>$type</option>";
+            }
+        }
+        return array(
+            'types'=>$Sessionstype,
+            "default"=>$opttypedflt
+        );
+    }
+
+    private static function render_type($data, $type) {
+        return "
+                <div class='type_div' id='session_$data'>
+                    <div class='type_name'>".ucfirst($data)."</div>
+                    <div class='type_del' data-type='$data' data-class='{$type}'>
+                    </div>
+                </div>
+            ";
+    }
+
+    /**
+     * Get presentation types
+     * @return string
+     */
+    public static function presentation_type() {
+        $prestype = "";
+        foreach (AppConfig::getInstance()->pres_type as $type) {
+                $prestype .= self::render_type($type, 'pres');
+        }
+        return $prestype;
+    }
+
+    /**
+     * Show session slot as empty
+     * @return string
+     */
+    public static function no_session() {
+        return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
+                    font-weight: 600; overflow: hidden;'>
+                    No Journal Club this day</div>";
+    }
+
+    /**
+     * Show presentation slot as empty
+     * @param string $date: session date
+     * @return string
+     */
+    public static function emptySlot($date) {
+        $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $date;
+        $addButton = "<button class='add_btn'><a href='{$url}' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' 
+                        data-date='{$date}'>Add</a></button>";
+
+        $content = "
+                <div>{$addButton}</div>";
+        return self::slotContainer(array('name'=>'Available slot', 'content'=>$content));
+    }
+
+    /**
+     * Template for slot container
+     * @param array $data
+     * @param null $div_id
+     * @return string
+     */
+    public static function slotContainer(array $data, $div_id=null) {
+        return "
+            <div class='pres_container' id='{$div_id}' style='display: block; position: relative; margin: auto auto 10px auto; 
+            font-size: 0.9em; font-weight: 300; overflow: hidden; border: 1px dashed rgb(200, 200, 200); border-radius: 5px; 
+            box-sizing: border-box; padding: 5px;'>
+                <div class='pres_type' style='display: inline-block; font-weight: 600; color: #222222; vertical-align: top; 
+                    text-transform: capitalize;'>
+                    {$data['name']}
+                </div>
+                <div class='pres_info' style='display: inline-block; margin-left: 20px; max-width: 70%;'>
+                    {$data['content']}
+                </div>
+            </div>";
     }
 
     /**
