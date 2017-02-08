@@ -21,40 +21,12 @@
  */
 
 // Declare classes
-$user = new User($db,$_SESSION['username']);
+$user = new User(AppDb::get_instance(),$_SESSION['username']);
 
 $Sessionslist = $Sessions->sessionManager();
 $timeopt = maketimeopt();
-
-//Get session types
-$Sessionstype = "";
-$opttypedflt = "";
-foreach ($AppConfig->session_type as $type) {
-    $Sessionstype .= "
-        <div class='type_div' id='session_$type'>
-            <div class='type_name'>".ucfirst($type)."</div>
-            <div class='type_del' data-type='$type' data-class='session'>
-            </div>
-        </div>
-    ";
-    if ($type == AppConfig::$session_type_default) {
-        $opttypedflt .= "<option value='$type' selected>$type</option>";
-    } else {
-        $opttypedflt .= "<option value='$type'>$type</option>";
-    }
-}
-
-/**  Get session types */
-$prestype = "";
-foreach ($AppConfig->pres_type as $type) {
-    $prestype .= "
-        <div class='type_div' id='pres_$type'>
-            <div class='type_name'>".ucfirst($type)."</div>
-            <div class='type_del' data-type='$type' data-class='pres'>
-            </div>
-        </div>
-    ";
-}
+$session_types = Session::session_type();
+$presentation_types = Session::presentation_type();
 
 $result = "
 <div class='page_header'>
@@ -69,12 +41,12 @@ $result = "
                 <div class='feedback' id='feedback_jcsession'></div>
                 <input type='hidden' name='config_modify' value='true'>
                 <div class='form-group'>
-                    <input type='text' name='room' value='$AppConfig->room'>
+                    <input type='text' name='room' value='{$AppConfig->room}'>
                     <label>Room</label>
                 </div>
                 <div class='form-group'>
                     <select name='jc_day'>
-                        <option value='$AppConfig->jc_day' selected>$AppConfig->jc_day</option>
+                        <option value='{$AppConfig->jc_day}' selected>{$AppConfig->jc_day}</option>
                         <option value='monday'>Monday</option>
                         <option value='tuesday'>Tuesday</option>
                         <option value='wednesday'>Wednesday</option>
@@ -84,22 +56,16 @@ $result = "
                     <label for='jc_day'>Day</label>
                 </div>
                 <div class='form-group'>
-                    <select name='jc_time_from'>
-                        <option value='$AppConfig->jc_time_from' selected>$AppConfig->jc_time_from</option>
-                        $timeopt;
-                    </select>
+                    <input type='time' name='jc_time_from' value='{$AppConfig->jc_time_from}' />
                     <label>From</label>
                 </div>
                 <div class='form-group'>
-                    <select name='jc_time_to'>
-                        <option value='$AppConfig->jc_time_to' selected>$AppConfig->jc_time_to</option>
-                        $timeopt;
-                    </select>
+                    <input type='time' name='jc_time_to' value='{$AppConfig->jc_time_from}' />
                     <label>To</label>
                 </div>
                 <div class='form-group'>
-                    <input type='text' name='max_nb_session' value='$AppConfig->max_nb_session'/>
-                    <label>Presentations/Session</label>
+                    <input type='number' name='max_nb_session' value='{$AppConfig->max_nb_session}'/>
+                    <label>Slots/Session</label>
                 </div>
                 <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
             </form>
@@ -113,7 +79,7 @@ $result = "
             <div id='session_type' style='position: relative; margin-bottom: 20px;'>
                 <div class='form-group'>
                     <select class='session_type_default'>
-                        $opttypedflt
+                        {$session_types['default']}
                     </select>
                     <label>Default session type </label>
                 </div>
@@ -123,14 +89,14 @@ $result = "
                 <input id='new_session_type' type='text' placeholder='New Category'/>
             </div>
             <div class='feedback' id='feedback_session'></div>
-            <div class='type_list' id='session'>$Sessionstype</div>
+            <div class='type_list' id='session'>{$session_types['types']}</div>
             <h3>Presentations</h3>
             <div  style='font-size: 0;'>
                 <button class='type_add addBtn' data-class='pres' value='+'/>
                 <input id='new_pres_type' type='text' placeholder='New Category'/>
             </div>
             <div class='feedback' id='feedback_pres'></div>
-            <div class='type_list' id='pres'>$prestype</div>
+            <div class='type_list' id='pres'>{$presentation_types}</div>
         </div>
     </section>
     </div>
@@ -144,7 +110,7 @@ $result = "
                     <label>Session to show</label>
                 </div>
                 <div id='sessionlist'>
-                $Sessionslist
+                {$Sessionslist}
                 </div>
             </div>
         </section>
