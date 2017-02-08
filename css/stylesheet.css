@@ -507,9 +507,17 @@ div.inputFeedback {
     box-sizing: border-box;
 }
 
+.form-group > input[type='text'] {
+    padding: 28px 6px 0 6px;
+}
+
 .form-group > input:valid, .form-group > select:valid, .form-group > textarea:valid, .form-group > div {
     background: none !important;
     padding: 24px 6px 0 6px;
+}
+
+.form-group > input[type='text']:valid {
+    padding: 28px 6px 0 6px;
 }
 
 input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > select:-webkit-autofill, .form-group > textarea:-webkit-autofill{
@@ -536,6 +544,10 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     text-transform: uppercase;
     top: 100%;
     margin-top: -16px;
+}
+
+.form-group > input[type='text']:focus {
+    padding: 4px 6px 24px 6px;
 }
 
 /* Select input */
@@ -1449,6 +1461,23 @@ h3 {
     overflow-x: hidden;
 }
 
+.pres_info > div {
+    vertical-align: middle !important;
+    display: inline-block !important;
+}
+
+.pres_info .pres_deleteBtn {
+    display: inline-block !important;
+    vertical-align: middle;
+}
+
+.pres_info:after {
+    line-height: 0 !important;
+    font-size: 0 !important;
+    width: 100% !important;
+    display: inline-block;
+}
+
 .wish_container a, .pres_container a {
     color: rgba(207,81,81,.8);
     font-weight: 500;
@@ -1636,10 +1665,48 @@ h3 {
     background: rgba(207,81,81,1);
 }
 
-
 /* *********************************************************************/
 /* Buttons
 /* *********************************************************************/
+
+button.add_btn {
+    color: rgba(50, 50, 50, 1);
+    border: 1px solid rgba(207, 81, 81, 1);
+    transition: all 0.3s ease 0s;
+    opacity: 1;
+    cursor: pointer;
+    padding: 10px 10px 10px 40px;
+    font-size: 12px;
+    margin-right: 5px;
+    margin-top: 5px;
+    border-radius: 5px;
+    background: rgba( 255, 255, 255, 1) url(../images/add_black.png) 10px 50% no-repeat;
+    background-size: 15px;
+}
+
+button.add_btn:after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+}
+
+button.add_btn:hover {
+    color: #FFF;
+    background: rgba(207, 81, 81, 1) url(../images/add_white.png) 10px 50% no-repeat;
+    background-size: 15px;
+}
+
+button.add_btn:hover > a {
+    color: white;
+}
+
+button.add_btn:active {
+    color: #FFF;
+    background:rgba(145, 73, 73, 1) url(../images/add_white.png) 10px 50% no-repeat;
+    background-size: 20px;
+    border: 1px solid #DFDFDF; /* Small border around our submit button */
+}
+
 .operation_button {
     padding: 10px 20px;
     text-align: center;
@@ -2947,6 +3014,7 @@ input.dateinput {
 .icon_btn {
     padding: 5px;
     border-radius: 100%;
+    width: 20px;
 }
 
 .icon_btn img {
