@@ -27,7 +27,7 @@ if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
 }
 
 $username = (isset($_POST['user'])) ? $_POST['user']:$_SESSION['username'];
-$user = new User($db, $username);
+$user = new User(AppDb::get_instance(), $username);
 
 // Get options
 $result = null;
@@ -42,7 +42,7 @@ if (isset($_POST['op'])) {
     if ($op == 'edit') {
         if (!empty($_POST['id'])) {
             $id_pres = htmlspecialchars($_POST['id']);
-            $Presentation = new Presentation($db,$id_pres);
+            $Presentation = new Presentation(AppDb::get_instance(),$id_pres);
             $date = $Presentation->date;
         } else {
             $Presentation = false;
@@ -57,7 +57,7 @@ if (isset($_POST['op'])) {
     } elseif ($op == 'wishpick') {
         if (!empty($_POST['id'])) {
             $id_pres = htmlspecialchars($_POST['id']);
-            $Presentation = new Presentation($db,$id_pres);
+            $Presentation = new Presentation(AppDb::get_instance(),$id_pres);
         } else {
             $Presentation = false;
         }
@@ -75,7 +75,7 @@ if (isset($_POST['op'])) {
 
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
-        $Presentation = new Presentation($db, $_POST['id']);
+        $Presentation = new Presentation(AppDb::get_instance(), $_POST['id']);
         $section_content = Presentation::form($user, $Presentation, 'submit');
     }
 }
@@ -113,7 +113,7 @@ $submitMenu = "
 
 $form_section = null;
 if (!is_null($section_content)) {
-    $form_section = $Presentation::format_section($section_content);
+    $form_section = Presentation::format_section($section_content);
 }
 
 $result = "
