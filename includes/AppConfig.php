@@ -102,6 +102,8 @@ class AppConfig extends AppTable {
      */
     public $notify_admin_task = 'yes';
 
+    private static $instance = null;
+
     /**
      * Constructor
      * @param AppDb $db
@@ -118,6 +120,18 @@ class AppConfig extends AppTable {
         if ($get) {
             $this->get();
         }
+    }
+
+    /**
+     * Get AppConfig instance
+     * @param bool $get
+     * @return AppConfig|null
+     */
+    public static function getInstance($get=true) {
+        if (is_null(self::$instance)) {
+            self::$instance = new self(AppDb::get_instance(), $get);
+        }
+        return self::$instance;
     }
 
     /**
