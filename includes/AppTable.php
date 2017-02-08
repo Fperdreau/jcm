@@ -122,7 +122,7 @@ class AppTable {
      * @param array $filter
      * @return array|mixed
      */
-    public function all(array $id=array(), array $filter=null) {
+    public function all(array $id=null, array $filter=null) {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir:null;
 
