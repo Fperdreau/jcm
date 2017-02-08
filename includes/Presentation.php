@@ -590,7 +590,7 @@ class Presentation extends Presentations {
      * @param Presentation $presentation
      * @param bool $opt
      * @param $date
-     * @return string
+     * @return array
      */
     public static function inSessionEdit(Presentation $presentation, $opt=false, $date) {
         $show_but = self::RenderTitle($presentation, $opt);
@@ -599,20 +599,20 @@ class Presentation extends Presentations {
         // Render list of available speakers
         $speaker_obj = new User(AppDb::get_instance(), $presentation->orator);
         $speaker = self::speakerList($speaker_obj->fullname);
-
-        return "
-        <div class='pres_container' id='{$presentation->id_pres}' style='display: block; position: relative; margin: auto; 
-        font-size: 0.9em; font-weight: 300; overflow: hidden;'>
-            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top; 
-                text-transform: capitalize;'>{$presentation->type}</div>
-            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
+        $deleteBtn = "<div class='pub_btn icon_btn'><a href='#' data-id='$presentation->id_pres' class='leanModal delete_ref'>
+            <img src='" . URL_TO_IMG . "trash.png'></a>
+            </div>";
+        return array(
+            "content"=>"  
                 <div>{$show_but}</div>
                 <div>
                     <span style='font-size: 12px; font-style: italic;'>Presented by </span>
                     <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
                 </div>
-            </div>
-        </div>";
+                <div class='pres_deleteBtn'>{$deleteBtn}</div>
+                ",
+            "name"=>$presentation->type
+            );
     }
 
     /**
@@ -637,25 +637,19 @@ class Presentation extends Presentations {
      * Render short description of presentation in session list
      * @param Presentation $presentation
      * @param string $speaker: speaker full name
-     * @return string
+     * @return array
      */
     public static function inSessionSimple(Presentation $presentation, $speaker) {
         $show_but = self::RenderTitle($presentation);
-        return "
-        <div class='pres_container' id='$presentation->id_pres' style='display: block; position: relative; margin: auto; 
-        font-size: 0.9em; font-weight: 300; overflow: hidden;'>
-            <div style='display: inline-block; font-weight: 600; color: #222222; vertical-align: top; 
-                text-transform: capitalize;'>
-                {$presentation->type}
+        return array(
+            "name"=>$presentation->type,
+            "content"=>"
+            <div>$show_but</div>
+            <div>
+                <span style='font-size: 12px; font-style: italic;'>Presented by </span>
+                <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
             </div>
-            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-                <div>$show_but</div>
-                <div>
-                    <span style='font-size: 12px; font-style: italic;'>Presented by </span>
-                    <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
-                </div>
-            </div>
-        </div>";
+        ");
     }
 
     /**
