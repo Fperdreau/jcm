@@ -191,8 +191,7 @@ class AppCron extends AppTable {
         $logs = array();
 
         if ($thisJob->running == 0) {
-            $thisJob->running = 1;
-            $thisJob->update(array('running'=>1));
+            $thisJob->lock();
 
             $this::$logger->log("Task '{$task_name}' starts");
             $result = null;
@@ -202,6 +201,7 @@ class AppCron extends AppTable {
                 $result = $thisJob->run();
                 $logs[] = $this::$logger->log("Task '$task_name' result: $result");
             } catch (Exception $e) {
+                $thisJob->unlock();
                 $logs[] = $this::$logger->log("Execution of '$task_name' encountered an error: " . $e->getMessage());
             }
 
@@ -213,8 +213,7 @@ class AppCron extends AppTable {
                 $logs[] = $this::$logger->log("$task_name: Could not update the next running time");
             }
 
-            $thisJob->running = 0;
-            $thisJob->update(array('running'=>0));
+            $thisJob->unlock();
             $logs[] = $this::$logger->log("Task '$task_name' completed");
         } else {
             $this::$logger->log("Task '{$task_name}' is already running");
@@ -222,6 +221,24 @@ class AppCron extends AppTable {
         }
 
         return $logs;
+    }
+
+    /**
+     * Lock the task. A task will not be executed if currently running
+     * @return bool
+     */
+    protected function lock() {
+        $this->running = 1;
+        return $this->update(array('running'=>1));
+    }
+
+    /**
+     * Unlock the task. A task will not be executed if currently running
+     * @return bool
+     */
+    protected function unlock() {
+        $this->running = 0;
+        return $this->update(array('running'=>0));
     }
 
     /**
