@@ -182,33 +182,17 @@ class Sessions extends AppTable {
         for ($i=0;$i<$nbPres;$i++) {
             $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
             $pres = new Presentation($this->db,$presid);
-            $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres, $status, $date));
+            if (!empty($pres->id_pres)) {
+                $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres, $status, $date),
+                    $pres->id_pres);
+            } else {
+                $presentations .= Session::emptySlot($date);
+            }
         }
 
         // Get session types
         $config = new AppConfig(AppDb::get_instance());
         return self::sessionEditor($session, $presentations, $config->session_type);
-    }
-
-    private static function empty_session() {
-        return "
-            <div class='session_div' id='session_{$session->date}' data-id='{$session->date}'>
-            <div class='session_header'>
-                <div class='session_date'>{$session->date}</div>
-                <div class='session_status'>{$session->type}</div>
-            </div>
-            <div class='session_core'>
-                <div class='session_settings'>
-                    {$settings}
-                </div>
-
-                <div class='session_presentations'>
-                    <h3>Presentations</h3>
-                    {$presentations}
-                </div>
-            </div>
-        </div>
-        ";
     }
 
     /**
@@ -794,6 +778,12 @@ class Session extends Sessions {
         );
     }
 
+    /**
+     * Render session/presentation type list
+     * @param $data
+     * @param $type
+     * @return string
+     */
     private static function render_type($data, $type) {
         return "
                 <div class='type_div' id='session_$data'>
@@ -838,7 +828,7 @@ class Session extends Sessions {
 
         $content = "
                 <div>{$addButton}</div>";
-        return self::slotContainer(array('name'=>'Available slot', 'content'=>$content));
+        return self::slotContainer(array('name'=>'Free slot', 'content'=>$content, 'button'=>null));
     }
 
     /**
@@ -856,9 +846,10 @@ class Session extends Sessions {
                     text-transform: capitalize;'>
                     {$data['name']}
                 </div>
-                <div class='pres_info' style='display: inline-block; margin-left: 20px; max-width: 70%;'>
+                <div class='pres_info' style='display: inline-block; margin-left: 20px; min-width: 200px;'>
                     {$data['content']}
                 </div>
+                <div class='pres_btn' style='display: inline-block; vertical-align: middle;'>{$data['button']}</div>
             </div>";
     }
 
