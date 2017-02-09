@@ -281,7 +281,7 @@ class AppCron extends AppTable {
      * Get info from the scheduled tasks table
      */
     public function get() {
-        $sql = "SELECT * FROM $this->tablename WHERE name='$this->name'";
+        $sql = "SELECT * FROM {$this->tablename} WHERE name='{$this->name}'";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_assoc($req);
         if (!empty($data)) {
@@ -386,7 +386,7 @@ class AppCron extends AppTable {
         $cronList = scandir($folder);
         $jobs = array();
         foreach ($cronList as $cronFile) {
-            if (!empty($cronFile) && !in_array($cronFile,array('.','..','test_assignment.php','run.php','logs'))) {
+            if (!empty($cronFile) && !in_array($cronFile,array('.','..','run.php'))) {
                 $name = explode('.',$cronFile);
                 $name = $name[0];
                 
