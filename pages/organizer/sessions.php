@@ -60,7 +60,7 @@ $result = "
                     <label>From</label>
                 </div>
                 <div class='form-group'>
-                    <input type='time' name='jc_time_to' value='{$AppConfig->jc_time_from}' />
+                    <input type='time' name='jc_time_to' value='{$AppConfig->jc_time_to}' />
                     <label>To</label>
                 </div>
                 <div class='form-group'>
