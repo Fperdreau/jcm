@@ -578,7 +578,7 @@ class Presentation extends Presentations {
             if (is_null($cur_speaker)) {
                 $speakerOpt .= "<option value='TBA' selected>TBA</option>";
             } else {
-                $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected':null;
+                $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
                 $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
             }
         }
@@ -598,20 +598,20 @@ class Presentation extends Presentations {
         // Either simply show speaker's name or option list of users (admin interface)
         // Render list of available speakers
         $speaker_obj = new User(AppDb::get_instance(), $presentation->orator);
-        $speaker = self::speakerList($speaker_obj->fullname);
+        $speaker = self::speakerList($speaker_obj->username);
         $deleteBtn = "<div class='pub_btn icon_btn'><a href='#' data-id='$presentation->id_pres' class='leanModal delete_ref'>
             <img src='" . URL_TO_IMG . "trash.png'></a>
             </div>";
         return array(
             "content"=>"  
-                <div>{$show_but}</div>
+                <div style='display: block !important;'>{$show_but}</div>
                 <div>
                     <span style='font-size: 12px; font-style: italic;'>Presented by </span>
                     <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
                 </div>
-                <div class='pres_deleteBtn'>{$deleteBtn}</div>
                 ",
-            "name"=>$presentation->type
+            "name"=>$presentation->type,
+            "button"=>$deleteBtn
             );
     }
 
@@ -622,15 +622,11 @@ class Presentation extends Presentations {
      * @return string
      */
     private static function RenderTitle(Presentation $presentation, $view=null) {
-        if (empty($presentation->id_pres)) {
-            return "<a href='' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' 
-                        data-date='{$presentation->date}'>FREE</a>";
-        } else {
-            // Make "Show" button
-            return $view == 'mail' ? $presentation->title :
-                "<a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
-                data-id='{$presentation->id_pres}'>{$presentation->title}</a>";
-        }
+        // Make "Show" button
+        $url = URL_TO_APP . "index.php?page=presentation?id=" . $presentation->id_pres;
+        return $view == 'mail' ? $presentation->title :
+            "<a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
+            data-id='{$presentation->id_pres}'>{$presentation->title}</a>";
     }
 
     /**
@@ -644,12 +640,13 @@ class Presentation extends Presentations {
         return array(
             "name"=>$presentation->type,
             "content"=>"
-            <div>$show_but</div>
+            <div style='display: block !important;'>{$show_but}</div>
             <div>
                 <span style='font-size: 12px; font-style: italic;'>Presented by </span>
                 <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
-            </div>
-        ");
+            </div>",
+            "button"=>null
+        );
     }
 
     /**
@@ -684,7 +681,7 @@ class Presentation extends Presentations {
                         </div>";
             }
             $filediv = "<div style='display: block; text-align: right; width: 95%; min-height: 20px; height: auto;
-                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
+                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$filecontent}</div>";
         }
 
         return $filediv;
@@ -750,18 +747,19 @@ class Presentation extends Presentations {
     public function showwish($show) {
         /** @var AppConfig $config */
         $config = new AppConfig($this->db);
-        $url = $config->getAppUrl()."index.php?page=submission&op=wishpick&id=$this->id_pres";
+        $url = $config->getAppUrl() . "index.php?page=submission&op=wishpick&id={$this->id_pres}";
         $uploader = new User($this->db,$this->username);
         $update = date('d M y',strtotime($this->up_date));
         return "
-        <div class='wish_container' id='$this->id_pres' style='display: block; position: relative; margin: 10px auto; font-size: 0.9em; font-weight: 300; overflow: hidden;'>
+        <div class='wish_container' id='{$this->id_pres}' style='display: block; position: relative; margin: 10px auto; 
+        font-size: 0.9em; font-weight: 300; overflow: hidden; padding: 5px; border-radius: 5px;'>
             <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;'>
-                $update
+                {$update}
             </div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-               <a href='$url' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-id='$this->id_pres'>
-                    <div style='font-size: 16px;'>$this->title</div>
-                    <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>$uploader->fullname</span></div>
+               <a href='$url' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-id='{$this->id_pres}'>
+                    <div style='font-size: 16px;'>{$this->title}</div>
+                    <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$uploader->fullname}</span></div>
                 </a>
             </div>
         </div>";
