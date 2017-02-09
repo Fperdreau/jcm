@@ -1484,7 +1484,7 @@ h3 {
     font-size: 16px;
 }
 
-.wish_container:hover {
+.wish_container:hover, .pres_container:hover {
     background: rgba(220,220,220,.5);
     cursor: pointer;
 }
