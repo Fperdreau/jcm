@@ -628,18 +628,23 @@ class Session extends Sessions {
             $status = "Booked out";
         } elseif ($this->nbpres == 0) {
             $status = "Free";
-        } elseif ($this->nbpres<$this->max_nb_session) {
+        } elseif ($this->nbpres<$this->slots) {
             $status = "Booked";
         } else {
             $status = "Booked out";
         }
-        if ($this->db->updatecontent($this->tablename,array("status"=>$status, "nbpres"=>$this->nbpres),array('date'=>$this->date))) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->info("Status of session {$this->date} set to: {$status}");
-            return true;
-        } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not change status of session {$this->date} to: {$status}");
-            return false;
+
+        // Only update DB if new status is different
+        if ($this->status !== $status) {
+            if ($this->db->updatecontent($this->tablename,array("status"=>$status, "nbpres"=>$this->nbpres),array('date'=>$this->date))) {
+                AppLogger::get_instance(APP_NAME, get_class($this))->info("Status of session {$this->date} set to: {$status}");
+                return true;
+            } else {
+                AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not change status of session {$this->date} to: {$status}");
+                return false;
+            }
         }
+        return true;
     }
 
     /**
