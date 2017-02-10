@@ -1030,7 +1030,6 @@ nav.submenu li:hover, nav.submenu .activepage {
     padding: 2px 5px 2px 30px;
     background: rgba( 50, 50, 50, 1) url(../images/submit_icon_white.png) 5px 50% no-repeat;
     background-size: 10px;
-    font-size: 16px;
 }
 
 nav .activepage {
