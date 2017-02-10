@@ -838,8 +838,10 @@ class Session extends Sessions {
      * @return string
      */
     public static function slotContainer(array $data, $div_id=null) {
+        $modal_trigger = (!is_null($div_id)) ? 'leanModal modal_trigger_pubcontainer' : null;
         return "
-            <div class='pres_container' id='{$div_id}' style='display: block; position: relative; margin: auto auto 10px auto; 
+            <div class='pres_container {$modal_trigger}' id='{$div_id}' data-section='submission_form' 
+            data-id='{$div_id}' style='display: block; position: relative; margin: auto auto 10px auto; 
             font-size: 0.9em; font-weight: 300; overflow: hidden; border: 1px dashed rgb(200, 200, 200); border-radius: 5px; 
             box-sizing: border-box; padding: 5px;'>
                 <div class='pres_type' style='display: inline-block; font-weight: 600; color: #222222; vertical-align: top; 

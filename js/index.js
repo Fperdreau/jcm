@@ -1236,7 +1236,7 @@ $(document).ready(function () {
         })
 
         // Show publication information on click
-        .on('click','#modal_trigger_pubcontainer',function (e) {
+        .on('click','.modal_trigger_pubcontainer',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
             displaypub(id_pres, modalpubform);
