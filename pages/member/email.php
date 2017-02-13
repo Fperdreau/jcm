@@ -22,7 +22,7 @@
 
 // Get contact form
 $recipients_list = isset($_POST['recipients_list']) ? $_POST['recipients_list'] : null;
-$MailManager = new MailManager($db);
+$MailManager = new MailManager();
 $contactForm = $MailManager->getContactForm($recipients_list);
 
 // Send mail

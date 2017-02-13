@@ -18,7 +18,7 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // Declare classes
-$user = new User($db,$_SESSION['username']);
+$user = new User($_SESSION['username']);
 
 // Manage users
 $userlist = $Users->generateuserslist();

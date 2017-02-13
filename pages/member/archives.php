@@ -20,6 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+$Presentations = new Presentations();
 $years = $Presentations->get_years();
 // Select input (Years)
 $options = "

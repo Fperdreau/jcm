@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-$DigestMaker = new DigestMaker($db);
+$DigestMaker = new DigestMaker();
 $section_content = $DigestMaker->edit();
 // Send mail
 $result = "

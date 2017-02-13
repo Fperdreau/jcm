@@ -42,10 +42,9 @@ class Mailing extends AppCron {
 
     /**
      * Mailing constructor.
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->path = basename(__FILE__);
     }
 
@@ -65,8 +64,8 @@ class Mailing extends AppCron {
      */
     public function run() {
         global $AppMail;
-        $MailManager = new MailManager($this->db);
-        $DigestMaker = new DigestMaker($this->db);
+        $MailManager = new MailManager();
+        $DigestMaker = new DigestMaker();
 
         // Count number of users
         $users = $AppMail->get_mailinglist("notification");

@@ -120,11 +120,10 @@ class AppCron extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(AppDb $db, $name=False) {
-        parent::__construct($db, 'Crons', $this->table_data);
+    public function __construct($name=False) {
+        parent::__construct('Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
 
         self::get_logger();
@@ -340,12 +339,12 @@ class AppCron extends AppTable {
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return AppCron:
+     * @return AppCron
      */
     public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/cronjobs/';
         include_once($folder . $pluginName .'.php');
-        return new $pluginName($this->db);
+        return new $pluginName();
     }
 
     /**
@@ -633,5 +632,13 @@ class AppCron extends AppTable {
         }
 
         return $cronList;
+    }
+
+    /**
+     * Run task
+     * @return string: result message
+     */
+    public function run() {
+        return "";
     }
 }

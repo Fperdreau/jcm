@@ -114,9 +114,15 @@ class AppDb {
     public $charset = 'utf8';
 
     /**
+     * Db instance
+     * @var null|AppDb
+     */
+    private static $instance = null;
+
+    /**
      * Constructor
      */
-    function __construct() {
+    private function __construct() {
         $this->config = $this->get_config();
         $this->tablesname = array(
             "Presentation" => $this->dbprefix."_presentations",
@@ -136,8 +142,15 @@ class AppDb {
         );
     }
 
-    public static function get_instance() {
-        return new self();
+    /**
+     * Factory for Db instance
+     * @return AppDb
+     */
+    public static function getInstance() {
+        if (is_null(self::$instance)) {
+            self::$instance = new self();
+        }
+        return self::$instance;
     }
 
     /**
@@ -178,7 +191,7 @@ class AppDb {
         $this->bdd = mysqli_connect($this->host,$this->username,$this->passw);
         if (!$this->bdd) {
             $result['status'] = false;
-            $result['msg'] = "Failed to connect to the database" . mysqli_error($this->bdd);
+            $result['msg'] = "Failed to connect to the database: " . $this->bdd->error;
             AppLogger::get_instance(APP_NAME)->critical($result['msg']);
             die(json_encode($result['msg']));
         }
@@ -203,11 +216,12 @@ class AppDb {
      * @param array $config
      * @return array
      */
-    function testdb(array $config) {
+    public static function testdb(array $config) {
         $link = @mysqli_connect($config['host'],$config['username'],$config['passw']);
         if (!$link) {
             $result['status'] = false;
             $result['msg'] = "Failed to connect to the database";
+            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
             return $result;
         }
 

@@ -57,21 +57,10 @@ class Groups extends AppPlugins {
     meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
 
     /**
-     * @var Session $session: Session instance
-     */
-    private static $session;
-
-    /**
-     * @var AppConfig $config: App settings
-     */
-    private static $config;
-
-    /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->installed = $this->isInstalled();
         $this->tablename = $this->db->dbprefix.'_groups';
         $this->registerDigest();
@@ -89,7 +78,7 @@ class Groups extends AppPlugins {
      * Register into DigestMaker table
      */
     private function registerDigest() {
-        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker = new DigestMaker();
         $DigestMaker->register($this->name);
     }
 
@@ -97,7 +86,7 @@ class Groups extends AppPlugins {
      * Register into Reminder table
      */
     private function registerReminder() {
-        $reminder = new ReminderMaker($this->db);
+        $reminder = new ReminderMaker();
         $reminder->register($this->name);
     }
 
@@ -107,7 +96,7 @@ class Groups extends AppPlugins {
      */
     public function install() {
         // Create corresponding table
-        $table = new AppTable($this->db, "Groups", $this->table_data, 'groups');
+        $table = new AppTable("Groups", $this->table_data, 'groups');
         $table->setup();
 
         // Register the plugin in the db
@@ -159,16 +148,9 @@ class Groups extends AppPlugins {
      * @return Session
      */
     private function get_next_session() {
-        $session = new Session($this->db);
+        $session = new Session();
         $nextdate = $session->getsessions(true);
         return $session->get($nextdate[0]);
-    }
-
-    private function get_config() {
-        if (is_null(self::$config)) {
-            self::$config = new AppConfig($this->db);
-        }
-        return self::$config;
     }
 
     /**
@@ -194,7 +176,7 @@ class Groups extends AppPlugins {
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max($this->get_config()->max_nb_session, count($session->presids));
+        $ngroups = max(AppConfig::getInstance()->max_nb_session, count($session->presids));
 
         // Get users list
         $Users = new Users($this->db);
@@ -267,7 +249,7 @@ class Groups extends AppPlugins {
         $data = $this->getGroup($username);
         if ($data !== false) {
             $data['group'] = $this->showList($username);
-            $publication = new Presentation($this->db, $data['presid']);
+            $publication = new Presentation($data['presid']);
             $data['publication'] = $publication->showDetails(true);
             $content['body'] = self::renderSection($data);
             $content['title'] = 'Your Group assignment';
@@ -287,7 +269,7 @@ class Groups extends AppPlugins {
         $data = $this->getGroup($username);
         if ($data !== false) {
             $data['group'] = $this->showList($username);
-            $publication = new Presentation($this->db, $data['presid']);
+            $publication = new Presentation($data['presid']);
             $data['publication'] = $publication->showDetails(true);
             $content['body'] = self::renderSection($data);
             $content['title'] = 'Your Group assignment';

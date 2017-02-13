@@ -48,10 +48,9 @@ class Assignment extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db, 'Assignment', $this->table_data);
+    public function __construct() {
+        parent::__construct('Assignment', $this->table_data);
         $this->registerDigest();
     }
 
@@ -98,7 +97,7 @@ class Assignment extends AppTable {
      * Register into DigestMaker table
      */
     public function registerDigest() {
-        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker = new DigestMaker();
         $DigestMaker->register(get_class());
     }
 
@@ -107,7 +106,7 @@ class Assignment extends AppTable {
      */
     private function get_session_instance() {
         if (is_null(self::$session)) {
-            self::$session = new Session($this->db);
+            self::$session = new Session();
         }
         return self::$session;
     }
@@ -190,11 +189,9 @@ class Assignment extends AppTable {
      */
     private function get_session_types($source) {
         if ($source === 'app') {
-            $AppConfig = new AppConfig($this->db);
-
             // Get session types
             $session_types = array();
-            foreach ($AppConfig->session_type as $type) {
+            foreach (AppConfig::getInstance()->session_type as $type) {
                 $session_types[] = self::prettyName($type, true);
             }
 
@@ -217,7 +214,7 @@ class Assignment extends AppTable {
         $list = array();
 
         while ($row = $req->fetch_assoc()) {
-            $Session = new Session($this->db, $row['date']);
+            $Session = new Session($row['date']);
             if ($Session->type === 'none' || empty($row['orator'])) continue;
 
             if (!isset($list[$row['orator']][$Session->type])) {
@@ -418,7 +415,7 @@ class Assignment extends AppTable {
      * @return bool
      */
     public function updateAssignment(User $user, array $info, $assign=true, $notify=false) {
-        $session = new Session($this->db, $info['date']);
+        $session = new Session($info['date']);
         if ($this->updateTable(self::prettyName($info['type'], true), $user->username, $assign)) {
             if ($notify) {
                 $session->notify_session_update($user, $info, $assign);
@@ -437,7 +434,7 @@ class Assignment extends AppTable {
      * @return mixed
      */
     public function makeMail($username=null) {
-        $user = new User($this->db, $username);
+        $user = new User($username);
         $content['body'] = $user->getAssignments(true, $username);;
         $content['title'] = 'Your assignments';
         return $content;

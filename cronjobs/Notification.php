@@ -40,10 +40,9 @@ class Notification extends AppCron {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->path = basename(__FILE__);
     }
 
@@ -61,17 +60,15 @@ class Notification extends AppCron {
      * @return string
      */
     public function run() {
-        // Declare classes
-        global $AppMail;
-
-        $MailManager = new MailManager($this->db);
+        $MailManager = new MailManager();
+        $AppMail = new AppMail();
 
         // Number of users
         $mailing_list = $AppMail->get_mailinglist("notification");
         $nusers = count($mailing_list);
 
         // Get presentation list
-        $presentation = new Presentations($this->db);
+        $presentation = new Presentations();
         $presentationList = $presentation->getLatest();
 
         if (!empty($presentationList)) {
@@ -83,7 +80,7 @@ class Notification extends AppCron {
 
                     // Tell to the db that notifications have been sent about the new presentations
                     foreach ($presentationList as $presid) {
-                        $pres = new Presentation($this->db, $presid);
+                        $pres = new Presentation($presid);
                         $pres->notified = 1;
                         $pres->update();
                     }
@@ -111,7 +108,7 @@ class Notification extends AppCron {
         $nbpres = count($presentationList);
         $list = "";
         foreach ($presentationList as $presid) {
-            $pres = new Presentation($this->db, $presid);
+            $pres = new Presentation($presid);
             $list .= $pres->showDetails(true);
         }
         $content['body'] = "

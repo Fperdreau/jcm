@@ -71,8 +71,6 @@ function showtypelist(array $types, $class, $divid) {
  * @return string
  */
 function uploader($links=array()) {
-    global $AppConfig;
-
     // Get files associated to this publication
     $filesList = "";
     if (!empty($links)) {
@@ -94,7 +92,7 @@ function uploader($links=array()) {
                     <div class='upl_btn'>
                         Add Files
                         <br>(click or drop)
-                        <div class='upl_filetypes'>($AppConfig->upl_types)</div>
+                        <div class='upl_filetypes'>(" . AppConfig::getInstance()->upl_types . ")</div>
                         <div class='upl_errors'></div>
                     </div>
                 </form>
@@ -156,8 +154,7 @@ function browse($dir, $dirsNotToSaveArray = array()) {
  * @return string : Path to *.sql file
  */
 function backupDb($nbVersion){
-    global $db;
-
+    $db = AppDb::getInstance();
     // Create Backup Folder
     $mysqlrelativedir = 'backup/mysql';
     $mysqlSaveDir = PATH_TO_APP .'/'. $mysqlrelativedir;
@@ -173,7 +170,7 @@ function backupDb($nbVersion){
 
     // Do backup
     /* Store All AppTable name in an Array */
-    $allTables = $db->getapptables();
+    $allTables = AppDb::getInstance()->getapptables();
 
     $return = "";
     //cycle through
@@ -258,9 +255,8 @@ function cleanBackups($mysqlSaveDir,$nbVersion) {
  * @return bool
  */
 function mail_backup($backupfile) {
-    global $db;
-    $mail = new AppMail($db);
-    $admin = new User($db);
+    $mail = new AppMail();
+    $admin = new User();
     $admin->get('admin');
 
     // Send backup via email

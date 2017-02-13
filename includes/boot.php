@@ -79,15 +79,6 @@ $Corelogger = AppLogger::get_instance('core');
  * Declare classes
  *
  */
-$db = new AppDb();
-$AppConfig = new AppConfig($db);
+$AppConfig = new AppConfig();
 if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
 if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "/images/");
-
-$AppPage = new AppPage($db);
-$Presentations = new Presentations($db);
-$Users = new Users($db);
-$Sessions = new Sessions($db);
-$AppMail = new AppMail($db);
-$AppPlugins = new AppPlugins($db);
-$AppPlugins->getPlugins();

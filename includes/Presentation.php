@@ -50,10 +50,9 @@ class Presentations extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    function __construct(AppDb $db){
-        parent::__construct($db, "Presentation", $this->table_data);
+    function __construct(){
+        parent::__construct("Presentation", $this->table_data);
         $this->registerDigest();
     }
 
@@ -62,7 +61,7 @@ class Presentations extends AppTable {
      */
     public function patch_presentation_id() {
         foreach ($this->all() as $key=>$item) {
-            $pres_obj = new Presentation($this->db, $item['presid']);
+            $pres_obj = new Presentation($item['presid']);
             $pres_obj->update(array('session_id'=>$this->get_session_id($pres_obj->date)));
         }
     }
@@ -73,7 +72,7 @@ class Presentations extends AppTable {
      * @return mixed
      */
     private function get_session_id($date) {
-        $session = new Session($this->db, $date);
+        $session = new Session($date);
         return $session->id;
     }
 
@@ -81,7 +80,7 @@ class Presentations extends AppTable {
      * Register into DigestMaker table
      */
     private function registerDigest() {
-        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker = new DigestMaker();
         $DigestMaker->register('Presentations');
     }
 
@@ -183,7 +182,7 @@ class Presentations extends AppTable {
         foreach ($yearpub as $year=>$publist) {
             $yearcontent = "";
             foreach ($publist as $pubid) {
-                $pres = new Presentation($this->db,$pubid);
+                $pres = new Presentation($pubid);
                 $yearcontent .= $pres->show();
             }
 
@@ -223,7 +222,7 @@ class Presentations extends AppTable {
         $wish_list = "";
         if ($req->num_rows > 0) {
             while ($data = mysqli_fetch_array($req)) {
-                $pub = new Presentation($this->db,$data['id_pres']);
+                $pub = new Presentation($data['id_pres']);
                 $wish_list .= $pub->showwish($show);
             }
         } else {
@@ -243,7 +242,7 @@ class Presentations extends AppTable {
 
         $option = "<option value=''>";
         while ($data = mysqli_fetch_array($req)) {
-            $pres = new Presentation($this->db,$data['id_pres']);
+            $pres = new Presentation($data['id_pres']);
             $option .= "<option value='$pres->id_pres'>$pres->authors | $pres->title</option>";
         }
 
@@ -312,14 +311,13 @@ class Presentation extends Presentations {
     public $id_pres = "";
 
     /**
-     * @param AppDb $db
      * @param null $id_pres
      */
-    function __construct(AppDb $db, $id_pres=null){
-        parent::__construct($db);
+    function __construct($id_pres=null){
+        parent::__construct();
 
         /** @var AppConfig $config */
-        $config = new AppConfig($db);
+        $config = AppConfig::getInstance();
         $this->jc_time = "$config->jc_time_from,$config->jc_time_to";
         $this->up_date = date('Y-m-d h:i:s'); // Date of creation
         if (null != $id_pres) {
@@ -391,7 +389,7 @@ class Presentation extends Presentations {
         $result['status'] = false;
         if ($created !== false && $created !== 'exists') {
             // Add to sessions table
-            $session = new Session($this->db);
+            $session = new Session();
             if ($session->make(array("date"=>$data['date']))) {
                 $result['status'] = true;
                 $result['msg'] = "Thank you for your submission!";
@@ -484,7 +482,7 @@ class Presentation extends Presentations {
      */
     function add_upload($filenames) {
         $filenames = explode(',',$filenames);
-        $upload = new Media($this->db);
+        $upload = new Media();
         foreach ($filenames as $filename) {
             if ($upload->add_presid($filename,$this->id_pres) !== true) {
                 return False;
@@ -497,7 +495,7 @@ class Presentation extends Presentations {
      * Get associated files
      */
     function get_uploads() {
-        $upload = new Uploads($this->db);
+        $upload = new Uploads();
         $this->link = $upload->get_uploads($this->id_pres);
     }
 
@@ -510,7 +508,7 @@ class Presentation extends Presentations {
         self::get($pres_id);
 
         // Delete corresponding file
-        $uploads = new Uploads($this->db);
+        $uploads = new Uploads();
         $uploads->delete_files($this->id_pres);
 
         // Delete corresponding entry in the publication table
@@ -540,7 +538,7 @@ class Presentation extends Presentations {
      */
     public function show($user=false) {
         if (!$user) {
-            $speaker = new User($this->db, $this->orator);
+            $speaker = new User($this->orator);
             $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
         } else {
             $speakerDiv = "";
@@ -570,7 +568,7 @@ class Presentation extends Presentations {
      * @return string
      */
     private static function speakerList($cur_speaker=null) {
-        $Users = new Users(AppDb::get_instance());
+        $Users = new Users();
 
         // Render list of available speakers
         $speakerOpt = null;
@@ -588,16 +586,14 @@ class Presentation extends Presentations {
     /**
      * Show editable publication information in session list
      * @param Presentation $presentation
-     * @param bool $opt
-     * @param $date
      * @return array
      */
-    public static function inSessionEdit(Presentation $presentation, $opt=false, $date) {
-        $show_but = self::RenderTitle($presentation, $opt);
+    public static function inSessionEdit(Presentation $presentation) {
+        $show_but = self::RenderTitle($presentation);
 
         // Either simply show speaker's name or option list of users (admin interface)
         // Render list of available speakers
-        $speaker_obj = new User(AppDb::get_instance(), $presentation->orator);
+        $speaker_obj = new User($presentation->orator);
         $speaker = self::speakerList($speaker_obj->username);
         $deleteBtn = "<div class='pub_btn icon_btn'><a href='#' data-id='$presentation->id_pres' class='leanModal delete_ref'>
             <img src='" . URL_TO_IMG . "trash.png'></a>
@@ -618,14 +614,12 @@ class Presentation extends Presentations {
     /**
      * Render (clickable) presentation title.
      * @param Presentation $presentation
-     * @param string $view: view to generate
      * @return string
      */
-    private static function RenderTitle(Presentation $presentation, $view=null) {
+    private static function RenderTitle(Presentation $presentation) {
         // Make "Show" button
         $url = URL_TO_APP . "index.php?page=presentation?id=" . $presentation->id_pres;
-        return $view == 'mail' ? $presentation->title :
-            "<a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
+        return "<a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
             data-id='{$presentation->id_pres}'>{$presentation->title}</a>";
     }
 
@@ -693,13 +687,12 @@ class Presentation extends Presentations {
      * @return string
      */
     public function showDetails($show=false) {
-        $orator = new User($this->db,$this->orator);
+        $orator = new User($this->orator);
         $filediv = null;
 
         // Make download menu if required
         if ($show) {
-            $AppConfig = new AppConfig($this->db);
-            $app_url = $AppConfig->getAppUrl();
+            $app_url = AppConfig::getInstance()->getAppUrl();
             $filediv = self::downloadMenu($this->link, $app_url);
         }
 
@@ -745,10 +738,8 @@ class Presentation extends Presentations {
      * @return string
      */
     public function showwish($show) {
-        /** @var AppConfig $config */
-        $config = new AppConfig($this->db);
-        $url = $config->getAppUrl() . "index.php?page=submission&op=wishpick&id={$this->id_pres}";
-        $uploader = new User($this->db,$this->username);
+        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=submission&op=wishpick&id={$this->id_pres}";
+        $uploader = new User($this->username);
         $update = date('d M y',strtotime($this->up_date));
         return "
         <div class='wish_container' id='{$this->id_pres}' style='display: block; position: relative; margin: 10px auto; 
@@ -772,7 +763,7 @@ class Presentation extends Presentations {
      * @return string
      */
     public function displaypub($user=false, $show=false) {
-        $user = ($user == false) ? new User($this->db):$user;
+        $user = ($user == false) ? new User():$user;
         $download_button = "";
         $dlmenu = "";
         $filediv = "";
@@ -817,7 +808,7 @@ class Presentation extends Presentations {
             $delete_button = "<div style='width: 100px'></div>";
             $modify_button = "<div style='width: 100px'></div>";
         }
-        $orator = new User($this->db, $this->orator);
+        $orator = new User($this->orator);
         if (empty($orator->fullname)) $orator->fullname = $this->orator;
         $type = ucfirst($this->type);
         $result = "
@@ -857,13 +848,13 @@ class Presentation extends Presentations {
     /**
      * Render submission editor
      * @param array|null $post
-     * @return string
+     * @return array
      */
     public function editor(array $post=null) {
         $post = (is_null($post)) ? $_POST : $post;
 
         $id_Presentation = $post['getpubform'];
-        $pub = $id_Presentation == "false" ? false : new self($this->db, $id_Presentation);
+        $pub = $id_Presentation == "false" ? false : new self($id_Presentation);
         if (!isset($_SESSION['username'])) {
             $_SESSION['username'] = false;
         }
@@ -871,7 +862,7 @@ class Presentation extends Presentations {
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type']:false;
         $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype']:false;
 
-        $user = new User($this->db, $_SESSION['username']);
+        $user = new User($_SESSION['username']);
         return Presentation::form($user, $pub, $type, $prestype, $date);
     }
 
@@ -946,13 +937,11 @@ class Presentation extends Presentations {
      * @param string $submit
      * @param bool $type
      * @param bool $date
-     * @return string
+     * @return array
      */
     public static function form(User $user, $Presentation=false, $submit="edit", $type=false, $date=false) {
-        global $AppConfig, $db;
-
         if ($Presentation == false) {
-            $Presentation = new self($db);
+            $Presentation = new self();
         }
         $date = ($date != false) ? $date:$Presentation->date;
         $type = ($type != false) ? $type:$Presentation->type;
@@ -977,7 +966,7 @@ class Presentation extends Presentations {
 
         // Make submission's type selection list
         $typeoptions = "";
-        foreach ($AppConfig->pres_type as $types) {
+        foreach (AppConfig::getInstance()->pres_type as $types) {
             if ($types == $type) {
                 $typeoptions .= "<option value='$types' selected>$types</option>";
             } else {

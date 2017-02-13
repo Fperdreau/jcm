@@ -20,27 +20,20 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$last_news = new Posts($db);
-$sessions = new Sessions($db);
-$presentations = new Presentations($db);
+$last_news = new Posts();
+$sessions = new Sessions();
+$presentations = new Presentations();
 
-$news = $last_news->show_last();
-$futurepres = $sessions->showfuturesession(4);
-$wishlist = $presentations->getwishlist(10,true);
-if (isset($_SESSION['logok']) && $_SESSION['logok']) {
-    $submitMenu = Presentation::submitMenu('fixed');
-} else {
-    $submitMenu = null;
-}
+$submitMenu = User::is_logged() ? Presentation::submitMenu('fixed') : null;
 
 $result = "
-    $submitMenu
+    {$submitMenu}
 
     <section>
         <h2>Last News</h2>
         <div class='section_content'>
             <div class='news'>
-                $news
+                " . $last_news->show_last() . "
             </div>
         </div>
     </section>
@@ -54,7 +47,7 @@ $result = "
                     <label>Session to show</label>
                 </div>
                 <div id='sessionlist'>
-                    $futurepres
+                    " . $sessions->showfuturesession(4) . "
                 </div>
             </div>
         </section>
@@ -62,7 +55,7 @@ $result = "
         <section>
             <h2>Wish list</h2>
             <div class='section_content'>
-                $wishlist
+                " . $presentations->getwishlist(10,true) . "
             </div>
         </section>
     </div>

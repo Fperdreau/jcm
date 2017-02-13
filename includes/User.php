@@ -58,10 +58,9 @@ class Users extends AppTable {
 
     /**
      * Users constructor.
-     * @param AppDb $db
      */
-    function __construct(AppDb $db) {
-        parent::__construct($db, 'User', $this->table_data);
+    function __construct() {
+        parent::__construct('User', $this->table_data);
     }
 
     /**
@@ -139,7 +138,7 @@ class Users extends AppTable {
 
         while ($cur_user = mysqli_fetch_array($req)) {
             /** @var User $user */
-            $user = new User($this->db,$cur_user['username']);
+            $user = new User($cur_user['username']);
 
             $nbpres = $user->get_nbpres();
             // Compute age
@@ -258,11 +257,10 @@ class User extends Users {
     /**
      * Constructor
      *
-     * @param AppDb $db
      * @param null $username
      */
-    function __construct(AppDb $db, $username=null) {
-        $this->db = $db;
+    function __construct($username=null) {
+        parent::__construct();
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
         if ($username != null) {
@@ -277,9 +275,10 @@ class User extends Users {
      * @return bool|string
      */
     function make($post=array()) {
-        $mail = new AppMail($this->db);
+        $mail = new AppMail();
 
         $post = self::sanitize($post); // Escape $_POST content
+
         $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
         $this->last_login = $this->date;
 
@@ -296,8 +295,7 @@ class User extends Users {
         // admin level
 
 		$class_vars = get_class_vars("User");
-        if (self :: user_exist($post['username']) == false
-            && self :: mail_exist($post['email']) == false) {
+        if (!self::user_exist($post['username']) && !self::mail_exist($post['email'])) {
             $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
             $this->db->addcontent($this->tablename,$content); // Add to user table
 
@@ -502,8 +500,8 @@ class User extends Users {
      * @return bool
      */
     private function send_confirmation_mail() {
-        $config = new AppConfig($this->db);
-        $AppMail = new AppMail($this->db);
+        $config = new AppConfig();
+        $AppMail = new AppMail();
         $subject = 'Sign up | Confirmation'; // Give the email a subject
         $login_url = $config->getAppUrl()."index.php";
 
@@ -526,12 +524,11 @@ class User extends Users {
      * @return bool
      */
     private function send_activation_mail() {
-        $config = new AppConfig($this->db);
-        $AppMail = new AppMail($this->db);
+        $AppMail = new AppMail();
 
         $subject = 'Your account has been deactivated'; // Give the email a subject
-        $authorize_url = $config->getAppUrl()."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
-        $newpwurl = $config->getAppUrl()."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
+        $authorize_url = AppConfig::getInstance()->getAppUrl()."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
+        $newpwurl = AppConfig::getInstance()->getAppUrl()."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
         $content = "
         <div style='width: 100%; margin: auto;'>
             <p>Hello $this->fullname,</p>
@@ -639,15 +636,14 @@ class User extends Users {
         // Reset the number of attempts if last login attempt was 1 hour ago
         $this->attempt = $diff->h >= 1 ? 0:$this->attempt;
         $this->attempt += 1;
-        $AppConfig = new AppConfig($this->db);
-        if ($this->attempt >= $AppConfig->max_nb_attempt) {
+        if ($this->attempt >= AppConfig::getInstance()->max_nb_attempt) {
             self::activation(0); // We deactivate the user's account
             $this->send_activation_mail();
             return false;
         }
         $this->last_login = date('Y-m-d H:i:s');
         $this->db->updatecontent($this->tablename,array('attempt'=>$this->attempt,'last_login'=>$this->last_login),array("username"=>$this->username));
-        return $AppConfig->max_nb_attempt - $this->attempt;
+        return AppConfig::getInstance()->max_nb_attempt - $this->attempt;
     }
 
     /**
@@ -719,7 +715,7 @@ class User extends Users {
         while ($row = mysqli_fetch_assoc($req)) {
             $pubid = $row['id_pres'];
             /** @var Presentation $pub */
-            $pub = new Presentation($this->db,$pubid);
+            $pub = new Presentation($pubid);
             $content .= $pub->show(true);
         }
 
@@ -746,8 +742,8 @@ class User extends Users {
         $content = "";
         while ($row = mysqli_fetch_assoc($req)) {
             $pubid = $row['id_pres'];
-            $pub = new Presentation($this->db, $pubid);
-            $content .= $pub->show($show, $username);
+            $pub = new Presentation($pubid);
+            $content .= $pub->show($username);
         }
         if (empty($content)) return "You don't have any upcoming presentations.";
         return "

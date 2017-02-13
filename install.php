@@ -32,7 +32,7 @@
 date_default_timezone_set('Europe/Paris');
 if (!ini_get('display_errors')) {
     //error_reporting(E_ALL | E_STRICT);
-    ini_set('display_errors', '0');
+    ini_set('display_errors', '1');
 }
 
 /**
@@ -71,8 +71,8 @@ SessionInstance::initsession();
  * Declare classes
  *
  */
-$db = new AppDb();
-$AppConfig = new AppConfig($db,false);
+$db = AppDb::getInstance();
+$AppConfig = AppConfig::getInstance(false);
 if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
 
 /**
@@ -102,7 +102,7 @@ function browsecontent($dir,$foldertoexclude=array(),$filestoexclude=array()) {
  * Patching database tables for version older than 1.2.
  */
 function patching() {
-    global $db;
+    $db = AppDb::getInstance();
     $version = (float)$_SESSION['installed_version'];
     if ($version <= 1.2) {
 
@@ -137,7 +137,7 @@ function patching() {
 
         // Patch POST table
         // Give ids to posts that do not have one yet (compatibility with older versions)
-        $post = new Posts($db);
+        $post = new Posts();
         $sql = "SELECT postid,date,username FROM " . $db->tablesname['Posts'];
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
@@ -192,7 +192,7 @@ function patching() {
     }
 
     // Clean session duplicates
-    $Session = new Session($db);
+    $Session = new Session();
     $Session->clean_duplicates();
 }
 
@@ -207,16 +207,16 @@ if (!empty($_POST['operation'])) {
     switch ($operation) {
         case "db_info":
             // STEP 1: Check database credentials provided by the user
-            $result = $db->testdb($_POST);
+            $result = AppDb::testdb($_POST);
             break;
         case "do_conf":
             // STEP 2: Write database credentials to config.php file
-            $result = $AppConfig::createConfig($_POST);
+            $result = AppConfig::createConfig($_POST);
             break;
         case "backup":
             // STEP 3: Do Backups before making any modifications to the db
             include('cronjobs/DbBackup.php');
-            $backup = new DbBackup($db);
+            $backup = new DbBackup();
             $backup->run();
             $result['msg'] = "Backup is complete!";
             $result['status'] = true;
@@ -232,7 +232,7 @@ if (!empty($_POST['operation'])) {
             $tables_to_create = $db->tablesname;
 
             // Get default application settings
-            $AppConfig = new AppConfig($db, false);
+            $AppConfig = new AppConfig(false);
             $version = $AppConfig::version; // New version number
             if ($op === true) {
                 $AppConfig->get();
@@ -248,59 +248,59 @@ if (!empty($_POST['operation'])) {
             $AppConfig->update($_POST);
 
             // Create users table
-            $Users = new Users($db);
+            $Users = new Users();
             $Users->setup($op);
 
             // Create Post table
-            $Posts = new Posts($db);
+            $Posts = new Posts();
             $Posts->setup($op);
             $Posts->patch_table();
 
             // Create Media table
-            $Media = new Uploads($db);
+            $Media = new Uploads();
             $Media->setup($op);
 
             // Create MailManager table
-            $MailManager = new MailManager($db);
+            $MailManager = new MailManager();
             $MailManager->setup($op);
 
             // Create Presentation table
-            $Presentations = new Presentations($db);
+            $Presentations = new Presentations();
             $Presentations->setup($op);
 
             // Create Session table
-            $Sessions = new Sessions($db);
+            $Sessions = new Sessions();
             $Sessions->setup($op);
 
             // Create Plugins table
-            $Plugins = new AppPlugins($db);
+            $Plugins = new AppPlugins();
             $Plugins->setup($op);
 
             // Create CronJobs table
-            $CronJobs = new AppCron($db);
+            $CronJobs = new AppCron();
             $CronJobs->setup($op);
 
             // Page table
-            $AppPage = new AppPage($db);
+            $AppPage = new AppPage();
             $AppPage->setup($op);
             $AppPage->getPages();
 
             // Digest table
-            $DigestMaker = new DigestMaker($db);
+            $DigestMaker = new DigestMaker();
             $DigestMaker->setup($op);
 
             // Reminder table
-            $DigestMaker = new ReminderMaker($db);
+            $DigestMaker = new ReminderMaker();
             $DigestMaker->setup($op);
 
             // Assignment table
-            $Assignment = new Assignment($db);
+            $Assignment = new Assignment();
             $Assignment->setup($op);
             $Assignment->check();
             $Assignment->getPresentations();
 
             // Availability table
-            $Availability = new Availability($db);
+            $Availability = new Availability();
             $Availability->setup($op);
 
             // Apply patch if required
@@ -323,7 +323,7 @@ if (!empty($_POST['operation'])) {
                 $date = $row['date'];
                 $time = $row['jc_time'];
                 if (!in_array($date, $session_date)) {
-                    $session = new Session($db);
+                    $session = new Session();
                     if (!$session->make(array('date'=>$date,'time'=>$time))) {
                         $result['status'] = false;
                         $result['msg'] = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
@@ -337,12 +337,12 @@ if (!empty($_POST['operation'])) {
             break;
 
         case "settings":
-            $AppConfig = new AppConfig($db);
+            $AppConfig = new AppConfig();
             $result['status'] = $AppConfig->update($_POST);
             break;
         case "admin_creation":
             // Final step: create admin account (for new installation only)
-            $user = new User($db);
+            $user = new User();
             $result = $user->make($_POST);
             break;
         default:
@@ -498,7 +498,7 @@ if (!empty($_POST['getpagecontent'])) {
         $title = "Step 3: Admin account creation";
         $operation = "
             <div class='feedback'></div>
-			<form action='install.php'>
+			<form action='install.php' method='post'>
                 <input type='hidden' name='op' value='$op'/>
                 <input type='hidden' name='operation' value='admin_creation'/>
                 <input type='hidden' name='status' value='admin'/>
@@ -521,7 +521,7 @@ if (!empty($_POST['getpagecontent'])) {
                 </div>
                 <input type='hidden' name='status' value='admin'>
                 <div class='submit_btns'>
-                    <input type='submit' value='Next' class='admin_creation'>
+                    <input type='submit' value='Next'>
                 </div>
 			</form>
 		";
@@ -558,6 +558,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     <META NAME="keywords" CONTENT="Journal Club Manager">
     <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
     <link type='text/css' rel='stylesheet' href="css/stylesheet.min.css"/>
+    <link type="text/css" rel="stylesheet" href="js/passwordchecker/css/style.min.css"/>
 
     <style type="text/css">
         body {
@@ -1043,6 +1044,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 .on('click', "input[type='submit']", function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('hello1');
                     if (!$(this).hasClass('processform')) {
                         process($(this));
                     } else {

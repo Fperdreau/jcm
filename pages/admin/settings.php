@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-$user = new User($db,$_SESSION['username']);
+$user = new User($_SESSION['username']);
 
 // Configuration
 // Make hours options list

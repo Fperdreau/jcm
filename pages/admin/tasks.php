@@ -21,8 +21,8 @@
  */
 
 // Declare classes
-$user = new User($db,$_SESSION['username']);
-$AppCron = new AppCron($db);
+$user = new User($_SESSION['username']);
+$AppCron = new AppCron();
 
 $cronOpt = $AppCron->show();
 $result = "

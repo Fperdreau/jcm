@@ -40,14 +40,13 @@ class Uploads extends AppTable{
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    function __construct(AppDb $db) {
-        parent::__construct($db, 'Media', $this->table_data);
-        $config = new AppConfig($db);
+    function __construct() {
+        parent::__construct('Media', $this->table_data);
         $this->directory = PATH_TO_APP.'/uploads/';
-        $this->maxsize = $config->upl_maxsize;
-        $this->allowed_types = explode(',',$config->upl_types);
+        $AppConfig = new AppConfig();
+        $this->maxsize = $AppConfig->upl_maxsize;
+        $this->allowed_types = explode(',', $AppConfig->upl_types);
 
         // Create uploads folder if it does not exist yet
         if (!is_dir($this->directory)) {
@@ -63,7 +62,7 @@ class Uploads extends AppTable{
         $sql = "SELECT fileid FROM $this->tablename WHERE presid='$presid'";
         $req = $this->db->send_query($sql);
         while ($row=mysqli_fetch_assoc($req)) {
-            $up = new Media($this->db, $row['fileid']);
+            $up = new Media($row['fileid']);
             $result = $up->delete();
             if ($result !== true) {
                 return $result;
@@ -82,7 +81,7 @@ class Uploads extends AppTable{
         $req = $this->db->send_query($sql);
         $uploads = array();
         while ($row=mysqli_fetch_assoc($req)) {
-            $up = new Media($this->db, $row['fileid']);
+            $up = new Media($row['fileid']);
             $uploads[$row['fileid']] = array('date'=>$up->date,'filename'=>$up->filename,'type'=>$up->type);
         }
         return $uploads;
@@ -101,7 +100,7 @@ class Uploads extends AppTable{
                 $sql = "SELECT fileid FROM $this->tablename WHERE filename='$filename'";
                 $req = $this->db->send_query($sql);
                 $data = mysqli_fetch_assoc($req);
-                $file = new Media($this->db,$data['fileid']);
+                $file = new Media($data['fileid']);
                 if  (!$this->db->deletecontent($this->tablename, 'fileid', $file->fileid)) {
                     AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;
@@ -117,8 +116,6 @@ class Uploads extends AppTable{
      * @return string
      */
     public static function uploader(array $links=array()) {
-        global $AppConfig;
-
         // Get files associated to this publication
         $filesList = "";
         if (!empty($links)) {
@@ -139,7 +136,7 @@ class Uploads extends AppTable{
                     <div class='upl_btn'>
                         Add Files
                         <br>(click or drop)
-                        <div class='upl_filetypes'>($AppConfig->upl_types)</div>
+                        <div class='upl_filetypes'>(" . AppConfig::getInstance()->upl_types . ")</div>
                         <div class='upl_errors'></div>
                     </div>
                 </form>
@@ -160,11 +157,10 @@ class Media extends Uploads {
     public $type;
 
     /**
-     * @param AppDb $db
      * @param null $fileid
     */
-    function __construct(AppDb $db, $fileid=null){
-        parent::__construct($db);
+    function __construct($fileid=null){
+        parent::__construct();
 
         if (null != $fileid) {
             self::get($fileid);

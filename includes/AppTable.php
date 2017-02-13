@@ -39,17 +39,16 @@ class AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
-     * @param $tablename
+     * @param $table_name
      * @param $table_data
      * @param bool $plugin
      */
-    function __construct(AppDb $db, $tablename, $table_data, $plugin=False) {
-        $this->db = $db;
+    function __construct($table_name, $table_data, $plugin=False) {
+        $this->db = AppDb::getInstance();
         if ($plugin !== False) {
-            $this->tablename = $db->dbprefix.'_'.$plugin;
+            $this->tablename = $this->db->dbprefix.'_'.$plugin;
         } else {
-            $this->tablename = $db->tablesname[$tablename];
+            $this->tablename = $this->db->tablesname[$table_name];
         }
         $this->table_data = $table_data;
         $correct_config = $this->db->testdb($this->db->get_config());

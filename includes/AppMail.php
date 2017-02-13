@@ -51,10 +51,9 @@ class AppMail {
 
     /**
      * Class constructor
-     * @param AppDb $db
      */
-    function __construct(AppDb $db){
-        $this->db = $db;
+    function __construct(){
+        $this->db = AppDb::getInstance();
         $this->tablename = $this->db->tablesname['User'];
         $this->get_config();
     }
@@ -65,7 +64,7 @@ class AppMail {
      */
     private function get_config() {
         if (is_null($this->config)) {
-            $this->config = new AppConfig($this->db);
+            $this->config = new AppConfig();
         }
         return $this->config;
     }
@@ -78,8 +77,8 @@ class AppMail {
      * @return bool
      */
     function send_verification_mail($hash,$user_mail,$username) {
-        $MailManager = new MailManager($this->db);
-        $Users = new Users($this->db);
+        $MailManager = new MailManager();
+        $Users = new Users();
         $admins = $Users->getadmin('admin');
         $to = array();
         foreach ($admins as $key=>$admin) {
@@ -108,9 +107,9 @@ class AppMail {
      * @return mixed
      */
     public function send_test_email(array $data, $to=null) {
-        $MailManager = new MailManager($this->db);
+        $MailManager = new MailManager();
         if (is_null($to)) {
-            $Users = new Users($this->db);
+            $Users = new Users();
             $admins = $Users->getadmin('admin');
             $to = array();
             foreach ($admins as $key=>$admin) {

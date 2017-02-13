@@ -21,8 +21,8 @@
  */
 
 // Declare classes
-$user = new User($db,$_SESSION['username']);
-$Presentation = new Presentation($db);
+$user = new User($_SESSION['username']);
+$Presentation = new Presentation();
 $publication_list = $user->getpublicationlist(null);
 $assignments = $user->getAssignments();
 $notifStatus = ($user->notification == 1) ? "Yes":"No";

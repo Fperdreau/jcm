@@ -29,16 +29,10 @@ class Availability extends AppTable {
     public $username;
 
     /**
-     * @var Session
-     */
-    private static $session;
-
-    /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db, 'Availability', $this->table_data);
+    public function __construct() {
+        parent::__construct('Availability', $this->table_data);
     }
 
     /**

@@ -61,11 +61,10 @@ class MailSender extends AppCron {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
-        $this->Manager = new MailManager($db);
+    public function __construct() {
+        parent::__construct();
+        $this->Manager = new MailManager();
 
         $this->path = basename(__FILE__);
     }
@@ -76,7 +75,7 @@ class MailSender extends AppCron {
      */
     private function getMailer() {
         if (is_null(self::$AppMail)) {
-            self::$AppMail = new AppMail($this->db);
+            self::$AppMail = new AppMail();
         }
         return self::$AppMail;
     }

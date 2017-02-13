@@ -23,7 +23,7 @@
 require_once('../includes/boot.php');
 
 if (!empty($_GET['mail_id'])) {
-    $MailManager = new MailManager($db);
+    $MailManager = new MailManager();
     $content = $MailManager->show(htmlspecialchars($_GET['mail_id']));
 } else {
     $content = "Nothing to show here";

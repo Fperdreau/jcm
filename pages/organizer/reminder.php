@@ -20,7 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$Reminder = new ReminderMaker($db);
+$Reminder = new ReminderMaker();
 $section_content = $Reminder->edit();
 // Send mail
 $result = "

@@ -1032,7 +1032,9 @@ $(document).ready(function () {
             e.preventDefault();
             var nbsession = $(this).val();
             var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
-            var data = {show_session: nbsession, status: status};
+            var view = ($(this).data('view') == undefined) ? 'simple' : $(this).data('view');
+            console.log(view);
+            var data = {show_session: nbsession, status: status, view: view};
             var div = $('#sessionlist');
             var callback = function (result) {
                 $('#sessionlist')

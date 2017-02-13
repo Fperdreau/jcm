@@ -22,14 +22,14 @@
 
 if (!empty($_GET['id'])) {
     if (isset($_SESSION['username'])) {
-        $user = new User($db, $_SESSION['username']);
+        $user = new User($_SESSION['username']);
     } elseif (!empty($_GET['user'])) {
-        $user = new User($db, $_GET['user']);
+        $user = new User($_GET['user']);
     } else {
         $user = false;
     }
 
-    $Presentation = new Presentation($db, htmlspecialchars($_GET['id']));
+    $Presentation = new Presentation(htmlspecialchars($_GET['id']));
     if ($user != false) {
         $content = $Presentation::form($user, $Presentation);
     } else {

@@ -50,10 +50,9 @@ class MailManager extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    function __construct(AppDb $db) {
-        parent::__construct($db, "MailManager", $this->table_data);
+    function __construct() {
+        parent::__construct("MailManager", $this->table_data);
     }
 
     /**
@@ -148,7 +147,7 @@ class MailManager extends AppTable {
      * @return mixed
      */
     public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null) {
-        $AppMail = new AppMail($this->db);
+        $AppMail = new AppMail();
 
         // Generate ID
         $data['mail_id'] = $this->generateID();
@@ -213,12 +212,11 @@ class MailManager extends AppTable {
      * @return string
      */
     public function getContactForm($recipients=null) {
-        $user = new User($this->db);
+        $user = new User();
 
         if (!is_null($recipients)) {
             $recipients_list = array();
             foreach (explode(',', $recipients) as $id) {
-                $user = new User($this->db);
                 if (!empty($id)) $recipients_list[] = $user->getById($id);
             }
         } else {
@@ -231,7 +229,7 @@ class MailManager extends AppTable {
             if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
         }
 
-        $sender_obj = new User($this->db, $_SESSION['username']);
+        $sender_obj = new User($_SESSION['username']);
         $sender = array('mail_from'=>$sender_obj->email, 'mail_from_name'=>$sender_obj->fullname);
         // Upload
         $uploader = Media::uploader();

@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-$Assignment = new Assignment($db);
+$Assignment = new Assignment();
 $Assignment->check();
 $section_content = $Assignment->showAll();
 // Send mail

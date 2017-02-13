@@ -106,18 +106,17 @@ class AppConfig extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      * @param bool $get
      */
-    public function __construct(AppDb $db,$get=true) {
-        parent::__construct($db, 'AppConfig',$this->table_data);
+    public function __construct($get=true) {
+        parent::__construct('AppConfig',$this->table_data);
 
         // Get App URL if not running in command line
-        if (php_sapi_name() !== "cli") {
-            $this->getAppUrl();
-        }
-
         if ($get) {
+            if (php_sapi_name() !== "cli") {
+                $this->getAppUrl();
+            }
+
             $this->get();
         }
     }
@@ -125,11 +124,11 @@ class AppConfig extends AppTable {
     /**
      * Get AppConfig instance
      * @param bool $get
-     * @return AppConfig|null
+     * @return self|null
      */
     public static function getInstance($get=true) {
         if (is_null(self::$instance)) {
-            self::$instance = new self(AppDb::get_instance(), $get);
+            self::$instance = new self($get);
         }
         return self::$instance;
     }
@@ -143,7 +142,7 @@ class AppConfig extends AppTable {
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = (in_array($varname, array("session_type", "pres_type"))) ? json_decode($row['value'], true) : htmlspecialchars_decode($row['value']);
+            $value = (in_array($varname, array("session_type", "pres_type", 'instance',))) ? json_decode($row['value'], true) : htmlspecialchars_decode($row['value']);
             if (property_exists(get_class($this), $varname)) {
                 $prop = new ReflectionProperty(get_class($this), $varname);
                 if (!$prop->isStatic()) {
@@ -167,7 +166,7 @@ class AppConfig extends AppTable {
             if (in_array($name, array("db", "tablename", "table_data"))) continue;
 
             $newvalue = (in_array($name, $postkeys)) ? $post[$name] : $this->get_setting($name);
-            $newvalue = (in_array($name, array("session_type", "pres_type")) or is_array($newvalue)) ? json_encode($newvalue) : $newvalue;
+            $newvalue = (in_array($name, array("session_type", "pres_type", 'instance')) or is_array($newvalue)) ? json_encode($newvalue) : $newvalue;
             $this->set_setting($name, $newvalue);
 
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
@@ -246,7 +245,7 @@ class AppConfig extends AppTable {
                 }
             }
         } else {
-            $self = new self(AppDb::get_instance());
+            $self = new self(AppDb::getInstance());
             self::$site_url = $self->getConfig('site_url');
         }
 
@@ -256,10 +255,10 @@ class AppConfig extends AppTable {
 
     /**
      * Create configuration files including database credentials and App version
-     * @param $post
+     * @param array $post
      * @return string
      */
-    public static function createConfig($post) {
+    public static function createConfig(array $post) {
         $folders = array('config','uploads');
 
         $filename = PATH_TO_CONFIG . "config.php";

@@ -21,13 +21,13 @@
  */
 
 // Declare classes
-if (!isset($_SESSION['logok']) || !$_SESSION['logok']) {
+if (!User::is_logged()) {
     echo json_encode(AppPage::login_required());
     exit();
 }
 
 $username = (isset($_POST['user'])) ? $_POST['user']:$_SESSION['username'];
-$user = new User(AppDb::get_instance(), $username);
+$user = new User($username);
 
 // Get options
 $result = null;
@@ -42,7 +42,7 @@ if (isset($_POST['op'])) {
     if ($op == 'edit') {
         if (!empty($_POST['id'])) {
             $id_pres = htmlspecialchars($_POST['id']);
-            $Presentation = new Presentation(AppDb::get_instance(),$id_pres);
+            $Presentation = new Presentation($id_pres);
             $date = $Presentation->date;
         } else {
             $Presentation = false;
@@ -57,12 +57,13 @@ if (isset($_POST['op'])) {
     } elseif ($op == 'wishpick') {
         if (!empty($_POST['id'])) {
             $id_pres = htmlspecialchars($_POST['id']);
-            $Presentation = new Presentation(AppDb::get_instance(),$id_pres);
+            $Presentation = new Presentation($id_pres);
+            $selectopt = $Presentation->generate_selectwishlist('.submission_container');
         } else {
             $Presentation = false;
+            $selectopt = null;
         }
 
-        $selectopt = $Presentations->generate_selectwishlist('.submission_container');
         if (!empty($_POST['id']) || !empty($_POST['update'])) { // a wish has been selected
             $submit_form = Presentation::form($user, $Presentation,'submit');
         } else {
@@ -75,7 +76,7 @@ if (isset($_POST['op'])) {
 
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
-        $Presentation = new Presentation(AppDb::get_instance(), $_POST['id']);
+        $Presentation = new Presentation($_POST['id']);
         $section_content = Presentation::form($user, $Presentation, 'submit');
     }
 }

@@ -54,10 +54,9 @@ class SpeakerAssignment extends AppCron {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->path = basename(__FILE__);
     }
 
@@ -75,7 +74,7 @@ class SpeakerAssignment extends AppCron {
      * @return string
      */
     public function run() {
-        $Assignment = new autoAssignment($this->db);
+        $Assignment = new autoAssignment();
         if (!$Assignment->installed) {
             return 'You must install the Assignment plugin first!';
         }
@@ -96,18 +95,18 @@ class SpeakerAssignment extends AppCron {
         $result['status'] = true;
         $result['msg'] = null;
 
-        $MailManager = new MailManager($this->db);
+        $MailManager = new MailManager();
 
         // Get future sessions dates
         $today = date('Y-m-d');
         $dueDate = date('Y-m-d', strtotime($today . " + {$this->options['Days']['value']} day"));
-        $session = new Session($this->db, $dueDate);
+        $session = new Session($dueDate);
 
         if ($session->dateexists($dueDate)) {
             $n = 0;
             foreach ($session->presids as $presid) {
-                $Presentation = new Presentation($this->db, $presid);
-                $speaker = new User($this->db, $Presentation->username);
+                $Presentation = new Presentation($presid);
+                $speaker = new User($Presentation->username);
                 $content = $this->reminderEmail($speaker, array('date'=>$session->date, 'type'=>$session->type));
                 if ($MailManager->send($content, array($speaker->email))) {
                     $result['status'] = true;

@@ -50,8 +50,8 @@ class FullBackup extends AppCron {
     backup/complete folder and automatically cleans older backups. The number of versions that has to be stored can be 
     defined in the task's settings";
 
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->path = basename(__FILE__);
         //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }

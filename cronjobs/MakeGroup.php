@@ -48,10 +48,9 @@ class MakeGroup extends AppCron {
 
     /**
      * MakeGroup constructor.
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->path = basename(__FILE__);
     }
     
@@ -60,8 +59,7 @@ class MakeGroup extends AppCron {
      * @return array|string
      */
     public function run() {
-        global $db;
-        $groups = new Groups($db);
+        $groups = new Groups();
         if (!$groups->installed) {
             return 'You must install the Group plugin first!';
         }
@@ -78,9 +76,9 @@ class MakeGroup extends AppCron {
      * @return string
      */
     public function notify() {
-        global $AppMail;
-        $MailManager = new MailManager($this->db);
-        $Group = new Groups($this->db);
+        $MailManager = new MailManager();
+        $Group = new Groups();
+        $AppMail = new AppMail();
 
         // Count number of users
         $users = $AppMail->get_mailinglist("notification");

@@ -52,23 +52,22 @@ class Posts extends AppTable {
 
     /**
      * Constructor
-     * @param $db AppDb
-     * @param null $postid
+     * @param null $id
      */
-    public function __construct(AppDb $db,$postid=null) {
-        parent::__construct($db,'Posts', $this->table_data);
+    public function __construct($id=null) {
+        parent::__construct('Posts', $this->table_data);
         $this->registerDigest();
-        if (null !== $postid) {
-            self::get($postid);
+        if (null !== $id) {
+            $this->get($id);
         }
-        $this->postid = $postid;
+        $this->postid = $id;
     }
 
     /**
      * Register into DigestMaker table
      */
     private function registerDigest() {
-        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker = new DigestMaker();
         $DigestMaker->register('Posts');
     }
 
@@ -206,10 +205,10 @@ class Posts extends AppTable {
 
     /**
      * Count total number of entries
-     * @param string $id: category name
+     * @param null|string $id: category name
      * @return int
      */
-    public function getCount($id) {
+    public function getCount($id=null) {
         $req = $this->db->send_query("SELECT * FROM {$this->tablename}");
         $data = array();
         while ($row = $req->fetch_assoc()) {
@@ -234,8 +233,8 @@ class Posts extends AppTable {
         if (!empty($posts_ids)) {
             $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
             foreach ($posts_ids as $id) {
-                $post = new self($this->db,$id);
-                $user = new User($this->db, $post->username);
+                $post = new self($id);
+                $user = new User($post->username);
                 $news .= self::display($post, $user->fullname, true);
             }
         } else {
@@ -253,8 +252,8 @@ class Posts extends AppTable {
         if (!empty($posts_ids)) {
             $news = "";
             foreach ($posts_ids as $id) {
-                $post = new self($this->db,$id);
-                $user = new User($this->db, $post->username);
+                $post = new self($id);
+                $user = new User($post->username);
                 $news .= self::display($post, $user->fullname);
             }
         } else {
@@ -270,7 +269,7 @@ class Posts extends AppTable {
      */
     public function show($id) {
         $this->get($id);
-        $user = new User($this->db, $this->username);
+        $user = new User($this->username);
         return self::display($this, $user->fullname, false);
     }
 
@@ -384,12 +383,12 @@ class Posts extends AppTable {
      */
     public function form($username, $postid=false) {
         if (false == $postid) {
-            $post = new self($this->db);
+            $post = new self();
             $op = "post_add";
             $submit = "Add";
             $del_btn = "";
         } else {
-            $post = new self($this->db,$postid);
+            $post = new self($postid);
             $op = "post_mod";
             $submit = "Modify";
             $del_btn = "<input type='button' class='post_del' id='submit' data-id='$post->postid' value='Delete'/>";
@@ -425,7 +424,7 @@ class Posts extends AppTable {
      */
     public function makeMail($username=null) {
         $last = $this->getlastnews();
-        $last_news = new self($this->db, $last[0]);
+        $last_news = new self($last[0]);
         $today = date('Y-m-d');
         if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
             $last_news->content = "No recent news this week";
@@ -442,11 +441,11 @@ class Posts extends AppTable {
     public function patch_table () {
         $sql = "SELECT * FROM {$this->tablename}";
         $req = $this->db->send_query($sql);
-        $user = new User($this->db);
+        $user = new User();
         while ($row = mysqli_fetch_assoc($req)) {
             $data = $user->search(array('fullname'=>$row['username']));
             if (!empty($data)) {
-                $cur_post = new Posts($this->db, $row['postid']);
+                $cur_post = new self($row['postid']);
                 $cur_post->update(array('username'=>$data[0]['username']));
             }
         }

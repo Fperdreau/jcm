@@ -22,13 +22,13 @@
 
 require_once('../includes/boot.php');
 
-$user = new User($db);
+$user = new User();
 
 // Modify user password
 if (!empty($_POST['hash']) && !empty($_POST['email'])) {
     $hash = htmlspecialchars($_POST['hash']);
     $email = htmlspecialchars($_POST['email']);
-    $username = $db ->getinfo($db->tablesname['User'],'username',array("email"),array("'$email'"));
+    $username = AppDb::getInstance() ->getinfo(AppDb::getInstance()->tablesname['User'],'username',array("email"),array("'$email'"));
     $user->get($username);
     if ($user->hash == $hash) {
         $content = "

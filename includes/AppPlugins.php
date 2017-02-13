@@ -97,11 +97,10 @@ class AppPlugins extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(AppDb $db, $name=False) {
-        parent::__construct($db, 'Plugins', $this->table_data);
+    public function __construct($name=False) {
+        parent::__construct('Plugins', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
             $this->get();
@@ -330,7 +329,7 @@ class AppPlugins extends AppTable {
      */
     public function install() {
         // Create corresponding table
-        $table = new AppTable($this->db, $this->name, $this->table_data, strtolower($this->name));
+        $table = new AppTable($this->name, $this->table_data, strtolower($this->name));
         $table->setup();
 
         // Register the plugin in the db

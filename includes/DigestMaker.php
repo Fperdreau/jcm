@@ -46,11 +46,10 @@ class DigestMaker extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(AppDb $db, $name=False) {
-        parent::__construct($db, 'DigestMaker', $this->table_data);
+    public function __construct($name=False) {
+        parent::__construct('DigestMaker', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
             $this->get($name);
@@ -128,11 +127,11 @@ class DigestMaker extends AppTable {
      * @return mixed
      */
     public function makeDigest($username) {
-        $user = new User($this->db, $username);
+        $user = new User($username);
         $string = "";
         foreach ($this->all() as $key=>$item) {
             if ($item['display'] == 1) {
-                $section = new $item['name']($this->db);
+                $section = new $item['name']();
                 $string .= self::showSection($section->makeMail($username));
             }
         }

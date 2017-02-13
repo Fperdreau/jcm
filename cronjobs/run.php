@@ -32,7 +32,7 @@ require('../includes/boot.php');
  */
 global $db, $AppConfig;
 
-$AppCron = new AppCron($db);
+$AppCron = new AppCron();
 $logs = $AppCron->execute_all();
 
 // Send logs to admins

@@ -51,14 +51,11 @@ class Sessions extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    function __construct(AppDb $db) {
-        parent::__construct($db, "Session", $this->table_data);
+    function __construct() {
+        parent::__construct("Session", $this->table_data);
 
-        /** @var AppConfig $AppConfig */
-        $AppConfig = new AppConfig($this->db);
-        $this->max_nb_session = $AppConfig->max_nb_session;
+        $this->max_nb_session = AppConfig::getInstance()->max_nb_session;
         $this->registerDigest();
         $this->registerReminder();
     }
@@ -67,7 +64,7 @@ class Sessions extends AppTable {
      * Register into Reminder table
      */
     private function registerReminder() {
-        $reminder = new ReminderMaker($this->db);
+        $reminder = new ReminderMaker();
         $reminder->register(get_class());
     }
 
@@ -75,7 +72,7 @@ class Sessions extends AppTable {
      * Register into DigestMaker table
      */
     private function registerDigest() {
-        $DigestMaker = new DigestMaker($this->db);
+        $DigestMaker = new DigestMaker();
         $DigestMaker->register(get_class());
     }
 
@@ -109,7 +106,7 @@ class Sessions extends AppTable {
      */
     public function getjcdates($nsession=20,$from=false) {
         /** @var AppConfig $AppConfig */
-        $AppConfig = new AppConfig($this->db);
+        $AppConfig = new AppConfig();
 
         $startdate = ($from == false) ? strtotime('now'):strtotime($from);
         $jc_days = array();
@@ -139,7 +136,7 @@ class Sessions extends AppTable {
      * @return string
      */
     public function isbooked($date) {
-        $session = new Session($this->db,$date);
+        $session = new Session($date);
 
         if ($session === false) {
             return "Free";
@@ -157,10 +154,10 @@ class Sessions extends AppTable {
     /**
      * Get all sessions
      * @param $date
-     * @param string $status
+     * @param string $view
      * @return string
      */
-    public function sessionManager($date=null, $status='admin') {
+    public function sessionManager($date=null, $view='simple') {
         // Get next JC date
         if ($date == null) {
             $date = $this->getjcdates(1);
@@ -169,11 +166,9 @@ class Sessions extends AppTable {
 
         // Check if session exists, otherwise create one
         if ($this->dateexists($date)) {
-            $session = new Session($this->db,$date);
+            $session = new Session($date);
         } else {
-            $session = new Session($this->db);
-            $session->make(array('date'=>$date));
-            $session->get();
+            return self::no_session($date);
         }
 
         // Get presentations
@@ -181,18 +176,47 @@ class Sessions extends AppTable {
         $presentations = "";
         for ($i=0;$i<$nbPres;$i++) {
             $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
-            $pres = new Presentation($this->db,$presid);
+            $pres = new Presentation($presid);
             if (!empty($pres->id_pres)) {
-                $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres, $status, $date),
-                    $pres->id_pres);
+                if ($view == 'edit') {
+                    $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres),
+                        $pres->id_pres);
+                } else {
+                    $presentations .= Session::slotContainer(Presentation::inSessionSimple($pres, $pres->username),
+                        $pres->id_pres);
+                }
+
             } else {
                 $presentations .= Session::emptySlot($date);
             }
         }
+        if ($view === 'edit') {
+            return self::sessionEditor($session, $presentations, AppConfig::getInstance()->session_type);
+        } else {
+            return self::sessionViewer($session, $presentations);
+        }
 
-        // Get session types
-        $config = new AppConfig(AppDb::get_instance());
-        return self::sessionEditor($session, $presentations, $config->session_type);
+    }
+
+    /**
+     * Render non planned session
+     * @param string $date
+     * @return string
+     */
+    private static function no_session($date) {
+        return "
+            <div class='session_div' id='session_{$date}' data-id='{$date}'>
+            <div class='session_header'>
+                <div class='session_date'>{$date}</div>
+                <div class='session_status'></div>
+            </div>
+            <div class='session_core'>
+               <div class='session_presentations'>
+                    Nothing planned yet
+                </div>
+            </div>
+        </div>
+        ";
     }
 
     /**
@@ -285,14 +309,31 @@ class Sessions extends AppTable {
         ";
     }
 
-    private static function presentations_list(array $data) {
-        $content = null;
-        foreach ($data as $key=>$item) {
-            $content .= Presentation::inManager($item);
-        }
-        return $content;
-    }
+    /**
+     * Render session editor
+     * @param Session $session
+     * @param string $presentations
+     * @return string
+     */
+    public static function sessionViewer(Session $session, $presentations) {
+        return "
+            <div style='display: block; margin: 10px auto 0 auto;'>
+                <!-- header -->
+                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
+                    <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
+                        <span style='color: #222; font-weight: 900;'>{$session->date}</span>
+                        <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
+                        <span style='color: #777; font-weight: 600;'>{$session->type}</span>
+                    </div>
+                </div>
 
+                <div style='padding: 10px 20px 10px 10px; background-color: rgba(239,239,239,.6); margin: 0 0 0 10px; 
+                border-left: 2px solid rgba(175,175,175,.8);'>
+                    {$presentations}
+                </div>
+
+            </div>";
+    }
 
     /**
      * Display the upcoming presentation(home page/mail)
@@ -303,7 +344,7 @@ class Sessions extends AppTable {
         $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
         $dates = $this->getsessions(true);
         if ($dates !== false) {
-            $session = new Session($this->db,$dates[0]);
+            $session = new Session($dates[0]);
             $content = $session->showsessiondetails($show);
         } else {
             $content = "Nothing planned yet.";
@@ -328,7 +369,7 @@ class Sessions extends AppTable {
         // Get futures journal club sessions
         $content = "";
         foreach ($jc_days as $day) {
-            $session = new Session($this->db,$day);
+            $session = new Session($day);
             $sessioncontent = $session->show_session($mail);
 
             $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
@@ -362,7 +403,7 @@ class Sessions extends AppTable {
      * @return mixed
      */
     public function notify_session_update(User $user, array $info, $assigned=true) {
-        $MailManager = new MailManager($this->db);
+        $MailManager = new MailManager();
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
@@ -407,7 +448,7 @@ class Sessions extends AppTable {
      * @return mixed
      */
     public function notify_organizers(User $user, array $info) {
-        $MailManager = new MailManager($this->db);
+        $MailManager = new MailManager();
         $date = $info['date'];
         $url = URL_TO_APP.'index.php?page=sessions';
 
@@ -460,13 +501,13 @@ class Sessions extends AppTable {
      * @return bool
      */
     public function cancelSession(Session $session) {
-        $assignment = new Assignment($this->db);
+        $assignment = new Assignment();
         $result = true;
         
         // Loop over presentations scheduled for this session
         foreach ($session->presids as $id_pres) {
-            $pres = new Presentation($this->db, $id_pres);
-            $speaker = new User($this->db, $pres->orator);
+            $pres = new Presentation($id_pres);
+            $speaker = new User($pres->orator);
 
             // Delete presentation and notify speaker that his/her presentation has been canceled
             if ($result = $pres->delete_pres($id_pres)) {
@@ -495,15 +536,15 @@ class Sessions extends AppTable {
      * @return bool|mixed
      */
     public function set_session_type(Session $session, $new_type) {
-        $assignment = new Assignment($this->db);
+        $assignment = new Assignment();
         $result = true;
 
         $previous_type = $session->type;
 
         // Loop over presentations scheduled for this session
         foreach ($session->presids as $id_pres) {
-            $pres = new Presentation($this->db, $id_pres);
-            $speaker = new User($this->db, $pres->orator);
+            $pres = new Presentation($id_pres);
+            $speaker = new User($pres->orator);
 
             // Unassign
             $info = array(
@@ -520,7 +561,7 @@ class Sessions extends AppTable {
             }
 
             // Notify user about the change of session type
-            $MailManager = new MailManager($this->db);
+            $MailManager = new MailManager();
             $date = $info['date'];
             $contactURL = URL_TO_APP."index.php?page=contact";
 
@@ -576,17 +617,15 @@ class Session extends Sessions {
     public $speakers = array();
 
     /**
-     * @param AppDb $db
      * @param null $date
      */
-    public function __construct(AppDb $db,$date=null) {
-        parent::__construct($db);
-        $AppConfig = new AppConfig($this->db);
-        $this->time = "$AppConfig->jc_time_from, $AppConfig->jc_time_to";
+    public function __construct($date=null) {
+        parent::__construct();
+        $this->time = AppConfig::getInstance()->jc_time_from . ',' . AppConfig::getInstance()->jc_time_to;
         $this->type = AppConfig::$session_type_default[0];
         $this->date = $date;
-        $this->room = $AppConfig->room; // Default room number
-        $this->slots = $AppConfig->max_nb_session;
+        $this->room = AppConfig::getInstance()->room; // Default room number
+        $this->slots = AppConfig::getInstance()->max_nb_session;
 
         if ($date != null) {
             self::get($date);
@@ -750,9 +789,9 @@ class Session extends Sessions {
         $max = (count($this->presids) < $this->slots) ? $this->slots:count($this->presids);
         for ($i=0;$i<$max;$i++) {
             $presid = (isset($this->presids[$i]) ? $this->presids[$i] : false);
-            $pub = new Presentation($this->db,$presid);
+            $pub = new Presentation($presid);
             if (!empty($pub->id_pres)) {
-                $speaker = new User(AppDb::get_instance(), $pub->orator);
+                $speaker = new User($pub->orator);
                 $content .= self::slotContainer(Presentation::inSessionSimple($pub, $speaker->fullname), $pub->id_pres);
             } else {
                 $content .= self::emptySlot($this->date);
@@ -867,8 +906,6 @@ class Session extends Sessions {
      * @return string
      */
     public function showsessiondetails($show=true,$prestoshow=false) {
-        $AppConfig = new AppConfig($this->db);
-
         $time = explode(',',$this->time);
         $time_from = $time[0];
         $time_to = $time[1];
@@ -883,7 +920,7 @@ class Session extends Sessions {
                 <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$this->type}</div>
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>$this->date</div>
                 <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>$time_from<b> To: </b>$time_to</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b> $AppConfig->room</div><br>
+            <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>" . AppConfig::getInstance()->room. "</div><br>
             </div>";
 
         $presentations_list = '';
@@ -891,7 +928,7 @@ class Session extends Sessions {
         foreach ($this->presids as $presid) {
             if ($prestoshow != false && $presid != $prestoshow) continue;
 
-            $pres = new Presentation($this->db,$presid);
+            $pres = new Presentation($presid);
             $presentations_list .= $pres->showDetails($show);
             $i++;
         }

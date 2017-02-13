@@ -41,10 +41,9 @@ class Reminder extends AppCron {
 
     /**
      * Reminder constructor.
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
         $this->path = basename(__FILE__);
     }
 
@@ -63,8 +62,8 @@ class Reminder extends AppCron {
      */
     public function run() {
         global $AppMail;
-        $MailManager = new MailManager($this->db);
-        $ReminderMaker = new ReminderMaker($this->db);
+        $MailManager = new MailManager();
+        $ReminderMaker = new ReminderMaker();
 
         // Count number of users
         $users = $AppMail->get_mailinglist("reminder");
@@ -85,9 +84,9 @@ class Reminder extends AppCron {
      * @return mixed
      */
     public function makeMail($fullname) {
-        $sessions = new Sessions($this->db);
+        $sessions = new Sessions();
         $dates = $sessions->getsessions();
-        $session = new Session($this->db,$dates[0]);
+        $session = new Session($dates[0]);
         $sessioncontent = $session->showsessiondetails();
         $date = $dates[0];
 

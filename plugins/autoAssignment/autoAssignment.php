@@ -67,10 +67,9 @@ class autoAssignment extends AppPlugins {
 
     /**
      * Constructor
-     * @param AppDb $db
      */
-    public function __construct(AppDb $db) {
-        parent::__construct($db);
+    public function __construct() {
+        parent::__construct();
 
         $this->installed = $this->isInstalled();
         $this->tablename = $this->db->dbprefix . '_' . strtolower($this->name);

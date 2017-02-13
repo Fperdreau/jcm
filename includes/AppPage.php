@@ -60,11 +60,10 @@ class AppPage extends AppTable {
 
     /**
      * Constructor
-     * @param AppDb $db
      * @param bool $name
      */
-    public function __construct(AppDb $db, $name=False) {
-        parent::__construct($db, 'Pages', $this->table_data);
+    public function __construct($name=False) {
+        parent::__construct('Pages', $this->table_data);
         if ($name !== False) {
             $this->get($name);
         }
@@ -330,7 +329,7 @@ class AppPage extends AppTable {
         $pageSettings = "";
         while ($row = mysqli_fetch_assoc($req)) {
             $pageName = $row['name'];
-            $thisPage = new AppPage($this->db,$pageName);
+            $thisPage = new self($pageName);
             $pageList = "<option value='none'>None</option>";
             foreach ($pages as $key=>$name) {
                 $selectOpt = ($name == $thisPage->parent) ? "selected":"";

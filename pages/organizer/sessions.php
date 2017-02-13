@@ -21,8 +21,9 @@
  */
 
 // Declare classes
-$user = new User(AppDb::get_instance(),$_SESSION['username']);
-
+$user = new User($_SESSION['username']);
+$Sessions = new Sessions();
+$AppConfig = AppConfig::getInstance();
 $Sessionslist = $Sessions->sessionManager();
 $timeopt = maketimeopt();
 $session_types = Session::session_type();
