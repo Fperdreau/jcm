@@ -141,7 +141,7 @@ class AppPage extends AppTable {
                 $result['msg'] = null;
             }
         } else {
-            $user = new User($this->db, $_SESSION['username']);
+            $user = new User($_SESSION['username']);
             if (self::$levels[$user->status]>=self::$levels[$page_level] || self::$levels[$page_level] == -1) {
                 $result['status'] = true;
                 $result['msg'] = $user->status;

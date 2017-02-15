@@ -32,9 +32,24 @@
  */
 class AppTable {
 
+    /**
+     * @var AppDb
+     */
     protected $db; // Instantiation of db
+
+    /**
+     * @var string $tablename
+     */
     protected $tablename; // Table name
+
+    /**
+     * @var array $table_data
+     */
     protected $table_data; // Table's data (array)
+
+    /**
+     * @var static array $default_exclude
+     */
     private static $default_exclude = array("id", "db", "tablename", "table_data", "logger");
 
     /**
@@ -46,15 +61,15 @@ class AppTable {
     function __construct($table_name, $table_data, $plugin=False) {
         $this->db = AppDb::getInstance();
         if ($plugin !== False) {
-            $this->tablename = $this->db->dbprefix.'_'.$plugin;
+            $this->tablename = $this->db->config['dbprefix'].'_'.$plugin;
         } else {
             $this->tablename = $this->db->tablesname[$table_name];
         }
         $this->table_data = $table_data;
-        $correct_config = $this->db->testdb($this->db->get_config());
+       /* $correct_config = AppDb::testdb($this->db->get_config());
         if ($correct_config['status'] && !$this->db->tableExists($this->tablename)) {
             $this->setup();
-        }
+        }*/
     }
 
     /**

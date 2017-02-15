@@ -263,7 +263,7 @@ class User extends Users {
         parent::__construct();
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
-        if ($username != null) {
+        if (!is_null($username)) {
             self::get($username);
         }
     }
@@ -275,8 +275,6 @@ class User extends Users {
      * @return bool|string
      */
     function make($post=array()) {
-        $mail = new AppMail();
-
         $post = self::sanitize($post); // Escape $_POST content
 
         $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
@@ -301,6 +299,7 @@ class User extends Users {
 
             if ($this->status !=  "admin") {
                 // Send verification email to admins/organizer
+                $mail = new AppMail();
                 if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
                     $result['status'] = true;
                     $result['msg'] = "Your account has been created. You will receive an email after
@@ -500,7 +499,7 @@ class User extends Users {
      * @return bool
      */
     private function send_confirmation_mail() {
-        $config = new AppConfig();
+        $config = AppConfig::getInstance();
         $AppMail = new AppMail();
         $subject = 'Sign up | Confirmation'; // Give the email a subject
         $login_url = $config->getAppUrl()."index.php";
