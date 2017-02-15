@@ -157,7 +157,7 @@ var validsubmitform = function (el, data, callback, timing, btn) {
     } else {
 
         if (btn !== undefined && btn.length > 0) resetButton(btn);
-
+        removeLoading(el);
         // Run callback function
         if (callback !== false) {
             callback(result);
