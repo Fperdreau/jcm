@@ -47,7 +47,7 @@ $result = "
                     <label>Session to show</label>
                 </div>
                 <div id='sessionlist'>
-                    " . $sessions->showfuturesession(4) . "
+                    " . $sessions->showFutureSessions(4) . "
                 </div>
             </div>
         </section>
