@@ -1080,11 +1080,18 @@ if (!empty($_POST['del_type'])) {
 
 // Show sessions
 if (!empty($_POST['show_session'])) {
-    $Sessions = new Sessions();
     $date = htmlspecialchars($_POST['show_session']);
     $status = htmlspecialchars($_POST['status']);
     $view = htmlspecialchars($_POST['view']);
-    $result = $Sessions->sessionManager($date,$status);
+    $Session = new Session($date);
+    $result = $Session->getSessionEditor($Session);
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['add_session'])) {
+    $Session = new Session();
+    $result = $Session->make($_POST);
     echo json_encode($result);
     exit;
 }
@@ -1182,13 +1189,8 @@ if (!empty($_POST['modSpeaker'])) {
 
 // Modify default session type
 if (!empty($_POST['session_type_default'])) {
-    if (AppConfig::getInstance()->update($_POST)) {
-        $result['status'] = true;
-        $result['msg'] = "DONE";
-    } else {
-        $result['status'] = false;
-        $result['msg'] = "Something went wrong";
-    }
+    $result['status'] = AppConfig::getInstance()->update(array(
+        'default_type'=>htmlspecialchars($_POST['session_type_default'])));
     echo json_encode($result);
     exit;
 }
