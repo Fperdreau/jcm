@@ -1091,7 +1091,7 @@ if (!empty($_POST['show_session'])) {
 
 if (!empty($_POST['add_session'])) {
     $Session = new Session();
-    $result = $Session->make($_POST);
+    $result['status'] = $Session->make($_POST);
     echo json_encode($result);
     exit;
 }

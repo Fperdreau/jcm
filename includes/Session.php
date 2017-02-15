@@ -522,13 +522,13 @@ class Sessions extends AppTable {
     public static function add_session_form(array $data) {
         $AppConfig = AppConfig::getInstance();
         return "
-        <form action='' method='post'>
+        <form action='php/form.php' method='post'>
             <div class='form-group'>
-                <select> ". self::type_list($data['types'], $AppConfig->get_setting('default_type')) . "</select>
+                <select name='type'> ". self::type_list($data['types'], $AppConfig->get_setting('default_type')) . "</select>
                 <label>Type</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='date' class='datepicker' value='{$data['date']}'>
+                <input type='date' name='date' class='hasDatepicker' id='datepicker' data-status='false' value='{$data['date']}'>
                 <label>Date</label>
             </div>
             <div class='form-group field_small inline_field'>
@@ -538,8 +538,8 @@ class Sessions extends AppTable {
             <div>
                 <div class='form-group field_small inline_field'>
                     <select name='repeated' class='repeated_session'>
-                        <option value='1'>Yes</option>
-                        <option value='2' selected>No</option>
+                        <option value=1>Yes</option>
+                        <option value=0 selected>No</option>
                     </select>
                     <label>Repeat</label>
                 </div>
@@ -801,9 +801,9 @@ class Session extends Sessions {
      * @return bool
      */
     public function make($post=array()) {
-        $this->date = (!empty($post['date'])) ? $post['date']:$this->date;
-        $this->start_date = $this->date;
-        $this->end_date = (!empty($post['repeat']) && $post['repeat'] == 1) ? $post['end_date'] : $this->date;
+        $post['date'] = (!empty($post['date'])) ? $post['date'] : $this->date;
+        $post['start_date'] = $post['date'];
+        $post['end_date'] = (!empty($post['repeated']) && $post['repeated'] == 1) ? $post['end_date'] : $post['date'];
         if (!$this->dateexists($this->date)) {
             $class_vars = get_class_vars("Session");
             $content = $this->parsenewdata($class_vars, $post, array('presids','speakers', 'max_nb_session'));
