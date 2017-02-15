@@ -507,7 +507,7 @@ div.inputFeedback {
     box-sizing: border-box;
 }
 
-.form-group > input[type='text'] {
+.form-group > input[type='text'], .form-group > input[type='number'] {
     padding: 28px 6px 0 6px;
 }
 
@@ -516,7 +516,7 @@ div.inputFeedback {
     padding: 24px 6px 0 6px;
 }
 
-.form-group > input[type='text']:valid {
+.form-group > input[type='text']:valid, .form-group > input[type='number']:valid {
     padding: 28px 6px 0 6px;
 }
 
@@ -529,6 +529,7 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
 .form-group > input:focus, .form-group > select:focus, .form-group > textarea:focus {
     padding: 4px 6px 20px 6px;
     border: 1px solid rgba(207, 81, 81, .5);
+    background: white !important;
 }
 
 .form-group > input:focus + label, .form-group > textarea:focus + label {
@@ -546,8 +547,12 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     margin-top: -16px;
 }
 
-.form-group > input[type='text']:focus {
+.form-group > input[type='text']:focus, .form-group > input[type='number']:focus {
     padding: 4px 6px 24px 6px;
+}
+
+.form-group>select, .form-group>select:focus, .form-group>select:valid {
+    padding: 27px 6px 0 6px !important;
 }
 
 /* Select input */
@@ -2758,6 +2763,38 @@ div.loadBtn {
     vertical-align: top;
 }
 
+.session_viewer_container {
+    padding: 5px;
+    box-sizing: border-box;
+    background: rgb(50, 50, 50);
+    margin: 0 auto 10px auto;
+    border-radius: 5px;
+}
+
+.session_editor_core {
+    padding: 0 10px 10px 10px;
+    border: 1px dashed #ddd;
+    border-top: 0;
+    vertical-align: top;
+    text-align: left;
+    background: white;
+}
+
+.session_editor_div {
+    display: block;
+    height: auto;
+    margin: 10px auto 10px auto;
+    background-color: white;
+}
+
+.session_viewer_container h3 {
+    /* background: rgb(50, 50, 50); */
+    color: white;
+    border: 0;
+    border-bottom: 3px solid rgb(207, 81, 81);
+    margin: 5px auto 10px auto;
+    font-weight: 100;
+}
 /* *********************************************************************/
 /* Text/Messages
 /* *********************************************************************/
