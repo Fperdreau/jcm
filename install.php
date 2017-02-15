@@ -31,7 +31,7 @@
  */
 date_default_timezone_set('Europe/Paris');
 if (!ini_get('display_errors')) {
-    //error_reporting(E_ALL | E_STRICT);
+    error_reporting(E_ALL | E_STRICT);
     ini_set('display_errors', false);
 }
 
