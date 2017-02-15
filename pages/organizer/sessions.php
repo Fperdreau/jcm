@@ -21,11 +21,7 @@
  */
 
 // Declare classes
-$user = new User($_SESSION['username']);
 $Sessions = new Sessions();
-$AppConfig = AppConfig::getInstance();
-$Sessionslist = $Sessions->sessionManager();
-$timeopt = maketimeopt();
 $session_types = Session::session_type();
 $presentation_types = Session::presentation_type();
 
@@ -35,86 +31,39 @@ $result = "
 </div>
 <div class='section_container'>
     <div class='section_left'>
-    <section>
-        <h2>Default Session Settings</h2>
-        <div class='section_content'>
-            <form method='post' action='php/form.php' class='form' id='config_form_session'>
-                <div class='feedback' id='feedback_jcsession'></div>
-                <input type='hidden' name='config_modify' value='true'>
-                <div class='form-group'>
-                    <input type='text' name='room' value='{$AppConfig->room}'>
-                    <label>Room</label>
+        " . Sessions::default_settings() . "
+    
+        <section>
+            <h2>Session/Presentation</h2>
+            <div class='section_content'>
+                <h3>Sessions</h3>
+                <div id='session_type' style='position: relative; margin-bottom: 20px;'>
+                    <div class='form-group'>
+                        <select name='default_type' class='session_type_default'>
+                            {$session_types['default']}
+                        </select>
+                        <label>Default session type</label>
+                    </div>
                 </div>
-                <div class='form-group'>
-                    <select name='jc_day'>
-                        <option value='{$AppConfig->jc_day}' selected>{$AppConfig->jc_day}</option>
-                        <option value='monday'>Monday</option>
-                        <option value='tuesday'>Tuesday</option>
-                        <option value='wednesday'>Wednesday</option>
-                        <option value='thursday'>Thursday</option>
-                        <option value='friday'>Friday</option>
-                    </select>
-                    <label for='jc_day'>Day</label>
+                <div style='font-size: 0;'>
+                    <button class='type_add addBtn' data-class='session' value='+'/>
+                    <input id='new_session_type' type='text' placeholder='New Category'/>
                 </div>
-                <div class='form-group'>
-                    <input type='time' name='jc_time_from' value='{$AppConfig->jc_time_from}' />
-                    <label>From</label>
+                <div class='feedback' id='feedback_session'></div>
+                <div class='type_list' id='session'>{$session_types['types']}</div>
+                <h3>Presentations</h3>
+                <div  style='font-size: 0;'>
+                    <button class='type_add addBtn' data-class='pres' value='+'/>
+                    <input id='new_pres_type' type='text' placeholder='New Category'/>
                 </div>
-                <div class='form-group'>
-                    <input type='time' name='jc_time_to' value='{$AppConfig->jc_time_to}' />
-                    <label>To</label>
-                </div>
-                <div class='form-group'>
-                    <input type='number' name='max_nb_session' value='{$AppConfig->max_nb_session}'/>
-                    <label>Slots/Session</label>
-                </div>
-                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
-            </form>
-        </div>
-    </section>
-
-    <section>
-        <h2>Session/Presentation</h2>
-        <div class='section_content'>
-            <h3>Sessions</h3>
-            <div id='session_type' style='position: relative; margin-bottom: 20px;'>
-                <div class='form-group'>
-                    <select class='session_type_default'>
-                        {$session_types['default']}
-                    </select>
-                    <label>Default session type </label>
-                </div>
+                <div class='feedback' id='feedback_pres'></div>
+                <div class='type_list' id='pres'>{$presentation_types}</div>
             </div>
-            <div style='font-size: 0;'>
-                <button class='type_add addBtn' data-class='session' value='+'/>
-                <input id='new_session_type' type='text' placeholder='New Category'/>
-            </div>
-            <div class='feedback' id='feedback_session'></div>
-            <div class='type_list' id='session'>{$session_types['types']}</div>
-            <h3>Presentations</h3>
-            <div  style='font-size: 0;'>
-                <button class='type_add addBtn' data-class='pres' value='+'/>
-                <input id='new_pres_type' type='text' placeholder='New Category'/>
-            </div>
-            <div class='feedback' id='feedback_pres'></div>
-            <div class='type_list' id='pres'>{$presentation_types}</div>
-        </div>
-    </section>
+        </section>
     </div>
 
     <div class='section_right'>
-        <section>
-            <h2>Manage Sessions</h2>
-            <div class='section_content'>
-                <div class='form-group'>
-                    <input type='date' class='selectSession' id='datepicker' name='date' data-status='admin'>
-                    <label>Session to show</label>
-                </div>
-                <div id='sessionlist'>
-                {$Sessionslist}
-                </div>
-            </div>
-        </section>
+        " . $Sessions->getSessionManager() . "
     </div>
 </div>";
 
