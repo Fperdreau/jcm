@@ -104,13 +104,13 @@ class Sessions extends AppTable {
      * @param bool $from
      * @return array
      */
-    public static function getjcdates($nsession=20,$from=false) {
-        $startdate = ($from == false) ? strtotime('now'):strtotime($from);
+    public static function getjcdates($nsession=20,$from=null) {
+        $start_date = is_null($from) ? date('Y-m-d', strtotime('now')) : strtotime($from);
         $jc_days = array();
         for ($s=0; $s<$nsession; $s++) {
-            $what = ($s == 0) ? 'this':'next';
-            $startdate = strtotime($what . " " . AppConfig::getInstance()->jc_day . "," . $startdate);
-            $jc_days[] = date('Y-m-d',$startdate);
+            $what = ($s == 0) ? 'this' : 'next';
+            $start_date = strtotime($what . " " . AppConfig::getInstance()->jc_day . " " . $start_date);
+            $jc_days[] = date('Y-m-d', $start_date);
         }
         return $jc_days;
     }
@@ -120,7 +120,6 @@ class Sessions extends AppTable {
      * @param $date
      * @return bool
      */
-
     public function dateexists($date) {
         $sql = "SELECT * FROM {$this->tablename} WHERE date='{$date}'";
         $data = $this->db->send_query($sql)->fetch_assoc();
@@ -137,7 +136,7 @@ class Sessions extends AppTable {
 
         if ($session === false) {
             return "Free";
-        } elseif ($session->nbpres<$this->max_nb_session) {
+        } elseif ($session->nbpres<$session->slots) {
             if ($session->nbpres == 0) {
                 return "Free";
             } else {
@@ -154,6 +153,9 @@ class Sessions extends AppTable {
      * @return string
      */
     public function getSessionEditor(Session $session) {
+        if (!$this->dateexists($session->date)) {
+            return self::no_session($session->date);
+        }
 
         // Get presentations
         $nbPres = max($session->slots, count($session->presids));
@@ -186,7 +188,9 @@ class Sessions extends AppTable {
                 'frequency'=>$session->frequency,
                 'slot'=>$session->slots,
                 'type'=>AppConfig::$session_type_default,
-                'types'=>AppConfig::getInstance()->session_type
+                'types'=>AppConfig::getInstance()->session_type,
+                'jc_time_from'=>AppConfig::getInstance()->jc_time_from,
+                'jc_time_to'=>AppConfig::getInstance()->jc_time_to
             )
         );
         if (!$this->dateexists($date)) return self::sessionManager(null, $form);
@@ -324,8 +328,8 @@ class Sessions extends AppTable {
         return "
             <div class='session_div' id='session_{$date}' data-id='{$date}'>
             <div class='session_header'>
-                <div class='session_date'>{$date}</div>
-                <div class='session_status'></div>
+                <div class='session_date'>" . date('d M y',strtotime($date)) . "</div>
+                <div class='session_status'>No Meeting</div>
             </div>
             <div class='session_core'>
                <div class='session_presentations'>
@@ -406,7 +410,7 @@ class Sessions extends AppTable {
         return "
             <div class='session_editor_div' id='session_{$session->date}' data-id='{$session->date}'>
             <div class='session_header'>
-                <div class='session_date'>{$session->date}</div>
+                <div class='session_date'>" . date('d M y',strtotime($session->date)) . "</div>
                 <div class='session_status'>{$session->type}</div>
             </div>
             <div class='session_editor_core'>
@@ -528,8 +532,17 @@ class Sessions extends AppTable {
                 <label>Type</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='date' name='date' class='hasDatepicker' id='datepicker' data-status='false' value='{$data['date']}'>
+                <input type='date' name='date' class='hasDatepicker' id='datepicker' data-status='false' 
+                value='{$data['date']}'>
                 <label>Date</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='time' name='jc_time_from' value='{$data['jc_time_from']}'>
+                <label>From</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='time' name='jc_time_to' value='{$data['jc_time_to']}'>
+                <label>To</label>
             </div>
             <div class='form-group field_small inline_field'>
                 <input type='number' name='slots' value='{$data['slot']}' />
@@ -780,7 +793,7 @@ class Session extends Sessions {
     public $speakers = array();
 
     /**
-     * @param null $date
+     * @param string|null $date: session date (Y-m-d)
      */
     public function __construct($date=null) {
         parent::__construct();
