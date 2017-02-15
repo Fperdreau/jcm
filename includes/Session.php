@@ -100,17 +100,17 @@ class Sessions extends AppTable {
 
     /**
      * Get journal club days
-     * @param int $nsession
+     * @param int $nb_session
      * @param bool $from
      * @return array
      */
-    public static function getjcdates($nsession=20,$from=null) {
-        $start_date = is_null($from) ? date('Y-m-d', strtotime('now')) : strtotime($from);
+    public static function getjcdates($nb_session=20,$from=null) {
+        $start_date = is_null($from) ? date('Y-m-d', strtotime('now')) : date('Y-m-d', strtotime($from));
         $jc_days = array();
-        for ($s=0; $s<$nsession; $s++) {
+        for ($s=0; $s<$nb_session; $s++) {
             $what = ($s == 0) ? 'this' : 'next';
-            $start_date = strtotime($what . " " . AppConfig::getInstance()->jc_day . " " . $start_date);
-            $jc_days[] = date('Y-m-d', $start_date);
+            $start_date = date('Y-m-d', strtotime($what . " " . AppConfig::getInstance()->jc_day . " " . $start_date));
+            $jc_days[] = $start_date;
         }
         return $jc_days;
     }
@@ -154,7 +154,7 @@ class Sessions extends AppTable {
      */
     public function getSessionEditor(Session $session) {
         if (!$this->dateexists($session->date)) {
-            return self::no_session($session->date);
+            return self::no_session();
         }
 
         // Get presentations
@@ -320,27 +320,6 @@ class Sessions extends AppTable {
     }
 
     /**
-     * Render non planned session
-     * @param string $date
-     * @return string
-     */
-    private static function no_session($date) {
-        return "
-            <div class='session_div' id='session_{$date}' data-id='{$date}'>
-            <div class='session_header'>
-                <div class='session_date'>" . date('d M y',strtotime($date)) . "</div>
-                <div class='session_status'>No Meeting</div>
-            </div>
-            <div class='session_core'>
-               <div class='session_presentations'>
-                    Nothing planned yet
-                </div>
-            </div>
-        </div>
-        ";
-    }
-
-    /**
      * Generate session type selection list
      * @param array $data
      * @param $session_type
@@ -465,7 +444,7 @@ class Sessions extends AppTable {
             $session = new Session($dates[0]);
             $content = $session->showsessiondetails($show);
         } else {
-            $content = self::no_session($dates[0]);
+            $content = self::no_session();
         }
         return $content;
     }
@@ -961,11 +940,7 @@ class Session extends Sessions {
      * @return string
      */
     public function show_session($mail=true) {
-        if ($this->type === 'none') return self::slotContainer(array(
-            "name"=>"No meeting",
-            "content"=>self::no_session(),
-            "button"=>null
-        ));
+        if ($this->type === 'none') return self::no_session();
 
         $content = "";
         $max = (count($this->presids) < $this->slots) ? $this->slots:count($this->presids);
@@ -1032,10 +1007,9 @@ class Session extends Sessions {
 
     /**
      * Show session slot as empty
-     * @param null $date
      * @return string
      */
-    public static function no_session($date=null) {
+    public static function no_session() {
         return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
                     font-weight: 600; overflow: hidden;'>
                     No Journal Club this day</div>";
