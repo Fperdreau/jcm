@@ -2649,9 +2649,10 @@ div.loadBtn {
 .type_list {
     height: auto;
     padding: 5px;
+    border-radius: 5px;
     margin: 10px auto;
-    background-color: rgba(200,200,200,.5);
-    border: 1px dashed #555555;
+    background-color: rgb(241, 241, 241);
+    border: 2px dashed #d0d1d5;
     box-sizing: border-box;
 }
 
@@ -2766,7 +2767,7 @@ div.loadBtn {
 .session_viewer_container {
     padding: 5px;
     box-sizing: border-box;
-    background: rgb(50, 50, 50);
+    background: rgb(241, 241, 241);
     margin: 0 auto 10px auto;
     border-radius: 5px;
 }
@@ -2788,8 +2789,7 @@ div.loadBtn {
 }
 
 .session_viewer_container h3 {
-    /* background: rgb(50, 50, 50); */
-    color: white;
+    color: rgb(50, 50, 50);
     border: 0;
     border-bottom: 3px solid rgb(207, 81, 81);
     margin: 5px auto 10px auto;
