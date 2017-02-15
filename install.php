@@ -32,7 +32,7 @@
 date_default_timezone_set('Europe/Paris');
 if (!ini_get('display_errors')) {
     //error_reporting(E_ALL | E_STRICT);
-    ini_set('display_errors', '1');
+    ini_set('display_errors', false);
 }
 
 /**
@@ -72,8 +72,8 @@ SessionInstance::initsession();
  *
  */
 $db = AppDb::getInstance();
-$AppConfig = AppConfig::getInstance(false);
-if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
+$AppConfig = new AppConfig(false);
+if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig::getAppUrl());
 
 /**
  * Browse release content and returns associative array with folders name as keys
@@ -224,6 +224,7 @@ if (!empty($_POST['operation'])) {
             break;
         case "install_db":
             // STEP 4: Configure database
+            $db::get_config();
 
             $op = htmlspecialchars($_POST['op']);
             $op = $op == "new";
@@ -436,8 +437,7 @@ if (!empty($_POST['getpagecontent'])) {
 			<div class='feedback'></div>
 		";
     } elseif ($step == 3) {
-        $db->get_config();
-        if ($op == "update") $AppConfig = new AppConfig($db);
+        if ($op == "update") $AppConfig = new AppConfig();
         $AppConfig->getAppUrl();
 
         $title = "Step 2: Application configuration";
@@ -489,7 +489,7 @@ if (!empty($_POST['getpagecontent'])) {
 
                 <div class='submit_btns'>
                     <input type='submit' value='Test settings' class='test_email_settings'> 
-                    <input type='submit' value='Next' class='processform'>
+                    <input type='submit' value='Next' class='process_form'>
                 </div>
             </form>
             <div class='feedback'></div>
@@ -521,7 +521,7 @@ if (!empty($_POST['getpagecontent'])) {
                 </div>
                 <input type='hidden' name='status' value='admin'>
                 <div class='submit_btns'>
-                    <input type='submit' value='Next'>
+                    <input type='submit' value='Next' class='process_form'>
                 </div>
 			</form>
 		";
@@ -991,6 +991,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                             }, 1000);
                         } else {
                             progressbar(el, percent, result.msg);
+                            setTimeout(function() {
+                                remove_progressbar(el);
+                                return true;
+                            }, 3000);
                             return false;
                         }
                     },
@@ -1044,15 +1048,14 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 .on('click', "input[type='submit']", function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('hello1');
-                    if (!$(this).hasClass('processform')) {
+                    if (!$(this).hasClass('process_form')) {
                         process($(this));
                     } else {
                         return false;
                     }
                 })
 
-                .on('click',".processform",function(e) {
+                .on('click',".process_form",function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     var form = $(this).length > 0 ? $($(this)[0].form) : $();
