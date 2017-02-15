@@ -65,6 +65,7 @@ class AppConfig extends AppTable {
     public $pres_type;
     public static $session_type_default = array("Journal Club", "Business Meeting");
     public static $pres_type_default = array("paper", "research", "methodology", "guest", "minute");
+    public $default_type;
 
     /**
      * Lab info
@@ -102,7 +103,11 @@ class AppConfig extends AppTable {
      */
     public $notify_admin_task = 'yes';
 
-    private static $instance = null;
+    /**
+     * Object instance
+     * @var AppConfig
+     */
+    private static $_instance;
 
     /**
      * Constructor
@@ -110,6 +115,7 @@ class AppConfig extends AppTable {
      */
     public function __construct($get=true) {
         parent::__construct('AppConfig',$this->table_data);
+        $this->default_type = self::$session_type_default[0];
 
         // Get App URL if not running in command line
         if ($get) {
@@ -124,13 +130,13 @@ class AppConfig extends AppTable {
     /**
      * Get AppConfig instance
      * @param bool $get
-     * @return self|null
+     * @return self
      */
     public static function getInstance($get=true) {
-        if (is_null(self::$instance)) {
-            self::$instance = new self($get);
+        if (!isset(self::$_instance)) {
+            self::$_instance = new AppConfig($get);
         }
-        return self::$instance;
+        return self::$_instance;
     }
 
     /**
@@ -142,7 +148,7 @@ class AppConfig extends AppTable {
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $varname = $row['variable'];
-            $value = (in_array($varname, array("session_type", "pres_type", 'instance',))) ? json_decode($row['value'], true) : htmlspecialchars_decode($row['value']);
+            $value = (in_array($varname, array("session_type", "pres_type"))) ? json_decode($row['value'], true) : htmlspecialchars_decode($row['value']);
             if (property_exists(get_class($this), $varname)) {
                 $prop = new ReflectionProperty(get_class($this), $varname);
                 if (!$prop->isStatic()) {
@@ -159,14 +165,14 @@ class AppConfig extends AppTable {
      * @return bool
      */
     public function update($post=array()) {
-        $class_vars = get_class_vars("AppConfig");
+        $class_vars = get_class_vars(__CLASS__);
         $postkeys = array_keys($post);
         $result = false;
         foreach ($class_vars as $name => $value) {
-            if (in_array($name, array("db", "tablename", "table_data"))) continue;
+            if (in_array($name, array("db", "tablename", "table_data", '_instance'))) continue;
 
             $newvalue = (in_array($name, $postkeys)) ? $post[$name] : $this->get_setting($name);
-            $newvalue = (in_array($name, array("session_type", "pres_type", 'instance')) or is_array($newvalue)) ? json_encode($newvalue) : $newvalue;
+            $newvalue = (in_array($name, array("session_type", "pres_type")) or is_array($newvalue)) ? json_encode($newvalue) : $newvalue;
             $this->set_setting($name, $newvalue);
 
             $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
@@ -192,7 +198,7 @@ class AppConfig extends AppTable {
     public function get_setting($setting) {
         $prop = new ReflectionProperty(get_class($this), $setting);
         if ($prop->isStatic()) {
-            return $this::$$setting;
+            return self::$$setting;
         } else {
             return $this->$setting;
         }
@@ -228,7 +234,7 @@ class AppConfig extends AppTable {
      * @param null $lang: language
      * @return string
      */
-    public function getAppUrl($lang=null) {
+    public static function getAppUrl($lang=null) {
         if (php_sapi_name() !== 'cli') {
             if (is_null(self::$site_url) || !is_null($lang)) {
                 $root = explode('/',  dirname($_SERVER['PHP_SELF']));
@@ -245,7 +251,7 @@ class AppConfig extends AppTable {
                 }
             }
         } else {
-            $self = new self(AppDb::getInstance());
+            $self = new self();
             self::$site_url = $self->getConfig('site_url');
         }
 
