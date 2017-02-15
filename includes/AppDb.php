@@ -36,9 +36,9 @@ class AppDb {
     /**
      * Link to the database
      *
-     * @var null
+     * @var mysqli
      */
-    public $bdd = NULL;
+    private $bdd = NULL;
 
     /**
      * Default settings
@@ -54,44 +54,9 @@ class AppDb {
     );
 
     /**
-     * @var
+     * @var array $config
      */
     public $config;
-
-    /**
-     * Password
-     *
-     * @var string
-     */
-    public $passw = "";
-
-    /**
-     * Mysql username
-     *
-     * @var string
-     */
-    public $username = "root";
-
-    /**
-     * Hostname
-     *
-     * @var string
-     */
-    public $host = "localhost";
-
-    /**
-     * Database name
-     *
-     * @var string
-     */
-    public $dbname = "test";
-
-    /**
-     * Tables prefix
-     *
-     * @var string
-     */
-    public $dbprefix = "jcm";
 
     /**
      * List of tables associated to the application
@@ -123,22 +88,22 @@ class AppDb {
      * Constructor
      */
     private function __construct() {
-        $this->config = $this->get_config();
+        $this->config = self::get_config();
         $this->tablesname = array(
-            "Presentation" => $this->dbprefix."_presentations",
-            "AppConfig" => $this->dbprefix."_config",
-            "User" => $this->dbprefix."_users",
-            "Session" => $this->dbprefix."_session",
-            "Posts" => $this->dbprefix."_post",
-            "Media" => $this->dbprefix."_media",
-            "Plugins" => $this->dbprefix."_plugins",
-            "Pages" => $this->dbprefix."_pages",
-            "Crons" => $this->dbprefix."_crons",
-            "MailManager" => $this->dbprefix."_mailmanager",
-            "DigestMaker" => $this->dbprefix."_digestmaker",
-            "ReminderMaker" => $this->dbprefix."_remindermaker",
-            "Assignment" => $this->dbprefix."_assignment",
-            "Availability" => $this->dbprefix."_availability"
+            "Presentation" => $this->config['dbprefix'] . "_presentations",
+            "AppConfig" => $this->config['dbprefix'] . "_config",
+            "User" => $this->config['dbprefix'] . "_users",
+            "Session" => $this->config['dbprefix'] . "_session",
+            "Posts" => $this->config['dbprefix'] . "_post",
+            "Media" => $this->config['dbprefix'] . "_media",
+            "Plugins" => $this->config['dbprefix'] . "_plugins",
+            "Pages" => $this->config['dbprefix'] . "_pages",
+            "Crons" => $this->config['dbprefix'] . "_crons",
+            "MailManager" => $this->config['dbprefix'] . "_mailmanager",
+            "DigestMaker" => $this->config['dbprefix'] . "_digestmaker",
+            "ReminderMaker" => $this->config['dbprefix'] . "_remindermaker",
+            "Assignment" => $this->config['dbprefix'] . "_assignment",
+            "Availability" => $this->config['dbprefix'] . "_availability"
         );
     }
 
@@ -155,10 +120,10 @@ class AppDb {
 
     /**
      * Get db config
-     * @return bool|array
+     * @return array
      */
-    public function get_config() {
-        $version_file = PATH_TO_CONFIG."config.php";
+    public static function get_config() {
+        $version_file = PATH_TO_CONFIG . "config.php";
         if (is_file($version_file)) {
             require $version_file;
             if (!isset($config)) {
@@ -172,14 +137,6 @@ class AppDb {
         } else {
             $config = self::$default;
         }
-        foreach (self::$default as $key=>$value) {
-            if (key_exists($key, $config)) {
-                $this->$key = $config[$key];
-            } else {
-                $this->$key = $value;
-                $config[$key] = $value;
-            }
-        }
         return $config;
     }
 
@@ -188,7 +145,7 @@ class AppDb {
      * @return mysqli|null
      */
     public function bdd_connect() {
-        $this->bdd = mysqli_connect($this->host,$this->username,$this->passw);
+        $this->bdd = mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw']);
         if (!$this->bdd) {
             $result['status'] = false;
             $result['msg'] = "Failed to connect to the database: " . $this->bdd->error;
@@ -196,8 +153,8 @@ class AppDb {
             die(json_encode($result['msg']));
         }
 
-        if (!mysqli_select_db($this->bdd,"$this->dbname")) {
-            $result['msg'] = "Database '$this->dbname' cannot be selected<br/>".mysqli_error($this->bdd);
+        if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
+            $result['msg'] = "Database '" . $this->config['dbname'] . "' cannot be selected<br/>".mysqli_error($this->bdd);
             AppLogger::get_instance(APP_NAME)->critical($result['msg']);
             die(json_encode($result['msg']));
         }
@@ -217,7 +174,7 @@ class AppDb {
      * @return array
      */
     public static function testdb(array $config) {
-        $link = @mysqli_connect($config['host'],$config['username'],$config['passw']);
+        $link = @mysqli_connect($config['host'], $config['username'], $config['passw']);
         if (!$link) {
             $result['status'] = false;
             $result['msg'] = "Failed to connect to the database";
@@ -248,7 +205,7 @@ class AppDb {
      * @return array
      */
     public function getapptables() {
-        $sql = "SHOW TABLES FROM ".$this->dbname." LIKE '".$this->dbprefix."%'";
+        $sql = "SHOW TABLES FROM " . $this->config['dbname'] . " LIKE '" . $this->config['dbprefix'] . "%'";
         $req = self::send_query($sql);
         $table_list = array();
         while ($row = mysqli_fetch_array($req)) {
@@ -280,7 +237,7 @@ class AppDb {
      * @return bool|mysqli_result
      */
     public function send_query($sql,$silent=false) {
-        self::bdd_connect();
+        $this->bdd_connect();
         if (!mysqli_set_charset($this->bdd,"utf8")) {
             AppLogger::get_instance(APP_NAME)->critical('We could not load UTF8 charset');
         }
@@ -303,7 +260,7 @@ class AppDb {
      * @return string
      */
     public function escape_query($query) {
-        self::bdd_connect();
+        $this->bdd_connect();
         return mysqli_real_escape_string($this->bdd,$query);
     }
 
@@ -322,7 +279,7 @@ class AppDb {
 
 		if (self::tableExists($table_name) == false) {
 			// Create table if it does not exist already
-			$sql = 'CREATE TABLE '.$table_name.' ('.$cols_name.')';
+			$sql = 'CREATE TABLE '.$table_name.' ('. $cols_name .')';
             if (self::send_query($sql)) {
             	return true;
             } else {
