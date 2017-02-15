@@ -54,8 +54,8 @@ class Sessions extends AppTable {
      */
     function __construct() {
         parent::__construct("Session", $this->table_data);
-
-        $this->max_nb_session = AppConfig::getInstance()->max_nb_session;
+        $AppConfig = new AppConfig();
+        $this->max_nb_session = $AppConfig->max_nb_session;
         $this->registerDigest();
         $this->registerReminder();
     }
@@ -104,15 +104,12 @@ class Sessions extends AppTable {
      * @param bool $from
      * @return array
      */
-    public function getjcdates($nsession=20,$from=false) {
-        /** @var AppConfig $AppConfig */
-        $AppConfig = new AppConfig();
-
+    public static function getjcdates($nsession=20,$from=false) {
         $startdate = ($from == false) ? strtotime('now'):strtotime($from);
         $jc_days = array();
         for ($s=0; $s<$nsession; $s++) {
             $what = ($s == 0) ? 'this':'next';
-            $startdate = strtotime("$what $AppConfig->jc_day",$startdate);
+            $startdate = strtotime($what . " " . AppConfig::getInstance()->jc_day . "," . $startdate);
             $jc_days[] = date('Y-m-d',$startdate);
         }
         return $jc_days;
@@ -153,22 +150,152 @@ class Sessions extends AppTable {
 
     /**
      * Get all sessions
-     * @param $date
-     * @param string $view
+     * @param Session $session
      * @return string
      */
-    public function sessionManager($date=null, $view='simple') {
+    public function getSessionEditor(Session $session) {
+
+        // Get presentations
+        $nbPres = max($session->slots, count($session->presids));
+        $presentations = "";
+        for ($i=0;$i<$nbPres;$i++) {
+            $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
+            $pres = new Presentation($presid);
+            if (!empty($pres->id_pres)) {
+                $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres),
+                    $pres->id_pres);
+            } else {
+                $presentations .= Session::emptySlot($session->date);
+            }
+        }
+
+        return self::sessionEditor($session, $presentations, AppConfig::getInstance()->session_type);
+    }
+
+    /**
+     * Returns Session Manager
+     * @return string
+     */
+    public function getSessionManager() {
+        $date = self::getjcdates(1);
+        $date = $date[0];
+
+        $session = ($this->dateexists($date)) ? new Session($date) : new Session();
+        $form = self::add_session_form(array(
+                'date'=>$date,
+                'frequency'=>$session->frequency,
+                'slot'=>$session->slots,
+                'type'=>AppConfig::$session_type_default,
+                'types'=>AppConfig::getInstance()->session_type
+            )
+        );
+        if (!$this->dateexists($date)) return self::sessionManager(null, $form);
+        $sessionEditor = $this->getSessionEditor($session);
+
+        return self::sessionManager($sessionEditor, $form);
+
+    }
+
+    /**
+     * Render session manager
+     * @param $sessionEditor
+     * @param $form: edit form
+     * @return string
+     */
+    public static function sessionManager($sessionEditor, $form) {
+
+        return "
+        <section>
+            <h2>Session Manager</h2>
+            <div class='section_content'>
+                <div class='session_viewer_container'>
+                    <h3>Edit a session</h3>
+                    <div class='form-group'>
+                        <input type='date' class='selectSession' id='datepicker' name='date' data-status='admin'>
+                        <label>Session to show</label>
+                    </div>
+                    <div id='sessionlist'>{$sessionEditor}</div>
+                </div>
+                <div class='session_viewer_container'>
+                    <h3>Add a new session</h3>
+                    {$form}
+                </div>
+            </div>
+        </section>
+        ";
+    }
+
+    /**
+     * Render list of days
+     * @return null|string
+     */
+    private static function dayList() {
+        $days = array('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
+        $list = null;
+        foreach ($days as $day) {
+            $selected = ($day == AppConfig::getInstance()->jc_day) ? 'selected' : null;
+            $list .= "<option value='{$day}' {$selected}>" . ucfirst($day) . "</option>";
+        }
+        return $list;
+    }
+
+    /**
+     * Render form for modifying session default settings
+     * @return string
+     */
+    public static function default_settings() {
+        return "
+        <section>
+        <h2>Default Session Settings</h2>
+        <div class='section_content'>
+            <form method='post' action='php/form.php'>
+                <div class='feedback' id='feedback_jcsession'></div>
+                <input type='hidden' name='config_modify' value='true'>
+                <div class='form-group'>
+                    <input type='text' name='room' value='" . AppConfig::getInstance()->room . "'>
+                    <label>Room</label>
+                </div>
+                <div class='form-group'>
+                    <select name='jc_day'>
+                        " . self::dayList() . "
+                    </select>
+                    <label for='jc_day'>Day</label>
+                </div>
+                <div class='form-group'>
+                    <input type='time' name='jc_time_from' value='" . AppConfig::getInstance()->jc_time_from . "' />
+                    <label>From</label>
+                </div>
+                <div class='form-group'>
+                    <input type='time' name='jc_time_to' value='" . AppConfig::getInstance()->jc_time_to . "' />
+                    <label>To</label>
+                </div>
+                <div class='form-group'>
+                    <input type='number' name='max_nb_session' value='" . AppConfig::getInstance()->max_nb_session . "'/>
+                    <label>Slots/Session</label>
+                </div>
+                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
+            </form>
+        </div>
+    </section>
+        ";
+    }
+
+    /**
+     * @param null $date
+     * @return string
+     */
+    public function sessionList($date=null) {
         // Get next JC date
-        if ($date == null) {
+        if (is_null($date)) {
             $date = $this->getjcdates(1);
             $date = $date[0];
         }
 
-        // Check if session exists, otherwise create one
+        // Check if session exists
         if ($this->dateexists($date)) {
             $session = new Session($date);
         } else {
-            return self::no_session($date);
+            return self::nothingToDisplay();
         }
 
         // Get presentations
@@ -178,24 +305,14 @@ class Sessions extends AppTable {
             $presid = (isset($session->presids[$i]) ? $session->presids[$i] : false);
             $pres = new Presentation($presid);
             if (!empty($pres->id_pres)) {
-                if ($view == 'edit') {
-                    $presentations .= Session::slotContainer(Presentation::inSessionEdit($pres),
-                        $pres->id_pres);
-                } else {
-                    $presentations .= Session::slotContainer(Presentation::inSessionSimple($pres, $pres->username),
-                        $pres->id_pres);
-                }
-
+                $presentations .= Session::slotContainer(Presentation::inSessionSimple($pres, $pres->username),
+                    $pres->id_pres);
             } else {
                 $presentations .= Session::emptySlot($date);
             }
         }
-        if ($view === 'edit') {
-            return self::sessionEditor($session, $presentations, AppConfig::getInstance()->session_type);
-        } else {
-            return self::sessionViewer($session, $presentations);
-        }
 
+        return self::sessionViewer($session, $presentations);
     }
 
     /**
@@ -225,14 +342,11 @@ class Sessions extends AppTable {
      * @param $session_type
      * @return string
      */
-    private static function type_list(array $data, $session_type) {
+    public static function type_list(array $data, $session_type) {
         $type_options = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>NONE</option>";
         foreach ($data as $type) {
-            if ($type === $session_type) {
-                $type_options .= "<option value='$type' selected>$type</option>";
-            } else {
-                $type_options .= "<option value='$type'>$type</option>";
-            }
+            $selected = ($type == $session_type) ? 'selected' : null;
+            $type_options .= "<option value='{$type}' {$selected}>{$type}</option>";
         }
         return $type_options;
     }
@@ -253,7 +367,7 @@ class Sessions extends AppTable {
         return "
             <h3>Settings</h3>
             <div class='session_type'>
-                <div class='form-group' style='width: 100%;'>
+                <div class='form-group field_small inline_field' style='width: 100%;'>
                     <select class='mod_session_type' name='type'>
                     {$type_list}
                     </select>
@@ -290,12 +404,12 @@ class Sessions extends AppTable {
     public static function sessionEditor(Session $session, $presentations, array $types) {
         $settings = self::session_settings($session, $types);
         return "
-            <div class='session_div' id='session_{$session->date}' data-id='{$session->date}'>
+            <div class='session_editor_div' id='session_{$session->date}' data-id='{$session->date}'>
             <div class='session_header'>
                 <div class='session_date'>{$session->date}</div>
                 <div class='session_status'>{$session->type}</div>
             </div>
-            <div class='session_core'>
+            <div class='session_editor_core'>
                 <div class='session_settings'>
                     {$settings}
                 </div>
@@ -340,14 +454,14 @@ class Sessions extends AppTable {
      * @param bool $mail
      * @return string
      */
-    public function shownextsession($mail=false) {
+    public function showNextSession($mail=false) {
         $show = $mail === true || (!empty($_SESSION['logok']) && $_SESSION['logok'] === true);
         $dates = $this->getsessions(true);
         if ($dates !== false) {
             $session = new Session($dates[0]);
             $content = $session->showsessiondetails($show);
         } else {
-            $content = "Nothing planned yet.";
+            $content = self::no_session($dates[0]);
         }
         return $content;
     }
@@ -358,7 +472,7 @@ class Sessions extends AppTable {
      * @param null $mail
      * @return string
      */
-    public function showfuturesession($nsession = 4, $mail=null) {
+    public function showFutureSessions($nsession = 4, $mail=null) {
         // Get future planned dates
         $dates = $this->getsessions(1);
         $dates = ($dates == false) ? false: $dates[0];
@@ -367,32 +481,86 @@ class Sessions extends AppTable {
         $jc_days = $this->getjcdates($nsession, $dates);
 
         // Get futures journal club sessions
-        $content = "";
-        foreach ($jc_days as $day) {
-            $session = new Session($day);
-            $sessioncontent = $session->show_session($mail);
+        if ($dates !== false) {
+            $content = "";
+            foreach ($jc_days as $day) {
+                $session = new Session($day);
 
-            $type = ($session->type == "none") ? "No Meeting":ucfirst($session->type);
-            $date = date('d M y',strtotime($session->date));
-            $content .= "
-            <div style='display: block; margin: 10px auto 0 auto;'>
-                <!-- header -->
-                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
-                    <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
-                        <span style='color: #222; font-weight: 900;'>{$date}</span>
-                        <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
-                        <span style='color: #777; font-weight: 600;'>{$type}</span>
-                    </div>
-                </div>
-
-                <div style='padding: 10px 20px 10px 10px; background-color: rgba(239,239,239,.6); margin: 0 0 0 10px; 
-                border-left: 2px solid rgba(175,175,175,.8);'>
-                    $sessioncontent
-                </div>
-
-            </div>";
+                $type = ($session->type == "none") ? "No Meeting" : ucfirst($session->type);
+                $date = date('d M y',strtotime($session->date));
+                $content .= Session::sessionContainer(array(
+                    'date'=>$date,
+                    'content'=>$session->show_session(),
+                    'type'=>$type));
+            }
+        } else {
+            $content = self::nothingToDisplay();
         }
+
         return $content;
+    }
+
+    /**
+     * Render nothing to display message
+     * @return string
+     */
+    public static function nothingToDisplay() {
+        $url = URL_TO_APP . 'index.php?page=organizer/sessions';
+        return "
+            <div class='sys_msg status'>
+                <p>Sorry, there is nothing to display yet.</p>
+                <p>You must set a journal club day from <a href='{$url}'>Admin>Sessions, 'Default settings'</a></p>
+            </div>
+        ";
+    }
+
+    /**
+     * Render form to add session
+     * @param array $data
+     * @return string
+     */
+    public static function add_session_form(array $data) {
+        $AppConfig = AppConfig::getInstance();
+        return "
+        <form action='' method='post'>
+            <div class='form-group'>
+                <select> ". self::type_list($data['types'], $AppConfig->get_setting('default_type')) . "</select>
+                <label>Type</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='date' class='datepicker' value='{$data['date']}'>
+                <label>Date</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='number' name='slots' value='{$data['slot']}' />
+                <label>Slots</label>
+            </div>
+            <div>
+                <div class='form-group field_small inline_field'>
+                    <select name='repeated' class='repeated_session'>
+                        <option value='1'>Yes</option>
+                        <option value='2' selected>No</option>
+                    </select>
+                    <label>Repeat</label>
+                </div>
+                <div class='form-group field_small inline_field settings_hidden' style='display: none;'>
+                    <input type='date' name='end_date' value='{$data['date']}' />
+                    <label>End date</label>
+                </div>
+    
+                <div class='form-group field_small inline_field settings_hidden' style='display: none;'>
+                    <input type='number' name='frequency' value='{$data['frequency']}' />
+                    <label>Frequency</label>
+                </div>
+                <div class='submit_btns'>
+                    <input type='hidden' name='start_date' value='{$data['date']}' />
+                    <input type='hidden' name='add_session' value='true'/>
+                    <input type='submit' value='Add' class='processform'/>
+                </div>
+            <div>
+        </form>
+
+        ";
     }
 
     /**
@@ -478,7 +646,7 @@ class Sessions extends AppTable {
      */
     public function makeMail($username=null) {
         // Get future presentations
-        $content['body'] = $this->shownextsession(true);;
+        $content['body'] = $this->showNextSession(true);;
         $content['title'] = 'Session Information';
         return $content;
     }
@@ -490,7 +658,7 @@ class Sessions extends AppTable {
      */
     public function makeReminder($username=null) {
         // Get future presentations
-        $content['body'] = $this->shownextsession(true);;
+        $content['body'] = $this->showNextSession(true);;
         $content['title'] = 'Session Information';
         return $content;
     }
@@ -590,11 +758,6 @@ class Sessions extends AppTable {
 }
 
 
-class SessionView {
-
-}
-
-
 class Session extends Sessions {
 /**
  * Child class of Sessions
@@ -622,7 +785,7 @@ class Session extends Sessions {
     public function __construct($date=null) {
         parent::__construct();
         $this->time = AppConfig::getInstance()->jc_time_from . ',' . AppConfig::getInstance()->jc_time_to;
-        $this->type = AppConfig::$session_type_default[0];
+        $this->type = 'none';
         $this->date = $date;
         $this->room = AppConfig::getInstance()->room; // Default room number
         $this->slots = AppConfig::getInstance()->max_nb_session;
@@ -639,6 +802,8 @@ class Session extends Sessions {
      */
     public function make($post=array()) {
         $this->date = (!empty($post['date'])) ? $post['date']:$this->date;
+        $this->start_date = $this->date;
+        $this->end_date = (!empty($post['repeat']) && $post['repeat'] == 1) ? $post['end_date'] : $this->date;
         if (!$this->dateexists($this->date)) {
             $class_vars = get_class_vars("Session");
             $content = $this->parsenewdata($class_vars, $post, array('presids','speakers', 'max_nb_session'));
@@ -783,7 +948,11 @@ class Session extends Sessions {
      * @return string
      */
     public function show_session($mail=true) {
-        if ($this->type == 'none') return self::no_session();
+        if ($this->type === 'none') return self::slotContainer(array(
+            "name"=>"No meeting",
+            "content"=>self::no_session(),
+            "button"=>null
+        ));
 
         $content = "";
         $max = (count($this->presids) < $this->slots) ? $this->slots:count($this->presids);
@@ -810,11 +979,9 @@ class Session extends Sessions {
         $opttypedflt = "";
         foreach (AppConfig::getInstance()->session_type as $type) {
             $Sessionstype .= self::render_type($type, 'session');
-            if ($type == AppConfig::$session_type_default) {
-                $opttypedflt .= "<option value='$type' selected>$type</option>";
-            } else {
-                $opttypedflt .= "<option value='$type'>$type</option>";
-            }
+            $opttypedflt = $type == AppConfig::getInstance()->get_setting('default_type') ?
+                $opttypedflt . "<option value='$type' selected>$type</option>"
+                : $opttypedflt . "<option value='$type'>$type</option>";
         }
         return array(
             'types'=>$Sessionstype,
@@ -852,9 +1019,10 @@ class Session extends Sessions {
 
     /**
      * Show session slot as empty
+     * @param null $date
      * @return string
      */
-    public static function no_session() {
+    public static function no_session($date=null) {
         return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
                     font-weight: 600; overflow: hidden;'>
                     No Journal Club this day</div>";
@@ -899,6 +1067,30 @@ class Session extends Sessions {
             </div>";
     }
 
+    /**
+     * Render session slot
+     * @param array $data
+     * @return string
+     */
+    public static function sessionContainer(array $data) {
+        return "
+            <div style='display: block; margin: 10px auto 0 auto;'>
+                <!-- header -->
+                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
+                    <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
+                        <span style='color: #222; font-weight: 900;'>{$data['date']}</span>
+                        <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
+                        <span style='color: #777; font-weight: 600;'>{$data['type']}</span>
+                    </div>
+                </div>
+
+                <div style='padding: 10px 20px 10px 10px; background-color: rgba(239,239,239,.6); margin: 0 0 0 10px; 
+                border-left: 2px solid rgba(175,175,175,.8);'>
+                    {$data['content']}
+                </div>
+
+            </div>";
+    }
     /**
      * Show session details
      * @param bool $show
