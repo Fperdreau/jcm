@@ -1023,8 +1023,17 @@ $(document).ready(function () {
             e.preventDefault();
             var div = $('#session_type');
             var type = $(this).val();
-            var data = {session_type_default:type};
+            var data = {session_type_default: type};
             processAjax(div, data, null, "php/form.php");
+        })
+
+        .on('change', '.repeated_session', function(e) {
+            var val = $(this).val();
+            if (val == 1) {
+                $('.settings_hidden').fadeIn();
+            } else {
+                $('.settings_hidden').fadeOut();
+            }
         })
 
         // Select session to show
@@ -1033,7 +1042,6 @@ $(document).ready(function () {
             var nbsession = $(this).val();
             var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
             var view = ($(this).data('view') == undefined) ? 'simple' : $(this).data('view');
-            console.log(view);
             var data = {show_session: nbsession, status: status, view: view};
             var div = $('#sessionlist');
             var callback = function (result) {
@@ -1310,7 +1318,6 @@ $(document).ready(function () {
                 return false;
             };
             var data = {'delete_item': true, 'params': url_params};
-            console.log(data);
             processAjax(formid, data, callback, 'php/form.php');
         })
 
