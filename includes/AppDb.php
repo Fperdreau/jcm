@@ -143,14 +143,19 @@ class AppDb {
     /**
      * Connects to DB and throws exceptions
      * @return mysqli|null
+     * @throws Exception
      */
     public function bdd_connect() {
-        $this->bdd = mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw']);
-        if (!$this->bdd) {
+
+        try {
+            if (!$this->bdd = @mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw'])) {
+                throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
+            }
+        } catch(Exception $e) {
             $result['status'] = false;
-            $result['msg'] = "Failed to connect to the database: " . $this->bdd->error;
+            $result['msg'] = $e->getMessage();
             AppLogger::get_instance(APP_NAME)->critical($result['msg']);
-            die(json_encode($result['msg']));
+            die($result['msg']);
         }
 
         if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
