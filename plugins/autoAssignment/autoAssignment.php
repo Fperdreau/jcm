@@ -72,10 +72,10 @@ class autoAssignment extends AppPlugins {
         parent::__construct();
 
         $this->installed = $this->isInstalled();
-        $this->tablename = $this->db->dbprefix . '_' . strtolower($this->name);
+        $this->tablename = $this->db->config['dbprefix'] . '_' . strtolower($this->name);
 
         if ($this->installed) {
-            $this->get();
+            $this->getInfo();
             $this->getSession();
             $this->getAssignement();
         }
@@ -161,11 +161,11 @@ class autoAssignment extends AppPlugins {
      * @return mixed
      */
     public function assign($nb_session=null) {
-        $this->get();
+        $this->getInfo();
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         // Get future sessions dates
-        $jc_days = $this->getSession()->getjcdates(intval($nb_session));
+        $jc_days = $this->getSession()->getJcDates(intval($nb_session));
 
         $created = 0;
         $updated = 0;
@@ -188,15 +188,12 @@ class autoAssignment extends AppPlugins {
 
             // If session does not exist yet, we create a new one
             $session = new Session($this->db, $day);
-            if (!$session->dateexists($day)) {
-                $session->make();
-            }
 
             // Do nothing if nothing is planned on that day
             if ($session->type === "none") continue;
 
-            // If a session is planned for this day, we assign 1 speaker by presentation
-            for ($p=0; $p<self::$session->max_nb_session; $p++) {
+            // If a session is planned for this day, we assign 1 speaker by slot
+            for ($p=0; $p<self::$session->slots; $p++) {
 
                 // If there is already a presentation planned for this day, check if the speaker is a real member, otherwise
                 // we will assign a new one
@@ -238,13 +235,13 @@ class autoAssignment extends AppPlugins {
                         'date'=>$day,
                         'username'=>$speaker->username,
                         'orator'=>$speaker->username);
-                    if ($Presentation->update($post)) {
+                    if ($Presentation->update($post, array('id_pres'=>$Presentation->id_pres))) {
                         $updated += 1;
                     }
                 }
 
                 // Update session info
-                $session->get();
+                $session->getInfo();
                 
                 // Notify assigned user
                 $info = array(

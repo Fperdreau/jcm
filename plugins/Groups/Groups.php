@@ -62,14 +62,14 @@ class Groups extends AppPlugins {
     public function __construct() {
         parent::__construct();
         $this->installed = $this->isInstalled();
-        $this->tablename = $this->db->dbprefix.'_groups';
+        $this->tablename = $this->db->config['dbprefix'] . '_groups';
         $this->registerDigest();
         $this->registerReminder();
         if ($this->installed) {
             if ($this->db->tableExists($this->tablename)) {
-                $this->get();
+                $this->getInfo();
             } else {
-                $this->delete();
+                $this->delete(array('name'=>$this->name));
             }
         }
     }
@@ -145,12 +145,12 @@ class Groups extends AppPlugins {
 
     /**
      * Get information about next session
-     * @return Session
+     * @return array
      */
     private function get_next_session() {
         $session = new Session();
-        $nextdate = $session->getsessions(true);
-        return $session->get($nextdate[0]);
+        $nextdate = $session->getNextDates(1);
+        return $session->getInfo($nextdate[0]);
     }
 
     /**
@@ -250,7 +250,7 @@ class Groups extends AppPlugins {
         if ($data !== false) {
             $data['group'] = $this->showList($username);
             $publication = new Presentation($data['presid']);
-            $data['publication'] = $publication->showDetails(true);
+            $data['publication'] = $publication->mail_details(true);
             $content['body'] = self::renderSection($data);
             $content['title'] = 'Your Group assignment';
             $content['subject'] = "Your Group assignment: {$data['date']}";
@@ -270,7 +270,7 @@ class Groups extends AppPlugins {
         if ($data !== false) {
             $data['group'] = $this->showList($username);
             $publication = new Presentation($data['presid']);
-            $data['publication'] = $publication->showDetails(true);
+            $data['publication'] = $publication->mail_details(true);
             $content['body'] = self::renderSection($data);
             $content['title'] = 'Your Group assignment';
             $content['subject'] = "Your Group assignment: {$data['date']}";
