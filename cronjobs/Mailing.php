@@ -63,9 +63,9 @@ class Mailing extends AppCron {
      * @return string
      */
     public function run() {
-        global $AppMail;
         $MailManager = new MailManager();
         $DigestMaker = new DigestMaker();
+        $AppMail = new AppMail();
 
         // Count number of users
         $users = $AppMail->get_mailinglist("notification");
