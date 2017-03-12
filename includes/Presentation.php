@@ -53,7 +53,6 @@ class Presentations extends AppTable {
      */
     function __construct(){
         parent::__construct("Presentation", $this->table_data);
-        $this->registerDigest();
     }
 
     /**
@@ -62,7 +61,8 @@ class Presentations extends AppTable {
     public function patch_presentation_id() {
         foreach ($this->all() as $key=>$item) {
             $pres_obj = new Presentation($item['presid']);
-            $pres_obj->update(array('session_id'=>$this->get_session_id($pres_obj->date)));
+            $pres_obj->update(array('session_id'=>$this->get_session_id($pres_obj->date)),
+                array('id_pres'=>$item['presid']));
         }
     }
 
@@ -79,7 +79,7 @@ class Presentations extends AppTable {
     /**
      * Register into DigestMaker table
      */
-    private function registerDigest() {
+    public static function registerDigest() {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register('Presentations');
     }
@@ -89,7 +89,7 @@ class Presentations extends AppTable {
      * @return array
      */
     function get_years() {
-        $dates = $this->db->getinfo($this->tablename,'date',array('type'),array("'wishlist'"),array('!='));
+        $dates = $this->db->column($this->tablename, 'date', array('type'=>'wishlist'), array('!='));
         if (is_array($dates)) {
             $years = array();
             foreach ($dates as $date) {
@@ -182,8 +182,8 @@ class Presentations extends AppTable {
         foreach ($yearpub as $year=>$publist) {
             $yearcontent = "";
             foreach ($publist as $pubid) {
-                $pres = new Presentation($pubid);
-                $yearcontent .= $pres->show();
+                $pres = new Presentation();
+                $yearcontent .= $pres->show($pubid);
             }
 
             $content.= "
@@ -202,63 +202,6 @@ class Presentations extends AppTable {
             </section>";
         }
         return $content;
-    }
-
-    /**
-     * Get wish list
-     * @param null $number: number of wishes to display
-     * @param bool $show: if true, presentations links are modal triggers. If false, they are regular URLs (to display
-     * in email)
-     * @return string
-     */
-    public function getwishlist($number=null,$show=false) {
-
-        $sql = "SELECT id_pres FROM $this->tablename WHERE type='wishlist' ORDER BY date DESC";
-        if (null !== $number) {
-            $sql .= " LIMIT $number";
-        }
-
-        $req = $this->db->send_query($sql);
-        $wish_list = "";
-        if ($req->num_rows > 0) {
-            while ($data = mysqli_fetch_array($req)) {
-                $pub = new Presentation($data['id_pres']);
-                $wish_list .= $pub->showwish($show);
-            }
-        } else {
-            $wish_list = "Nothing has been suggested for the moment. Be the first!";
-        }
-        return $wish_list;
-    }
-
-    /**
-     *  Generate wish list (option menu)
-     * @param string $target
-     * @return string
-     */
-    function generate_selectwishlist($target='.submission') {
-        $sql = "SELECT id_pres FROM $this->tablename WHERE type='wishlist' ORDER BY title DESC";
-        $req = $this->db->send_query($sql);
-
-        $option = "<option value=''>";
-        while ($data = mysqli_fetch_array($req)) {
-            $pres = new Presentation($data['id_pres']);
-            $option .= "<option value='$pres->id_pres'>$pres->authors | $pres->title</option>";
-        }
-
-        $nextcontent = "
-         <form method='post' action='php/form.php' class='form'>
-              <input type='hidden' name='page' value='presentations'/>
-              <input type='hidden' name='op' value='wishpick'/>
-              <div class='form-group field_auto' style='margin: auto; width: 250px;'>
-                <select name='id' id='select_wish' data-target='{$target}'>
-                    $option
-                </select>
-                <label for='id'>Select a wish</label>
-              </div>
-          </form>";
-
-        return $nextcontent;
     }
 
     /**
@@ -281,9 +224,40 @@ class Presentations extends AppTable {
      * @return mixed
      */
     public function makeMail($username=null) {
-        $content['body'] = $this->getwishlist(4,true);
+        $content['body'] = $this->getWishList(4,true);
         $content['title'] = "Wish list";
         return $content;
+    }
+
+    /**
+     * Patch upload table: add object name ('Presentation').
+     */
+    public static function patch_uploads() {
+        $Publications = new self();
+        $Media = new Media();
+        foreach ($Publications->all() as $key=>$item) {
+            if ($Media->is_exist(array('presid'=>$item['id_pres']))) {
+                $Media->update(array('obj'=>'Presentation'), array('presid'=>$item['id_pres']));
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    public static function patch_session_id() {
+        $Publications = new self();
+        $Session = new Session();
+        foreach ($Publications->all() as $key=>$item) {
+            if ($Session->is_exist(array('date'=>$item['date']))) {
+                $session_info = $Session->getInfo($item['date']);
+                if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id_pres'=>$item['id_pres']))) {
+                    AppLogger::get_instance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 }
@@ -320,8 +294,8 @@ class Presentation extends Presentations {
         $config = AppConfig::getInstance();
         $this->jc_time = "$config->jc_time_from,$config->jc_time_to";
         $this->up_date = date('Y-m-d h:i:s'); // Date of creation
-        if (null != $id_pres) {
-            self::get($id_pres);
+        if (!is_null($id_pres)) {
+            $this->getInfo($id_pres);
         }
     }
 
@@ -331,16 +305,16 @@ class Presentation extends Presentations {
      * @return bool|string
      */
     function make(array $post){
-        $class_vars = get_class_vars("Presentation");
-        if ($post['title'] == "TBA" || $this->pres_exist($post['title']) == false) {
+        if ($post['title'] === "TBA" || $this->pres_exist($post['title']) === false) {
 
             // Create an unique ID
-            $post['id_pres'] = self::create_presID();
+            $post['id_pres'] = $this->generateID('id_pres');
             $this->id_pres = $post['id_pres'];
 
             // Associates this presentation to an uploaded file if there is one
             if (!empty($post['link'])) {
-                $this->add_upload($post['link']);
+                $media = new Media();
+                $media->add_upload($post['link'], $post['id_pres'], 'Presentation');
             }
 
             // If not a wish, add date
@@ -348,7 +322,7 @@ class Presentation extends Presentations {
                 $this->date = $post['date'];
             }
 
-            $content = $this->parsenewdata($class_vars, $post, array("link","chair"));
+            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link","chair"));
             // Add publication to the database
             if ($this->db->addcontent($this->tablename,$content)) {
                 return $this->id_pres;
@@ -356,7 +330,7 @@ class Presentation extends Presentations {
                 return false;
             }
         } else {
-            $this->get($this->id_pres);
+            $this->getInfo($this->id_pres);
             return "exist";
         }
     }
@@ -375,52 +349,45 @@ class Presentation extends Presentations {
             $data['orator'] = $_SESSION['username'];
         }
 
-        if ($data['type'] === 'minute') {
-            $data['title'] = "Minutes of session held on {$data['date']}";
-        }
-
         // Create or update the presentation
+        $content = $this->parsenewdata(get_class_vars(get_called_class()), $data, array("link","chair"));
         if ($presid !== "false") {
-            $created = $this->update($data);
+            $created = $this->update($content, array('id_pres'=>$this->id_pres));
         } else {
-            $created = $this->make($data);
+            $created = $this->make($content);
         }
 
-        $result['status'] = false;
-        if ($created !== false && $created !== 'exists') {
-            // Add to sessions table
-            $session = new Session();
-            if ($session->make(array("date"=>$data['date']))) {
-                $result['status'] = true;
-                $result['msg'] = "Thank you for your submission!";
-            } else {
-                $this->delete_pres($created);
-                $result['msg'] = "Sorry, we could not create/update the session";
-            }
-        } elseif ($created == "exists") {
+        $result['status'] = $created === true;
+        if ($created === false) {
+            $result['msg'] = 'Oops, something went wrong';
+        } elseif ($created == 'exists') {
             $result['msg'] = "This presentation already exist in our database.";
+        } else {
+            $result['msg'] = "Thank you for your submission!";
         }
+
         return $result;
     }
 
     /**
      * Get publication's information from the database
      * @param $id_pres
-     * @return bool|Presentation
+     * @return bool|array
      */
-    public function get($id_pres) {
-        $sql = "SELECT * FROM $this->tablename WHERE id_pres='$id_pres'";
-        $req = $this->db->send_query($sql);
-        $row = mysqli_fetch_assoc($req);
-        if (!empty($row)) {
-            foreach ($row as $varname=>$value) {
-                $this->$varname = htmlspecialchars_decode($value);
-            }
+    public function getInfo($id_pres) {
+        $sql = "SELECT p.*, u.fullname as fullname 
+                FROM {$this->tablename} p
+                LEFT JOIN ". AppDb::getInstance()->getAppTables('Users') . " u
+                    ON u.username=p.username
+                WHERE id_pres='{$id_pres}'";
+        $data = $this->db->send_query($sql)->fetch_assoc();
+
+        if (!empty($data)) {
+            $this->map($data);
 
             // Get associated files
-            $this->get_uploads();
-
-            return $this;
+            $data['link'] = $this->get_uploads();
+            return $data;
         } else {
             return false;
         }
@@ -432,7 +399,7 @@ class Presentation extends Presentations {
      * @param null $id_pres
      * @return bool
      */
-    function update($post=array(),$id_pres=null) {
+    public function modify($post=array(), $id_pres=null) {
         if (null!=$id_pres) {
             $this->id_pres = $id_pres;
         } elseif (array_key_exists('id_pres',$post)) {
@@ -441,7 +408,8 @@ class Presentation extends Presentations {
 
         // Associate the new uploaded file (if there is one)
         if (array_key_exists("link", $post)) {
-            $this->add_upload($post['link']);
+            $media = new Media();
+            $media->add_upload($post['link'], $post['id_pres'], 'Presentation');
         }
 
         // Get presentation's type
@@ -460,43 +428,13 @@ class Presentation extends Presentations {
     }
 
     /**
-     *  Create an unique ID for the new presentation
-     * @return string
-     */
-    function create_presID() {
-        $id_pres = date('Ymd').rand(1,10000);
-
-        // Check if random ID does not already exist in our database
-        $prev_id = $this->db->getinfo($this->tablename,'id_pres');
-        while (in_array($id_pres,$prev_id)) {
-            $id_pres = date('Ymd').rand(1,10000);
-        }
-        return $id_pres;
-    }
-
-    /**
-     * Associates this presentation to an uploaded file
-     * @param $filenames
-     * @return bool
-     * @internal param $filename
-     */
-    function add_upload($filenames) {
-        $filenames = explode(',',$filenames);
-        $upload = new Media();
-        foreach ($filenames as $filename) {
-            if ($upload->add_presid($filename,$this->id_pres) !== true) {
-                return False;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Get associated files
      */
-    function get_uploads() {
+    private function get_uploads() {
         $upload = new Uploads();
-        $this->link = $upload->get_uploads($this->id_pres);
+        $links = $upload->get_uploads($this->id_pres, 'Presentation');
+        $this->link = $links;
+        return $links;
     }
 
     /**
@@ -504,21 +442,15 @@ class Presentation extends Presentations {
      * @param $pres_id
      * @return bool
      */
-    function delete_pres($pres_id) {
-        self::get($pres_id);
+    public function delete_pres($pres_id) {
+        $this->getInfo($pres_id);
 
         // Delete corresponding file
         $uploads = new Uploads();
         $uploads->delete_files($this->id_pres);
 
         // Delete corresponding entry in the publication table
-        if ($this->db->deletecontent($this->tablename,array('id_pres'),array($pres_id))) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$pres_id}) deleted");
-            return true;
-        } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not delete presentation ({$pres_id})");
-            return false;
-        }
+        return $this->delete(array('id_pres'=>$pres_id));
     }
 
     /**
@@ -526,24 +458,36 @@ class Presentation extends Presentations {
      * @param $title
      * @return bool
      */
-    function pres_exist($title) {
-        $titlelist = $this->db -> getinfo($this->tablename,'title');
+    private function pres_exist($title) {
+        $titlelist = $this->db -> select($this->tablename, array('title'));
         return in_array($title,$titlelist);
     }
 
     /**
      * Show this presentation (in archives)
-     * @param bool $user : adapt the display for the profile page
+     * @param $id: presentation id
+     * @param bool $profile : adapt the display for the profile page
      * @return string
      */
-    public function show($user=false) {
-        if (!$user) {
+    public function show($id, $profile=false) {
+        $data = $this->getInfo($id);
+        if ($profile === false) {
             $speaker = new User($this->orator);
             $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
         } else {
             $speakerDiv = "";
         }
-        $date = date('d M y',strtotime($this->date));
+        return self::show_in_list((object)$data[0], $speakerDiv);
+    }
+
+    /**
+     * Render presentation in list
+     * @param stdClass $presentation
+     * @param $speakerDiv
+     * @return string
+     */
+    public static function show_in_list(stdClass $presentation, $speakerDiv) {
+        $date = date('d M y', strtotime($presentation->date));
         return "
             <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
@@ -552,9 +496,9 @@ class Presentation extends Presentations {
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
-                    data-id='$this->id_pres'>
-                        $this->title
+                    <a href='" . URL_TO_APP . "index.php?page=presentation?id={$presentation->id_pres}" . "' class='leanModal' 
+                    id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$presentation->id_pres'>
+                        $presentation->title
                     </a>
                 </div>
                 {$speakerDiv}
@@ -567,77 +511,63 @@ class Presentation extends Presentations {
      * @param string $cur_speaker: username of currently assigned speaker
      * @return string
      */
-    private static function speakerList($cur_speaker=null) {
+    public static function speakerList($cur_speaker=null) {
         $Users = new Users();
-
         // Render list of available speakers
-        $speakerOpt = null;
+        $speakerOpt = (is_null($cur_speaker)) ? "<option selected disabled>Select a speaker</option>" : null;
         foreach ($Users->getUsers() as $key=>$speaker) {
-            if (is_null($cur_speaker)) {
-                $speakerOpt .= "<option value='TBA' selected>TBA</option>";
-            } else {
-                $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
-                $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
-            }
+            $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
+            $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
         }
         return "<select class='modSpeaker select_opt' style='max-width: 150px;'>{$speakerOpt}</select>";
     }
 
     /**
      * Show editable publication information in session list
-     * @param Presentation $presentation
+     * @param array $data
      * @return array
      */
-    public static function inSessionEdit(Presentation $presentation) {
-        $show_but = self::RenderTitle($presentation);
-
-        // Either simply show speaker's name or option list of users (admin interface)
-        // Render list of available speakers
-        $speaker_obj = new User($presentation->orator);
-        $speaker = self::speakerList($speaker_obj->username);
-        $deleteBtn = "<div class='pub_btn icon_btn'><a href='#' data-id='$presentation->id_pres' class='leanModal delete_ref'>
-            <img src='" . URL_TO_IMG . "trash.png'></a>
-            </div>";
+    public static function inSessionEdit(array $data) {
+        $view_button = "<a href='' class='leanModal modal_trigger_pubcontainer pub_btn icon_btn' data-section='submission_form' 
+            data-id='{$data['id_pres']}'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
-                <div style='display: block !important;'>{$show_but}</div>
+                <div style='display: block !important;'>{$data['title']}</div>
                 <div>
                     <span style='font-size: 12px; font-style: italic;'>Presented by </span>
-                    <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
+                    <span style='font-size: 14px; font-weight: 500; color: #777;'>" . self::speakerList($data['username']) ."</span>
                 </div>
                 ",
-            "name"=>$presentation->type,
-            "button"=>$deleteBtn
+            "name"=>$data['pres_type'],
+            "button"=>$view_button
             );
     }
 
     /**
      * Render (clickable) presentation title.
-     * @param Presentation $presentation
+     * @param array $data
      * @return string
      */
-    private static function RenderTitle(Presentation $presentation) {
-        // Make "Show" button
-        $url = URL_TO_APP . "index.php?page=presentation?id=" . $presentation->id_pres;
+    private static function RenderTitle(array $data) {
+        $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
         return "<a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
-            data-id='{$presentation->id_pres}'>{$presentation->title}</a>";
+            data-id='{$data['id_pres']}'>{$data['title']}</a>";
     }
 
     /**
      * Render short description of presentation in session list
-     * @param Presentation $presentation
-     * @param string $speaker: speaker full name
+     * @param array $data
      * @return array
      */
-    public static function inSessionSimple(Presentation $presentation, $speaker) {
-        $show_but = self::RenderTitle($presentation);
+    public static function inSessionSimple(array $data) {
+        $show_but = self::RenderTitle($data);
         return array(
-            "name"=>$presentation->type,
+            "name"=>$data['pres_type'],
             "content"=>"
             <div style='display: block !important;'>{$show_but}</div>
             <div>
                 <span style='font-size: 12px; font-style: italic;'>Presented by </span>
-                <span style='font-size: 14px; font-weight: 500; color: #777;'>{$speaker}</span>
+                <span style='font-size: 14px; font-weight: 500; color: #777;'>{$data['fullname']}</span>
             </div>",
             "button"=>null
         );
@@ -683,27 +613,22 @@ class Presentation extends Presentations {
 
     /**
      * Show presentation details
-     * @param bool $show: show list of attached files
+     * @param array $data: presentation information
+     * @param bool $show : show list of attached files
      * @return string
      */
-    public function showDetails($show=false) {
-        $orator = new User($this->orator);
-        $filediv = null;
-
+    public static function mail_details(array $data, $show=false) {
         // Make download menu if required
-        if ($show) {
-            $app_url = AppConfig::getInstance()->getAppUrl();
-            $filediv = self::downloadMenu($this->link, $app_url);
-        }
+        $file_div = $show ? self::downloadMenu($data['link'], AppConfig::getInstance()->getAppUrl()) : null;
 
         // Format presentation's type
-        $type = ucfirst($this->type);
+        $type = ucfirst($data['type']);
 
         // Abstract
-        $abstract = (!empty($this->summary)) ? "
+        $abstract = (!empty($data['summary'])) ? "
             <div style='width: 95%; box-sizing: border-box; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; 
             padding: 10px;'>
-                <span style='font-style: italic; font-size: 13px;'>$this->summary</span>
+                <span style='font-style: italic; font-size: 13px;'>{$data['summary']}</span>
             </div>
             " : null;
 
@@ -714,133 +639,120 @@ class Presentation extends Presentations {
                 <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
                     <span style='color: #222; font-weight: 900;'>{$type}</span>
                     <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
-                    <span style='color: #777; font-weight: 600;'>{$orator->fullname}</span>
+                    <span style='color: #777; font-weight: 600;'>{$data['fullname']}</span>
                 </div>
             </div>
             <div style='width: 100%; text-align: justify; margin: auto; box-sizing: border-box;'>
                 <div style='max-width: 80%; margin: 5px;'>
-                    <div style='font-weight: bold; font-size: 20px;'>{$this->title}</div>
+                    <div style='font-weight: bold; font-size: 20px;'>{$data['title']}</div>
                 </div>
                 <div style='margin-left: 5px; font-size: 15px; font-weight: 400; font-style: italic;'>
-                    {$this->authors}
+                    {$data['authors']}
                 </div>
             </div>
            {$abstract}
-           {$filediv}
+           {$file_div}
         </div>
         ";
         return $content;
     }
 
     /**
-     * Show in wish list (if instance is a wish)
-     * @param $show
-     * @return string
+     * Render download menu
+     * @param array $links
+     * @param bool $email
+     * @return array
      */
-    public function showwish($show) {
-        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=submission&op=wishpick&id={$this->id_pres}";
-        $uploader = new User($this->username);
-        $update = date('d M y',strtotime($this->up_date));
-        return "
-        <div class='wish_container' id='{$this->id_pres}' style='display: block; position: relative; margin: 10px auto; 
-        font-size: 0.9em; font-weight: 300; overflow: hidden; padding: 5px; border-radius: 5px;'>
-            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;'>
-                {$update}
-            </div>
-            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-               <a href='$url' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-id='{$this->id_pres}'>
-                    <div style='font-size: 16px;'>{$this->title}</div>
-                    <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$uploader->fullname}</span></div>
-                </a>
-            </div>
-        </div>";
+    private static function download_menu(array $links, $email=false) {
+        $content = array();
+        if (!empty($links)) {
+            if ($email) {
+                // Show files list as a drop-down menu
+                $content['button'] = "<div class='dl_btn pub_btn icon_btn'>
+                    <img src='".AppConfig::$site_url."images/download.png'></div>";
+                $menu = null;
+                foreach ($links as $file_id=>$info) {
+                    $menu .= "
+                        <div class='dl_info'>
+                            <div class='dl_type'>".strtoupper($info['type'])."</div>
+                            <div class='link_name dl_name' id='".$info['filename']."'>$file_id</div>
+                        </div>";
+                }
+                $content['menu'] .= "<div class='dlmenu'>{$menu}</div>";
+            } else {
+                // Show files list as links
+                $menu = null;
+                foreach ($links as $file_id=>$info) {
+                    $url_link = AppConfig::$site_url."uploads/".$info['filename'];
+                    $menu .= "
+                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
+                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                        <a href='$url_link' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                    </div>";
+                }
+                $content['menu'] = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; 
+                    height: auto; margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$menu}</div>";
+            }
+        } else {
+            $content['button'] = "<div style='width: 100px'></div>";
+            $content['menu'] = null;
+        }
+        return $content;
     }
 
     /**
-     * Generate submission form and automatically fill it up with data provided by Presentation object.
-     * @param $user
-     * @param bool $show
+     * Display presentation details.
+     * @param array $data: presentation information
+     * @param bool $show : show buttons (true)
      * @return string
      */
-    public function displaypub($user=false, $show=false) {
-        $user = ($user == false) ? new User():$user;
-        $download_button = "";
-        $dlmenu = "";
-        $filediv = "";
-        if (!(empty($this->link))) {
-            if ($show) {
-                // Show files list as a dropdown menu
-                $download_button = "<div class='dl_btn pub_btn icon_btn' id='$this->id_pres'><img src='".AppConfig::$site_url."images/download.png'></div>";
-                $filelist = $this->link;
-                $dlmenu = "<div class='dlmenu'>";
-                foreach ($filelist as $fileid=>$info) {
-                    $dlmenu .= "
-                <div class='dl_info'>
-                    <div class='dl_type'>".strtoupper($info['type'])."</div>
-                    <div class='link_name dl_name' id='".$info['filename']."'>$fileid</div>
-                </div>";
-                }
-                $dlmenu .= "</div>";
-            } else {
-                // Show files list as links
-                $filecontent = "";
-                foreach ($this->link as $fileid=>$info) {
-                    $urllink = AppConfig::$site_url."uploads/".$info['filename'];
-                    $filecontent .= "
-                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
-                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
-                        <a href='$urllink' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
-                    </div>";
-                }
-                $filediv = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; height: auto;
-            margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>$filecontent</div>";
-            }
-        } else {
-            $download_button = "<div style='width: 100px'></div>";
-            $dlmenu = "";
-        }
+    public static function details(array $data, $show=false) {
+
+        $dl_menu = self::download_menu($data['link'], $show);
+        $file_div = $show ? $dl_menu['menu'] : null;
 
         // Add a delete link (only for admin and organizers or the authors)
-        if ($user->status != 'member' || $this->orator == $user->username) {
-            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='$this->id_pres' class='delete_ref'><img src='".AppConfig::$site_url."images/trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='$this->id_pres' class='modify_ref'><img src='".AppConfig::$site_url."images/edit.png'></a></div>";
+        if ($show) {
+            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='delete_ref'>
+                <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref'>
+                <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
             $modify_button = "<div style='width: 100px'></div>";
         }
-        $orator = new User($this->orator);
-        if (empty($orator->fullname)) $orator->fullname = $this->orator;
-        $type = ucfirst($this->type);
+
+        $type = ucfirst($data['type']);
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
             <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                $type
+                {$type}
             </div>
-            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>$this->title</div>
+            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>{$data['title']}</div>
             <div id='pub_date'>
-                <span style='color:#CF5151; font-weight: bold;'>Date: </span>$this->date 
+                <span style='color:#CF5151; font-weight: bold;'>Date: </span>" . date('d M Y', strtotime($data['date'])) . "
             </div>
             <div id='pub_orator'>
-                <span style='color:#CF5151; font-weight: bold;'>Presented by: </span>$orator->fullname
+                <span style='color:#CF5151; font-weight: bold;'>Presented by: </span>{$data['fullname']}
             </div>
-            <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>$this->authors</div>
+            <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>{$data['authors']}</div>
         </div>
 
         <div class='pub_abstract'>
-            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>$this->summary
+            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>{$data['summary']}
         </div>
 
         <div class='pub_action_btn'>
             <div class='pub_one_half'>
-                $download_button
-                $dlmenu
+                {$dl_menu['button']}
+                {$dl_menu['menu']}
             </div>
             <div class='pub_one_half last'>
-                $delete_button
-                $modify_button
+                {$delete_button}
+                {$modify_button}
             </div>
         </div>
-        $filediv
+        {$file_div}
         ";
         return $result;
     }
@@ -854,16 +766,20 @@ class Presentation extends Presentations {
         $post = (is_null($post)) ? $_POST : $post;
 
         $id_Presentation = $post['getpubform'];
-        $pub = $id_Presentation == "false" ? false : new self($id_Presentation);
+        $pub = $id_Presentation == "false" ? null : new self($id_Presentation);
         if (!isset($_SESSION['username'])) {
             $_SESSION['username'] = false;
         }
-        $date = (!empty($post['date']) && $post['date'] !== 'false') ? $post['date']:false;
-        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type']:false;
-        $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype']:false;
+        $date = (!empty($post['date']) && $post['date'] !== 'false') ? $post['date'] : null;
+        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
+        $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype'] : null;
 
         $user = new User($_SESSION['username']);
-        return Presentation::form($user, $pub, $type, $prestype, $date);
+        if ($type === 'edit') {
+            return Presentation::form($user, $pub, $type, $prestype, $date);
+        } else {
+            return Suggestion::form($user, $pub, $type, $prestype);
+        }
     }
 
     /**
@@ -874,7 +790,7 @@ class Presentation extends Presentations {
         return "
         <section id='submission_form'>
             <h2>{$content['title']}</h2>
-             <p class='page_description'>{$content['description']}</p>       
+            <p class='page_description'>{$content['description']}</p>       
             <div class='section_content'>{$content['content']}</div>
         </section>
         ";
@@ -894,85 +810,47 @@ class Presentation extends Presentations {
 
     /**
      * Submission form instruction
-     * @param $type
-     * @return null|string
+     * @return string
      */
-    public static function description($type) {
-        $result = null;
-        switch ($type) {
-            case "edit":
-                $result = "
-                Book a Journal Club session to present a paper, your research, or a
+    public static function description() {
+        return "
+        Book a Journal Club session to present a paper, your research, or a
             methodology topic. <br>
-            Fill in the form below, select a date (only available dates are selectable) and it's all done!
+            Fill in the form below, select a date (only available dates can be selected) and it's all done!
             Your submission will be automatically added to our database.<br>
             If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
                 ";
-                break;
-            case "suggest":
-                $result = "
-                Here you can suggest a paper that somebody else could present at a Journal Club session.
-                Fill in the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
-                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
-                ";
-                break;
-            case "wishpick":
-                $result = "
-                Here you can choose a suggested paper from the wishlist that you would like to present.<br>
-                The form below will be automatically filled in with the data provided by the user who suggested the selected paper.
-                Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
-                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
-                ";
-                break;
-
-        }
-        return $result;
-
     }
 
     /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
      * @param User $user
-     * @param bool $Presentation
+     * @param null|Presentation $Presentation
      * @param string $submit
      * @param bool $type
      * @param bool $date
      * @return array
      */
-    public static function form(User $user, $Presentation=false, $submit="edit", $type=false, $date=false) {
-        if ($Presentation == false) {
+    public static function form(User $user, Presentation $Presentation=null, $submit="edit", $type=null, $date=null) {
+        if (is_null($Presentation)) {
             $Presentation = new self();
         }
-        $date = ($date != false) ? $date:$Presentation->date;
-        $type = ($type != false) ? $type:$Presentation->type;
 
-        // Get files associated to this publication
-        $links = $Presentation->link;
-        $uploader = uploader($links);
+        // Submission date
+        $date = (!is_null($date)) ? $date : $Presentation->date;
+        $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker' name='date' value='{$date}' 
+                    data-view='view'>
+                    <label>Date</label>" : null;
+
+        // Submission type
+        $type = (is_null($type)) ? $type : $Presentation->type;
+        if (empty($type)) $type = 'paper';
 
         // Presentation ID
-        $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres:'false';
-        $idPresentation = "<input type='hidden' id='id_pres' name='id_pres' value='$idPres'/>";
-
-        // Show date input only for submissions and updates
-        $dateinput = ($submit != "suggest") ? "<input type='date' id='datepicker' name='date' value='$date'><label>Date</label>":"";
-
-        $authors = ($type !== 'minute') ? "<div class='form-group'>
-                <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
-                <label>Authors </label>
-            </div>":"";
-
-        $selectopt = ($submit === "wishpick") ? $Presentation->generate_selectwishlist():"";
+        $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres : 'false';
 
         // Make submission's type selection list
-        $typeoptions = "";
-        foreach (AppConfig::getInstance()->pres_type as $types) {
-            if ($types == $type) {
-                $typeoptions .= "<option value='$types' selected>$types</option>";
-            } else {
-                $typeoptions .= "<option value='$types'>$types</option>";
-            }
-        }
+        $type_options = Session::presentation_type();
 
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
@@ -982,7 +860,7 @@ class Presentation extends Presentations {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    {$uploader}
+                    " . Media::uploader($Presentation->link) . "
                 </div>
                 
                 <form method='post' action='php/form.php' enctype='multipart/form-data' id='submit_form'>
@@ -993,8 +871,8 @@ class Presentation extends Presentations {
                             Select a presentation type and pick a date
                         </div>
                         <div class='form-group'>
-                            <select name='type' id='type' required>
-                                $typeoptions
+                            <select class='change_pres_type' name='type' id='type' required>
+                                {$type_options['options']}
                             </select>
                             <label>Type</label>
                         </div>
@@ -1005,34 +883,14 @@ class Presentation extends Presentations {
                     </div>
                 
                     <div class='form_lower_container'>
-                         
-                        <div class='form_description'>
-                            Provide presentation information
-                        </div>
-            
-                        <div class='form-group'>
-                            <input type='text' id='title' name='title' value='$Presentation->title' required/>
-                            <label>Title </label>
-                        </div>
-            
-                        {$authors}
-
-                        <div class='form-group' id='guest' style='display: none;'>
-                            <input type='text' id='orator' name='orator' required>
-                            <label>Speaker</label>
-                        </div>
-                        
-                        <div class='form-group'>
-                            <label>Abstract</label>
-                            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
-                        </div>
+                        " . self::get_form_content($Presentation, $type) . "
                     </div>
                     <div class='submit_btns'>
                         <input type='submit' name='$submit' class='submit_pres processform'>
                         <input type='hidden' name='selected_date' id='selected_date' value='$date'/>
                         <input type='hidden' name='$submit' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
-                        $idPresentation
+                        <input type='hidden' id='id_pres' name='id_pres' value='{$idPres}'/>
                     </div>
                 </form>
             </div>
@@ -1046,13 +904,165 @@ class Presentation extends Presentations {
             $result['title'] = "Select a wish";
         }
         $result['content'] = "
-            <div>$selectopt</div>
             <div class='submission'>
                 $form
             </div>
             ";
-        $result['description'] = self::description($submit);
+        $result['description'] = self::description();
         return $result;
+    }
+
+    /**
+     * Get form content based on selected presentation type
+     * @param Suggestion|Presentation $Presentation
+     * @param string $type: Presentation type
+     * @return string
+     */
+    public static function get_form_content($Presentation, $type) {
+        $form_name = $type . "_form";
+        if (method_exists(__CLASS__, $form_name)) {
+            return self::$form_name($Presentation);
+        } else {
+            return self::paper_form($Presentation);
+        }
+    }
+
+    /**
+     * Render form for wishes
+     * @param Suggestion|Presentation $Presentation
+     * @return string
+     */
+    private static function wish_form($Presentation) {
+        return "
+        <div class='form_description'>
+            Provide presentation information
+        </div>
+
+        <div class='form-group'>
+            <input type='text' id='title' name='title' value='$Presentation->title' required/>
+            <label>Title</label>
+        </div>
+        <div class='form-group'>
+            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
+            <label>Authors</label>
+        </div>
+        <div class='form-group'>
+            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords' required>
+            <label>Keywords (comma-separated)</label>
+        </div>
+        <div class='form-group'>
+            <label>Abstract</label>
+            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+        </div>
+        ";
+    }
+
+    /**
+     * Render form for wishes
+     * @param Suggestion|Presentation $Presentation
+     * @return string
+     */
+    private static function suggest_form($Presentation) {
+        return "
+        <div class='form_description'>
+            Provide presentation information
+        </div>
+
+        <div class='form-group'>
+            <input type='text' id='title' name='title' value='$Presentation->title' required/>
+            <label>Title</label>
+        </div>
+        <div class='form-group'>
+            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
+            <label>Authors</label>
+        </div>
+        <div class='form-group'>
+            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords' required>
+            <label>Keywords (comma-separated)</label>
+        </div>
+        <div class='form-group'>
+            <label>Abstract</label>
+            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+        </div>
+        ";
+    }
+
+    /**
+     * Render form for research article
+     * @param Suggestion|Presentation $Presentation
+     * @return string
+     */
+    private static function paper_form($Presentation) {
+        return "
+        <div class='form_description'>
+            Provide presentation information
+        </div>
+
+        <div class='form-group'>
+            <input type='text' id='title' name='title' value='$Presentation->title' required/>
+            <label>Title</label>
+        </div>
+        <div class='form-group'>
+            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
+            <label>Authors</label>
+        </div>
+        <div class='form-group'>
+            <label>Abstract</label>
+            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+        </div>
+        ";
+    }
+
+    /**
+     * Render form for guest speakers
+     * @param Suggestion|Presentation $Presentation
+     * @return string
+     */
+    private static function guest_form($Presentation) {
+        return "
+        <div class='form_description'>
+            Provide presentation information
+        </div>
+
+        <div class='form-group'>
+            <input type='text' id='title' name='title' value='$Presentation->title' required/>
+            <label>Title</label>
+        </div>
+        <div class='form-group'>
+            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
+            <label>Authors </label>
+        </div>
+        <div class='form-group' id='guest'>
+            <input type='text' id='orator' name='orator' required>
+            <label>Speaker</label>
+        </div>
+        <div class='form-group'>
+            <label>Abstract</label>
+            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+        </div>
+        ";
+    }
+
+    /**
+     * Render form for guest speakers
+     * @param Suggestion|Presentation $Presentation
+     * @return string
+     */
+    private static function minute_form($Presentation) {
+        return "
+        <div class='form_description'>
+            Provide presentation information
+        </div>
+
+        <div class='form-group'>
+            <input type='text' id='title' name='title' value='Minutes for session held on {$Presentation->date}' disabled/>
+            <label>Title</label>
+        </div>
+        <div class='form-group'>
+            <label>Minutes</label>
+            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+        </div>
+        ";
     }
 
     /**
