@@ -80,9 +80,8 @@ class Notification extends AppCron {
 
                     // Tell to the db that notifications have been sent about the new presentations
                     foreach ($presentationList as $presid) {
-                        $pres = new Presentation($presid);
-                        $pres->notified = 1;
-                        $pres->update();
+                        $pres = new Presentation();
+                        $pres->update(array('notified'=>1), array('id_pres'=>$presid));
                     }
 
                 } else {
@@ -109,7 +108,7 @@ class Notification extends AppCron {
         $list = "";
         foreach ($presentationList as $presid) {
             $pres = new Presentation($presid);
-            $list .= $pres->showDetails(true);
+            $list .= $pres->mail_details(true);
         }
         $content['body'] = "
         <div style='width: 100%; margin: auto;'>
