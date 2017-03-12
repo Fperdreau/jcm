@@ -21,8 +21,8 @@
  */
 
 $last_news = new Posts();
-$sessions = new Sessions();
-$presentations = new Presentations();
+$sessions = new Session();
+$suggestions = new Suggestion();
 
 $submitMenu = User::is_logged() ? Presentation::submitMenu('fixed') : null;
 
@@ -41,21 +41,13 @@ $result = "
     <div class='section_container'>
         <section>
             <h2>Next Sessions</h2>
-            <div class='section_content'>
-                <div class='form-group'>
-                    <input type='date' class='selectSession' data-status='false' id='datepicker' name='date'>
-                    <label>Session to show</label>
-                </div>
-                <div id='sessionlist'>
-                    " . $sessions->showFutureSessions(4) . "
-                </div>
-            </div>
+            {$sessions->getViewer(4)}
         </section>
 
         <section>
-            <h2>Wish list</h2>
+            <h2>Last Suggestions</h2>
             <div class='section_content'>
-                " . $presentations->getwishlist(10,true) . "
+                " . $suggestions->getWishList(10) . "
             </div>
         </section>
     </div>
