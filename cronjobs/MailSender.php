@@ -110,7 +110,7 @@ class MailSender extends AppCron {
                 $email['attachments'] = null;
             }
             if (self::$AppMail->send_mail($recipients, $email['subject'], $email['content'], $email['attachments'])) {
-                $this->Manager->update(array('status'=>1), $email['mail_id']);
+                $this->Manager->update(array('status'=>1), array('mail_id'=>$email['mail_id']));
                 $sent += 1;
             }
             sleep(2); // Add some time interval before processing the next email
@@ -138,7 +138,8 @@ class MailSender extends AppCron {
         $to_delete = count($data);
         $count = 0;
         foreach ($data as $key=>$email) {
-            if (!$this->db->deletecontent($this->Manager->tablename, 'mail_id', $email['mail_id'])) {
+            if (!$this->db->delete($this->Manager->tablename, array('mail_id'=>$email['mail_id']))) {
+                AppCron::get_logger()->log("Could not delete email '{$email['mail_id']}'");
                 return false;
             } else {
                 $count += 1;
