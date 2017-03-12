@@ -56,26 +56,11 @@ class MailManager extends AppTable {
     }
 
     /**
-     *  Create an unique ID for the new presentation
-     * @return string
-     */
-    function generateID() {
-        $id_pres = date('Ymd').rand(1,10000);
-
-        // Check if random ID does not already exist in our database
-        $prev_id = $this->db->getinfo($this->tablename,'mail_id');
-        while (in_array($id_pres,$prev_id)) {
-            $id_pres = date('Ymd').rand(1,10000);
-        }
-        return $id_pres;
-    }
-
-    /**
      * Add email to db
      * @param null|array $post
      * @return bool|mysqli_result
      */
-    public function add($post=null) {
+    public function add(array $post=null) {
         $post = (is_null($post)) ? $_POST:$post;
         //$post['mail_id'] = (!isset($post['mail_id'])) ? $this->generateID() : $post['mail_id'];
         $post['date'] = date('Y-m-d h:i:s'); // Date of creation
@@ -86,32 +71,12 @@ class MailManager extends AppTable {
     }
 
     /**
-     * Gets email
-     * @param $mail_id
-     * @return mixed
-     */
-    public function get($mail_id) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE mail_id='{$mail_id}'";
-        return $this->db->send_query($sql)->fetch_assoc();
-    }
-
-    /**
-     * Update email
-     * @param $post
-     * @param $id
-     * @return bool
-     */
-    public function update($post, $id) {
-        return $this->db->updatecontent($this->tablename, $post, array('mail_id'=>$id));
-    }
-
-    /**
      * Renders email content
      * @param $mail_id
      * @return string
      */
     public function show($mail_id) {
-        $data = $this->get($mail_id);
+        $data = $this->get(array('mail_id'=>$mail_id));
         if (is_null($data)) {
             return null;
         }
@@ -150,7 +115,7 @@ class MailManager extends AppTable {
         $AppMail = new AppMail();
 
         // Generate ID
-        $data['mail_id'] = $this->generateID();
+        $data['mail_id'] = $this->generateID('mail_id');
 
         // Format email content
         $auto = !isset($content['mail_from']); // Is this message sent by a human or automatically
@@ -188,7 +153,7 @@ class MailManager extends AppTable {
             if ($AppMail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed, $settings)) {
 
                 // Update MailManager table
-                $result['status'] = $this->update(array('status'=>1), $data['mail_id']);
+                $result['status'] = $this->update(array('status'=>1), array('mail_id'=>$data['mail_id']));
             } else {
                 $result['status'] = false;
                 $result['msg'] = 'Could not send email';
