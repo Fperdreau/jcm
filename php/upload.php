@@ -26,7 +26,7 @@
 
 require('../includes/boot.php');
 /** @var Presentation $pub */
-$upload = new Media($db);
+$upload = new Media();
 $result = $upload->make($_FILES['file']);
 $result['name'] = false;
 if ($result['error'] == true) {
