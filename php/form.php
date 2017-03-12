@@ -71,7 +71,7 @@ if (!empty($_POST['installDep'])) {
             $result['status'] = false;
         }
     } elseif ($op == 'uninstall') {
-        if ($thisApp->delete()) {
+        if ($thisApp->delete(array('name'=>$name))) {
             $result['status'] = true;
             $result['msg'] = "$name has been deleted!";
         } else {
@@ -93,7 +93,7 @@ if (!empty($_POST['activateDep'])) {
     $App = ($type === 'plugin') ? new AppPlugins() : new AppCron();
     $thisApp = $App->instantiate($name);
 
-    $result['status'] = $thisApp->update(array('status'=>$op));
+    $result['status'] = $thisApp->update(array('status'=>$op), array('name'=>$name));
     if ($result['status']) {
         $result['msg'] = ($op === 'On') ? "{$name} has been activated!":"{$name} has been deactivated";
     }
@@ -107,7 +107,7 @@ if (!empty($_POST['getOpt'])) {
     $op = htmlspecialchars($_POST['op']);
     $App = ($op == 'plugin') ? new AppPlugins() : new AppCron();
     $thisApp = $App->instantiate($name);
-    $thisApp->get();
+    $thisApp->getInfo();
     $result = $thisApp->displayOpt();
     echo json_encode($result);
     exit;
@@ -120,11 +120,11 @@ if (!empty($_POST['modOpt'])) {
     $data = $_POST['data'];
     $App = ($op == 'plugin') ? new AppPlugins() : new AppCron();
     $thisApp = $App->instantiate($name);
-    $thisApp->get();
+    $thisApp->getInfo();
     foreach ($data as $key=>$settings) {
         $thisApp->options[$settings['name']]['value'] = $settings['value'];
     }
-    if ($thisApp->update(array('options'=>$thisApp->options))) {
+    if ($thisApp->update(array('options'=>$thisApp->options), array('name'=>$name))) {
         $result['status'] = true;
         $result['msg'] = "$name's settings successfully updated!";
     } else {
@@ -140,11 +140,11 @@ if (!empty($_POST['modCron'])) {
     $thisApp = $App->instantiate($name);
 
     if ($thisApp->isInstalled()) {
-        $thisApp->get();
+        $thisApp->getInfo();
         $thisApp->time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
         $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
         $thisApp->frequency = implode(',', $frequency);
-        if ($thisApp->update()) {
+        if ($thisApp->update(array('frequency'=>$thisApp->frequency, 'time'=>$thisApp->time), array('name'=>$name))) {
             $result['status'] = true;
             $result['msg'] = $thisApp->time;
         } else {
@@ -164,9 +164,9 @@ if (!empty($_POST['modStatus'])) {
     $op = htmlspecialchars($_POST['op']);
     $App = ($op == 'plugin') ? new AppPlugins(): new AppCron();
     $thisApp = $App->instantiate($name);
-    $thisApp->get();
+    $thisApp->getInfo();
     $thisApp->status = $status;
-    $result = $thisApp->isInstalled() ? $thisApp->update() : False;
+    $result = $thisApp->isInstalled() ? $thisApp->update(array('status'=>$status), array('name'=>$name)) : False;
     echo json_encode($result);
     exit;
 }
@@ -181,13 +181,13 @@ if (!empty($_POST['modSettings'])) {
     $App = ($op == 'plugin') ? new AppPlugins(): new AppCron();
     $thisApp = $App->instantiate($name);
     if ($thisApp->isInstalled()) {
-        $thisApp->get();
+        $thisApp->getInfo();
         $thisApp->$option = $value;
         if ($op == 'plugin') {
-            $result = $thisApp->update();
+            $result = $thisApp->update(array($option=>$value), array('name'=>$name));
         } else {
             $thisApp->time = $App::parseTime($thisApp->time, explode(',', $thisApp->frequency));
-            if ($thisApp->update()) {
+            if ($thisApp->update(array('time'=>$thisApp->time), array('name'=>$name))) {
                 $result = $thisApp->time;
             } else {
                 $result = false;
@@ -256,7 +256,7 @@ if (!empty($_POST['modDigest'])) {
     $position = htmlspecialchars($_POST['position']);
 
     $DigestMaker = new DigestMaker();
-    $result['status'] = $DigestMaker->update($_POST, $name);
+    $result['status'] = $DigestMaker->update($_POST, array('name'=>$name));
     echo json_encode($result);
     exit;
 }
@@ -268,7 +268,7 @@ if (!empty($_POST['modReminder'])) {
     $position = htmlspecialchars($_POST['position']);
 
     $reminderMaker = new ReminderMaker();
-    $result['status'] = $reminderMaker->update($_POST, $name);
+    $result['status'] = $reminderMaker->update($_POST, array('name'=>$name));
     echo json_encode($result);
     exit;
 }
@@ -299,10 +299,10 @@ if (!empty($_POST['mod_cron'])) {
     $CronJobs = new AppCron();
     $cron = $CronJobs->instantiate($cronName);
     if ($cron->isInstalled()) {
-        $cron->get();
+        $cron->getInfo();
         $cron->$option = $value;
         $cron->time = AppCron::parseTime($cron->time, explode(',', $cron->frequency));
-        if ($cron->update()) {
+        if ($cron->update(array($option=>$value, 'time'=>$cron->time), array('name'=>$cronName))) {
             $result = $cron->time;
         } else {
             $result = false;
@@ -325,6 +325,16 @@ if (!empty($_POST['run_cron'])) {
     exit;
 }
 
+// Run cron job
+if (!empty($_POST['stop_cron'])) {
+    $cronName = $_POST['cron'];
+    $CronJobs = new AppCron($cronName);
+    $CronJobs->unlock();
+    $result['status'] = $CronJobs->unlock();
+    echo json_encode($result);
+    exit;
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Plugins
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -343,9 +353,9 @@ if (!empty($_POST['mod_plugins'])) {
     $Plugins = new AppPlugins();
     $plugin = $Plugins->instantiate($plugin);
     if ($plugin->installed) {
-        $plugin->get();
+        $plugin->getInfo();
         $plugin->options[$option] = $value;
-        $result = $plugin->update();
+        $result = $plugin->update(array('options'=>$plugins->options), array('name'=>$plugin));
     } else {
         $result = False;
     }
@@ -412,7 +422,7 @@ if (!empty($_POST['getPage'])) {
 if (!empty($_POST['modPage'])) {
     $name = htmlspecialchars($_POST['name']);
     $Page = new AppPage($name);
-    if ($Page->update($_POST)) {
+    if ($Page->update($_POST, array('name'=>$name))) {
         $result['status'] = true;
         $result['msg'] = "The modification has been made!";
     } else {
@@ -427,9 +437,10 @@ Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
-    $Sessions = new Sessions();
+    $Sessions = new Session();
+    $force_select = htmlspecialchars($_POST['get_calendar_param']) === 'edit';
     // Get planned sessions
-    $booked = $Sessions->getsessions();
+    $booked = $Sessions->getNextDates();
     if ($booked === false) {
         $booked = array();
     }
@@ -438,26 +449,25 @@ if (!empty($_POST['get_calendar_param'])) {
     $nb_pres = array();
     $type = array();
     $status = array();
+    $slots = array();
+    $all = array();
     foreach($booked as $date) {
         // Count how many presentations there are for this day
-        $session = new Session($date);
-        $nb_pres[] = $session->nbpres;
-        $type[] = $session->type;
-        $status[] = $session->status;
-        // Format date
-        $fdate = explode("-", $date);
-        $day = $fdate[2];
-        $month = $fdate[1];
-        $year = $fdate[0];
-        $formatdate[] = "$day-$month-$year";
+        foreach ($Sessions->all(array('date'=>$date)) as $session_id=>$data) {
+            $nb_pres[] = count($data);
+            $type[] = $data[0]['type'];
+            $status[] = $data[0]['status'];
+            $slots[] = $data[0]['slots'];
+            $formatdate[] = date('d-m-Y', strtotime($date));
+        }
     }
 
     // Get user's availability and assignments
-    if (isset($_SESSION['username'])) {
+    if (User::is_logged()) {
         $username = $_SESSION['username'];
         $Availability = new Availability();
         $availabilities = array();
-        foreach ($Availability->get($username) as $info) {
+        foreach ($Availability->get(array('username'=>$username)) as $info) {
             // Format date
             $fdate = explode("-", $info['date']);
             $day = $fdate[2];
@@ -492,7 +502,10 @@ if (!empty($_POST['get_calendar_param'])) {
         "booked"=>$formatdate,
         "nb"=>$nb_pres,
         "status"=>$status,
-        "sessiontype"=>$type);
+        "slots"=>$slots,
+        "session_type"=>$type,
+        "force_select"=>$force_select
+    );
     echo json_encode($result);
     exit;
 }
@@ -502,13 +515,13 @@ if (!empty($_POST['update_user_availability'])) {
     $username = $_SESSION['username'];
     $date = $_POST['date'];
     $Availability = new Availability();
+    $Presentation = new Presentation();
 
     $result['status'] = $Availability->edit(array('date'=>$date, 'username'=>$username));
     if ($result['status']) {
         // Check whether user has a presentation planned on this day, if yes, then we delete it and notify the user that
         // this presentation has been canceled
-        $sql = "SELECT * FROM ". AppDb::getInstance()->tablesname['Presentation'] . " WHERE date='{$date}' and orator='{$username}'";
-        $data = AppDb::getInstance()->send_query($sql)->fetch_assoc();
+        $data = $Presentation->get(array('date'=>$date, 'orator'=>$username));
         if (!empty($data)) {
             $speaker = new User($username);
             $Assignment = new Assignment();
@@ -592,7 +605,7 @@ if (!empty($_POST['delete_user'])) {
     $user = new User($username);
     $result = $user->login($_POST);
     if ($result['status'] == true) {
-        if ($user ->delete_user($username)) {
+        if ($user->delete_user($username)) {
             $result['msg'] = "Your account has been deleted!";
             $result['status'] = true;
             $_SESSION['logok'] = false;
@@ -610,9 +623,10 @@ if (!empty($_POST['change_pw'])) {
     $email = htmlspecialchars($_POST['email']);
     $user = new User();
 
-    if ($user->mail_exist($email)) {
-        $username = AppDb::getInstance()->getinfo(AppDb::getInstance()->tablesname['User'],'username',array("email"),array("'$email'"));
-        $user->get($username);
+    if ($user->is_exist(array('email'=>$email))) {
+        $username = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'),
+            array("email"=>$email));
+        $user->getUser($username);
         $reset_url = URL_TO_APP . "index.php?page=renew&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
@@ -645,8 +659,7 @@ if (!empty($_POST['conf_changepw'])) {
     $username = htmlspecialchars($_POST['username']);
     $password = htmlspecialchars($_POST['password']);
     $user = new User($username);
-    $post['password'] = $user->crypt_pwd($password);
-    if ($user->update($post)) {
+    if ($user->update(array('password'=>$user->crypt_pwd($password)), array('username'=>$username))) {
         $result['msg'] = "Your password has been changed!";
         $result['status'] = true;
     } else {
@@ -658,8 +671,8 @@ if (!empty($_POST['conf_changepw'])) {
 
 // Process user modifications
 if (!empty($_POST['user_modify'])) {
-    $user = new User($_POST['username']);
-    $result = $user->update($_POST);
+    $user = new User();
+    $result = $user->update($_POST, array('username'=>$_POST['username']));
     echo json_encode($result);
     exit;
 }
@@ -702,8 +715,8 @@ if (!empty($_POST['del_upl'])) {
     $uplname = htmlspecialchars($_POST['uplname']);
     $fileid = explode(".",$uplname);
     $fileid = $fileid[0];
-    $up = new Media($fileid);
-    $result = $up->delete();
+    $up = new Media();
+    $result = $up->delete(array('fileid'=>$fileid));
     $result['uplname'] = $fileid;
     echo json_encode($result);
     exit;
@@ -731,17 +744,17 @@ if (!empty($_POST['edit'])) {
     exit;
 }
 
-// Suggest a presentation to the wishlist
+// Add a suggestion
 if (isset($_POST['suggest'])) {
     $_POST['type'] = "wishlist";
-    $pres = new Presentation();
-    $created = $pres->make($_POST);
+    $pres = new Suggestion();
+    $created = $pres->add_suggestion($_POST);
     if ($created !== false && $created !== "exist") {
         $result['status'] = true;
-        $result['msg'] = "Your presentation has been submitted.";
+        $result['msg'] = "Thank you for your suggestion.";
     } elseif ($created == "exist") {
         $result['status'] = false;
-        $result['msg'] = "This presentation already exist in our database.";
+        $result['msg'] = "This suggestion already exist in our database.";
     } else {
         $result['status'] = false;
     }
@@ -761,14 +774,20 @@ if (!empty($_POST['getpubform'])) {
     exit;
 }
 
+if (!empty($_POST['getFormContent'])) {
+    $type = htmlspecialchars($_POST['getFormContent']);
+    $Presentation = new Presentation();
+    echo json_encode($Presentation::get_form_content($Presentation, $type));
+}
+
 // Show wishlist selector
 if (!empty($_POST['show_wish_list'])) {
-    $Presentation = new Presentation();
-    $result['content'] = $Presentation->generate_selectwishlist('.submission_container');
+    $Suggestion = new Suggestion();
+    $result['content'] = $Suggestion->generate_selectwishlist('.submission_container');
     $result['title'] = "Select a wish";
-    $result['description'] = $Presentation::description("wishpick");
+    $result['description'] = Suggestion::description("wishpick");
 
-    echo json_encode($Presentation::format_section($result));
+    echo json_encode(Presentation::format_section($result));
     exit;
 }
 
@@ -779,13 +798,12 @@ if (!empty($_POST['show_pub'])) {
         $id_Presentation = false;
     }
 
-    if (!isset($_SESSION['username'])) {
-        $_SESSION['username'] = false;
-    }
-
-    $user = new User($_SESSION['username']);
-    $pub = new Presentation($id_Presentation);
-    $form = $pub->displaypub($user,true);
+    $pub = new Presentation();
+    $data = $pub->getInfo($id_Presentation);
+    $user = User::is_logged() ? new User($_SESSION['username']) : null;
+    $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
+            || $data['orator'] === $user->username);
+    $form = Presentation::details($data, $show);
     echo json_encode($form);
     exit;
 }
@@ -795,16 +813,14 @@ if (!empty($_POST['mod_pub'])) {
     $id_Presentation = $_POST['mod_pub'];
     $user = new User($_SESSION['username']);
     $pub = new Presentation($id_Presentation);
-    $form = Presentation::form($user,$pub,'update');
-    echo json_encode($form);
+    echo json_encode(Presentation::form($user, $pub, 'update'));
     exit;
 }
 
 if (!empty($_POST['getform'])) {
     $pub = new Presentation();
     $user = new User($_SESSION['username']);
-    $form = Presentation::form($user,$pub,'submit');
-    echo json_encode($form);
+    echo json_encode(Presentation::form($user, $pub, 'submit'));
     exit;
 }
 
@@ -962,7 +978,7 @@ Application settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Update application settings
 if (!empty($_POST['config_modify'])) {
-    if (AppConfig::getInstance()->update($_POST)) {
+    if (AppConfig::getInstance()->update_all($_POST)) {
         $result['msg'] = "Modifications have been made!";
         $result['status'] = true;
     } else {
@@ -983,7 +999,7 @@ if (!empty($_POST['post_add'])) {
     } else {
         $id = htmlspecialchars($_POST['postid']);
         $post = new Posts($id);
-        $result = $post->update($_POST);
+        $result = $post->update($_POST, array('postid'=>$id));
     }
     echo json_encode($result);
     exit;
@@ -1005,7 +1021,7 @@ if (!empty($_POST['post_show'])) {
 if (!empty($_POST['post_del'])) {
     $postid = htmlspecialchars($_POST['postid']);
     $post = new Posts($postid);
-    if ($post->delete($postid)) {
+    if ($post->delete(array('postid'=>$postid))) {
         $result['status'] = true;
         $result['msg'] = "The post has been deleted";
     } else {
@@ -1031,7 +1047,7 @@ if (!empty($_POST['add_type'])) {
         AppConfig::getInstance()->pres_type[] = $typename;
         $types = AppConfig::getInstance()->pres_type;
     }
-    if (AppConfig::getInstance()->update()) {
+    if (AppConfig::getInstance()->update_all()) {
         //Get session types
         $result = showtypelist($types, $class, $div_id);
     } else {
@@ -1070,7 +1086,7 @@ if (!empty($_POST['del_type'])) {
     }
     $types = AppConfig::getInstance()->$varname;
 
-    if ($result['status'] && AppConfig::getInstance()->update()) {
+    if ($result['status'] && AppConfig::getInstance()->update_all()) {
         //Get session types
         $result['msg'] = showtypelist($types, $class, $divid);
     }
@@ -1083,15 +1099,19 @@ if (!empty($_POST['show_session'])) {
     $date = htmlspecialchars($_POST['show_session']);
     $status = htmlspecialchars($_POST['status']);
     $view = htmlspecialchars($_POST['view']);
-    $Session = new Session($date);
-    $result = $Session->getSessionEditor($Session);
+    $Session = new Session();
+    if ($status == 'admin') {
+        $result = $Session->getSessionEditor($date);
+    } else {
+        $result = $Session->getSessionViewer($date);
+    }
     echo json_encode($result);
     exit;
 }
 
 if (!empty($_POST['add_session'])) {
     $Session = new Session();
-    $result['status'] = $Session->make($_POST);
+    $result = $Session->make($_POST);
     echo json_encode($result);
     exit;
 }
@@ -1101,15 +1121,9 @@ if (!empty($_POST['modSession'])) {
     $sessionid = htmlspecialchars($_POST['session']);
     $prop = htmlspecialchars($_POST['prop']);
     $value = htmlspecialchars($_POST['value']);
-    $session = new Session($sessionid);
-    if (in_array($prop, array('time_to','time_from'))) {
-        $time = explodecontent(',', $session->time);
-        $value = ($prop == 'time_to') ? $time[0] . ',' . $value : $value . ',' . $time[1];
-        $prop = 'time';
-    }
-
+    $session = new Session();
     $post = array($prop=>$value);
-    if ($result['status'] = $session->update($post)) {
+    if ($result['status'] = $session->update($post, array('id'=>$sessionid))) {
         if ($result['status']) $result['msg'] = "Session has been modified";
     } else {
         $result['status'] = false;
@@ -1156,7 +1170,7 @@ if (!empty($_POST['modSpeaker'])) {
             'username'=>$speaker->username,
             'type'=>'paper'));
     }
-    $pres = $Presentation->get($presid);
+    $pres = $Presentation->getInfo($presid);
     $session = new Session($date);
     $info['type'] = $session->type;
     $info['date'] = $session->date;
@@ -1175,7 +1189,7 @@ if (!empty($_POST['modSpeaker'])) {
             $result['status'] = true;
         }
         if ($result['status']) {
-            if ($pres->update(array('orator'=>$speaker->username))) {
+            if ($pres->update(array('orator'=>$speaker->username), array('id_pres'=>$presid))) {
                 $result['msg'] = "$speaker->fullname is the new speaker!";
                 $result['status'] = true;
             } else {
@@ -1190,7 +1204,7 @@ if (!empty($_POST['modSpeaker'])) {
 // Modify default session type
 if (!empty($_POST['session_type_default'])) {
     $result['status'] = AppConfig::getInstance()->update(array(
-        'default_type'=>htmlspecialchars($_POST['session_type_default'])));
+        'default_type'=>htmlspecialchars($_POST['session_type_default'])), array('variable'=>'default_type'));
     echo json_encode($result);
     exit;
 }
