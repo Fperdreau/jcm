@@ -162,7 +162,7 @@
             <div class="help_section_content">
                 <div class="help_section_full">
                     <ul>
-                        <li>A web server running PHP 5.4 or later</li>
+                        <li>A web server running PHP 5.4 or later (with mcrypt extension installed and activated)</li>
                         <li>MySQL (5.0 or later)</li>
                         <li>CRON table (on Linux servers) or scheduled tasks (on Microsoft Windows servers)
                             <em>*required for email notifications</em></li>
