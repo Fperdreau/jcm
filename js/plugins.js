@@ -327,5 +327,34 @@ $(document).ready(function() {
                     validsubmitform(div,data);
                 }
             });
+        })
+
+    /**
+     * Stop a scheduled task manually
+     */
+    .on('click','.stop_cron',function(e) {
+        e.preventDefault();
+        var el = $(this);
+        var cron = $(this).attr('data-cron');
+        var div = $(this).closest('.plugDiv');
+
+        jQuery.ajax({
+            url: 'php/form.php',
+            type: 'POST',
+            data: {
+                stop_cron: true,
+                cron: cron
+            },
+            async: true,
+            beforeSend: function() {
+                $(el).toggleClass('runBtn loadBtn');
+            },
+            complete: function() {
+                $(el).toggleClass('loadBtn runBtn');
+            },
+            success: function(data) {
+                div.find('.task_running_icon').toggleClass('running not_running');
+            }
         });
+    });
 });
