@@ -20,26 +20,23 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-if (!empty($_GET['id'])) {
+if (!empty($_POST['id'])) {
     if (isset($_SESSION['username'])) {
         $user = new User($_SESSION['username']);
-    } elseif (!empty($_GET['user'])) {
-        $user = new User($_GET['user']);
+    } elseif (!empty($_POST['user'])) {
+        $user = new User($_POST['user']);
     } else {
         $user = false;
     }
 
-    $Presentation = new Presentation(htmlspecialchars($_GET['id']));
-    if ($user != false) {
-        $content = $Presentation::form($user, $Presentation);
-    } else {
-        $content = $Presentation->displaypub();
-    }
+    $Presentation = new Presentation();
+    $data = $Presentation->getInfo(htmlspecialchars($_POST['id']));
+    $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
+    $content = Presentation::details($data, $show);
 
 } else {
     $content = "Nothing to show here";
 }
-
 $content = "<section><div class='section_content'>{$content}</div></section>";
 
 echo $content;
