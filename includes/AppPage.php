@@ -65,7 +65,21 @@ class AppPage extends AppTable {
     public function __construct($name=False) {
         parent::__construct('Pages', $this->table_data);
         if ($name !== False) {
-            $this->get($name);
+            $this->getInfo($name);
+        }
+    }
+
+    /**
+     * Install Page Table
+     * @param bool $op
+     * @return bool
+     */
+    public function setup($op = False) {
+        if (parent::setup($op)) {
+            $this->getPages();
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -84,45 +98,20 @@ class AppPage extends AppTable {
      * Get info from the Page table
      * @param null $name
      */
-    public function get($name=null) {
+    public function getInfo($name=null) {
         $this->name = ($name == null) ? $this->name : $name;
-        $sql = "SELECT * FROM {$this->tablename} WHERE name='{$this->name}'";
-        $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_assoc($req);
+        $data = $this->get(array('name'=>$this->name));
         if (!empty($data)) {
-            foreach ($data as $prop => $value) {
-                $this->$prop = $value;
-            }
+            $this->map($data);
         }
-    }
-
-    /**
-     * Update Page table
-     * @param array $post
-     * @return bool
-     */
-    public function update($post=array()) {
-        $class_vars = get_class_vars('AppPage');
-        $content = $this->parsenewdata($class_vars,$post);
-        return $this->db->updatecontent($this->tablename,$content,array("name"=>$this->name));
     }
 
     /**
      * Check if this plugin is registered to the db
      */
     public function isInstalled() {
-        $plugins = $this->db->getinfo($this->db->tablesname['Pages'], 'name');
+        $plugins = $this->db->select($this->db->tablesname['Pages'], array('name'));
         return in_array($this->name,$plugins);
-    }
-
-    /**
-     * Checks if id exists in a column
-     * @param string $name: page name
-     * @return bool
-     */
-    public function is_exist($name) {
-        $data = $this->db->getinfo($this->tablename, 'name');
-        return in_array($name, $data);
     }
 
     /**
@@ -257,7 +246,7 @@ class AppPage extends AppTable {
      * @return mixed
      */
     public function getInstalledPages() {
-        return $this->db->getinfo($this->tablename, 'name');
+        return $this->db->column($this->tablename, 'name');
     }
 
     /**
@@ -278,7 +267,7 @@ class AppPage extends AppTable {
                 $element = $split[0];
                 $page_name = (is_null($parent)) ? $element: $parent . DS . $element;
                 $url = (is_null($parent)) ? URL_TO_APP . $element : URL_TO_APP . $parent . DS . $element;
-                if (!$this->is_exist($page_name)) {
+                if (!$this->is_exist(array('name'=>$page_name))) {
                     if ($element == "admin" || $parent == "admin") {
                         $status = 2;
                     } elseif ($element == "organizer" || $parent == "organizer") {
@@ -313,102 +302,9 @@ class AppPage extends AppTable {
         foreach ($this->getInstalledPages() as $page) {
             $path = $folder . strtolower($page) .DS;
             if (!is_dir($path)) {
-                $this->db->deletecontent($this->tablename, 'name', $page);
+                $this->db->delete($this->tablename, array('name'=>$page));
             }
         }
-    }
-
-    /**
-     * Show page settings
-     * @return string
-     */
-    public function showOpt() {
-        $pages = $this->getPages();
-        $sql = "SELECT name FROM ".$this->tablename;
-        $req = $this->db->send_query($sql);
-        $pageSettings = "";
-        while ($row = mysqli_fetch_assoc($req)) {
-            $pageName = $row['name'];
-            $thisPage = new self($pageName);
-            $pageList = "<option value='none'>None</option>";
-            foreach ($pages as $key=>$name) {
-                $selectOpt = ($name == $thisPage->parent) ? "selected":"";
-                $pageList .= "<option value='$name' $selectOpt>$name</option>";
-            }
-
-            $statusList = "";
-            $status = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
-            foreach ($status as $statusName=>$int) {
-                $selectOpt = ($int == $thisPage->status) ? "selected":"";
-                $statusList .= "<option value='$int' $selectOpt>$statusName</option>";
-            }
-
-            $rankList = "";
-            for ($i=0;$i<count($pages);$i++) {
-                $selectOpt = ($i == $thisPage->rank) ? "selected":"";
-                $rankList .= "<option value='$i' $selectOpt>$i</option>";
-            }
-
-            $showList = "";
-            $showOpt = array("no"=>0,"yes"=>1);
-            foreach ($showOpt as $opt=>$value) {
-                $selectOpt = ($value == $thisPage->show_menu) ? "selected":"";
-                $showList .= "<option value='$value' $selectOpt>$opt</option>";
-            }
-
-            $pageSettings .= "
-            <div class='plugDiv' id='page_$pageName'>
-                <div class='plugLeft' style='width: 200px;'>
-                    <div class='plugName'>$pageName</div>
-                </div>
-
-                <div class='plugSettings'>
-                    <form method='post' action='php/form.php' id='config_page_$pageName'>
-                        <input type='hidden' value='true' name='modPage' />
-                        <input type='hidden' value='$pageName' name='name' />
-                        <div style='display: inline-block'>
-                            <div class='formcontrol'>
-                                <label>Status</label>
-                                <select class='select_opt' name='status'>
-                                    $statusList
-                                </select>
-                            </div>
-                            <div class='formcontrol'>
-                                <label>Rank</label>
-                                <select class='select_opt' name='rank'>
-                                    $rankList
-                                </select>
-                            </div>
-                            <div class='formcontrol'>
-                                <label>Show in menu</label>
-                                <select class='select_opt' name='show_menu'>
-                                    $showList
-                                </select>
-                            </div>
-
-                            <div class='formcontrol'>
-                                <label>Title</label>
-                                <input type='text' name='meta_title' value='$thisPage->meta_title'>
-                            </div>
-                            <div class='formcontrol'>
-                                <label>Description</label>
-                                <input type='text' name='meta_description' value='$thisPage->meta_description'>
-                            </div>
-                            <div class='formcontrol'>
-                                <label>Keywords</label>
-                                <input type='text' name='meta_keywords' value='$thisPage->meta_keywords'>
-                            </div>
-                        </div>
-
-                        <div class='submit_btns'>
-                            <input type='submit' value='Modify' class='processform'/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            ";
-        }
-        return $pageSettings;
     }
 
     /**
