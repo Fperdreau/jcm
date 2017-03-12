@@ -52,7 +52,7 @@ class DigestMaker extends AppTable {
         parent::__construct('DigestMaker', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
-            $this->get($name);
+            $this->getInfo($name);
         }
     }
     
@@ -69,15 +69,13 @@ class DigestMaker extends AppTable {
 
     /**
      * @param $name
-     * @return $this
+     * @return bool|$this
      */
-    public function get($name) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE name='{$name}'";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+    public function getInfo($name) {
+        $data = $this->get(array('name'=>$name));
         if (!empty($data)) {
-            foreach ($data as $prop=>$value) {
-                $this->$prop = $value;
-            }
+            $this->map($data);
+
             return $this;
         } else {
             return false;
@@ -85,10 +83,12 @@ class DigestMaker extends AppTable {
     }
 
     /**
-     * @param $name
+     * Register module into digest table
+     * @param $name: module name
+     * @return void
      */
     public function register($name) {
-        if (!$this->get($name)) {
+        if (!$this->getInfo($name)) {
             if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
                 AppLogger::get_instance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into digest table");
             } else {
@@ -96,30 +96,38 @@ class DigestMaker extends AppTable {
             }
         }
     }
-    
-    /**
-     * Update info
-     * @param array $post
-     * @param $name
-     * @return bool
-     */
-    public function update(array $post, $name) {
-        $class_vars = get_class_vars(get_class());
-        $content = $this->parsenewdata($class_vars, $post);
-        return $this->db->updatecontent($this->tablename,$content,array("name"=>$name));
-    }
 
     /**
-     * Delete from table
-     * @param $name
-     * @return bool|mysqli_result
+     * Search for module that must be registered into the Digest table.
+     * @return bool
      */
-    public function delete($name) {
-        return $this->db->deletecontent($this->tablename, array('name'), array($name));
+    public function registerAll() {
+        $includeList = scandir(PATH_TO_INCLUDES);
+        foreach ($includeList as $includeFile) {
+            if (!in_array($includeFile, array('.', '..'))) {
+                $class_name = explode('.', $includeFile);
+                if (method_exists($class_name[0], 'registerDigest')) {
+                    $class_name[0]::registerDigest();
+                }
+            }
+        }
+        return true;
     }
-    
-    
+
     // CONTROLLER
+
+    /**
+     * Install DigestMaker
+     * @param bool $op
+     * @return bool
+     */
+    public function setup($op=False) {
+        if (parent::setup($op)) {
+            return $this->registerAll();
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Renders digest email
