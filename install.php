@@ -144,8 +144,7 @@ function patching() {
             if (empty($row['postid']) || $row['postid'] == "NULL") {
                 // Get uploader username
                 $userid = $row['username'];
-                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' 
-                OR fullname='$userid'";
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
                 $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
 
@@ -355,7 +354,7 @@ if (!empty($_POST['getpagecontent'])) {
                     <label for='username'>Username</label>
                 </div>
                 <div class='form-group'>
-				    <input name='passw' type='password' value='{$config['passwd']}'>
+				    <input name='passw' type='password' value='{$config['passw']}'>
                     <label for='passw'>Password</label>
                 </div>
                 <div class='form-group'>
@@ -802,6 +801,17 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         }
 
         /**
+         * Remove loading animation at the end of an AJAX request
+         * @param el: DOM element in which we show the animation
+         */
+        function removeLoading(el) {
+            el.fadeIn(200);
+            el.find('.loadingDiv')
+                .fadeOut(1000)
+                .remove();
+        }
+
+        /**
          * Render progression bar
          */
         function progressbar(el, percent, msg) {
@@ -923,7 +933,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                             return false;
                         }
                     },
-                    error: function(jqXHR, textStatus) {
+                    error: function(jqXHR, textStatus, errorThrown) {
                         progressbar(el, percent, textStatus);
                         setTimeout(function() {
                             remove_progressbar(el);
