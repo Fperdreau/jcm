@@ -264,7 +264,7 @@ class User extends Users {
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
         if (!is_null($username)) {
-            self::get($username);
+            $this->getUser($username);
         }
     }
 
@@ -293,7 +293,7 @@ class User extends Users {
         // admin level
 
 		$class_vars = get_class_vars("User");
-        if (!self::user_exist($post['username']) && !self::mail_exist($post['email'])) {
+        if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1)) && !$this->is_exist(array('email'=>$post['email']))) {
             $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
             $this->db->addcontent($this->tablename,$content); // Add to user table
 
@@ -335,21 +335,15 @@ class User extends Users {
      * @param $prov_username
      * @return bool
      */
-    function get($prov_username) {
-        $class_vars = get_class_vars("User");
-        $sql = "SELECT * FROM $this->tablename WHERE username='$prov_username'";
-        $data = $this->db -> send_query($sql)->fetch_assoc();
+    public function getUser($prov_username) {
+        $data = $this->get(array('username'=>$prov_username));
         if (!empty($data)) {
-            foreach ($data as $varname=>$value) {
-                if (array_key_exists($varname,$class_vars)) {
-                    $this->$varname = htmlspecialchars_decode($value);
-                }
-            }
+            $this->map($data[0]);
             $this->firstname = ucfirst(strtolower($this->firstname));
             $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
             $this->nbpres = self::get_nbpres();
-            $this->update(array('nbpres'=>$this->nbpres));
+            $this->update(array('nbpres'=>$this->nbpres), array('username'=>$prov_username));
             return true;
         } else {
             return false;
@@ -382,46 +376,6 @@ class User extends Users {
     }
 
     /**
-     * Update user's information
-     *
-     * @param $post
-     * @return bool
-     */
-    public function update($post) {
-        $class_vars = get_class_vars("User");
-        $content = $this->parsenewdata($class_vars,$post);
-        $result['status'] = $this->db->updatecontent($this->tablename,$content,array("username"=>$this->username));
-        return $result;
-    }
-
-    /**
-     * Check if the provided username already exists in the database
-     *
-     * @param $prov_username
-     * @return bool
-     */
-    public function user_exist($prov_username) {
-        $userslist = $this->db->getinfo($this->tablename,'username');
-        $active = $this->db->getinfo($this->tablename,'active',array('username'),array("'$prov_username'"));
-        if (in_array($prov_username,$userslist) && $active == 1) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Check if the provided email already exists (TRUE) or not (FALSE) in the database
-     *
-     * @param $prov_mail
-     * @return bool
-     */
-    public function mail_exist($prov_mail) {
-        $mailinglist = $this->db->getinfo($this->tablename,'email');
-        return (in_array($prov_mail,$mailinglist));
-    }
-
-    /**
      * Creates an unique hash for the user (used in emails),
      * i.e. Generate random 32 character hash and assign it to a local variable
      *
@@ -440,12 +394,12 @@ class User extends Users {
      * @param $activ
      * @return string
      */
-    public function check_account_activation($hash,$email,$activ) {
-        $username = $this->db ->getinfo($this->tablename,'username',array("email"),array("'$email'"));
-        $this->get($username);
-        if ($activ == "true") {
+    public function check_account_activation($hash, $email, $activ) {
+        $username = $this->db->select($this->tablename, array('username'), array("email"=>$email));
+        $this->getUser($username[0]['username']);
+        if ($activ === "true") {
             if ($this->active == 0) {
-                if ($this->hash == $hash) {
+                if ($this->hash === $hash) {
                     $this->db->updatecontent($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
                     if ($this->send_confirmation_mail()) {
                         $result['status'] = true;
@@ -552,7 +506,7 @@ class User extends Users {
      */
     public function login($post) {
         $password = htmlspecialchars($post['password']);
-        if ($this->get($this->username) == true) {
+        if ($this->getUser($this->username)) {
             if ($this->active == 1) {
                 if ($this -> check_pwd($password) == true) {
                     $_SESSION['logok'] = true;
@@ -651,9 +605,9 @@ class User extends Users {
      * @param $password
      * @return bool
      */
-    function check_pwd($password) {
-        $truepwd = $this->db-> getinfo($this->tablename,"password",array("username"),array("'$this->username'"));
-        $check = validate_password($password, $truepwd);
+    private function check_pwd($password) {
+        $truepwd = $this->db->select($this->tablename, array("password"), array("username"=>$this->username));
+        $check = validate_password($password, $truepwd[0]['password']);
         if ($check == 1) {
             $this->attempt = 0;
             $this->last_login = date('Y-m-d H:i:s');
@@ -670,7 +624,7 @@ class User extends Users {
      * @param $password
      * @return string
      */
-    function crypt_pwd($password) {
+    public function crypt_pwd($password) {
         $hash = create_hash($password);
         return $hash;
     }
@@ -678,11 +632,12 @@ class User extends Users {
     /**
      * Delete user's account
      *
+     * @param null $username
      * @return bool
      */
-    function delete_user($username=null) {
+    public function delete_user($username=null) {
         $username = ($username == null) ? $this->username:$username;
-        return $this->db -> deletecontent($this->tablename,array("username"),array("$username"));
+        return $this->delete(array("username"=>$username));
     }
 
     /**
@@ -691,7 +646,7 @@ class User extends Users {
      * @param $newstatus
      * @return bool
      */
-    function change_user_status($newstatus) {
+    public function change_user_status($newstatus) {
         return $this->db->updatecontent($this->tablename,array('status'=>$newstatus),array("username"=>$this->username));
     }
 
@@ -701,9 +656,10 @@ class User extends Users {
      * @param null $filter
      * @return string
      */
-    function getpublicationlist($filter = NULL) {
+    public function getpublicationlist($filter = NULL) {
+        $pub = new Presentation();
 
-        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='$this->username' and date<CURDATE()";
+        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='{$this->username}' and date<CURDATE()";
         if (null != $filter) {
             $sql .= " AND YEAR(date)=$filter";
         }
@@ -712,13 +668,10 @@ class User extends Users {
 
         $content = "";
         while ($row = mysqli_fetch_assoc($req)) {
-            $pubid = $row['id_pres'];
-            /** @var Presentation $pub */
-            $pub = new Presentation($pubid);
-            $content .= $pub->show(true);
+            $content .= $pub->show($row['id_pres'], true);
         }
 
-        return         $content = "
+        return "
             <div class='table_container' style='display: table; width: 100%;'>
                 <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
                     <div style='width: 20%; display: table-cell;'>Date</div>
@@ -736,13 +689,12 @@ class User extends Users {
      * @return string
      */
     public function getAssignments($show=true, $username=null) {
+        $pub = new Presentation();
         $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='{$this->username}' AND date>CURDATE()";
         $req = $this->db->send_query($sql);
         $content = "";
         while ($row = mysqli_fetch_assoc($req)) {
-            $pubid = $row['id_pres'];
-            $pub = new Presentation($pubid);
-            $content .= $pub->show($username);
+            $content .= $pub->show($row['id_pres'], $username);
         }
         if (empty($content)) return "You don't have any upcoming presentations.";
         return "
