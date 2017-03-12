@@ -72,7 +72,7 @@ class DbBackup extends AppCron {
      */
     public function run() {
         // Run cron job
-        $backupFile = backupDb($this->options['nb_version']['value']);
+        $backupFile = \Backup\Backup::backupDb($this->options['nb_version']['value']);
         $fileLink = json_encode($backupFile);
 
         $result = "Backup successfully done: $fileLink";
