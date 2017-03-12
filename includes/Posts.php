@@ -56,9 +56,8 @@ class Posts extends AppTable {
      */
     public function __construct($id=null) {
         parent::__construct('Posts', $this->table_data);
-        $this->registerDigest();
         if (null !== $id) {
-            $this->get($id);
+            $this->getInfo($id);
         }
         $this->postid = $id;
     }
@@ -66,7 +65,7 @@ class Posts extends AppTable {
     /**
      * Register into DigestMaker table
      */
-    private function registerDigest() {
+    public static function registerDigest() {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register('Posts');
     }
@@ -98,43 +97,20 @@ class Posts extends AppTable {
     }
 
     /**
-     * Get post content
+     * Get post information
      * @param $id
      * @return bool
      */
-    public function get($id) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE postid='{$id}'";
-        $req = $this->db->send_query($sql);
-        $row = mysqli_fetch_assoc($req);
-        if (!empty($row)) {
-            foreach ($row as $varname=>$value) {
-                $this->$varname = htmlspecialchars_decode($value);
-            }
+    public function getInfo($id) {
+        $data = $this->get(array('postid'=>$id));
+        if (!empty($data)) {
+            $this->map($data);
             $this->day = date('Y-m-d',strtotime($this->date));
             $this->time = date('H:i',strtotime($this->date));
             return true;
         } else {
             return false;
         }
-    }
-
-    /**
-     * Update post's content
-     * @param array $post
-     * @return bool
-     */
-    public function update($post=array()) {
-        $class_vars = get_class_vars("Posts");
-        $content = $this->parsenewdata($class_vars, $post, array('day','time'));
-        if ($this->db->updatecontent($this->tablename,$content,array("postid"=>$this->postid))) {
-            $result['status'] = true;
-            $result['msg'] = "Thank you for your post!";
-        } else {
-            $result['status'] = false;
-            $result['msg'] = 'Sorry, we could not update your post';
-        }
-        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
-        return $result;
     }
 
     /**
@@ -145,26 +121,11 @@ class Posts extends AppTable {
         $id = md5($this->date.rand(1,10000));
 
         // Check if random ID does not already exist in our database
-        $prev_id = $this->db->getinfo($this->tablename,'postid');
-        while (in_array($id,$prev_id)) {
+        $prev_id = $this->db->column($this->tablename, 'postid');
+        while (in_array($id, $prev_id)) {
             $id = md5($this->date.rand(1,10000));
         }
         return $id;
-    }
-
-    /**
-     * Delete a post
-     * @param $postid
-     * @return bool
-     */
-    public function delete($postid) {
-        if ($this->db->deletecontent($this->tablename,array('postid'),array($postid))) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->info("Post ({$postid}) deleted");
-            return true;
-        } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not delete post ({$postid})");
-            return false;
-        }
     }
 
     /**
@@ -268,7 +229,7 @@ class Posts extends AppTable {
      * @return string
      */
     public function show($id) {
-        $this->get($id);
+        $this->getInfo($id);
         $user = new User($this->username);
         return self::display($this, $user->fullname, false);
     }
@@ -424,13 +385,17 @@ class Posts extends AppTable {
      */
     public function makeMail($username=null) {
         $last = $this->getlastnews();
-        $last_news = new self($last[0]);
-        $today = date('Y-m-d');
-        if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
-            $last_news->content = "No recent news this week";
+        if (empty($last)) {
+            $content['body'] = "No news this week";
+        } else {
+            $last_news = new self($last[0]);
+            $today = date('Y-m-d');
+            if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
+                $last_news->content = "No recent news this week";
+            }
+            $content['body'] = $last_news->content;
         }
-        
-        $content['body'] = $last_news->content;
+
         $content['title'] = 'Last News';
         return $content;
     }
@@ -438,15 +403,16 @@ class Posts extends AppTable {
     /**
      * Convert post username
      */
-    public function patch_table () {
-        $sql = "SELECT * FROM {$this->tablename}";
-        $req = $this->db->send_query($sql);
+    public static function patch_table () {
+        $self = new self();
+        $sql = "SELECT * FROM {$self->tablename}";
+        $req = $self->db->send_query($sql);
         $user = new User();
         while ($row = mysqli_fetch_assoc($req)) {
-            $data = $user->search(array('fullname'=>$row['username']));
+            $data = $user->get(array('fullname'=>$row['username']));
             if (!empty($data)) {
                 $cur_post = new self($row['postid']);
-                $cur_post->update(array('username'=>$data[0]['username']));
+                $cur_post->update(array('username'=>$data[0]['username']), array('postid'=>$row['postid']));
             }
         }
     }
