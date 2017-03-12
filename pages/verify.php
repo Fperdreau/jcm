@@ -27,7 +27,7 @@ if (!empty($_POST['hash']) && !empty($_POST['email']) && !empty($_POST['result']
     $email = htmlspecialchars($_POST['email']);
     $result = htmlspecialchars($_POST['result']);
     $user = new User();
-    $valid = $user -> check_account_activation($hash,$email,$result);
+    $valid = $user->check_account_activation($hash,$email,$result);
     $msg = ($valid['status']) ? "<div class='sys_msg success'>".$valid['msg']."</div>":"<div class='sys_msg warning'>".$valid['msg']."</div>";
     $result = "
         <section>
