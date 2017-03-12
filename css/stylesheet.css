@@ -399,7 +399,7 @@ div.inputFeedback {
     overflow: hidden;
     box-sizing: border-box;
     margin-bottom: 5px;
-    border: 1px solid rgba(207, 81, 81, .3);
+    border: 1px solid rgb(233, 235, 238);
 }
 
 .field_small {
@@ -1482,6 +1482,15 @@ h3 {
     display: inline-block;
 }
 
+.pres_btn > div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.pres_btn>div:first-child {
+    margin-right: 5px;
+}
+
 .wish_container a, .pres_container a {
     color: rgba(207,81,81,.8);
     font-weight: 500;
@@ -1669,9 +1678,43 @@ h3 {
     background: rgba(207,81,81,1);
 }
 
+.section_suggestion_container {
+    margin-bottom: 10px;
+}
+
 /* *********************************************************************/
 /* Buttons
 /* *********************************************************************/
+
+div.add-button {
+    vertical-align: middle;
+    width: 40px;
+    height: 40px;
+    overflow: visible;
+    -webkit-transition: transform .4s cubic-bezier(.58,-0.37,.45,1.46),
+    color 0s ease .4s,font-size .2s;
+    -moz-transition: transform .4s cubic-bezier(.58,-0.37,.45,1.46),
+    color 0s ease .4s,font-size .2s;
+    transition: transform .4s cubic-bezier(.58,-0.37,.45,1.46),
+    color 0s ease .4s,font-size .2s;
+    text-align: center;
+    line-height: 40px;
+    font-size: 22px;
+    color: rgba(255,255,255,1);
+    background-color: rgba(207,81,81,1);
+    border-radius: 50%;
+}
+
+div.add-button:before {
+    position: relative;
+    z-index: 0;
+    content:"+";
+}
+
+div.add-button:hover {
+    background-color: rgb(154, 58, 58);
+    font-size: 24px;
+}
 
 button.add_btn {
     color: rgba(50, 50, 50, 1);
@@ -1684,7 +1727,7 @@ button.add_btn {
     margin-right: 5px;
     margin-top: 5px;
     border-radius: 5px;
-    background: rgba( 255, 255, 255, 1) url(../images/add_black.png) 10px 50% no-repeat;
+    background: rgba( 255, 255, 255, 1) url(../images/add_circle_bk_40x40.png) 10px 50% no-repeat;
     background-size: 15px;
 }
 
@@ -1696,7 +1739,7 @@ button.add_btn:after {
 
 button.add_btn:hover {
     color: #FFF;
-    background: rgba(207, 81, 81, 1) url(../images/add_white.png) 10px 50% no-repeat;
+    background: rgba(207, 81, 81, 1) url(../images/add_circle_bk_40x40.png) 10px 50% no-repeat;
     background-size: 15px;
 }
 
@@ -1706,7 +1749,7 @@ button.add_btn:hover > a {
 
 button.add_btn:active {
     color: #FFF;
-    background:rgba(145, 73, 73, 1) url(../images/add_white.png) 10px 50% no-repeat;
+    background:rgba(145, 73, 73, 1) url(../images/add_circle_bk_40x40.png) 10px 50% no-repeat;
     background-size: 20px;
     border: 1px solid #DFDFDF; /* Small border around our submit button */
 }
@@ -2361,6 +2404,13 @@ div.workBtn.loadBtn {
     background-color: rgba( 255, 255, 255, 1);
 }
 
+.stopBtn {
+    background: url('../images/stop.png') 50% 50%
+    no-repeat;
+    background-size: 20px 20px;
+    background-color: rgba( 255, 255, 255, 1);
+}
+
 .settingsBtn {
     background: rgba( 255, 255, 255, .7)
     url('../images/settings.png')
@@ -2643,15 +2693,17 @@ div.loadBtn {
 .digest_section #submit {
     margin-left: 15px;
 }
+
 /* *********************************************************************/
 /* Admin - session/presentation management
 /* *********************************************************************/
 .type_list {
     height: auto;
     padding: 5px;
+    border-radius: 5px;
     margin: 10px auto;
-    background-color: rgba(200,200,200,.5);
-    border: 1px dashed #555555;
+    background-color: rgb(241, 241, 241);
+    border: 2px dashed #d0d1d5;
     box-sizing: border-box;
 }
 
@@ -2697,7 +2749,7 @@ div.loadBtn {
     width: 30px;
     height: 30px;
     background: rgba(255,255,255,1) url('../images/trash.png') 50% 50% no-repeat;
-    background-size: 17px;
+    background-size: 20px;
 }
 
 .type_del:hover {
@@ -2708,32 +2760,9 @@ div.loadBtn {
     background-color: rgba(50,50,50,1);
 }
 
-.session_div {
-    display: block;
-    height: auto;
-    margin: 10px auto 10px auto;
-    background-color: rgba(255,255,255,.5);
-}
-
-.session_header {
-    margin: 0;
-    text-align: left;
-    font-weight: 300;
-    height: 30px;
-    line-height: 30px;
-    border: 0;
-    padding: 0;
-    background: rgba(50,50,50,.9);
-}
-
-.session_header>div {
-    display: inline-block;
-    vertical-align: top;
-    min-height: 20px;
-    line-height: 20px;
-    padding: 5px;
-    font-size: 1em;
-}
+/* *********************************************************************/
+/* Session manager
+/* *********************************************************************/
 
 .session_date {
     text-align: left;
@@ -2761,12 +2790,13 @@ div.loadBtn {
 
 .session_presentations {
     vertical-align: top;
+    padding-top: 5px;
 }
 
 .session_viewer_container {
     padding: 5px;
     box-sizing: border-box;
-    background: rgb(50, 50, 50);
+    background: rgb(241, 241, 241);
     margin: 0 auto 10px auto;
     border-radius: 5px;
 }
@@ -2774,7 +2804,7 @@ div.loadBtn {
 .session_editor_core {
     padding: 0 10px 10px 10px;
     border: 1px dashed #ddd;
-    border-top: 0;
+    border-radius: 5px;
     vertical-align: top;
     text-align: left;
     background: white;
@@ -2788,13 +2818,107 @@ div.loadBtn {
 }
 
 .session_viewer_container h3 {
-    /* background: rgb(50, 50, 50); */
-    color: white;
+    color: rgb(50, 50, 50);
     border: 0;
     border-bottom: 3px solid rgb(207, 81, 81);
     margin: 5px auto 10px auto;
     font-weight: 100;
 }
+
+#sessionlist {
+    background: white;
+}
+
+/* *********************************************************************/
+/* Days
+/* *********************************************************************/
+.day_container {
+    display: block;
+    margin: 10px auto 0 auto;
+    box-sizing: border-box;
+    border: 1px solid rgb(208, 209, 213);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.day_header {
+    display: block;
+    margin: 0;
+    padding: 0;
+    text-align: justify;
+    min-height: 20px;
+    height: auto;
+    line-height: 20px;
+    width: 100%;
+}
+
+.day_date {
+    vertical-align: top;
+    text-align: left;
+    margin: 5px;
+    font-size: 16px;
+    color: #222;
+    font-weight: 900;
+}
+
+.day_content {
+
+}
+
+/* *********************************************************************/
+/* Sessions
+/* *********************************************************************/
+
+.session_container {
+    margin-left: 5px;
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+
+.session_header {
+    margin: 0;
+    text-align: left;
+    font-weight: 300;
+    height: 30px;
+    line-height: 30px;
+    border: 0;
+    padding: 0;
+}
+
+.session_header>div {
+    display: inline-block;
+    vertical-align: top;
+    min-height: 20px;
+    line-height: 20px;
+    padding: 5px;
+    font-size: 1em;
+}
+
+.session_info {
+    float: right;
+}
+
+.session_info > div {
+    display: inline-block;
+}
+
+.session_info > div:first-child {
+    margin-right: 5px;
+}
+
+.session_info > div > div {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.session_content {
+    padding: 10px 20px 10px 10px;
+    background-color: rgba(239,239,239,.6);
+    margin: 0 0 0 13px;
+    border-left: 2px solid rgba(175,175,175,.8);
+}
+
 /* *********************************************************************/
 /* Text/Messages
 /* *********************************************************************/
@@ -3086,13 +3210,14 @@ input.dateinput {
 .ui-datepicker {
     background: url('img/darkdenim3.png') repeat 0 0 #000;
     background-color: #555555;
-    width: auto;
+    width: 300px;
     height: auto;
     margin: 5px auto 0;
     font: 9pt 'Lato', Calibri, Arial, sans-serif;
     -webkit-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
     -moz-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, .5);
+    z-index: 100000 !important;
 }
 
 .ui-datepicker a {
@@ -3208,8 +3333,10 @@ input.dateinput {
 .ui-datepicker-unselectable .ui-state-default {
     background: #f4f4f4;
     color: #b4b3b3;
+    cursor: default;
 }
 
+/* Journal club day */
 .jcday, .jcday .ui-state-default {
     color: #00A1CB;
     font-weight:bold;
@@ -3220,8 +3347,10 @@ input.dateinput {
     font-weight:bold;
 }
 
+/* Booked day */
 .bookedday .ui-state-default{
     color: #b43d3d;
+    background: #c9d6e2;
 }
 
 .activeday>.ui-state-default {
