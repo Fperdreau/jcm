@@ -84,11 +84,9 @@ class Reminder extends AppCron {
      * @return mixed
      */
     public function makeMail($fullname) {
-        $sessions = new Sessions();
-        $dates = $sessions->getsessions();
-        $session = new Session($dates[0]);
-        $sessioncontent = $session->showsessiondetails();
-        $date = $dates[0];
+        $session = new Session();
+        $date = $session->getNextDates(1)[0];
+        $sessioncontent = $session->showNextSession();
 
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
@@ -101,13 +99,11 @@ class Reminder extends AppCron {
                     Session Information
                 </div>
                 <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
-                    $sessioncontent
+                    {$sessioncontent}
                 </div>
             </div>
-
-
         ";
-        $content['subject'] = "Next session: $date - reminder";
+        $content['subject'] = "[Reminder] Next session on the {$date}";
         return $content;
     }
 }
