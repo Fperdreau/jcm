@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-$Sessions = new Sessions();
+$Session = new Session();
 $session_types = Session::session_type();
 $presentation_types = Session::presentation_type();
 
@@ -31,7 +31,7 @@ $result = "
 </div>
 <div class='section_container'>
     <div class='section_left'>
-        " . Sessions::default_settings() . "
+        " . Session::default_settings_form() . "
     
         <section>
             <h2>Session/Presentation</h2>
@@ -40,7 +40,7 @@ $result = "
                 <div id='session_type' style='position: relative; margin-bottom: 20px;'>
                     <div class='form-group'>
                         <select name='default_type' class='session_type_default'>
-                            {$session_types['default']}
+                            {$session_types['options']}
                         </select>
                         <label>Default session type</label>
                     </div>
@@ -57,13 +57,16 @@ $result = "
                     <input id='new_pres_type' type='text' placeholder='New Category'/>
                 </div>
                 <div class='feedback' id='feedback_pres'></div>
-                <div class='type_list' id='pres'>{$presentation_types}</div>
+                <div class='type_list' id='pres'>{$presentation_types['types']}</div>
             </div>
         </section>
     </div>
 
     <div class='section_right'>
-        " . $Sessions->getSessionManager() . "
+        <section>
+            <h2>Session Manager</h2>
+            " . $Session->getSessionManager() . "
+        </section>
     </div>
 </div>";
 
