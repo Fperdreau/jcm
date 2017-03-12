@@ -53,7 +53,6 @@ class FullBackup extends AppCron {
     public function __construct() {
         parent::__construct();
         $this->path = basename(__FILE__);
-        //$this->time = AppCron::parseTime($this->dayNb, $this->dayName, $this->hour);
     }
 
     public function install() {
@@ -64,11 +63,11 @@ class FullBackup extends AppCron {
 
     public function run() {
         // db backup
-        $backupFile = backupDb($this->options['nb_version']['value']); // backup database
-        mail_backup($backupFile); // Send backup file to admins
+        $backupFile = \Backup\Backup::backupDb($this->options['nb_version']['value']); // backup database
+        \Backup\Backup::mail_backup($backupFile); // Send backup file to admins
 
         // file backup
-        $zipFile = backupFiles(); // Backup site files (archive)
+        $zipFile = \Backup\Backup::backupFiles(); // Backup site files (archive)
         $fileLink = json_encode($zipFile);
 
         // Write log only if server request
