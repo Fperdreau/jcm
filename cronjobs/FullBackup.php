@@ -50,17 +50,28 @@ class FullBackup extends AppCron {
     backup/complete folder and automatically cleans older backups. The number of versions that has to be stored can be 
     defined in the task's settings";
 
+    /**
+     * FullBackup constructor.
+     */
     public function __construct() {
         parent::__construct();
         $this->path = basename(__FILE__);
     }
 
+    /**
+     * Install scheduled task
+     * @return bool|mysqli_result
+     */
     public function install() {
         // Register the plugin in the db
         $class_vars = get_class_vars($this->name);
         return $this->make($class_vars);
     }
 
+    /**
+     * Execute schedule task: make a full back up of the application (files and Db) and send copy by email to admin
+     * @return string
+     */
     public function run() {
         // db backup
         $backupFile = \Backup\Backup::backupDb($this->options['nb_version']['value']); // backup database
