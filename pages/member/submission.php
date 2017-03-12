@@ -37,7 +37,7 @@ $section_content = null;
 if (isset($_POST['op'])) {
     $op = htmlspecialchars($_POST['op']);
     $result = "Oops";
-    $date = (!empty($_POST['date'])) ? htmlspecialchars($_POST['date']): false;
+    $date = (!empty($_POST['date'])) ? htmlspecialchars($_POST['date']) : null;
 // Submit a new presentation
     if ($op == 'edit') {
         if (!empty($_POST['id'])) {
@@ -45,33 +45,33 @@ if (isset($_POST['op'])) {
             $Presentation = new Presentation($id_pres);
             $date = $Presentation->date;
         } else {
-            $Presentation = false;
+            $Presentation = null;
         }
-        $section_content = Presentation::form($user, false, 'edit', false, $date);
+        $section_content = Presentation::form($user, null, 'edit', null, $date);
 
 // Suggest a presentation
     } elseif ($op == 'suggest') {
-        $section_content = Presentation::form($user, false, "suggest");
+        $section_content = Presentation::form($user, null, "suggest");
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
         if (!empty($_POST['id'])) {
             $id_pres = htmlspecialchars($_POST['id']);
-            $Presentation = new Presentation($id_pres);
+            $Presentation = new Suggestion($id_pres);
             $selectopt = $Presentation->generate_selectwishlist('.submission_container');
         } else {
-            $Presentation = false;
+            $Presentation = null;
             $selectopt = null;
         }
 
         if (!empty($_POST['id']) || !empty($_POST['update'])) { // a wish has been selected
-            $submit_form = Presentation::form($user, $Presentation,'submit');
+            $submit_form = Presentation::form($user, $Presentation, 'submit');
         } else {
             $submit_form = "";
         }
 
         $section_content['title'] = "Select a wish";
-        $section_content['description'] = $Presentation::description('wishpick');
+        $section_content['description'] = Suggestion::description('wishpick');
         $section_content['content'] = $selectopt;
 
 // Modify a presentation
