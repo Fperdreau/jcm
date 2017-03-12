@@ -66,10 +66,6 @@ class AppTable {
             $this->tablename = $this->db->tablesname[$table_name];
         }
         $this->table_data = $table_data;
-       /* $correct_config = AppDb::testdb($this->db->get_config());
-        if ($correct_config['status'] && !$this->db->tableExists($this->tablename)) {
-            $this->setup();
-        }*/
     }
 
     /**
@@ -83,7 +79,7 @@ class AppTable {
         $post_keys = array_keys($post);
         $content = array();
         foreach ($class_vars as $name=>$value) {
-            if (!in_array($name,$exclude) && !in_array($name, self::$default_exclude)) {
+            if (in_array($name, $class_vars) && !in_array($name,$exclude) && !in_array($name, self::$default_exclude)) {
                 $value = in_array($name,$post_keys) ? $post[$name]: $this->$name;
                 $this->$name = $value;
                 $value = (is_array($value)) ? json_encode($value):$value;
@@ -160,6 +156,43 @@ class AppTable {
     }
 
     /**
+     * Update table entry
+     * @param array $id
+     * @param array $data
+     * @return bool
+     */
+    public function update(array $data, array $id) {
+        return $this->db->updatecontent($this->tablename, $data, $id);
+    }
+
+    /**
+     * Delete table entry
+     * @param array $id
+     * @return bool
+     */
+    public function delete(array $id) {
+        return $this->db->delete($this->tablename, $id);
+    }
+
+    /**
+     * Add to the db
+     * @param array $post
+     * @return mixed
+     */
+    public function add(array $post) {
+        return $this->db->addcontent($this->tablename, $this->parsenewdata($post));
+    }
+
+    /**
+     * Get information from db
+     * @param array $id
+     * @return array
+     */
+    public function get(array $id) {
+        return $this->db->select($this->tablename, array('*'), $id);
+    }
+
+    /**
      * @param $id
      * @return array
      */
@@ -176,6 +209,51 @@ class AppTable {
             $data[] = $row;
         }
         return $data;
+    }
+
+    /**
+     * Map associative array to given object
+     * @param $data
+     * @return $this
+     */
+    protected function map($data) {
+        $class_name = get_class($this);
+        foreach ($data as $var_name=>$value) {
+            if (property_exists($class_name, $var_name)) {
+                $prop = new ReflectionProperty($class_name, $var_name);
+                if (!$prop->isStatic()) {
+                    $this->$var_name = (is_array($value)) ? $value : htmlspecialchars_decode($value);
+                }
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Checks if id exists in a column
+     * @param array $id: array('column_name'=>'id')
+     * @param null $tablename
+     * @return bool
+     */
+    public function is_exist(array $id, $tablename=null) {
+        $table_name = (is_null($tablename)) ? $this->tablename : $tablename;
+        return !empty($this->db->select($table_name, array('*'), $id));
+    }
+
+    /**
+     * Create specific ID for new item
+     * @param $refId
+     * @return string
+     */
+    public function generateID($refId) {
+        $id = date('Ymd').rand(1,10000);
+
+        // Check if random ID does not already exist in our database
+        $prev_id = $this->db->column($this->tablename, $refId);
+        while (in_array($id, $prev_id)) {
+            $id = date('Ymd').rand(1,10000);
+        }
+        return $id;
     }
 
 }
