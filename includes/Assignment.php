@@ -51,7 +51,21 @@ class Assignment extends AppTable {
      */
     public function __construct() {
         parent::__construct('Assignment', $this->table_data);
-        $this->registerDigest();
+    }
+
+    /**
+     * Install Assignment
+     * @param bool $op
+     * @return bool
+     */
+    public function setup($op=False) {
+        if (parent::setup($op)) {
+            $this->check();
+            $this->getPresentations();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -84,19 +98,9 @@ class Assignment extends AppTable {
     }
 
     /**
-     * Get user's assignments
-     * @param $username
-     * @return array
-     */
-    public function get($username) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE username='{$username}'";
-        return $this->db->send_query($sql)->fetch_assoc();
-    }
-
-    /**
      * Register into DigestMaker table
      */
-    public function registerDigest() {
+    public static function registerDigest() {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register(get_class());
     }
@@ -133,7 +137,7 @@ class Assignment extends AppTable {
     private function add_type(array $types=array()) {
         if (!empty($types)) {
             foreach ($types as $type) {
-                if (!$this->db->addcolumn($this->tablename, $type, "INT NOT NULL DEFAULT '0'")) {
+                if (!$this->db->add_column($this->tablename, $type, "INT NOT NULL DEFAULT '0'")) {
                     return false;
                 }
             }
@@ -196,7 +200,7 @@ class Assignment extends AppTable {
             }
 
         } elseif ($source === 'db') {
-            $reg_types = $this->db->getcolumns($this->tablename);
+            $reg_types = $this->db->getColumns($this->tablename);
             $session_types = array_values(array_diff($reg_types, array_keys($this->table_data)));
         } else {
             $session_types = array();
@@ -290,13 +294,18 @@ class Assignment extends AppTable {
      */
     private function delete_user(array $users=array()) {
         foreach ($users as $user) {
-            if (!$this->db->deletecontent($this->tablename, 'username', $user)) {
+            if (!$this->db->delete($this->tablename, array('username'=>$user))) {
                 return false;
             }
         }
         return true;
     }
 
+    /**
+     * Get list of users
+     * @param $source
+     * @return array
+     */
     private function get_users_list($source) {
         $usersList = array();
 
@@ -367,7 +376,7 @@ class Assignment extends AppTable {
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $availability = array();
-            foreach ($Availability->get($row['username']) as $key=>$info) {
+            foreach ($Availability->get(array('username'=>$row['username'])) as $key=> $info) {
                 $availability[] = $info['date'];
             }
             if (empty($availability) || !in_array($date, $availability)) {
