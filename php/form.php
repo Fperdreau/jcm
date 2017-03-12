@@ -439,11 +439,6 @@ Datepicker (calendar)
 if (!empty($_POST['get_calendar_param'])) {
     $Sessions = new Session();
     $force_select = htmlspecialchars($_POST['get_calendar_param']) === 'edit';
-    // Get planned sessions
-    $booked = $Sessions->getNextDates();
-    if ($booked === false) {
-        $booked = array();
-    }
 
     $formatdate = array();
     $nb_pres = array();
@@ -451,14 +446,14 @@ if (!empty($_POST['get_calendar_param'])) {
     $status = array();
     $slots = array();
     $all = array();
-    foreach($booked as $date) {
+    foreach($Sessions->all() as $session_id=>$session_data) {
         // Count how many presentations there are for this day
-        foreach ($Sessions->all(array('date'=>$date)) as $session_id=>$data) {
+        foreach ($session_data as $key=>$data) {
             $nb_pres[] = count($data);
-            $type[] = $data[0]['type'];
-            $status[] = $data[0]['status'];
-            $slots[] = $data[0]['slots'];
-            $formatdate[] = date('d-m-Y', strtotime($date));
+            $type[] = $data['type'];
+            $status[] = $data['status'];
+            $slots[] = $data['slots'];
+            $formatdate[] = date('d-m-Y', strtotime($data['date']));
         }
     }
 
