@@ -31,8 +31,8 @@
  */
 date_default_timezone_set('Europe/Paris');
 if (!ini_get('display_errors')) {
-    //error_reporting(E_ALL | E_STRICT);
-    ini_set('display_errors', false);
+    error_reporting(E_ALL | E_STRICT);
+    ini_set('display_errors', true);
 }
 
 /**
@@ -112,27 +112,26 @@ function patching() {
         $req = $db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
             $pub = new Presentation($db, $row['id_pres']);
-            $userid = $row['orator'];
-            $pub->summary = str_replace('\\', '', htmlspecialchars_decode($row['summary']));
-            $pub->authors = str_replace('\\', '', htmlspecialchars_decode($row['authors']));
-            $pub->title = str_replace('\\', '', htmlspecialchars_decode($row['title']));
+            $data = array();
+            $data['summary'] = str_replace('\\', '', htmlspecialchars_decode($row['summary']));
+            $data['authors'] = str_replace('\\', '', htmlspecialchars_decode($row['authors']));
+            $data['title'] = str_replace('\\', '', htmlspecialchars_decode($row['title']));
 
             // If publication's submission date is past, we assume it has already been notified
-            if ($pub->up_date < date('Y-m-d H:i:s', strtotime('-2 days', strtotime(date('Y-m-d H:i:s'))))) {
-                $pub->notified = 1;
-                $pub->update();
+            if ($row['up_date'] < date('Y-m-d H:i:s', strtotime('-2 days', strtotime(date('Y-m-d H:i:s'))))) {
+                $data['notified'] = 1;
             }
 
             if (empty($row['username']) || $row['username'] == "") {
-                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname LIKE '%$userid%'";
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='{$row['orator']}' OR fullname LIKE '%{$row['orator']}%'";
                 $userreq = $db->send_query($sql);
-                $data = mysqli_fetch_assoc($userreq);
+                $user_data = mysqli_fetch_assoc($userreq);
                 if (!empty($data)) {
-                    $pub->orator = $data['username'];
-                    $pub->username = $data['username'];
+                    $data['orator'] = $user_data['username'];
+                    $data['username'] = $user_data['username'];
                 }
             }
-            $pub->update();
+            $pub->update($data, array('id_pres'=>$row['id_pres']));
         }
 
         // Patch POST table
@@ -151,15 +150,15 @@ function patching() {
 
                 $username = $data['username'];
                 $post->date = $date;
-                $postid = $post->makeID();
-                $db->updatecontent($db->tablesname['Posts'], array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
+                $postid = $post->generateID('postid');
+                $post->update(array('postid'=>$postid, 'username'=>$username), array('date'=>$date));
             }
         }
 
         // Patch MEDIA table
         // Write previous uploads to this new table
-        $columns = $db->getcolumns($db->tablesname['Presentation']);
-        $filenames = $db->getinfo($db->tablesname['Media'], 'filename');
+        $columns = $db->getColumns($db->tablesname['Presentation']);
+        $filenames = $db->select($db->tablesname['Media'], array('filename'));
         if (in_array('link', $columns)) {
             $sql = "SELECT up_date,id_pres,link FROM " . $db->tablesname['Presentation'];
             $req = $db->send_query($sql);
@@ -216,10 +215,9 @@ if (!empty($_POST['operation'])) {
         case "backup":
             // STEP 3: Do Backups before making any modifications to the db
             include('cronjobs/DbBackup.php');
-            $backup = new DbBackup();
-            $backup->run();
-            $result['msg'] = "Backup is complete!";
-            $result['status'] = true;
+            $status = \Backup\Backup::backupDb(10);
+            $result['status'] = $status !== false;
+            $result['msg'] = $status !== false ? "Backup is complete!" : "Something went wrong!";
             AppLogger::get_instance(APP_NAME)->info($result['msg']);
             break;
         case "install_db":
@@ -236,77 +234,34 @@ if (!empty($_POST['operation'])) {
             $AppConfig = new AppConfig(false);
             $version = $AppConfig::version; // New version number
             if ($op === true) {
-                $AppConfig->get();
+                $AppConfig->getAll();
             }
             $_POST['version'] = $version;
             $_POST{"site_url"} = URL_TO_APP;
 
-            // Create config table
-            $AppConfig->setup($op);
-            $AppConfig->get();
-            $AppConfig->patch_presentation_types();
-            $AppConfig->patch_session_types();
-            $AppConfig->update($_POST);
-
-            // Create users table
-            $Users = new Users();
-            $Users->setup($op);
-
-            // Create Post table
-            $Posts = new Posts();
-            $Posts->setup($op);
-            $Posts->patch_table();
-
-            // Create Media table
-            $Media = new Uploads();
-            $Media->setup($op);
-
-            // Create MailManager table
-            $MailManager = new MailManager();
-            $MailManager->setup($op);
-
-            // Create Presentation table
-            $Presentations = new Presentations();
-            $Presentations->setup($op);
-
-            // Create Session table
-            $Sessions = new Sessions();
-            $Sessions->setup($op);
-
-            // Create Plugins table
-            $Plugins = new AppPlugins();
-            $Plugins->setup($op);
-
-            // Create CronJobs table
-            $CronJobs = new AppCron();
-            $CronJobs->setup($op);
-
-            // Page table
-            $AppPage = new AppPage();
-            $AppPage->setup($op);
-            $AppPage->getPages();
-
-            // Digest table
-            $DigestMaker = new DigestMaker();
-            $DigestMaker->setup($op);
-
-            // Reminder table
-            $DigestMaker = new ReminderMaker();
-            $DigestMaker->setup($op);
-
-            // Assignment table
-            $Assignment = new Assignment();
-            $Assignment->setup($op);
-            $Assignment->check();
-            $Assignment->getPresentations();
-
-            // Availability table
-            $Availability = new Availability();
-            $Availability->setup($op);
+            // Install all tables
+            $includeList = scandir(PATH_TO_INCLUDES);
+            foreach ($includeList as $includeFile) {
+                if (!in_array($includeFile, array('.', '..', 'AppTable.php'))) {
+                    $class_name = explode('.', $includeFile);
+                    if (method_exists($class_name[0], 'setup')) {
+                        /**
+                         * @var $obj AppTable
+                         */
+                        $obj = new $class_name[0]();
+                        $obj->setup($op);
+                    }
+                }
+            }
 
             // Apply patch if required
             if ($op == false) {
                 patching();
+                Suggestion::patch();
+                Presentations::patch_uploads();
+                Presentations::patch_session_id();
+                Session::patch_time();
+                Posts::patch_table();
             }
 
             $result['msg'] = "Database installation complete!";
@@ -316,30 +271,12 @@ if (!empty($_POST['operation'])) {
 
         case "checkDb":
             // STEP 5:Check consistency between presentations and sessions table
-            $session_date = $db->getinfo($db->tablesname['Session'],'date');
-
-            $sql = "SELECT date,jc_time FROM " . $db->tablesname['Presentation'];
-            $req = $db->send_query($sql);
-            while ($row = mysqli_fetch_assoc($req)) {
-                $date = $row['date'];
-                $time = $row['jc_time'];
-                if (!in_array($date, $session_date)) {
-                    $session = new Session();
-                    if (!$session->make(array('date'=>$date,'time'=>$time))) {
-                        $result['status'] = false;
-                        $result['msg'] = "<p class='sys_msg warning'>'" . $db->tablesname['Session'] . "' not updated</p>";
-                        echo json_encode($result);
-                        exit;
-                    }
-                }
-            }
-            $result['status'] = true;
-            $result['msg'] = "'" . $db->tablesname['Session'] . "' updated";
+            $result = Session::checkDb();
             break;
 
         case "settings":
             $AppConfig = new AppConfig();
-            $result['status'] = $AppConfig->update($_POST);
+            $result['status'] = $AppConfig->update_all($_POST);
             break;
         case "admin_creation":
             // Final step: create admin account (for new installation only)
@@ -352,7 +289,6 @@ if (!empty($_POST['operation'])) {
     }
     echo json_encode($result);
     exit;
-
 }
 
 /**
