@@ -123,8 +123,25 @@ class AppConfig extends AppTable {
                 $this->getAppUrl();
             }
 
-            $this->get();
+            $this->getAll();
         }
+    }
+
+    /**
+     * Install config table
+     * @param bool $op
+     * @return bool
+     */
+    public function setup($op = False) {
+       if (parent::setup($op)) {
+           $this->getAll();
+           $this->patch_presentation_types();
+           $this->patch_session_types();
+           $this->update_all($_POST);
+           return true;
+       } else {
+           return false;
+       }
     }
 
     /**
@@ -143,7 +160,7 @@ class AppConfig extends AppTable {
      * Get application settings
      * @return bool
      */
-    public function get() {
+    public function getAll() {
         $sql = "select variable,value from $this->tablename";
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
@@ -164,7 +181,7 @@ class AppConfig extends AppTable {
      * @param array $post
      * @return bool
      */
-    public function update($post=array()) {
+    public function update_all(array $post=array()) {
         $class_vars = get_class_vars(__CLASS__);
         $postkeys = array_keys($post);
         $result = false;
@@ -175,8 +192,7 @@ class AppConfig extends AppTable {
             $newvalue = (in_array($name, array("session_type", "pres_type")) or is_array($newvalue)) ? json_encode($newvalue) : $newvalue;
             $this->set_setting($name, $newvalue);
 
-            $exist = $this->db->getinfo($this->tablename,"variable",array("variable"),array("'$name'"));
-            if (!empty($exist)) {
+            if (!$this->is_exist(array('variable'=>$name))) {
                 $result = $this->db->updatecontent($this->tablename,array("value"=>$newvalue),array("variable"=>$name));
             } else {
                 $result = $this->db->addcontent($this->tablename,array("variable"=>$name,"value"=>$newvalue));
