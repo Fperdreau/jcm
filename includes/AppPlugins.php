@@ -103,7 +103,7 @@ class AppPlugins extends AppTable {
         parent::__construct('Plugins', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
-            $this->get();
+            $this->getInfo();
         }
     }
 
@@ -121,7 +121,7 @@ class AppPlugins extends AppTable {
     /**
      * Get plugin info from the Plugin table
      */
-    public function get() {
+    public function getInfo() {
         $sql = "SELECT * FROM ".$this->db->tablesname['Plugins']." WHERE name='$this->name'";
         $req = $this->db->send_query($sql);
         $data = mysqli_fetch_assoc($req);
@@ -143,10 +143,11 @@ class AppPlugins extends AppTable {
 
     /**
      * Uninstall plugin: delete entry from the Plugin table and delete corresponding tables
+     * @param array $id
      * @return bool|mysqli_result
      */
-    public function delete() {
-        $this->db->deletecontent($this->db->tablesname['Plugins'],array('name'),array($this->name));
+    public function delete(array $id) {
+        $this->db->delete($this->db->tablesname['Plugins'], $id);
         if ($this->db->tableExists($this->tablename)) {
             return $this->db->deletetable($this->tablename);
         } else {
@@ -155,22 +156,11 @@ class AppPlugins extends AppTable {
     }
 
     /**
-     * Update plugin's info
-     * @param array $post
-     * @return bool
-     */
-    public function update($post=array()) {
-        $class_vars = get_class_vars('AppPlugins');
-        $content = $this->parsenewdata($class_vars,$post,array('installed', 'description'));
-        return $this->db->updatecontent($this->db->tablesname['Plugins'],$content,array("name"=>$this->name));
-    }
-
-    /**
      * Check if the plugin is registered to the Plugin table
      * @return bool
      */
     public function isInstalled() {
-        $plugins = $this->db->getinfo($this->db->tablesname['Plugins'],'name');
+        $plugins = $this->db->select($this->db->tablesname['Plugins'], array('name'));
         return in_array($this->name,$plugins);
     }
 
@@ -213,7 +203,7 @@ class AppPlugins extends AppTable {
                 $thisPlugin = $this->instantiate($pluginfile);
 
                 if ($thisPlugin->isInstalled()) {
-                    $thisPlugin->get();
+                    $thisPlugin->getInfo();
                 }
                 $plugins[$pluginfile] = array(
                     'installed' => $thisPlugin->installed,
