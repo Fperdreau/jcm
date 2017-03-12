@@ -36,35 +36,10 @@ class Availability extends AppTable {
     }
 
     /**
-     * Gets user's availability
-     * @param $username
-     * @return array
-     */
-    public function get($username) {
-        $sql = "SELECT * FROM {$this->tablename} WHERE username='{$username}'";
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-
-    /**
-     * Update user's availability
-     * @param $post
-     * @param $id
-     * @return bool
-     */
-    public function update($post, $id) {
-        return $this->db->updatecontent($this->tablename, $this->parsenewdata($post), $id);
-    }
-
-    /**
      * @param $post
      * @return bool|mysqli_result
      */
-    public function add($post) {
+    public function add(array $post) {
         $class_vars = get_class_vars(get_class());
         return $this->db->addcontent($this->tablename, $this->parsenewdata($class_vars, $post, array('session')));
     }
@@ -75,7 +50,7 @@ class Availability extends AppTable {
      */
     public function edit(array $id) {
         if ($this->isexist($id)) {
-            return $this->db->deletecontent($this->tablename, array_keys($id), array_values($id));
+            return $this->db->delete($this->tablename, $id);
         } else {
             return $this->add($id);
         }
