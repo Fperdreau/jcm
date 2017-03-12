@@ -20,9 +20,6 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 // Declare classes
 $user = new User($_SESSION['username']);
 
-// Manage users
-$userlist = $Users->generateuserslist();
-
 $result = "
 <div class='page_header'>
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
@@ -32,7 +29,7 @@ $result = "
     <div class='section_content'>
     <div class='feedback'></div>
     <div class='table_container' id='user_list'>
-        $userlist
+        " . $user->generateuserslist() . "
     </div>
     </div>
 </section>";
