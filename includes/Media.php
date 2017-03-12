@@ -32,6 +32,7 @@ class Uploads extends AppTable{
         "fileid" => array('CHAR(20)', false),
         "filename" => array('CHAR(20)', false),
         "presid" => array('CHAR(20)', false),
+        "obj" => array('CHAR(255)', false),
         "type" => array('CHAR(5)', false),
         "primary" => 'id');
     protected $directory;
@@ -56,16 +57,15 @@ class Uploads extends AppTable{
 
     /**
      * Delete all files corresponding to the actual presentation
+     * @param $pres_id: unique id of presentation
      * @return bool
      */
-    public function delete_files($presid) {
-        $sql = "SELECT fileid FROM $this->tablename WHERE presid='$presid'";
-        $req = $this->db->send_query($sql);
-        while ($row=mysqli_fetch_assoc($req)) {
-            $up = new Media($row['fileid']);
-            $result = $up->delete();
-            if ($result !== true) {
-                return $result;
+    public function delete_files($pres_id) {
+        foreach ($this->all(array('fileid'=>$pres_id)) as $key=>$item) {
+            $up = new Media($item['fileid']);
+            $result = $up->delete(array('fileid'=>$item['fileid']));
+            if (!$result['status']) {
+                return false;
             }
         }
         return true;
@@ -73,18 +73,36 @@ class Uploads extends AppTable{
 
     /**
      * Get uploades associated to a presentation
-     * @param $presid
+     * @param $presid: presentation id
+     * @param $obj_name: object name
      * @return array
      */
-    function get_uploads($presid) {
-        $sql = "SELECT fileid FROM " .$this->tablename. " WHERE presid=$presid";
-        $req = $this->db->send_query($sql);
+    public function get_uploads($presid, $obj_name) {
         $uploads = array();
-        while ($row=mysqli_fetch_assoc($req)) {
-            $up = new Media($row['fileid']);
-            $uploads[$row['fileid']] = array('date'=>$up->date,'filename'=>$up->filename,'type'=>$up->type);
+        foreach ($this->db->select($this->tablename, array('fileid'), array('presid'=>$presid, 'obj'=>$obj_name)) as $key=>$item) {
+            $up = new Media($item['fileid']);
+            $uploads[$item['fileid']] = array('date'=>$up->date,'filename'=>$up->filename,'type'=>$up->type);
         }
         return $uploads;
+    }
+
+    /**
+     * Add media associated to presentations to db
+     * @param array $file_names
+     * @param $id : Presentation id
+     * @param $obj_name: reference object name (e.g. 'Presentation', 'Suggestion')
+     * @return bool
+     */
+    public function add_upload(array $file_names, $id, $obj_name=null) {
+        if (is_null($obj_name)) $obj_name = get_called_class();
+
+        $upload = new Media();
+        foreach ($file_names as $filename) {
+            if ($upload->add_presid($filename, $id, $obj_name) !== true) {
+                return False;
+            }
+        }
+        return true;
     }
 
     /**
@@ -92,7 +110,7 @@ class Uploads extends AppTable{
      * @return bool
      */
     protected function files2db() {
-        $dbfiles = $this->db->getinfo($this->tablename, 'filename');
+        $dbfiles = $this->db->select($this->tablename, array('filename'));
         $files = scandir($this->directory);
         foreach ($dbfiles as $filename) {
             // Delete Db entry if the file does not exit on the server
@@ -101,7 +119,7 @@ class Uploads extends AppTable{
                 $req = $this->db->send_query($sql);
                 $data = mysqli_fetch_assoc($req);
                 $file = new Media($data['fileid']);
-                if  (!$this->db->deletecontent($this->tablename, 'fileid', $file->fileid)) {
+                if  (!$this->db->delete($this->tablename, array('fileid'=>$file->fileid))) {
                     AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;
                 }
@@ -148,6 +166,11 @@ class Uploads extends AppTable{
 
 }
 
+/**
+ * Class Media
+ *
+ * Handles properties and methods specific to individual medium
+ */
 class Media extends Uploads {
 
     public $presid;
@@ -155,15 +178,17 @@ class Media extends Uploads {
     public $date;
     public $filename;
     public $type;
+    public $obj;
 
     /**
+     * Media constructor
      * @param null $fileid
     */
-    function __construct($fileid=null){
+    public function __construct($fileid=null){
         parent::__construct();
 
-        if (null != $fileid) {
-            self::get($fileid);
+        if (!is_null($fileid)) {
+            $this->getInfo($fileid);
         }
     }
 
@@ -205,14 +230,10 @@ class Media extends Uploads {
      * @param $fileid
      * @return bool
      */
-    function get($fileid) {
-        $sql = "SELECT * FROM $this->tablename WHERE fileid='$fileid'";
-        $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_assoc($req);
+    public function getInfo($fileid) {
+        $data = $this->get(array('fileid'=>$fileid));
         if (!empty($data)) {
-            foreach ($data as $key=>$value) {
-                $this->$key = htmlspecialchars_decode($value);
-            }
+            $this->map($data);
         } else {
             return false;
         }
@@ -224,11 +245,12 @@ class Media extends Uploads {
      * Check consistency between the media table and the files actually stored on the server
      * @return bool
      */
-    function checkfiles () {
+    private function checkfiles () {
         // First check if the db points to an existing file
         if (!is_file($this->directory.$this->filename)) {
             // If not, we remove the data from the db
-            if ($this->delete() !== true) {
+            $result = $this->delete(array('fileid'=>$this->fileid));
+            if (!$result['status']) {
                 return False;
             }
         }
@@ -241,10 +263,11 @@ class Media extends Uploads {
      * Associates a previously uploaded file to a presentation
      * @param $filename
      * @param $presid
+     * @param $obj_name
      * @return mixed
      */
-    function add_presid($filename,$presid) {
-        if ($this->db->updatecontent($this->tablename,array('presid'=>$presid),array('filename'=>$filename))) {
+    function add_presid($filename, $presid, $obj_name) {
+        if ($this->db->updatecontent($this->tablename,array('presid'=>$presid),array('filename'=>$filename, 'obj'=>$obj_name))) {
             AppLogger::get_instance(APP_NAME, get_class($this))->log("New id ({$presid}) associated with file ({$filename})");
             return true;
         } else {
@@ -255,27 +278,31 @@ class Media extends Uploads {
 
     /**
      * Delete a file corresponding to the actual presentation
+     * @param array $id
      * @return bool|string
      */
-    function delete() {
+    public function delete(array $id) {
         if (is_file($this->directory.$this->filename)) {
             if (unlink($this->directory.$this->filename)) {
-                if ($this->db->deletecontent($this->tablename,'fileid',$this->fileid)) {
+                if ($this->db->delete($this->tablename, $id)) {
                     $result['status'] = true;
                     $result['msg'] = "File Deleted";
+                    AppLogger::get_instance(APP_NAME, __CLASS__)->info($result['msg']);
                 } else {
                     $result['status'] = false;
                     $result['msg'] = "Could not remove file entry from database";
+                    AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
                 }
             } else {
                 $result['status'] = false;
                 $result['msg'] = "Could not delete file";
+                AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
             }
         } else {
             $result['status'] = false;
             $result['msg'] = "File does not exist";
+            AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
         }
-        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
