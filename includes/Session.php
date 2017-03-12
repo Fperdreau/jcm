@@ -151,7 +151,6 @@ class Session extends AppTable {
         $form = self::add_session_form(self::getDefaults());
         if (!$this->is_available(array('date'=>$date))) return self::sessionManager(null, $form);
         $sessionEditor = $this->getSessionEditor($date);
-
         return self::sessionManager($sessionEditor, $form);
     }
 
@@ -487,13 +486,6 @@ class Session extends AppTable {
             $result = $session->update(array('type'=>$new_type), array('id'=>$session->id));
         }
         return $result;
-    }
-
-    /**
-     * Patch session info
-     */
-    public function patch_session_info() {
-        $this->all();
     }
 
     /**
@@ -1162,7 +1154,6 @@ class Session extends AppTable {
                 </div>
             <div>
         </form>
-
         ";
     }
 

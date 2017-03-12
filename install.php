@@ -144,7 +144,8 @@ function patching() {
             if (empty($row['postid']) || $row['postid'] == "NULL") {
                 // Get uploader username
                 $userid = $row['username'];
-                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
+                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' 
+                OR fullname='$userid'";
                 $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
 
@@ -302,6 +303,8 @@ if (!empty($_POST['getpagecontent'])) {
     $_SESSION['step'] = $step;
     $op = htmlspecialchars($_POST['op']);
     $new_version = AppConfig::version;
+    $operation = null;
+    $title = null;
 
     /**
      * Get configuration from previous installation
@@ -335,35 +338,32 @@ if (!empty($_POST['getpagecontent'])) {
         }
     } elseif ($step == 2) {
         $config = $db->get_config();
-        foreach ($config as $name=>$value) {
-            $$name = $value;
-        }
-        $dbprefix = str_replace('_','',$config['dbprefix']);
+        $db_prefix = str_replace('_', '', $config['dbprefix']);
 
         $title = "Step 1: Database configuration";
         $operation = "
 			<form action='install.php' method='post'>
                 <input type='hidden' name='version' value='" . AppConfig::version. "'>
-                <input type='hidden' name='op' value='$op'/>
+                <input type='hidden' name='op' value='{$op}'/>
                 <input type='hidden' name='operation' value='db_info'/>
                 <div class='form-group'>
-    				<input name='host' type='text' value='$host' required autocomplete='on'>
+    				<input name='host' type='text' value='{$config['host']}' required autocomplete='on'>
                     <label for='host'>Host Name</label>
                 </div>
                 <div class='form-group'>
-    				<input name='username' type='text' value='$username' required autocomplete='on'>
+    				<input name='username' type='text' value='{$config['username']}' required autocomplete='on'>
                     <label for='username'>Username</label>
                 </div>
                 <div class='form-group'>
-				    <input name='passw' type='password' value='$passw'>
+				    <input name='passw' type='password' value='{$config['passwd']}'>
                     <label for='passw'>Password</label>
                 </div>
                 <div class='form-group'>
-				    <input name='dbname' type='text' value='$dbname' required autocomplete='on'>
+				    <input name='dbname' type='text' value='{$config['dbname']}' required autocomplete='on'>
                     <label for='dbname'>DB Name</label>
                 </div>
                 <div class='form-group'>
-				    <input name='dbprefix' type='text' value='$dbprefix' required autocomplete='on'>
+				    <input name='dbprefix' type='text' value='{$db_prefix}' required autocomplete='on'>
                     <label for='dbprefix'>DB Prefix</label>
                 </div>
                 <div class='submit_btns'>
@@ -380,7 +380,7 @@ if (!empty($_POST['getpagecontent'])) {
         $operation = "
             <form action='install.php' method='post'>
                 <input type='hidden' name='version' value='" . AppConfig::version. "'>
-                <input type='hidden' name='op' value='$op'/>
+                <input type='hidden' name='op' value='{$op}'/>
                 <input type='hidden' name='operation' value='settings'/>
                 <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
 
@@ -435,7 +435,7 @@ if (!empty($_POST['getpagecontent'])) {
         $operation = "
             <div class='feedback'></div>
 			<form action='install.php' method='post'>
-                <input type='hidden' name='op' value='$op'/>
+                <input type='hidden' name='op' value='{$op}'/>
                 <input type='hidden' name='operation' value='admin_creation'/>
                 <input type='hidden' name='status' value='admin'/>
 
@@ -472,7 +472,7 @@ if (!empty($_POST['getpagecontent'])) {
     $result['title'] = $title;
     $result['content'] = "
 		<section>
-			<div class='section_content' id='operation'>$operation</div>
+			<div class='section_content' id='operation'>{$operation}</div>
 		</section>
 	";
     $result['step'] = $step;
@@ -576,7 +576,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         header #appTitle {
             text-transform: uppercase;
             color: rgb(255, 255, 255);
-            margin-top: 0px;
+            margin-top: 0;
             font-size: 1.1em;
             font-weight: 500;
         }
@@ -802,17 +802,6 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         }
 
         /**
-         * Remove loading animation at the end of an AJAX request
-         * @param el: DOM element in which we show the animation
-         */
-        function removeLoading(el) {
-            el.fadeIn(200);
-            el.find('.loadingDiv')
-                .fadeOut(1000)
-                .remove();
-        }
-
-        /**
          * Render progression bar
          */
         function progressbar(el, percent, msg) {
@@ -934,7 +923,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                             return false;
                         }
                     },
-                    error: function(jqXHR, textStatus, errorThrown) {
+                    error: function(jqXHR, textStatus) {
                         progressbar(el, percent, textStatus);
                         setTimeout(function() {
                             remove_progressbar(el);
