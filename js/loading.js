@@ -53,6 +53,7 @@ var tinymcesetup = function () {
  * Load JCM calendar
  */
 var loadCalendarSessions = function() {
+    $('#ui-datepicker-div').remove();
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',

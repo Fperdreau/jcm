@@ -155,21 +155,28 @@ function confirmation_box(txt, txt_btn, callback) {
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 var selected = new Date().getTime();
 
+function removeDatePicker() {
+    jQuery('#ui-datepicker-div').remove();
+}
+
 /**
  * Initialize jQuery-UI calendar
  * @param data_availability: associative array providing journal club sessions and their information
  */
 var inititdatepicker = function (data_availability) {
 
-    $('#datepicker').datepicker({
-        defaultDate: selected,
-        firstDay: 1,
-        dateFormat: 'yy-mm-dd',
-        inline: true,
-        showOtherMonths: true,
-        beforeShowDay: function(date) {
-            return renderCalendarCallback(date, data_availability);
-        }
+    $('.datepicker').each(function() {
+        var force_select = $(this).data('view') !== undefined ? $(this).data('view') === 'edit' : false;
+        $(this).datepicker({
+            defaultDate: selected,
+            firstDay: 1,
+            dateFormat: 'yy-mm-dd',
+            inline: true,
+            showOtherMonths: true,
+            beforeShowDay: function(date) {
+                return renderCalendarCallback(date, data_availability, force_select);
+            }
+        });
     });
 };
 
@@ -207,35 +214,38 @@ var initAvailabilityCalendar = function (data_availability) {
 
 };
 
-function renderCalendarCallback(date, data) {
+/**
+ * Render JQuery Datepicker
+ * @param date
+ * @param data
+ * @param force_select
+ * @returns {*}
+ */
+function renderCalendarCallback(date, data, force_select) {
     var day = date.getDay();
     var days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     var cur_date = $.datepicker.formatDate('dd-mm-yy', date);
-    if (days[day] === data.jc_day) {
-        var css = "activeday";
-        var text = "";
-        var find = $.inArray(cur_date, data.jc_day);
-        var status = data.status[find];
-        var clickable = (status !== 'none');
+    var booked = $.inArray(cur_date, data.booked);
+    var css = null;
+    var text = null;
+    var clickable = force_select;
 
-        // If the date is booked
-        if (find > -1) {
-            var type = jcdays.sessiontype[find];
-            var rem = jcdays.max_nb_session - jcdays.nb[find]; // Number of presentations available that day
-            text = type + ": (" + rem + " presentation(s) available)";
-            if (status === 'Free') {
-                css = "jcday " + css;
-            } else if (status === 'Booked') {
-                css = "jcday_rem " + css;
-            } else {
-                css = "bookedday " + css;
-                text = type + ": Booked out";
-            }
-            css = "bookedday " + css;
-        } else {
+    // If there are sessions planned on this day
+    if (booked > -1) {
+        css = "activeday";
+        var rem = data.slots[booked] - data.nb[booked]; // Number of presentations available that day
+        var type = data.session_type[booked];
+        text = type + ": (" + rem + " presentation(s) available)";
+        clickable = rem > 0 || force_select;
+        if (rem === data.slots[booked]) {
             css = "jcday " + css;
-            text = data.max_nb_session + " presentation(s) available";
+        } else if (rem < data.slots[booked] && rem > 0) {
+            css = "jcday_rem " + css;
+        } else {
+            css = "bookedday " + css;
+            text = type + ": Booked out";
         }
+        css = "bookedday " + css;
 
         var isAvailable = $.inArray(cur_date, data.Availability);
         if (isAvailable > -1) {
@@ -248,11 +258,9 @@ function renderCalendarCallback(date, data) {
             css = "assigned ";
             text = "You are presenting this day";
         }
-
         return [clickable, css, text];
-
-    } else if (days[day] !== data.jc_day) {
-        return [false, "", "Not a journal club day"];
+    } else {
+        return [clickable, "", "No session planned on this day"];
     }
 }
 
@@ -1029,10 +1037,11 @@ $(document).ready(function () {
 
         .on('change', '.repeated_session', function(e) {
             var val = $(this).val();
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
             if (val == 1) {
-                $('.settings_hidden').fadeIn();
+                form.find('.settings_hidden').fadeIn();
             } else {
-                $('.settings_hidden').fadeOut();
+                form.find('.settings_hidden').fadeOut();
             }
         })
 
@@ -1132,44 +1141,19 @@ $(document).ready(function () {
             var url = "uploads/"+uplname;
             window.open(url, '_blank');
         })
-
         // Select submission type
          .on('change', 'select#type', function (e) {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
-            var guestField = form.find('#guest');
-            var titleField = form.find("input[name='title']").parent('.formcontrol');
-            var authorsField = form.find("input[name='authors']").parent('.formcontrol');
             var type = $(this).val();
-            guestField.prop('required', false);
-
-             // Show/Hide Guest field depending on the selected presentation type
-            if (type === "guest") {
-                guestField
-                    .prop('required', true)
-                    .fadeIn();
-            } else {
-                guestField
-                    .prop('required', false)
-                    .hide();
-            }
-
-             // Show/Hide Guest field depending on the selected presentation type
-             if (type == "minute") {
-                 titleField
-                     .prop('required', true)
-                     .hide();
-                 authorsField
-                     .prop('required', true)
-                     .hide();
-             } else {
-                 titleField
-                     .prop('required', false)
-                     .fadeIn();
-                 authorsField
-                     .prop('required', false)
-                     .fadeIn();
-             }
+            var callback = function(result) {
+                $('.form_lower_container').html(result);
+                tinyMCE.remove();
+                window.tinymce.dom.Event.domLoaded = true;
+                tinymcesetup();
+            };
+            var data = {getFormContent: type};
+            processAjax($('.form_lower_container'), data, callback, "php/form.php");
 
          })
 
@@ -1184,10 +1168,10 @@ $(document).ready(function () {
 
             // Check if a data has been selected (except for wishes)
             if (operation !== "suggest") {
-                var date = $("input#datepicker").val();
+                var date = $("input.datepicker").val();
                 if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
                     showfeedback('<p id="warning">You must choose a date!</p>');
-                    form.find("input#datepicker").focus();
+                    form.find("input.datepicker").focus();
                     return false;
                 }
             }
