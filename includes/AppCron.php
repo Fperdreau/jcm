@@ -120,16 +120,19 @@ class AppCron extends AppTable {
 
     /**
      * Constructor
-     * @param bool $name
+     * @param null $name
      */
-    public function __construct($name=False) {
+    public function __construct($name=null) {
         parent::__construct('Crons', $this->table_data);
         $this->path = dirname(dirname(__FILE__).'/');
 
         self::get_logger();
 
         // Get task's information
-        $this->get();
+        if (!is_null($name)) {
+            $this->name = $name;
+        }
+        $this->getInfo();
 
         // If time is default, set time to now
         $this->time = ($this->time === '1970-01-01 00:00:00') ? date('Y-m-d H:i:s', time()) : $this->time;
@@ -185,7 +188,7 @@ class AppCron extends AppTable {
          * @var AppCron $thisJob
          */
         $thisJob = $this->instantiate($task_name);
-        $thisJob->get();
+        $thisJob->getInfo();
 
         $logs = array();
 
@@ -226,18 +229,18 @@ class AppCron extends AppTable {
      * Lock the task. A task will not be executed if currently running
      * @return bool
      */
-    protected function lock() {
+    public function lock() {
         $this->running = 1;
-        return $this->update(array('running'=>1));
+        return $this->update(array('running'=>1), array('name'=>$this->name));
     }
 
     /**
      * Unlock the task. A task will not be executed if currently running
      * @return bool
      */
-    protected function unlock() {
+    public function unlock() {
         $this->running = 0;
-        return $this->update(array('running'=>0));
+        return $this->update(array('running'=>0), array('name'=>$this->name));
     }
 
     /**
@@ -261,7 +264,7 @@ class AppCron extends AppTable {
         }
 
         // Get admins email
-        $adminMails = $this->db->getinfo($this->db->tablesname['User'],'email',array('status'),array("'admin'"));
+        $adminMails = $this->db->select($this->db->tablesname['User'],array('email'),array('status'=>"admin"));
         if (!is_array($adminMails)) $adminMails = array($adminMails);
         $content['body'] = "
             <p>Hello, </p>
@@ -296,35 +299,24 @@ class AppCron extends AppTable {
     /**
      * Get info from the scheduled tasks table
      */
-    public function get() {
-        $sql = "SELECT * FROM {$this->tablename} WHERE name='{$this->name}'";
-        $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_assoc($req);
-        if (!empty($data)) {
-            foreach ($data as $prop=>$value) {
-                $value = ($prop == "options") ? json_decode($value,true):$value;
-                $this->$prop = $value;
-            }
+    public function getInfo() {
+        $data = $this->get(array('name'=>$this->name));
+        if (empty($data)) return false;
+
+        foreach ($data[0] as $prop=>$value) {
+            $value = ($prop == "options") ? json_decode($value,true) : $value;
+            $this->$prop = $value;
         }
+        return true;
     }
 
     /**
-     * Update cronjobs table
-     * @param array $post
-     * @return bool
-     */
-    public function update($post=array()) {
-        $class_vars = get_class_vars('AppCron');
-        $content = $this->parsenewdata($class_vars,$post,array('installed','daysNames','daysNbs','hours', 'description'));
-        return $this->db->updatecontent($this->tablename,$content,array("name"=>$this->name));
-    }
-
-    /**
-     * Delete tasks from the cronjobs table
+     * Delete tasks from the task table
+     * @param array $id
      * @return bool|mysqli_result
      */
-    public function delete() {
-        $this->db->deletecontent($this->db->tablesname['Crons'],array('name'),array($this->name));
+    public function delete(array $id) {
+        $this->db->delete($this->db->tablesname['Crons'],array('name'=>$this->name));
         return $this->db->deletetable($this->tablename);
     }
 
@@ -332,7 +324,7 @@ class AppCron extends AppTable {
      * Check if this plugin is registered to the db
      */
     public function isInstalled() {
-        $plugins = $this->db->getinfo($this->db->tablesname['Crons'],'name');
+        $plugins = $this->db->column($this->db->tablesname['Crons'], array('name'));
         return in_array($this->name,$plugins);
     }
 
@@ -364,15 +356,21 @@ class AppCron extends AppTable {
      * Update scheduled time
      * @return bool
      */
-    function updateTime() {
-        $newTime = self::parseTime($this->time, explode(',', $this->frequency));
-        if ($this->update(array('time'=>$newTime))) {
-            $result['status'] = true;
-            $result['msg'] = $newTime;
-        } else {
-            $result['status'] = false;
+    public function updateTime() {
+        try {
+            $newTime = self::parseTime($this->time, explode(',', $this->frequency));
+            if ($this->update(array('time'=>$newTime), array('name'=>$this->name))) {
+                $result['status'] = true;
+                $result['msg'] = $newTime;
+            } else {
+                $result['status'] = false;
+            }
+            return $result;
+        } catch (Exception $e) {
+            AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
+            $result['status'] = False;
+            return $result;
         }
-        return $result;
     }
 
     /**
@@ -412,7 +410,7 @@ class AppCron extends AppTable {
                 $thisPlugin = $this->instantiate($name);
                 
                 if ($thisPlugin->isInstalled()) {
-                    $thisPlugin->get();
+                    $thisPlugin->getInfo();
                 }
                 
                 $jobs[$name] = array(
@@ -543,6 +541,7 @@ class AppCron extends AppTable {
             $running_icon = "<div class='task_running_icon {$css_running}'></div>";
 
             $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
+            $stopBtn = "<div class='stop_cron workBtn stopBtn' data-cron='$cronName'></div>";
 
             $datetime = $info['time'];
             $date = date('Y-m-d', strtotime($datetime));
@@ -560,8 +559,9 @@ class AppCron extends AppTable {
                     <div class='optBar'>
                         <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
                         {$install_btn}
-                        {$runBtn}
                         {$activate_btn}
+                        {$runBtn}
+                        {$stopBtn}
                         {$running_icon}
                     </div>
                 </div>
