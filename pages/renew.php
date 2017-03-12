@@ -28,7 +28,7 @@ $user = new User();
 if (!empty($_POST['hash']) && !empty($_POST['email'])) {
     $hash = htmlspecialchars($_POST['hash']);
     $email = htmlspecialchars($_POST['email']);
-    $username = AppDb::getInstance() ->getinfo(AppDb::getInstance()->tablesname['User'],'username',array("email"),array("'$email'"));
+    $username = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'), array("email"=>$email));
     $user->get($username);
     if ($user->hash == $hash) {
         $content = "
