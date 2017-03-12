@@ -102,7 +102,7 @@ class SpeakerAssignment extends AppCron {
         $dueDate = date('Y-m-d', strtotime($today . " + {$this->options['Days']['value']} day"));
         $session = new Session($dueDate);
 
-        if ($session->dateexists($dueDate)) {
+        if ($session->is_available(array('date'=>$dueDate))) {
             $n = 0;
             foreach ($session->presids as $presid) {
                 $Presentation = new Presentation($presid);
