@@ -24,7 +24,7 @@ $Presentations = new Presentations();
 $years = $Presentations->get_years();
 // Select input (Years)
 $options = "
-s<option value='all'>All</option>";
+<option value='all'>All</option>";
 foreach ($years as $year) {
     $options .= "<option value='$year'>$year</option>";
 }
@@ -37,7 +37,7 @@ $result = "
             <div class='feedback'></div>
             <div class='form-group inline_field' style='width: 200px'>
                 <select name='year' class='archive_select'>
-                    $options
+                    {$options}
                 </select>
                 <label>Filter by year</label>
             </div>
@@ -46,7 +46,7 @@ $result = "
     </section>
     
     <div id='archives_list'>
-        $publist
+        {$publist}
     </div>";
 
 echo $result;
