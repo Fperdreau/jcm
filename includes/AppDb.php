@@ -103,7 +103,9 @@ class AppDb {
             "DigestMaker" => $this->config['dbprefix'] . "_digestmaker",
             "ReminderMaker" => $this->config['dbprefix'] . "_remindermaker",
             "Assignment" => $this->config['dbprefix'] . "_assignment",
-            "Availability" => $this->config['dbprefix'] . "_availability"
+            "Availability" => $this->config['dbprefix'] . "_availability",
+            "Suggestion" => $this->config['dbprefix'] . "_suggestion",
+            "Vote" => $this->config['dbprefix'] . "_vote"
         );
     }
 
@@ -143,14 +145,19 @@ class AppDb {
     /**
      * Connects to DB and throws exceptions
      * @return mysqli|null
+     * @throws Exception
      */
     public function bdd_connect() {
-        $this->bdd = mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw']);
-        if (!$this->bdd) {
+
+        try {
+            if (!$this->bdd = @mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw'])) {
+                throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
+            }
+        } catch(Exception $e) {
             $result['status'] = false;
-            $result['msg'] = "Failed to connect to the database: " . $this->bdd->error;
+            $result['msg'] = $e->getMessage();
             AppLogger::get_instance(APP_NAME)->critical($result['msg']);
-            die(json_encode($result['msg']));
+            die($result['msg']);
         }
 
         if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
@@ -202,17 +209,20 @@ class AppDb {
 
     /**
      * Get list of tables associated to the application
+     * @param null|string $id: table name
      * @return array
      */
-    public function getapptables() {
+    public function getAppTables($id=null) {
         $sql = "SHOW TABLES FROM " . $this->config['dbname'] . " LIKE '" . $this->config['dbprefix'] . "%'";
         $req = self::send_query($sql);
-        $table_list = array();
+        $appTables = array();
         while ($row = mysqli_fetch_array($req)) {
-            $table_list[] = $row[0];
+            $split = explode('_', $row[0]);
+            $tableId = end($split);
+            $appTables[$tableId] = $row[0];
         }
-        $this->apptables = $table_list;
-        return $this->apptables;
+        $this->apptables = $appTables;
+        return (is_null($id)) ? $appTables : $appTables[strtolower($id)];
     }
 
     /**
@@ -238,15 +248,13 @@ class AppDb {
      */
     public function send_query($sql,$silent=false) {
         $this->bdd_connect();
-        if (!mysqli_set_charset($this->bdd,"utf8")) {
-            AppLogger::get_instance(APP_NAME)->critical('We could not load UTF8 charset');
-        }
-        $req = mysqli_query($this->bdd,$sql);
-        if (false === $req) {
+        $req = mysqli_query($this->bdd, $sql);
+        if ($req === false) {
+            $msg = "Database Error [{$this->bdd->errno}]: COMMAND [{$sql}]: {$this->bdd->error}";
+            AppLogger::get_instance(APP_NAME, get_called_class())->error($msg);
             if ($silent == false) {
-                echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
+                //echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
             }
-            AppLogger::get_instance(APP_NAME)->critical('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
             return false;
         } else {
             self::bdd_close();
@@ -318,8 +326,8 @@ class AppDb {
      * @param null $after
      * @return bool
      */
-    public function addcolumn($table_name,$col_name,$type,$after=null) {
-        if (!$this->iscolumn($table_name, $col_name)) {
+    public function add_column($table_name, $col_name, $type, $after=null) {
+        if (!$this->isColumn($table_name, $col_name)) {
             $sql = "ALTER TABLE {$table_name} ADD COLUMN {$col_name} {$type}";
             if (!is_null($after)) {
                 $sql .= " AFTER {$after}";
@@ -338,7 +346,7 @@ class AppDb {
      * @return bool|mysqli_result
      */
     public function delete_column($table_name, $col_name) {
-        if ($this->iscolumn($table_name, $col_name)) {
+        if ($this->isColumn($table_name, $col_name)) {
             $sql = "ALTER TABLE {$table_name} DROP COLUMN {$col_name}";
             return $this->send_query($sql);
         } else {
@@ -352,8 +360,8 @@ class AppDb {
      * :param string $column: column name
      * :return bool
      */
-    public function iscolumn($table, $column){
-        $cols = $this->getcolumns($table);
+    public function isColumn($table, $column){
+        $cols = $this->getColumns($table);
         return in_array($column,$cols);
     }
 
@@ -362,7 +370,7 @@ class AppDb {
      * @param $tablename
      * @return array
      */
-    public function getcolumns($tablename) {
+    public function getColumns($tablename) {
         $sql = "SHOW COLUMNS FROM {$tablename}";
         $req = $this->send_query($sql);
         $keys = array();
@@ -392,25 +400,19 @@ class AppDb {
     /**
      * Delete content from the table
      * @param $table_name
-     * @param $refcol
-     * @param $id
+     * @param array $id
      * @return bool
      */
-    public function deletecontent($table_name, $refcol, $id) {
-        $refcol = is_array($refcol) ? $refcol:array($refcol);
-        $id = is_array($id) ? $id:array($id);
-
-        $nref = count($refcol);
+    public function delete($table_name, array $id) {
 		$cpt = 0;
         $cond = array();
-		foreach ($refcol as $ref) {
-			$cond[] = "$ref='".$id[$cpt]."'";
+		foreach ($id as $col=>$value) {
+			$cond[] = "$col='".$value."'";
 			$cpt++;
 		}
+        $cond = $cpt > 1 ? implode(' AND ', $cond) : implode('', $cond);
 
-        $cond = $nref > 1 ? implode(' AND ', $cond) : implode('', $cond);
-
-		$sql = "DELETE FROM $table_name WHERE ".$cond;
+		$sql = "DELETE FROM {$table_name} WHERE " . $cond;
         self::send_query($sql);
         return true;
     }
@@ -479,7 +481,7 @@ class AppDb {
             self::createtable($tablename,$columndata,$overwrite);
         } else {
             // Get existent columns
-            $keys = self::getcolumns($tablename);
+            $keys = self::getColumns($tablename);
             // Add new non existent columns or update previous version
             $prevcolumn = "id";
             foreach ($tabledata as $column=>$data) {
@@ -495,7 +497,7 @@ class AppDb {
                         self::send_query($sql);
                     // If the column does not exist already, then we simply add it to the table
                     } elseif (!in_array($column,$keys)) {
-                        self::addcolumn($tablename,$column,$datatype,$prevcolumn);
+                        self::add_column($tablename,$column,$datatype,$prevcolumn);
                     // Check if the column's data type is consistent with the new version
                     } else {
                         $sql = "ALTER TABLE $tablename MODIFY $column $datatype";
@@ -507,7 +509,7 @@ class AppDb {
             }
 
             // Get updated columns
-            $keys = self::getcolumns($tablename);
+            $keys = self::getColumns($tablename);
             // Remove deprecated columns
             foreach ($keys as $key) {
                 if (!in_array($key,$defcolumns)) {
@@ -536,58 +538,79 @@ class AppDb {
 
     /**
      * Get content from table (given a column and a row(optional))
-     * @param $table_name
-     * @param $cols_name
-     * @param null $refcol
-     * @param null $id
-     * @param null $op
-     * @return array
+     * @param string $table_name
+     * @param array $what : e.g. array('name','id')
+     * @param array $where : e.g. array('city'=>'Paris')
+     * @param array|null $op : Array describing logical operators corresponding to the $where array. e.g. array('=','!=')
+     * @param null|string $opt: options (e.g. "ORDER BY year")
+     * @return array : associate array
      */
-    public function getinfo($table_name,$cols_name,$refcol = NULL,$id = NULL, $op = NULL) {
-		$nref = count($refcol);
-        $cond = "";
-        if ($op == NULL && is_array($refcol)) {
-            $op = array();
-            for ($i=0;$i<$nref;$i++) {
-                $op[] = "=";
+    public function select($table_name, array $what, array $where=array(), array $op=null, $opt="") {
+        $cols = implode(',', $what); // format columns name
+
+        // Build query
+        $params = null;
+        if (!empty($where)) {
+            $i = 0;
+            $cond = array(); // Condition (e.g.: name=:name)
+            foreach ($where as $col => $value) {
+                $thisOp = ($op == NULL) ? "=" : $op[$i];
+                $cond[] = $col . $thisOp . "'{$value}'";
+                $i++;
             }
-        } elseif ($op == NULL) {
-            $op = "=";
+            $cond = "WHERE " . implode(' AND ', $cond);
+        } else {
+            $cond = null;
         }
 
-		if ($refcol == NULL) { // Look for column content
-			$cond = "";
-		} elseif (!is_array($refcol)) {
-			$cond = "WHERE $refcol"."$op"."$id";
-		} else { // Look for a specific value
-			$cpt = 0;
-			foreach ($refcol as $ref) {
-				$cond[] = "$ref"."$op[$cpt]"."$id[$cpt]";
-				$cpt++;
-			}
-
-			if ($nref > 1) {
-				$cond = implode(' AND ',$cond);
-			} else {
-				$cond = implode('',$cond);
-			}
-			$cond = "WHERE ".$cond;
-		}
-
-		$sql = "SELECT $cols_name FROM $table_name ".$cond;
-        $req = self::send_query($sql);
-		$infos = array();
-		$nrow = 0;
-		while ($row = mysqli_fetch_array($req)) {
-			$nrow++;
-			$infos[] = $row[$cols_name];
-		}
-
-		if ($refcol !=NULL && is_array($infos) && $nrow == 1) {
-			$infos = $infos[0];
-		}
-		return $infos;
+        $req = self::send_query("SELECT {$cols} FROM {$table_name}" . " {$cond}" . " {$opt}");
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+        return $data;
 	}
+
+    /**
+     * Get content from column
+     * @param string $table_name
+     * @param string $column_name : column name
+     * @param array $where : e.g. array('city'=>'Paris')
+     * @param array|null $op : Array describing logical operators corresponding to the $where array. e.g. array('=','!=')
+     * @param null|string $opt : options (e.g. "ORDER BY year")
+     * @return array : associate array
+     * @throws Exception
+     */
+    public function column($table_name, $column_name, array $where=array(), array $op=null, $opt=null) {
+        // Build query
+        if (!empty($where)) {
+            $i = 0;
+            $cond = array(); // Condition (e.g.: name=:name)
+            foreach ($where as $col => $value) {
+                $thisOp = ($op == NULL) ? "=" : $op[$i];
+                $cond[] = $col . $thisOp . "'{$value}'";
+                $i++;
+            }
+            $cond = " WHERE ".implode(' AND ', $cond);
+        } else {
+            $cond = null;
+        }
+
+        if (!is_null($opt)) $opt = " " . $opt;
+        $sql = "SELECT {$column_name} FROM {$table_name}" . $cond . $opt;
+        $req = self::send_query($sql);
+        if ($req !== false) {
+            $data = array();
+            while ($row = $req->fetch_assoc()) {
+                $data[] = $row[$column_name];
+            }
+            return $data;
+        } else {
+            AppLogger::get_instance(APP_NAME, __CLASS__)->critical("Database error: COMMAND [{$sql}]");
+            throw new Exception("Database error: COMMAND [{$sql}]");
+        }
+
+    }
 
     /**
      * Close connection to the db
