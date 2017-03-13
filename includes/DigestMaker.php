@@ -101,7 +101,7 @@ class DigestMaker extends AppTable {
      * Search for module that must be registered into the Digest table.
      * @return bool
      */
-    public function registerAll() {
+    public static function registerAll() {
         $includeList = scandir(PATH_TO_INCLUDES);
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..'))) {
@@ -123,7 +123,7 @@ class DigestMaker extends AppTable {
      */
     public function setup($op=False) {
         if (parent::setup($op)) {
-            return $this->registerAll();
+            return self::registerAll();
         } else {
             return false;
         }
