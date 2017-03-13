@@ -1165,7 +1165,6 @@ if (!empty($_POST['modSpeaker'])) {
             'username'=>$speaker->username,
             'type'=>'paper'));
     }
-    $pres = $Presentation->getInfo($presid);
     $session = new Session($date);
     $info['type'] = $session->type;
     $info['date'] = $session->date;
@@ -1184,7 +1183,7 @@ if (!empty($_POST['modSpeaker'])) {
             $result['status'] = true;
         }
         if ($result['status']) {
-            if ($pres->update(array('orator'=>$speaker->username), array('id_pres'=>$presid))) {
+            if ($Presentation->update(array('orator'=>$speaker->username), array('id_pres'=>$presid))) {
                 $result['msg'] = "$speaker->fullname is the new speaker!";
                 $result['status'] = true;
             } else {
