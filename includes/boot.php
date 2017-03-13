@@ -70,15 +70,8 @@ foreach ($includeList as $includeFile) {
 SessionInstance::initsession();
 
 /**
- * Get logger
- */
-
-$Corelogger = AppLogger::get_instance('core');
-
-/**
- * Declare classes
+ * Declare Path
  *
  */
-$AppConfig = new AppConfig();
-if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig->getAppUrl());
+if(!defined('URL_TO_APP')) define('URL_TO_APP', AppConfig::getInstance()->getAppUrl());
 if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "/images/");
