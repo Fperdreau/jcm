@@ -3323,7 +3323,7 @@ input.dateinput {
 }
 
 .ui-datepicker-calendar .ui-state-default {
-    background: #dddddd;
+    background: #f7f7f7;
 }
 
 .ui-datepicker-calendar .ui-state-hover {
@@ -3337,20 +3337,20 @@ input.dateinput {
 }
 
 /* Journal club day */
-.jcday, .jcday .ui-state-default {
-    color: #00A1CB;
+.jc_day, .jc_day .ui-state-default {
+    background-color: #6b98dd !important;
     font-weight:bold;
+    color: white;
 }
 
-.jcday_rem .ui-state-default{
-    color: #FC7830;
+.jc_day_rem, .jc_day_rem .ui-state-default{
+    color: #FC7830 !important;
     font-weight:bold;
 }
 
 /* Booked day */
-.bookedday .ui-state-default{
-    color: #b43d3d;
-    background: #c9d6e2;
+.full_day .ui-state-default{
+    color: #b43d3d !important;
 }
 
 .activeday>.ui-state-default {

@@ -448,13 +448,15 @@ if (!empty($_POST['get_calendar_param'])) {
     $all = array();
     foreach($Sessions->all() as $session_id=>$session_data) {
         // Count how many presentations there are for this day
+        $nb = 0;
         foreach ($session_data as $key=>$data) {
-            $nb_pres[] = count($data);
-            $type[] = $data['type'];
-            $status[] = $data['status'];
-            $slots[] = $data['slots'];
-            $formatdate[] = date('d-m-Y', strtotime($data['date']));
+            $nb += !is_null($data['id_pres']) ? 1 : 0;
         }
+        $type[] = $session_data[0]['type'];
+        $status[] = $session_data[0]['status'];
+        $slots[] = $session_data[0]['slots'];
+        $formatdate[] = date('d-m-Y', strtotime($session_data[0]['date']));
+        $nb_pres[] = $nb;
     }
 
     // Get user's availability and assignments

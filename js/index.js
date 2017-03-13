@@ -223,7 +223,6 @@ var initAvailabilityCalendar = function (data_availability) {
  */
 function renderCalendarCallback(date, data, force_select) {
     var day = date.getDay();
-    var days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     var cur_date = $.datepicker.formatDate('dd-mm-yy', date);
     var booked = $.inArray(cur_date, data.booked);
     var css = null;
@@ -232,32 +231,32 @@ function renderCalendarCallback(date, data, force_select) {
 
     // If there are sessions planned on this day
     if (booked > -1) {
-        css = "activeday";
+        css = [];
         var rem = data.slots[booked] - data.nb[booked]; // Number of presentations available that day
         var type = data.session_type[booked];
-        text = type + ": (" + rem + " presentation(s) available)";
+        text = type + ": (" + rem + " slot(s) available)";
         clickable = rem > 0 || force_select;
-        if (rem === data.slots[booked]) {
-            css = "jcday " + css;
-        } else if (rem < data.slots[booked] && rem > 0) {
-            css = "jcday_rem " + css;
+        if (data.nb[booked] === 0) {
+            css.push("jc_day");
+        } else if (data.nb[booked] < data.slots[booked]) {
+            css.push("jc_day_rem");
         } else {
-            css = "bookedday " + css;
+            css.push("full_day");
             text = type + ": Booked out";
         }
-        css = "bookedday " + css;
 
         var isAvailable = $.inArray(cur_date, data.Availability);
         if (isAvailable > -1) {
-            css = "not_available ";
-            text = "Not available";
+            css.push("not_available");
+            text = "You are not available this day";
         }
 
         var isAssigned = $.inArray(cur_date, data.Assignments);
         if (isAssigned > -1) {
-            css = "assigned ";
+            css.push("assigned");
             text = "You are presenting this day";
         }
+        css = css.join(' ');
         return [clickable, css, text];
     } else {
         return [clickable, "", "No session planned on this day"];
