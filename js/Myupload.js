@@ -69,11 +69,11 @@ var processUpl = function (data) {
                 $('.upl_filelist').append("<div class='upl_info' id='upl_" + name + "'><div class='upl_name' id='" + status + "'>" + 
                 status + "</div><div class='del_upl' id='"+status+"' data-upl='" + name + "'></div></div>");
             } else {
-                el.find('.upl_errors').html(error).show();
+                el.find('.upl_errors').addClass('warning').html(error).show();
             }
         },
         error: function(response){
-            el.find('.upl_errors').html(response.statusText).show();
+            el.find('.upl_errors').addClass('warning').html(response.statusText).show();
         }
     });
 };
@@ -215,6 +215,10 @@ $(document).ready(function() {
             window.open(url,'_blank');
         })
 
+        .on('click', '.upl_errors', function() {
+            $(this).fadeOut().empty();
+        })
+
         // Delete uploaded file
         .on('click','.del_upl',function() {
             var uplfilename = $(this).attr('id');
@@ -224,6 +228,11 @@ $(document).ready(function() {
                 if (result.status === true) {
                     $('.upl_info#upl_'+result.uplname).remove();
                     $('.upl_link#'+result.uplname).remove();
+                } else {
+                    el.find('.upl_errors')
+                        .html(result.msg)
+                        .addClass('warning')
+                        .show();
                 }
             };
             sendAjax(el,data,callback);
