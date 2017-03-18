@@ -56,7 +56,7 @@ include_once(PATH_TO_INCLUDES.'AppDb.php');
 include_once(PATH_TO_INCLUDES.'AppTable.php');
 $includeList = scandir(PATH_TO_INCLUDES);
 foreach ($includeList as $includeFile) {
-    if (!in_array($includeFile,array('.','..','boot.php','functions.php'))) {
+    if (!in_array($includeFile,array('.','..','boot.php'))) {
         require_once(PATH_TO_INCLUDES.$includeFile);
     }
 }
