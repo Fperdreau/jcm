@@ -779,6 +779,11 @@ class Presentation extends Presentations {
         if ($type == 'edit') {
             $this->getInfo($id_Presentation);
             return Presentation::form($user, $this, $type, $prestype, $date);
+        } elseif ($type == 'select') {
+            $Suggestion = new Suggestion();
+            $Suggestion->getInfo($id_Presentation);
+            return Presentation::form($user, $Suggestion, 'edit', $prestype, Session::getJcDates(1)[0]);
+
         } else {
             $Suggestion = new Suggestion();
             $Suggestion->getInfo($id_Presentation);
@@ -829,13 +834,13 @@ class Presentation extends Presentations {
     /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
      * @param User $user
-     * @param null|Presentation $Presentation
+     * @param Suggestion|Presentation $Presentation
      * @param string $submit
      * @param bool $type
      * @param bool $date
      * @return array
      */
-    public static function form(User $user, Presentation $Presentation=null, $submit="edit", $type=null, $date=null) {
+    public static function form(User $user, $Presentation=null, $submit="edit", $type=null, $date=null) {
         if (is_null($Presentation)) {
             $Presentation = new self();
         }
