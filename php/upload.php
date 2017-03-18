@@ -25,14 +25,18 @@
  */
 
 require('../includes/boot.php');
-/** @var Presentation $pub */
-$upload = new Media();
-$result = $upload->make($_FILES['file']);
-$result['name'] = false;
-if ($result['error'] == true) {
-    $name = explode('.',$result['status']);
-    $name = $name[0];
-    $result['name'] = $name;
+
+if (isset($_FILES['file'])) {
+    $upload = new Media();
+    $result = $upload->make($_FILES['file']);
+    $result['name'] = false;
+    if ($result['error'] == true) {
+        $name = explode('.', $result['status']);
+        $name = $name[0];
+        $result['name'] = $name;
+    }
+} else {
+    $result = array('name'=>false, 'error'=>"Oops, something went wrong");
 }
 
 echo json_encode($result);
