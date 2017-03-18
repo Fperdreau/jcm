@@ -80,14 +80,19 @@
 }
 
 .upl_errors {
-    box-sizing: border-box;
-    display: none;
-    width: 100%;
-    color: #990000;
-    font-size: 0.8em; /* Set message font size  */
-    padding: 5px; /* Some padding to make some more space for our text  */
-    background-color: rgba(255,255,255,.9); /* Add a background color to our status message   */
-    border: 1px solid #DFDFDF; /* Add a border arround our status message   */
+    position: absolute;
+    width: 200px;
+    left: 40px;
+    top: 100px;
+    z-index: 999;
+    border-radius: 5px;
+    padding: 10px 5px 10px 40px;
+    word-wrap: break-word;
+    font-weight: 500;
+}
+
+.upl_errors:hover {
+    cursor: pointer;
 }
 
 .upl_filetypes {
