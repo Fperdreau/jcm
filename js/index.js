@@ -38,6 +38,7 @@ var showpubform = function (formel, idpress, type, date, prestype, destination) 
     if (type === undefined) {type = "new"; }
     if (date === undefined) {date = false; }
     if (prestype === undefined) {prestype = false; }
+    if (destination === undefined) destination = 'body';
     var data = {
         getpubform: idpress,
         type: type,
@@ -239,9 +240,9 @@ function renderCalendarCallback(date, data, force_select) {
         if (data.nb[booked] === 0) {
             css.push("jc_day");
         } else if (data.nb[booked] < data.slots[booked]) {
-            css.push("jc_day_rem");
+            css.push("jc_day jc_day_rem");
         } else {
-            css.push("full_day");
+            css.push("jc_day full_day");
             text = type + ": Booked out";
         }
 
@@ -1126,7 +1127,7 @@ $(document).ready(function () {
             e.preventDefault();
             var presid = $(this).val();
             var form = $($(this).data('target'));
-            showpubform(form, presid, 'edit');
+            showpubform(form, presid, 'select');
          })
 
         // Show download list
