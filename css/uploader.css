@@ -147,10 +147,10 @@
 }
 
 .del_upl {
-    background: rgba(255, 255, 255, .7) url('../images/delete.png') no-repeat 50% 50%;
-    background-size: 15px;
+    background: rgba(255, 255, 255, .7) url('../images/trash.png') no-repeat 50% 50%;
+    background-size: 20px;
     border-left: 1px solid #999999;
-    width: 20px;
+    width: 30px;
     height: 20px;
     padding: 0;
 }
