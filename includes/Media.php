@@ -148,6 +148,7 @@ class Uploads extends AppTable{
 
         $result = "
         <div class='upl_container'>
+           <div class='upl_errors'></div>
     	   <div class='upl_form'>
                 <form method='post' enctype='multipart/form-data'>
                     <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
@@ -155,7 +156,6 @@ class Uploads extends AppTable{
                         Add Files
                         <br>(click or drop)
                         <div class='upl_filetypes'>(" . AppConfig::getInstance()->upl_types . ")</div>
-                        <div class='upl_errors'></div>
                     </div>
                 </form>
     	   </div>
