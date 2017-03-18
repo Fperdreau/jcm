@@ -133,6 +133,31 @@ class Suggestion extends AppTable {
     // MODEL
 
     /**
+     * Get publication's information from the database
+     * @param $id_pres
+     * @return bool|array
+     */
+    public function getInfo($id_pres) {
+        $sql = "SELECT p.*, u.fullname as fullname 
+                FROM {$this->tablename} p
+                LEFT JOIN ". AppDb::getInstance()->getAppTables('Users') . " u
+                    ON u.username=p.username
+                WHERE id_pres='{$id_pres}'";
+        $data = $this->db->send_query($sql)->fetch_assoc();
+
+        if (!empty($data)) {
+            $this->map($data);
+
+            // Get associated files
+            $data['link'] = $this->get_uploads();
+            return $data;
+        } else {
+            return false;
+        }
+    }
+
+
+    /**
      * Fetch list of suggestions
      * @param null $limit
      * @param string $order
@@ -160,7 +185,7 @@ class Suggestion extends AppTable {
      */
     private function get_uploads() {
         $upload = new Uploads();
-        $this->link = $upload->get_uploads($this->id_pres, 'Presentation');
+        $this->link = $upload->get_uploads($this->id_pres, 'Suggestion');
     }
 
     private function get_votes() {
