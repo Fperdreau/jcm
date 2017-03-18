@@ -3338,9 +3338,9 @@ input.dateinput {
 
 /* Journal club day */
 .jc_day, .jc_day .ui-state-default {
-    background-color: #6b98dd !important;
+    background-color: #e2c9c9 !important;
     font-weight:bold;
-    color: white;
+    color: black;
 }
 
 .jc_day_rem, .jc_day_rem .ui-state-default{
