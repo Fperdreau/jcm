@@ -101,7 +101,7 @@ function close_modal(modal_id){
  * @param sectionid: section id
  * @param modalid: modal container id
  */
-function show_section(sectionid,modalid) {
+function show_section(sectionid, modalid) {
     modalid = (modalid === undefined) ? '#modal':modalid; // Define default DOM target
     $('.modal_section').hide();
     var title = $(modalid+" .modal_section#"+sectionid).data('title');

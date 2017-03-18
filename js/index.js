@@ -26,29 +26,32 @@
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /**
  * Show form to submit a presentation
- * @param formel: ID of the form
- * @param idpress: ID of the presentation
- * @param type: form's type (submit, modify, suggest)
+ * @param el: ID of the form
+ * @param id: ID of the presentation
+ * @param controller
+ * @param operation: form's type (submit, modify, suggest)
  * @param date: presentation's date
- * @param prestype
+ * @param type: submission type
  * @param destination: destination view (body, modal)
  */
-var showpubform = function (formel, idpress, type, date, prestype, destination) {
-    if (idpress === undefined) {idpress = false; }
-    if (type === undefined) {type = "new"; }
+var get_submission_form = function (el, id, controller, operation, date, type, destination) {
+    if (id === undefined) {id = false; }
+    if (operation === undefined) {type = "new"; }
     if (date === undefined) {date = false; }
-    if (prestype === undefined) {prestype = false; }
+    if (type === undefined) {type = false; }
     if (destination === undefined) destination = 'body';
     var data = {
-        getpubform: idpress,
-        type: type,
+        get_submission_form: true,
+        id: id,
+        controller: controller,
+        operation: operation,
         date: date,
-        prestype: prestype,
+        type: type,
         destination: destination
     };
     // First we remove any existing submission form
     var callback = function (result) {
-        formel
+        el
             .html(result)
             .fadeIn(200)
             .find('textarea').html(result.content);
@@ -57,7 +60,7 @@ var showpubform = function (formel, idpress, type, date, prestype, destination) 
         tinymcesetup();
 
     };
-    processAjax(formel, data, callback, "php/form.php");
+    processAjax(el, data, callback, "php/form.php");
 
     // Load JCM calendar
     loadCalendarSessions();
@@ -377,17 +380,47 @@ var modalpubform = $('.modal_section#submission_form');
 
 /**
  * Display presentation's information in a modal window
+ * @param id
+ * @param controller
+ * @param el
+ */
+function show_submission_details (id, controller, el) {
+    id = (id === undefined) ? false : id;
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: false,
+        data: {
+            show_submission_details: true,
+            id: id,
+            controller: controller
+        },
+        success: function (data) {
+            var result = jQuery.parseJSON(data);
+            el
+                .hide()
+                .html(result)
+                .fadeIn(200);
+
+            // Load JCM calendar
+            loadCalendarSessions();
+        }
+    });
+}
+
+/**
+ * Display presentation's information in a modal window
  * @param idpress
  * @param formel
  */
-var displaypub = function (idpress, formel) {
+function display_suggestion (idpress, formel) {
     idpress = (idpress === undefined) ? false : idpress;
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: false,
         data: {
-            show_pub: idpress
+            show_suggestion_details: idpress
         },
         success: function (data) {
             var result = jQuery.parseJSON(data);
@@ -1125,9 +1158,9 @@ $(document).ready(function () {
         // Select a wish
         .on('change','#select_wish',function (e) {
             e.preventDefault();
-            var presid = $(this).val();
+            var id = $(this).val();
             var form = $($(this).data('target'));
-            showpubform(form, presid, 'select');
+            get_submission_form(form, id, 'Suggestion', 'select', undefined, undefined, 'modal');
          })
 
         // Show download list
@@ -1169,11 +1202,9 @@ $(document).ready(function () {
             // Check if a data has been selected (except for wishes)
             if (operation !== "suggest") {
                 var date = $("input.datepicker").val();
-                if ((date === "0000-00-00" || date === "") && type !== "wishlist") {
-                    showfeedback('<p id="warning">You must choose a date!</p>');
-                    form.find("input.datepicker").focus();
-                    return false;
-                }
+                showfeedback('<p id="warning">You must choose a date!</p>');
+                form.find("input.datepicker").focus();
+                return false;
             }
 
             // Check if files have been uploaded and attach them to this presentation
@@ -1230,24 +1261,37 @@ $(document).ready(function () {
         })
 
         // Show publication information on click
-        .on('click','.modal_trigger_pubcontainer',function (e) {
+        .on('click','.show_submission_details',function (e) {
             e.preventDefault();
             var id_pres = $(this).attr('data-id');
-            displaypub(id_pres, modalpubform);
+            var controller = $(this).data('controller');
+            show_submission_details(id_pres, controller, modalpubform);
         })
 
         // Choose a wish
-        .on('click','#modal_trigger_pubmod',function (e) {
+        .on('click','.get_submission_form',function (e) {
             e.preventDefault();
             var id_pres = $(this).data('id');
             var date = $(this).data('date');
-            showpubform(modalpubform, id_pres, 'edit', date);
+            var controller = $(this).data('controller');
+            var operation = $(this).data('operation');
+            var destination = $(this).data('destination');
+            if (destination === undefined) {
+                destination = 'body';
+            }
+            var el = (destination == 'body') ? $('.submission_container') : modalpubform;
+            get_submission_form(el, id_pres, controller, operation, date, undefined, destination);
         })
 
-        .on('click','#modal_trigger_newpub',function (e) {
-            e.preventDefault();
-            var type = $(this).data('type');
-            showpubform(modalpubform, false, type, false, false, 'modal');
+        .on('click', '.get_suggestion_list', function(e) {
+            var data = {'get_suggestion_list': true};
+            // First we remove any existing submission form
+            var callback = function (result) {
+                modalpubform
+                    .html(result)
+                    .fadeIn(200);
+            };
+            processAjax(modalpubform, data, callback, "php/form.php");
         })
 
         .on('click', '.load_content', function(e) {
@@ -1260,10 +1304,10 @@ $(document).ready(function () {
                 var pair = pairs[i].split("=");
                 args[pair[0]] = pair[1];
             }
-            var type = (args['op'] !== undefined) ? args['op'] : false;
-            if (type == 'wishpick') {
-                var data = {'show_wish_list': true};
-                var el = $('.submission_container');
+
+            var operation = (args['op'] !== undefined) ? args['op'] : false;
+            if (operation == 'wishpick') {
+                var data = {'get_suggestion_list': true};
                 // First we remove any existing submission form
                 var callback = function (result) {
                     el
@@ -1272,7 +1316,11 @@ $(document).ready(function () {
                 };
                 processAjax(el, data, callback, "php/form.php");
             } else {
-                showpubform($('.submission_container'), false, type);
+                var id_pres = $(this).data('id');
+                var date = $(this).data('date');
+                var controller = $(this).data('controller');
+                operation = $(this).data('operation');
+                get_submission_form(el, id_pres, controller, operation, date);
             }
         })
 
@@ -1308,16 +1356,21 @@ $(document).ready(function () {
 		// Show publication modification form
         .on('click','.modify_ref',function (e) {
             e.preventDefault();
-            var id_pres = $(this).attr("data-id");
-            showpubform(modalpubform, id_pres, 'edit');
+            var id_pres = $(this).data("id");
+            var controller = $(this).data("controller");
+            get_submission_form(modalpubform, id_pres, controller, 'edit');
         })
 
 		// Show publication deletion confirmation
         .on('click',".delete_ref",function (e) {
             e.preventDefault();
-            var id_pres = $(this).attr("data-id");
+            var id_pres = $(this).data("id");
+            var controller = $(this).data('controller');
             show_section('pub_delete');
-            $("#pub_delete").append('<input type=hidden id="del_pub" value="' + id_pres + '"/>');
+            $("#pub_delete").append('' +
+                '<input type=hidden name="del_pub" value="' + id_pres + '"/>' +
+                    '<input type=hidden name="controller" value="' + controller + '"/>' +
+                '');
         })
 
         // Going back to publication
@@ -1329,8 +1382,9 @@ $(document).ready(function () {
         // Confirm delete publication
         .on('click',"#confirm_pubdel",function (e) {
             e.preventDefault();
-            var id_pres = $("input#del_pub").val();
-            var data = {del_pub:id_pres};
+            var id_pres = $("input[name='del_pub']").val();
+
+            var data = {del_pub:id_pres, controller: $("input[name='controller']").val()};
             var el = $('.modal_section#pub_delete');
             var callback = function (result) {
                 if (result.status === true) {

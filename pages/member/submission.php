@@ -82,35 +82,7 @@ if (isset($_POST['op'])) {
 }
 
 // Submission menu
-$submitMenu = "
-    <div class='submitMenu_fixed'>
-        <div class='submitMenuContainer'>
-            <div class='submitMenuSection'>
-                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=edit' . "' class='load_content' data-section='submission_form' data-type='submit'>
-                   <div class='icon_container'>
-                        <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
-                        <div class='text'>Submit</div>
-                    </div>
-               </a>
-            </div>
-            <div class='submitMenuSection'>
-                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' class='load_content' data-section='submission_form' data-type='suggest'>
-                   <div class='icon_container'>
-                        <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
-                        <div class='text'>Add a wish</div>
-                    </div>
-                </a>
-            </div>
-            <div class='submitMenuSection'>
-                <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=wishpick' . "' class='load_content' data-section='submission_form' data-type='select'>
-                    <div class='icon_container'>
-                        <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
-                        <div class='text'>Select a wish</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>";
+$submitMenu = Presentation::submitMenu('body');
 
 $form_section = null;
 if (!is_null($section_content)) {

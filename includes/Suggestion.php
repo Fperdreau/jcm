@@ -73,6 +73,55 @@ class Suggestion extends AppTable {
     }
 
     /**
+     * Delete a presentation
+     * @param $pres_id
+     * @return bool
+     */
+    public function delete_pres($pres_id) {
+        $this->getInfo($pres_id);
+
+        // Delete corresponding file
+        $uploads = new Uploads();
+        $uploads->delete_files($this->id_pres);
+
+        // Delete corresponding entry in the publication table
+        return $this->delete(array('id_pres'=>$pres_id));
+    }
+
+    /**
+     * Render submission editor
+     * @param array|null $post
+     * @return array
+     */
+    public function editor(array $post=null) {
+        $post = (is_null($post)) ? $_POST : $post;
+
+        $id_Presentation = $post['id'];
+        if (!isset($_SESSION['username'])) {
+            $_SESSION['username'] = false;
+        }
+        $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
+        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
+
+        $user = new User($_SESSION['username']);
+        $destination = (!empty($post['destination'])) ? $post['destination'] : null;
+
+        if ($operation == 'selection_list') {
+            $result['content'] = $this->generate_selectwishlist('.selection_container', $destination);
+            $result['title'] = "Select a wish";
+            $result['description'] = Suggestion::description("wishpick");
+            return $result;
+        } elseif ($operation == 'select') {
+            $Suggestion = new Suggestion();
+            $Suggestion->getInfo($id_Presentation);
+            return Presentation::form($user, $Suggestion, 'edit', $operation, Session::getJcDates(1)[0]);
+        } else {
+            $this->getInfo($id_Presentation);
+            return Suggestion::form($user, $this, $operation, $type);
+        }
+    }
+
+    /**
      * Register into DigestMaker table
      */
     public static function registerDigest() {
@@ -97,17 +146,18 @@ class Suggestion extends AppTable {
 
     /**
      * Generate wish list (select menu)
-     * @param string $target
+     * @param string $target: div in which the returned edit form will be loaded
+     * @param string $destination: body or modal window
      * @return string
      */
-    public function generate_selectwishlist($target='.submission') {
+    public function generate_selectwishlist($target='.submission', $destination='body') {
 
         $option = "<option disabled selected>Select a suggestion</option>";
         foreach ($this->getAll() as $key=>$item) {
             $option .= "<option value='{$item['id_pres']}'>{$item['authors']} | {$item['title']}</option>";
         }
 
-        return self::select_menu($option, $target);
+        return self::select_menu($option, $target, $destination);
     }
 
     /**
@@ -208,7 +258,7 @@ class Suggestion extends AppTable {
                 {$update}
             </div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-               <a href='$url' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' data-id='{$item->id_pres}'>
+               <a href='$url' class='leanModal show_submission_details' data-section='submission_form' data-controller='Suggestion' data-id='{$item->id_pres}'>
                     <div style='font-size: 16px;'>{$item->title}</div>
                     <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
                 </a>
@@ -228,19 +278,22 @@ class Suggestion extends AppTable {
      * Render select menu
      * @param $option
      * @param string $target
+     * @param string $destination
      * @return string
      */
-    private static function select_menu($option, $target='.submission') {
-        return "<form method='post' action='php/form.php' class='form'>
+    private static function select_menu($option, $target='.submission', $destination='body') {
+        return "
+          <form method='post' action='php/form.php'>
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
               <div class='form-group field_auto' style='margin: auto; width: 250px;'>
-                <select name='id' id='select_wish' data-target='{$target}'>
+                <select name='id' id='select_wish' data-target='{$target}' data-destination='{$destination}'>
                     {$option}
                 </select>
                 <label for='id'>Select a suggestion</label>
               </div>
-          </form>";
+          </form>
+          <div class='selection_container'></div> ";
     }
 
     /**
@@ -308,12 +361,11 @@ class Suggestion extends AppTable {
         if ($submit == 'suggest') {
             $result['title'] = "Add a suggestion";
         } elseif ($submit == "edit") {
-            $result['title'] = "Add/Edit suggestion";
+            $result['title'] = "Edit suggestion";
         } elseif ($submit == "wishpick") {
             $result['title'] = "Select a wish";
         }
         $result['content'] = "
-            <div class='section_suggestion_container'>" . $Presentation->generate_selectwishlist() . "</div>
             <div class='submission'>
                 $form
             </div>
@@ -349,6 +401,103 @@ class Suggestion extends AppTable {
         }
         return $result;
 
+    }
+
+    /**
+     * Render download menu
+     * @param array $links
+     * @param bool $email
+     * @return array
+     */
+    private static function download_menu(array $links, $email=false) {
+        $content = array();
+        if (!empty($links)) {
+            if ($email) {
+                // Show files list as a drop-down menu
+                $content['button'] = "<div class='dl_btn pub_btn icon_btn'>
+                    <img src='".AppConfig::$site_url."images/download.png'></div>";
+                $menu = null;
+                foreach ($links as $file_id=>$info) {
+                    $menu .= "
+                        <div class='dl_info'>
+                            <div class='dl_type'>".strtoupper($info['type'])."</div>
+                            <div class='link_name dl_name' id='".$info['filename']."'>$file_id</div>
+                        </div>";
+                }
+                $content['menu'] .= "<div class='dlmenu'>{$menu}</div>";
+            } else {
+                // Show files list as links
+                $menu = null;
+                foreach ($links as $file_id=>$info) {
+                    $url_link = AppConfig::$site_url."uploads/".$info['filename'];
+                    $menu .= "
+                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
+                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                        <a href='$url_link' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                    </div>";
+                }
+                $content['menu'] = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; 
+                    height: auto; margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$menu}</div>";
+            }
+        } else {
+            $content['button'] = "<div style='width: 100px'></div>";
+            $content['menu'] = null;
+        }
+        return $content;
+    }
+
+    /**
+     * Display presentation details.
+     * @param array $data: presentation information
+     * @param bool $show : show buttons (true)
+     * @return string
+     */
+    public static function details(array $data, $show=false) {
+
+        $dl_menu = (!is_null($data['link'])) ? self::download_menu($data['link'], $show) : null;
+        $file_div = $show ? $dl_menu['menu'] : null;
+
+        // Add a delete link (only for admin and organizers or the authors)
+        if ($show) {
+            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' data-controller='Suggestion' class='delete_ref'>
+                <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' data-controller='Suggestion'>
+                <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
+        } else {
+            $delete_button = "<div style='width: 100px'></div>";
+            $modify_button = "<div style='width: 100px'></div>";
+        }
+
+        $type = ucfirst($data['type']);
+        $result = "
+        <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
+            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
+                {$type}
+            </div>
+            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>{$data['title']}</div>
+            <div id='pub_orator'>
+                <span style='color:#CF5151; font-weight: bold;'>Suggested by: </span>{$data['fullname']}
+            </div>
+            <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>{$data['authors']}</div>
+        </div>
+
+        <div class='pub_abstract'>
+            <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>{$data['summary']}
+        </div>
+
+        <div class='pub_action_btn'>
+            <div class='pub_one_half'>
+                {$dl_menu['button']}
+                {$dl_menu['menu']}
+            </div>
+            <div class='pub_one_half last'>
+                {$delete_button}
+                {$modify_button}
+            </div>
+        </div>
+        {$file_div}
+        ";
+        return $result;
     }
 
 }

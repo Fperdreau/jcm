@@ -319,9 +319,7 @@ class Presentation extends Presentations {
             }
 
             // If not a wish, add date
-            if ($post['type'] !== 'wishlist') {
-                $this->date = $post['date'];
-            }
+            $this->date = $post['date'];
 
             $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link","chair"));
             // Add publication to the database
@@ -497,8 +495,8 @@ class Presentation extends Presentations {
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='" . URL_TO_APP . "index.php?page=presentation?id={$presentation->id_pres}" . "' class='leanModal' 
-                    id='modal_trigger_pubcontainer' data-section='submission_form' data-id='$presentation->id_pres'>
+                    <a href='" . URL_TO_APP . "index.php?page=presentation?id={$presentation->id_pres}" . "' class='leanModal get_submission_form' 
+                    data-controller='Presentation' data-operation='' data-section='submission_form' data-id='$presentation->id_pres'>
                         $presentation->title
                     </a>
                 </div>
@@ -529,8 +527,8 @@ class Presentation extends Presentations {
      * @return array
      */
     public static function inSessionEdit(array $data) {
-        $view_button = "<a href='' class='leanModal modal_trigger_pubcontainer pub_btn icon_btn' data-section='submission_form' 
-            data-id='{$data['id_pres']}'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
+        $view_button = "<a href='' class='leanModal get_submission_form pub_btn icon_btn' data-controller='Presentation'
+            data-section='submission_form' data-id='{$data['id_pres']}'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
                 <div style='display: block !important;'>{$data['title']}</div>
@@ -551,7 +549,7 @@ class Presentation extends Presentations {
      */
     private static function RenderTitle(array $data) {
         $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
-        return "<a href='{$url}' class='leanModal' id='modal_trigger_pubcontainer' data-section='submission_form' 
+        return "<a href='{$url}' class='leanModal show_submission_details' data-controller='Presentation' data-section='submission_form' 
             data-id='{$data['id_pres']}'>{$data['title']}</a>";
     }
 
@@ -714,9 +712,10 @@ class Presentation extends Presentations {
 
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
-            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='delete_ref'>
+            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' 
+                            data-controller='Presentation' class='delete_ref'>
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref'>
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' data-controller='Presentation' data-operation='edit'>
                 <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
@@ -766,29 +765,19 @@ class Presentation extends Presentations {
     public function editor(array $post=null) {
         $post = (is_null($post)) ? $_POST : $post;
 
-        $id_Presentation = $post['getpubform'];
+        $id_Presentation = $post['id'];
         if (!isset($_SESSION['username'])) {
             $_SESSION['username'] = false;
         }
 
         $date = (!empty($post['date']) && $post['date'] !== 'false') ? $post['date'] : null;
+        $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
-        $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype'] : null;
 
         $user = new User($_SESSION['username']);
-        if ($type == 'edit') {
-            $this->getInfo($id_Presentation);
-            return Presentation::form($user, $this, $type, $prestype, $date);
-        } elseif ($type == 'select') {
-            $Suggestion = new Suggestion();
-            $Suggestion->getInfo($id_Presentation);
-            return Presentation::form($user, $Suggestion, 'edit', $prestype, Session::getJcDates(1)[0]);
+        $this->getInfo($id_Presentation);
+        return Presentation::form($user, $this, $operation, $type, $date);
 
-        } else {
-            $Suggestion = new Suggestion();
-            $Suggestion->getInfo($id_Presentation);
-            return Suggestion::form($user, $Suggestion, $type, $prestype);
-        }
     }
 
     /**
@@ -1076,16 +1065,17 @@ class Presentation extends Presentations {
 
     /**
      * Submission menu
-     * @param $style
+     * @param string $destination : body or modal
+     * @param string $style: submitMenuFloat or submitMenu_fixed
      * @return string
      */
-    public static function submitMenu($style) {
-        $class = ($style === 'float') ? "submitMenuFloat" : "submitMenu_fixed";
+    public static function submitMenu($destination='body', $style='submitMenu_fixed') {
+        $modal = $destination == 'body' ? null : "leanModal";
         return "
-            <div class='{$class}'>
+            <div class='{$style}'>
                 <div class='submitMenuContainer'>
                     <div class='submitMenuSection'>
-                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='edit'>
+                        <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=edit' . "' class='{$modal} get_submission_form' data-controller='Presentation' data-section='submission_form' data-destination='{$destination}' data-operation='edit'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
                                 <div class='text'>Submit</div>
@@ -1093,7 +1083,7 @@ class Presentation extends Presentations {
                        </a>
                     </div>
                     <div class='submitMenuSection'>
-                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='suggest'>
+                        <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' class='{$modal} get_submission_form' data-controller='Suggestion' data-section='submission_form' data-destination='{$destination}' data-operation='suggest'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
                                 <div class='text'>Add a wish</div>
@@ -1101,7 +1091,7 @@ class Presentation extends Presentations {
                         </a>
                     </div>
                     <div class='submitMenuSection'>
-                        <a href='' class='leanModal' id='modal_trigger_newpub' data-section='submission_form' data-type='wishpick'>
+                        <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=wishpick' . "' class='{$modal} get_submission_form' data-controller='Suggestion' data-section='submission_form' data-destination='{$destination}' data-operation='selection_list'>
                             <div class='icon_container'>
                                 <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
                                 <div class='text'>Select a wish</div>

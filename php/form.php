@@ -721,10 +721,11 @@ if (!empty($_POST['del_upl'])) {
 
 //  delete presentation
 if (!empty($_POST['del_pub'])) {
-    $Presentation = new Presentation();
+    $controller = htmlspecialchars($_POST['controller']);
+    $Controller = new $controller();
     $id_Presentation = htmlspecialchars($_POST['del_pub']);
-    if ($Presentation->delete_pres($id_Presentation)) {
-        $result['msg'] = "The presentation has been deleted!";
+    if ($Controller->delete_pres($id_Presentation)) {
+        $result['msg'] = "Item has been deleted!";
         $result['status'] = true;
     } else {
         $result['status'] = false;
@@ -743,7 +744,6 @@ if (!empty($_POST['edit'])) {
 
 // Add a suggestion
 if (isset($_POST['suggest'])) {
-    $_POST['type'] = "wishlist";
     $pres = new Suggestion();
     $created = $pres->add_suggestion($_POST);
     if ($created !== false && $created !== "exist") {
@@ -760,13 +760,18 @@ if (isset($_POST['suggest'])) {
 }
 
 // Display submission form
-if (!empty($_POST['getpubform'])) {
+if (!empty($_POST['get_submission_form'])) {
+    $controller_name = htmlspecialchars($_POST['controller']);
     $destination = isset($_POST['destination']) ? htmlspecialchars($_POST['destination']) : 'body';
-    $Presentation = new Presentation();
+
+    /**
+     * @var Suggestion|Presentation $Controller
+     */
+    $Controller = new $controller_name();
     if ($destination === "body") {
-        echo json_encode($Presentation::format_section($Presentation->editor($_POST)));
+        echo json_encode(Presentation::format_section($Controller->editor($_POST)));
     } else {
-        echo json_encode($Presentation::format_modal($Presentation->editor($_POST)));
+        echo json_encode(Presentation::format_modal($Controller->editor($_POST)));
     }
     exit;
 }
@@ -777,30 +782,23 @@ if (!empty($_POST['getFormContent'])) {
     echo json_encode($Presentation::get_form_content($Presentation, $type));
 }
 
-// Show wishlist selector
-if (!empty($_POST['show_wish_list'])) {
-    $Suggestion = new Suggestion();
-    $result['content'] = $Suggestion->generate_selectwishlist('.submission_container');
-    $result['title'] = "Select a wish";
-    $result['description'] = Suggestion::description("wishpick");
-
-    echo json_encode(Presentation::format_section($result));
-    exit;
-}
-
 // Display presentation (modal dialog)
-if (!empty($_POST['show_pub'])) {
-    $id_Presentation = htmlspecialchars($_POST['show_pub']);
+if (!empty($_POST['show_submission_details'])) {
+    $id_Presentation = htmlspecialchars($_POST['id']);
+    $controller_name = htmlspecialchars($_POST['controller']);
     if ($id_Presentation === "false") {
         $id_Presentation = false;
     }
 
-    $pub = new Presentation();
-    $data = $pub->getInfo($id_Presentation);
+    /**
+     * @var Suggestion|Presentation $Controller
+     */
+    $Controller = new $controller_name();
+    $data = $Controller->getInfo($id_Presentation);
     $user = User::is_logged() ? new User($_SESSION['username']) : null;
     $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
             || $data['orator'] === $user->username);
-    $form = Presentation::details($data, $show);
+    $form = $Controller::details($data, $show);
     echo json_encode($form);
     exit;
 }
@@ -818,6 +816,23 @@ if (!empty($_POST['getform'])) {
     $pub = new Presentation();
     $user = new User($_SESSION['username']);
     echo json_encode(Presentation::form($user, $pub, 'submit'));
+    exit;
+}
+
+// Display presentation (modal dialog)
+if (!empty($_POST['show_suggestion_details'])) {
+    $id_Presentation = htmlspecialchars($_POST['show_suggestion_details']);
+    if ($id_Presentation === "false") {
+        $id_Presentation = false;
+    }
+
+    $pub = new Suggestion();
+    $data = $pub->getInfo($id_Presentation);
+    $user = User::is_logged() ? new User($_SESSION['username']) : null;
+    $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
+            || $data['orator'] === $user->username);
+    $form = Suggestion::details($data, $show);
+    echo json_encode($form);
     exit;
 }
 
