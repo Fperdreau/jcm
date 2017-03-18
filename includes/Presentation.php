@@ -294,6 +294,7 @@ class Presentation extends Presentations {
         $config = AppConfig::getInstance();
         $this->jc_time = "$config->jc_time_from,$config->jc_time_to";
         $this->up_date = date('Y-m-d h:i:s'); // Date of creation
+        $this->date = Session::getJcDates(1)[0]; // Set next planned session date as default
         if (!is_null($id_pres)) {
             $this->getInfo($id_pres);
         }
@@ -766,19 +767,22 @@ class Presentation extends Presentations {
         $post = (is_null($post)) ? $_POST : $post;
 
         $id_Presentation = $post['getpubform'];
-        $pub = $id_Presentation == "false" ? null : new self($id_Presentation);
         if (!isset($_SESSION['username'])) {
             $_SESSION['username'] = false;
         }
+
         $date = (!empty($post['date']) && $post['date'] !== 'false') ? $post['date'] : null;
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
         $prestype = (!empty($post['prestype']) && $post['prestype'] !== 'false') ? $post['prestype'] : null;
 
         $user = new User($_SESSION['username']);
-        if ($type === 'edit') {
-            return Presentation::form($user, $pub, $type, $prestype, $date);
+        if ($type == 'edit') {
+            $this->getInfo($id_Presentation);
+            return Presentation::form($user, $this, $type, $prestype, $date);
         } else {
-            return Suggestion::form($user, $pub, $type, $prestype);
+            $Suggestion = new Suggestion();
+            $Suggestion->getInfo($id_Presentation);
+            return Suggestion::form($user, $Suggestion, $type, $prestype);
         }
     }
 
