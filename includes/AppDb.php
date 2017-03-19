@@ -105,7 +105,8 @@ class AppDb {
             "Assignment" => $this->config['dbprefix'] . "_assignment",
             "Availability" => $this->config['dbprefix'] . "_availability",
             "Suggestion" => $this->config['dbprefix'] . "_suggestion",
-            "Vote" => $this->config['dbprefix'] . "_vote"
+            "Vote" => $this->config['dbprefix'] . "_vote",
+            "Bookmark" => $this->config['dbprefix'] . "_bookmark"
         );
     }
 
