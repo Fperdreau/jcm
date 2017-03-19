@@ -136,10 +136,14 @@ class Suggestion extends AppTable {
      */
     public function getWishList($number=null) {
         $limit = (is_null($number)) ? null : " LIMIT {$number}";
-
+        $vote = new Vote();
+        $bookmark = new Bookmark();
         $wish_list = null;
+        $username = isset($_SESSION['username']) ? $_SESSION['username'] : null;
         foreach ($this->getAll($limit) as $key=>$item) {
-            $wish_list .= self::inList((object)$item);
+            $vote_icon = $vote->getIcon($item['id_pres'], 'Suggestion', $username);
+            $bookmark_icon = $bookmark->getIcon($item['id_pres'], 'Suggestion', $username);
+            $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
         return (is_null($wish_list)) ? self::no_wish() : $wish_list;
     }
@@ -238,17 +242,15 @@ class Suggestion extends AppTable {
         $this->link = $upload->get_uploads($this->id_pres, 'Suggestion');
     }
 
-    private function get_votes() {
-
-    }
-
     // VIEWS
     /**
      * Render suggestion in list
      * @param stdClass $item
+     * @param null|string $vote
+     * @param null|string $bookmark
      * @return string
      */
-    public static function inList(stdClass $item) {
+    public static function inList(stdClass $item, $vote=null, $bookmark=null) {
         $update = date('d M y',strtotime($item->up_date));
         $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=submission&op=wishpick&id={$item->id_pres}";
         return "
@@ -258,10 +260,16 @@ class Suggestion extends AppTable {
                 {$update}
             </div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-               <a href='$url' class='leanModal show_submission_details' data-section='submission_form' data-controller='Suggestion' data-id='{$item->id_pres}'>
-                    <div style='font-size: 16px;'>{$item->title}</div>
-                    <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
-                </a>
+               <div>
+                   <a href='$url' class='leanModal show_submission_details' data-section='submission_form' data-controller='Suggestion' data-id='{$item->id_pres}'>
+                        <div style='font-size: 16px;'>{$item->title}</div>
+                        <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
+                   </a>
+               </div>
+            </div>
+            <div class='tiny_icon_container'>
+                {$vote}
+                {$bookmark}            
             </div>
         </div>";
     }
