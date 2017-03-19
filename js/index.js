@@ -496,6 +496,29 @@ function show_submenu(el) {
     }
 }
 
+function process_vote(el) {
+    var parent = el.parent('.vote_container');
+    var data = parent.data();
+    data['process_vote'] = true;
+    var operation = data['operation'];
+    console.log(data);
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: data,
+        type: 'post',
+        success: function(data) {
+            var result = jQuery.parseJSON(data);
+            if (result === true) {
+                if (operation == 'delete') {
+                    el.toggleClass('vote_liked vote_default');
+                } else if (operation == 'add') {
+                    el.toggleClass('vote_default vote_liked');
+                }
+            }
+        }
+    });
+}
+
 $(document).ready(function () {
     var previous;
 
@@ -1242,6 +1265,21 @@ $(document).ready(function () {
             processAjax(div, data, callback, "php/form.php");
             e.stopImmediatePropagation();
         })
+
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Votes
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        .on('click', '.vote_icon', function (e) {
+            process_vote($(this));
+        })
+
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Bookmarks
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        .on('click', '.vote_icon', function (e) {
+            process_bookmark($(this));
+        })
+
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Modal triggers
