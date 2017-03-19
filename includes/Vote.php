@@ -11,7 +11,7 @@ class Vote extends AppTable {
     protected $table_data = array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "ref_id" => array("BIGINT(15)", false),
-        "ref_obj" => array("BIGINT(15)", false),
+        "ref_obj" => array("CHAR(55)", false),
         "date" => array("DATETIME", false),
         "username" => array("CHAR(255) NOT NULL"),
         "primary" => "id"
@@ -31,14 +31,62 @@ class Vote extends AppTable {
     }
 
     /**
+     * Add vote to db if it does not already exist
+     * @param array $post
+     * @return bool
+     */
+    public function add(array $post) {
+        if (User::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
+            $post['date'] = date('Y-m-d');
+            $post['username'] = $_SESSION['username'];
+            return $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
+                $post));
+        } else {
+            return false;
+        }
+    }
+
+
+    /**
+     * Add vote to db if it does not already exist
+     * @param array $post
+     * @return bool
+     */
+    public function delete(array $post) {
+        if (User::is_logged()) {
+            $id = array(
+                'ref_id'=>$post['ref_id'],
+                'ref_obj'=>$post['ref_obj'],
+                'username'=>$_SESSION['username']
+            );
+            return $this->db->delete($this->tablename, $id);
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Get votes associated to an object
      * @param string $id
      * @param string $ref_obj
      * @return array
      */
-    public static function get_votes($id, $ref_obj) {
-        $vote = new self();
-        return $vote->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
+    public function get_votes($id, $ref_obj) {
+        return $this->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
+    }
+
+    /**
+     * Get vote icon
+     * @param $id
+     * @param $ref_obj
+     * @param $username
+     * @return string
+     */
+    public function getIcon($id, $ref_obj, $username) {
+        $data = $this->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
+        $vote = !empty($data) ? count($data) : 0;
+        $status = $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
+        return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$vote), $status);
     }
 
     // VIEWS
@@ -51,14 +99,14 @@ class Vote extends AppTable {
     public static function show(array $data, $status) {
         if ($status) {
             $css_icon = 'vote_liked';
-            $operation = 'dislike';
+            $operation = 'delete';
         } else {
             $css_icon = 'vote_default';
-            $operation = 'like';
+            $operation = 'add';
         }
         return "
-        <div class='vote_container' data-refid='{$data['ref_id']}' data-refobj='{$data['ref_obj']}' data-op='{$operation}'>
-            <div class='vote_icon {$css_icon}'></div>
+        <div class='vote_container' data-controller='Vote' data-ref_id='{$data['ref_id']}' data-ref_obj='{$data['ref_obj']}' data-operation='{$operation}'>
+            <div class='tiny_icon vote_icon {$css_icon}'></div>
             <div class='vote_count'>{$data['count']}</div>
         </div>";
     }
