@@ -1683,6 +1683,77 @@ h3 {
 }
 
 /* *********************************************************************/
+/* Vote icon
+/* *********************************************************************/
+.tiny_icon_container {
+    float: right;
+}
+
+.tiny_icon_container>div {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+.tiny_icon_container>div:first-child {
+    margin-right: 5px;
+}
+
+.vote_container > div {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 12px;
+    line-height: 12px;
+}
+
+.tiny_icon {
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+}
+
+.vote_icon {
+    background-image: url(../images/vote_16_bk.png);
+}
+
+.vote_icon:hover {
+    opacity: 1.0;
+}
+
+.vote_liked {
+    background-color: rgba(150, 188, 212, 1);
+}
+
+.vote_default {
+    opacity: 0.8;
+}
+
+/* *********************************************************************/
+/* Bookmark icon
+/* *********************************************************************/
+
+.bookmark_container {
+    float: right;
+    background-image: url(../images/bookmark_16_bk.png);
+}
+
+.bookmark_container:hover {
+    opacity: 1;
+}
+
+.bookmark_on {
+    background-color: rgba(150, 188, 212, 1);
+}
+
+.bookmark_off {
+    opacity: 0.8;
+    background-color: white;
+}
+
+/* *********************************************************************/
 /* Buttons
 /* *********************************************************************/
 
