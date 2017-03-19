@@ -496,12 +496,15 @@ function show_submenu(el) {
     }
 }
 
+/**
+ * Process votes
+ * @param el: DOM element (vote icon)
+ */
 function process_vote(el) {
     var parent = el.parent('.vote_container');
     var data = parent.data();
     data['process_vote'] = true;
     var operation = data['operation'];
-    console.log(data);
     jQuery.ajax({
         url: 'php/form.php',
         data: data,
@@ -511,13 +514,43 @@ function process_vote(el) {
             if (result === true) {
                 if (operation == 'delete') {
                     el.toggleClass('vote_liked vote_default');
+                    el.attr('data-operation', 'add');
                 } else if (operation == 'add') {
                     el.toggleClass('vote_default vote_liked');
+                    el.attr('data-operation', 'delete');
                 }
             }
         }
     });
 }
+
+/**
+ * Process bookmark
+ * @param el: DOM element (bookmark icon)
+ */
+function process_bookmark(el) {
+    var data = el.data();
+    data['process_vote'] = true;
+    var operation = data['operation'];
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: data,
+        type: 'post',
+        success: function(data) {
+            var result = jQuery.parseJSON(data);
+            if (result === true) {
+                if (operation == 'delete') {
+                    el.toggleClass('bookmark_on bookmark_off');
+                    el.attr('data-operation', 'add');
+                } else if (operation == 'add') {
+                    el.toggleClass('bookmark_off bookmark_on');
+                    el.attr('data-operation', 'delete');
+                }
+            }
+        }
+    });
+}
+
 
 $(document).ready(function () {
     var previous;
@@ -1276,10 +1309,9 @@ $(document).ready(function () {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Bookmarks
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.vote_icon', function (e) {
+        .on('click', '.bookmark_container', function (e) {
             process_bookmark($(this));
         })
-
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Modal triggers
