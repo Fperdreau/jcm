@@ -1219,3 +1219,14 @@ if (!empty($_POST['session_type_default'])) {
     echo json_encode($result);
     exit;
 }
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Votes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+if (!empty($_POST['process_vote'])) {
+    $controller_name = $_POST['controller'];
+    $Operation = $_POST['operation'];
+    $Controller = new $controller_name();
+    echo json_encode($Controller->$Operation($_POST));
+    exit;
+}
