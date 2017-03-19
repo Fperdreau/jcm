@@ -78,11 +78,11 @@ class AppTable {
     protected function parsenewdata($class_vars, $post=array(), $exclude=array()) {
         $post_keys = array_keys($post);
         $content = array();
-        foreach ($class_vars as $name=>$value) {
-            if (in_array($name, $class_vars) && !in_array($name,$exclude) && !in_array($name, self::$default_exclude)) {
-                $value = in_array($name,$post_keys) ? $post[$name]: $this->$name;
+        foreach ($post as $name=>$value) {
+            if (in_array($name, array_keys($class_vars)) && !in_array($name, $exclude) && !in_array($name, self::$default_exclude)) {
+                $value = in_array($name, $post_keys) ? $post[$name]: $this->$name;
                 $this->$name = $value;
-                $value = (is_array($value)) ? json_encode($value):$value;
+                $value = (is_array($value)) ? json_encode($value) : $value;
                 $content[$name] = $value;
             }
         }
