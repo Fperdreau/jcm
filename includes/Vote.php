@@ -90,10 +90,11 @@ class Vote extends AppTable {
      * @param $username
      * @return string
      */
-    public function getIcon($id, $ref_obj, $username) {
-        $data = $this->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
+    public static function getIcon($id, $ref_obj, $username) {
+        $self = new self();
+        $data = $self->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
         $vote = !empty($data) ? count($data) : 0;
-        $status = $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
+        $status = $self->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
         return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$vote), $status);
     }
 

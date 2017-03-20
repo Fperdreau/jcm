@@ -68,8 +68,9 @@ class Bookmark extends AppTable {
      * @param $username
      * @return string
      */
-    public function getIcon($id, $ref_obj, $username) {
-        $status = $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
+    public static function getIcon($id, $ref_obj, $username) {
+        $self = new self();
+        $status = $self->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
         return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj), $status);
     }
 
