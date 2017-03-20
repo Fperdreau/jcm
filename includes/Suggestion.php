@@ -136,13 +136,11 @@ class Suggestion extends AppTable {
      */
     public function getWishList($number=null) {
         $limit = (is_null($number)) ? null : " LIMIT {$number}";
-        $vote = new Vote();
-        $bookmark = new Bookmark();
         $wish_list = null;
         $username = isset($_SESSION['username']) ? $_SESSION['username'] : null;
         foreach ($this->getAll($limit) as $key=>$item) {
-            $vote_icon = $vote->getIcon($item['id_pres'], 'Suggestion', $username);
-            $bookmark_icon = $bookmark->getIcon($item['id_pres'], 'Suggestion', $username);
+            $vote_icon = Vote::getIcon($item['id_pres'], 'Suggestion', $username);
+            $bookmark_icon = Bookmark::getIcon($item['id_pres'], 'Suggestion', $username);
             $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
         return (is_null($wish_list)) ? self::no_wish() : $wish_list;
@@ -494,6 +492,11 @@ class Suggestion extends AppTable {
 
         <div class='pub_abstract'>
             <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>{$data['summary']}
+        </div>
+        
+        <div>
+            <input type='submit' class='select_suggestion' value='Present it' data-id='{$data['id_pres']}' 
+            data-target='#submission_form'/>
         </div>
 
         <div class='pub_action_btn'>

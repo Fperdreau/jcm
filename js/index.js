@@ -1201,6 +1201,13 @@ $(document).ready(function () {
             get_submission_form(form, id, 'Suggestion', 'select', undefined, undefined, 'modal');
          })
 
+        .on('click', '.select_suggestion', function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var form = $($(this).data('target'));
+            get_submission_form(form, id, 'Suggestion', 'select', undefined, undefined, 'modal');
+        })
+
         // Show download list
         .on('click','.dl_btn',function () {
             $(".dlmenu").toggle();
