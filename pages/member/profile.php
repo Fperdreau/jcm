@@ -25,6 +25,7 @@ $user = new User($_SESSION['username']);
 $Presentation = new Presentation();
 $publication_list = $user->getpublicationlist(null);
 $assignments = $user->getAssignments();
+$bookmarks = $user->getBookmarks();
 $notifStatus = ($user->notification == 1) ? "Yes":"No";
 $reminderStatus = ($user->reminder == 1) ? "Yes":"No";
 $assignStatus = ($user->assign == 1) ? "Yes":"No";
@@ -140,6 +141,12 @@ $result = "
             <h2>My assignments</h2>
             <div class='section_content'>{$assignments}</div>
         </section>
+        
+        <section>
+            <h2>My bookmarks</h2>
+            <div class='section_content'>{$bookmarks}</div>
+        </section>
+        
         <div class='plugins'></div>
         
         <section>
