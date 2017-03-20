@@ -218,13 +218,16 @@ class Suggestion extends AppTable {
      * @param string $dir
      * @return array
      */
-    public function getAll($limit=null, $order='up_date', $dir='DESC') {
-        $sql = "SELECT * 
+    public function getAll($limit=null, $order='count_vote', $dir='DESC') {
+        $sql = "SELECT *, COUNT((v.ref_id)) as count_vote
                   FROM {$this->tablename} p 
                   LEFT JOIN " . AppDb::getInstance()->getAppTables('Users'). " u 
                     ON p.username = u.username
                   LEFT JOIN " . AppDb::getInstance()->getAppTables('Media') . " m
                     ON p.id_pres = m.presid
+                  LEFT JOIN " . AppDb::getInstance()->getAppTables('Vote') . " v
+                    ON v.ref_id = p.id_pres
+                  GROUP BY id_pres
                   ORDER BY {$order} {$dir}" . $limit;
         $req = $this->db->send_query($sql);
         $data = array();
