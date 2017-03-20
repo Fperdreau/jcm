@@ -373,6 +373,13 @@ function extend_session() {
     });
 }
 
+/**
+ * Show login dialog box
+ */
+function popLogin() {
+    $('#login_button').leanModal().click();
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Modal windows
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -407,33 +414,6 @@ function show_submission_details (id, controller, el) {
         }
     });
 }
-
-/**
- * Display presentation's information in a modal window
- * @param idpress
- * @param formel
- */
-function display_suggestion (idpress, formel) {
-    idpress = (idpress === undefined) ? false : idpress;
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: false,
-        data: {
-            show_suggestion_details: idpress
-        },
-        success: function (data) {
-            var result = jQuery.parseJSON(data);
-            formel
-                .hide()
-                .html(result)
-                .fadeIn(200);
-
-            // Load JCM calendar
-            loadCalendarSessions();
-        }
-    });
-};
 
 /**
  * Get width of hidden objects (useful to get width of submenus)
@@ -498,9 +478,12 @@ function show_submenu(el) {
 
 /**
  * Process votes
- * @param el: DOM element (vote icon)
  */
-function process_vote(el) {
+function process_vote() {
+    // If user is not logged in, then prompt login window
+    if (login_start === null) {popLogin(); return false;}
+
+    var el = $(this);
     var parent = el.parent('.vote_container');
     var data = parent.data();
     data['process_vote'] = true;
@@ -526,9 +509,12 @@ function process_vote(el) {
 
 /**
  * Process bookmark
- * @param el: DOM element (bookmark icon)
  */
-function process_bookmark(el) {
+function process_bookmark() {
+    // If user is not logged in, then prompt login window
+    if (login_start === null) {popLogin(); return false;}
+
+    var el = $(this);
     var data = el.data();
     data['process_vote'] = true;
     var operation = data['operation'];
@@ -1302,16 +1288,12 @@ $(document).ready(function () {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Votes
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.vote_icon', function (e) {
-            process_vote($(this));
-        })
+        .on('click', '.vote_icon', function() {process_vote()})
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Bookmarks
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.bookmark_container', function (e) {
-            process_bookmark($(this));
-        })
+        .on('click', '.bookmark_container', function () {process_bookmark()})
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Modal triggers
