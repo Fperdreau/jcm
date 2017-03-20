@@ -476,7 +476,7 @@ class Presentation extends Presentations {
         } else {
             $speakerDiv = "";
         }
-        return self::show_in_list((object)$data[0], $speakerDiv);
+        return self::show_in_list((object)$data, $speakerDiv);
     }
 
     /**
@@ -568,7 +568,7 @@ class Presentation extends Presentations {
                 <span style='font-size: 12px; font-style: italic;'>Presented by </span>
                 <span style='font-size: 14px; font-weight: 500; color: #777;'>{$data['fullname']}</span>
             </div>",
-            "button"=>null
+            "button"=>Bookmark::getIcon($data['id_pres'], 'Presentation', User::is_logged() ? $_SESSION['username'] : null)
         );
     }
 
