@@ -1229,7 +1229,7 @@ class Session extends AppTable {
      */
     public static function emptySlot($date, $show_button=true) {
         $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $date;
-        $addButton = ($show_button) ? "<a href='{$url}' class='leanModal' id='modal_trigger_pubmod' data-section='submission_form' 
+        $addButton = ($show_button) ? "<a href='{$url}' class='leanModal get_submission_form' data-controller='Presentation' data-section='submission_form' data-destination='modal' data-operation='edit' 
                         data-date='{$date}'><div class='add-button'></div></a>" : null;
 
         $content = "
