@@ -36,7 +36,8 @@ class Vote extends AppTable {
      * @return bool
      */
     public function add(array $post) {
-        if (User::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
+        if (User::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
+                'username'=>$_SESSION['username']))) {
             $post['date'] = date('Y-m-d');
             $post['username'] = $_SESSION['username'];
             return $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
