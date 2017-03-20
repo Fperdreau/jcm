@@ -479,11 +479,10 @@ function show_submenu(el) {
 /**
  * Process votes
  */
-function process_vote() {
+function process_vote(el) {
     // If user is not logged in, then prompt login window
     if (login_start === null) {popLogin(); return false;}
 
-    var el = $(this);
     var parent = el.parent('.vote_container');
     var data = parent.data();
     data['process_vote'] = true;
@@ -510,11 +509,10 @@ function process_vote() {
 /**
  * Process bookmark
  */
-function process_bookmark() {
+function process_bookmark(el) {
     // If user is not logged in, then prompt login window
     if (login_start === null) {popLogin(); return false;}
 
-    var el = $(this);
     var data = el.data();
     data['process_vote'] = true;
     var operation = data['operation'];
@@ -1288,12 +1286,12 @@ $(document).ready(function () {
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Votes
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.vote_icon', function() {process_vote()})
+        .on('click', '.vote_icon', function() {process_vote($(this))})
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Bookmarks
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.bookmark_container', function () {process_bookmark()})
+        .on('click', '.bookmark_container', function () {process_bookmark($(this))})
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Modal triggers
