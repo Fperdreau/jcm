@@ -1413,7 +1413,8 @@ $(document).ready(function () {
             e.preventDefault();
             var id_pres = $(this).data("id");
             var controller = $(this).data("controller");
-            get_submission_form(modalpubform, id_pres, controller, 'edit');
+            var destination = $(this).data("destination") !== undefined ? $(this).data('destination') : modalpubform;
+            get_submission_form($(destination), id_pres, controller, 'edit');
         })
 
 		// Show publication deletion confirmation
