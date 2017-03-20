@@ -493,13 +493,11 @@ function process_vote(el) {
         type: 'post',
         success: function(data) {
             var result = jQuery.parseJSON(data);
-            if (result === true) {
+            if (result.status === true) {
                 if (operation == 'delete') {
-                    el.toggleClass('vote_liked vote_default');
-                    el.attr('data-operation', 'add');
+                    el.parent('.vote_container').html(result.msg);
                 } else if (operation == 'add') {
-                    el.toggleClass('vote_default vote_liked');
-                    el.attr('data-operation', 'delete');
+                    el.parent('.vote_container').html(result.msg);
                 }
             }
         }

@@ -722,6 +722,10 @@ if (!empty($_POST['del_upl'])) {
 //  delete presentation
 if (!empty($_POST['del_pub'])) {
     $controller = htmlspecialchars($_POST['controller']);
+
+    /**
+     * @var Suggestion|Presentation $Controller
+     */
     $Controller = new $controller();
     $id_Presentation = htmlspecialchars($_POST['del_pub']);
     if ($Controller->delete_pres($id_Presentation)) {

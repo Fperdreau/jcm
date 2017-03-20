@@ -33,37 +33,44 @@ class Vote extends AppTable {
     /**
      * Add vote to db if it does not already exist
      * @param array $post
-     * @return bool
+     * @return array
      */
     public function add(array $post) {
+        $result = array('status'=>false, 'msg'=>null);
         if (User::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
                 'username'=>$_SESSION['username']))) {
             $post['date'] = date('Y-m-d');
             $post['username'] = $_SESSION['username'];
-            return $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
+            $result['status'] = $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
                 $post));
-        } else {
-            return false;
+            if ($result['status']) {
+                $result['msg'] = self::getIcon($post['ref_id'], $post['ref_obj'], $post['username']);
+            }
         }
+
+        return $result;
     }
 
 
     /**
      * Add vote to db if it does not already exist
      * @param array $post
-     * @return bool
+     * @return array
      */
     public function delete(array $post) {
+        $result = array('status'=>false, 'msg'=>null);
         if (User::is_logged()) {
             $id = array(
                 'ref_id'=>$post['ref_id'],
                 'ref_obj'=>$post['ref_obj'],
                 'username'=>$_SESSION['username']
             );
-            return $this->db->delete($this->tablename, $id);
-        } else {
-            return false;
+            $result['status'] = $this->db->delete($this->tablename, $id);
+            if ($result['status']) {
+                $result['msg'] = self::getIcon($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
+            }
         }
+        return $result;
     }
 
     /**
