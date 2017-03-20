@@ -707,4 +707,10 @@ class User extends Users {
             </div>
         ";
     }
+
+    public function getBookmarks() {
+        $Bookmark = new Bookmark();
+        $data = $Bookmark->get(array('username'=>$this->username));
+        var_dump($data); die;
+    }
 }
