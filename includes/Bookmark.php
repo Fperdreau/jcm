@@ -74,6 +74,20 @@ class Bookmark extends AppTable {
         return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj), $status);
     }
 
+    /**
+     * @param $username
+     * @return null|string
+     */
+    public function getList($username) {
+        $content = null;
+        foreach ($this->all(array('username'=>$username)) as $key=>$item) {
+            $Controller = new $item['ref_obj']();
+            $data = $Controller->get(array('id_pres'=>$item['ref_id']));
+            $content .= self::inList($data[0]);
+        }
+        return $content;
+    }
+
     // VIEWS
     /**
      * Render bookmark button/icon
@@ -92,6 +106,19 @@ class Bookmark extends AppTable {
         return "
         <div class='tiny_icon bookmark_container {$css_icon}' data-controller='Bookmark' data-ref_id='{$data['ref_id']}' data-ref_obj='{$data['ref_obj']}' data-operation='{$operation}'>
         </div>";
+    }
+
+    /**
+     * Render bookmark in My Bookmarks list
+     * @param array $data: bookmark information
+     * @return string
+     */
+    public static function inList(array $data) {
+        return "
+            <div>
+                <a href=''>{$data['title']}</a>
+            </div>
+        ";
     }
 
 }

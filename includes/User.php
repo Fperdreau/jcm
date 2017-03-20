@@ -708,9 +708,11 @@ class User extends Users {
         ";
     }
 
+    /**
+     * Get list of bookmarks
+     */
     public function getBookmarks() {
         $Bookmark = new Bookmark();
-        $data = $Bookmark->get(array('username'=>$this->username));
-        var_dump($data); die;
+        return $Bookmark->getList($_SESSION['username']);
     }
 }
