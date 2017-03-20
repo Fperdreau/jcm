@@ -70,7 +70,7 @@ $menu = AppPage::menu();
                 <?php
                 if (!User::is_logged()) {
                     $showlogin = "
-                <div class='leanModal' id='user_login' data-section='user_login'><img src='images/login_bk.png' alt='login'></div>
+                <div class='leanModal' id='login_button' data-section='user_login'><img src='images/login_bk.png' alt='login'></div>
                 <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup_bk.png' alt='signup'></div>
                  ";
                 } else {
