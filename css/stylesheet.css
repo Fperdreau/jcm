@@ -1713,6 +1713,7 @@ h3 {
     width: 18px;
     height: 18px;
     border-radius: 50%;
+    padding: 2px;
 }
 
 .vote_icon {
@@ -1724,7 +1725,8 @@ h3 {
 }
 
 .vote_liked {
-    background-color: rgba(150, 188, 212, 1);
+    background-color: rgba(207,81,81,1);
+    background-image: url(../images/vote_16_wi.png);
 }
 
 .vote_default {
@@ -1745,7 +1747,8 @@ h3 {
 }
 
 .bookmark_on {
-    background-color: rgba(150, 188, 212, 1);
+    background-color: rgba(207,81,81,1);
+    background-image: url(../images/bookmark_16_wi.png);
 }
 
 .bookmark_off {
