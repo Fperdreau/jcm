@@ -53,6 +53,20 @@ if (!empty($_POST['delete_item'])) {
     exit;
 }
 
+// Delete item
+if (!empty($_POST['delete'])) {
+    $controller_name = htmlspecialchars($_POST['controller']);
+    $Controller = new $controller_name();
+    $id = htmlspecialchars($_POST['id']);
+
+    /**
+     * @var AppTable $Controller
+     */
+    $result = $Controller->delete(array('id'=>$id));
+    echo json_encode($result);
+    exit;
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Common to Plugins/Scheduled tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
