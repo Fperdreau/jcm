@@ -1756,6 +1756,30 @@ h3 {
     background-color: white;
 }
 
+.bookmark_list_container {
+    display: table;
+    width: 100%;
+}
+
+.bookmark_list_container:hover {
+    background-color: rgba(220,220,220,.5);
+    cursor: pointer;
+}
+
+.bookmark_list_container>div {
+    display: table-cell;
+    padding: 5px;
+}
+
+.bookmark_title {
+    width: 90%;
+}
+
+.bookmark_action {
+    text-align: right;
+}
+
+
 /* *********************************************************************/
 /* Buttons
 /* *********************************************************************/
