@@ -713,8 +713,8 @@ class Presentation extends Presentations {
 
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
-            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' 
-                            data-controller='Presentation' class='delete_ref'>
+            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' 
+                            data-controller='Presentation' class='delete'>
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' 
                 data-destination='{$destination}' data-controller='Presentation' data-operation='edit'>
