@@ -83,7 +83,7 @@ class Bookmark extends AppTable {
         foreach ($this->all(array('username'=>$username)) as $key=>$item) {
             $Controller = new $item['ref_obj']();
             $data = $Controller->get(array('id_pres'=>$item['ref_id']));
-            $content .= self::inList($data[0]);
+            $content .= self::inList($item['ref_obj'], $data[0]);
         }
         return $content;
     }
@@ -110,13 +110,19 @@ class Bookmark extends AppTable {
 
     /**
      * Render bookmark in My Bookmarks list
-     * @param array $data: bookmark information
+     * @param string $controller: Controller name
+     * @param array $data : bookmark information
      * @return string
      */
-    public static function inList(array $data) {
+    public static function inList($controller, array $data) {
         return "
             <div>
-                <a href=''>{$data['title']}</a>
+                <div class='bookmark_title'><a href='" . URL_TO_APP . "index.php?page={$controller}&id={$data['id_pres']}" . "'>{$data['title']}</a></div>
+                <div class='bookmark_action'>
+                    <div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' 
+                            data-controller='Bookmark' class='delete_ref'>
+                <img src='".AppConfig::$site_url."images/trash.png'></a></div>
+                </div>              
             </div>
         ";
     }
