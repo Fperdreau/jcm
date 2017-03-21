@@ -21,6 +21,17 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Trigger modal window
+ * @param el
+ */
+function trigger_modal(el) {
+    if (el.data('leanModal') === undefined) {
+        el.leanModal();
+        el.data('leanModal', true);
+        el.click();
+    }
+}
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  GET FORMS
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -90,35 +101,14 @@ var showpostform = function (postid) {
 };
 
 /**
- * Render dialog window to ask for confirmation
- * @param el
- */
-function delete_confirmation(el) {
-    // Show deletion confirmation dialog
-    var params = el.data('params');
-    var el_id = el.attr('id');
-    el.leanModal();
-    show_section('conf_delete');
-    var dom = $(".modal_section#conf_delete");
-    if (dom.find('input[name="url"]').length > 0) {
-        dom.find('input[name="url"]').remove();
-    }
-    if (dom.find('input[name="el_id"]').length > 0) {
-        dom.find('input[name="el_id"]').remove();
-    }
-
-    dom
-        .append('<input type=hidden name="url" value="' + params + '"/>')
-        .append('<input type=hidden name="el_id" value="' + el_id + '"/>');
-}
-
-/**
  * Render a confirmation box
+ * @param el: clicked element
  * @param txt: message to display in dialog box
  * @param txt_btn: text of confirmation button
  * @param callback: callback function (called if user has confirmed)
  */
-function confirmation_box(txt, txt_btn, callback) {
+function confirmation_box(el, txt, txt_btn, callback) {
+    trigger_modal(el);
     var container = $('.modalContainer');
 
     // Remove confirmation section if it already exist
@@ -826,11 +816,7 @@ $(document).ready(function () {
             // Shall we publish this email content as news (in case the email is sent to everyone).
             var id = $('.select_emails_selector').val();
             if ($('#make_news').val() === 'yes') {
-                if ($(this).data('leanModal') === undefined) {
-                    $(this).leanModal();
-                    $(this).data('leanModal', true);
-                    $(this).click();
-                }
+                trigger_modal($(this));
                 var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
                     'published as a news.' + ' Do you want to continue?';
                 confirmation_box(msg, 'Continue', callback);
@@ -1383,13 +1369,22 @@ $(document).ready(function () {
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
-        .on('mouseover', '.delete', function() {
-            $(this).leanModal();
-        })
-
         .on('click', '.delete', function(e) {
             e.preventDefault();
-            delete_confirmation($(this));
+            var el = $(this);
+            confirmation_box(el, 'Are you sure you want to delete this item?', 'Delete', function () {
+                var data = el.data();
+                data['delete'] = true;
+                jQuery.ajax({
+                    url: 'php/form.php',
+                    type: 'post',
+                    data: data,
+                    success: function(ajax) {
+                        var result = jQuery.parseJSON(ajax);
+                        console.log(result);
+                    }
+                });
+            });
         })
 
         .on('click', '.confirm_delete', function(e) {
