@@ -32,11 +32,11 @@ if (!empty($_POST['id'])) {
     $Suggestion = new Suggestion();
     $data = $Suggestion->getInfo(htmlspecialchars($_POST['id']));
     $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
-    $content = Suggestion::details($data, $show);
+    $content = Suggestion::details($data, $show, '#suggestion_container');
 
 } else {
     $content = "Nothing to show here";
 }
-$content = "<section><div class='section_content'>{$content}</div></section>";
+$content = "<section><div class='section_content' id='suggestion_container'>{$content}</div></section>";
 
 echo $content;
