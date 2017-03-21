@@ -32,11 +32,11 @@ if (!empty($_POST['id'])) {
     $Presentation = new Presentation();
     $data = $Presentation->getInfo(htmlspecialchars($_POST['id']));
     $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
-    $content = Presentation::details($data, $show);
+    $content = Presentation::details($data, $show, '.presentation_container');
 
 } else {
     $content = "Nothing to show here";
 }
-$content = "<section><div class='section_content'>{$content}</div></section>";
+$content = "<section><div class='section_content presentation_container'>{$content}</div></section>";
 
 echo $content;
