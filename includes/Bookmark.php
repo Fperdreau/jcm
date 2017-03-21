@@ -44,17 +44,12 @@ class Bookmark extends AppTable {
     }
 
     /**
-     * Add vote to db if it does not already exist
-     * @param array $post
+     * delete vote from db
+     * @param array $id
      * @return bool
      */
-    public function delete(array $post) {
+    public function delete(array $id) {
         if (User::is_logged()) {
-            $id = array(
-                'ref_id'=>$post['ref_id'],
-                'ref_obj'=>$post['ref_obj'],
-                'username'=>$_SESSION['username']
-            );
             return $this->db->delete($this->tablename, $id);
         } else {
             return false;
@@ -83,7 +78,7 @@ class Bookmark extends AppTable {
         foreach ($this->all(array('username'=>$username)) as $key=>$item) {
             $Controller = new $item['ref_obj']();
             $data = $Controller->get(array('id_pres'=>$item['ref_id']));
-            $content .= self::inList($item['ref_obj'], $data[0]);
+            $content .= self::inList($item, $data[0]);
         }
         return $content;
     }
@@ -110,17 +105,17 @@ class Bookmark extends AppTable {
 
     /**
      * Render bookmark in My Bookmarks list
-     * @param string $controller: Controller name
-     * @param array $data : bookmark information
+     * @param array $bookmark: bookmark information
+     * @param array $data : target information
      * @return string
      */
-    public static function inList($controller, array $data) {
+    public static function inList(array $bookmark, array $data) {
         return "
-            <div>
-                <div class='bookmark_title'><a href='" . URL_TO_APP . "index.php?page={$controller}&id={$data['id_pres']}" . "'>{$data['title']}</a></div>
+            <div class='bookmark_list_container'>
+                <div class='bookmark_title'><a href='" . URL_TO_APP . "index.php?page={$bookmark['ref_obj']}&id={$bookmark['ref_id']}" . "'>{$data['title']}</a></div>
                 <div class='bookmark_action'>
-                    <div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' 
-                            data-controller='Bookmark' class='delete_ref'>
+                    <div class='pub_btn icon_btn'><a href='#' data-id='{$bookmark['id']}' 
+                            data-controller='Bookmark' class='delete'>
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>
                 </div>              
             </div>
