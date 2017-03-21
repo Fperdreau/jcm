@@ -495,7 +495,7 @@ class Presentation extends Presentations {
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='" . URL_TO_APP . "index.php?page=presentation?id={$presentation->id_pres}" . "' class='leanModal get_submission_form' 
+                    <a href='" . URL_TO_APP . "index.php?page=presentation?id={$presentation->id_pres}" . "' class='leanModal show_submission_details' 
                     data-controller='Presentation' data-operation='' data-section='submission_form' data-id='$presentation->id_pres'>
                         $presentation->title
                     </a>
@@ -527,7 +527,7 @@ class Presentation extends Presentations {
      * @return array
      */
     public static function inSessionEdit(array $data) {
-        $view_button = "<a href='' class='leanModal get_submission_form pub_btn icon_btn' data-controller='Presentation'
+        $view_button = "<a href='' class='leanModal show_submission_details pub_btn icon_btn' data-controller='Presentation'
             data-section='submission_form' data-id='{$data['id_pres']}'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
@@ -701,11 +701,12 @@ class Presentation extends Presentations {
 
     /**
      * Display presentation details.
-     * @param array $data: presentation information
+     * @param array $data : presentation information
      * @param bool $show : show buttons (true)
+     * @param string $destination: DOM id containing the returned view
      * @return string
      */
-    public static function details(array $data, $show=false) {
+    public static function details(array $data, $show=false, $destination='#submission_form') {
 
         $dl_menu = self::download_menu($data['link'], $show);
         $file_div = $show ? $dl_menu['menu'] : null;
@@ -715,7 +716,8 @@ class Presentation extends Presentations {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' 
                             data-controller='Presentation' class='delete_ref'>
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' data-controller='Presentation' data-operation='edit'>
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' 
+                data-destination='{$destination}' data-controller='Presentation' data-operation='edit'>
                 <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
