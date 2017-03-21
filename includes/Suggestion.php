@@ -253,7 +253,7 @@ class Suggestion extends AppTable {
      */
     public static function inList(stdClass $item, $vote=null, $bookmark=null) {
         $update = date('d M y',strtotime($item->up_date));
-        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=submission&op=wishpick&id={$item->id_pres}";
+        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=suggestion&id={$item->id_pres}";
         return "
         <div class='wish_container' id='{$item->id_pres}' style='display: block; position: relative; margin: 10px auto; 
         font-size: 0.9em; font-weight: 300; overflow: hidden; padding: 5px; border-radius: 5px;'>
@@ -461,20 +461,22 @@ class Suggestion extends AppTable {
      * @param bool $show : show buttons (true)
      * @return string
      */
-    public static function details(array $data, $show=false) {
+    public static function details(array $data, $show=false, $destination='#suggestion_container') {
 
         $dl_menu = (!is_null($data['link'])) ? self::download_menu($data['link'], $show) : null;
         $file_div = $show ? $dl_menu['menu'] : null;
 
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
-            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' data-controller='Suggestion' class='delete_ref'>
+            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
+                data-controller='Suggestion' data-operation='edit'>
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' data-controller='Suggestion'>
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' 
+                data-controller='Suggestion' data-destination='{$destination}'>
                 <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
         } else {
-            $delete_button = "<div style='width: 100px'></div>";
-            $modify_button = "<div style='width: 100px'></div>";
+            $delete_button = "<div style='width:100px'></div>";
+            $modify_button = "<div style='width:100px'></div>";
         }
 
         $type = ucfirst($data['type']);
