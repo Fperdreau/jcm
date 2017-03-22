@@ -112,7 +112,12 @@ class Bookmark extends AppTable {
     public static function inList(array $bookmark, array $data) {
         return "
             <div class='bookmark_list_container'>
-                <div class='bookmark_title'><a href='" . URL_TO_APP . "index.php?page={$bookmark['ref_obj']}&id={$bookmark['ref_id']}" . "'>{$data['title']}</a></div>
+                <div class='bookmark_title'>
+                    <a href='" . URL_TO_APP . "index.php?page={$bookmark['ref_obj']}&id={$bookmark['ref_id']}" . "' 
+                    class='leanModal show_submission_details' data-controller='{$bookmark['ref_obj']}' data-id='{$bookmark['ref_id']}' 
+                    data-view='modal'>
+                    {$data['title']}</a>
+                </div>
                 <div class='bookmark_action'>
                     <div class='pub_btn icon_btn'><a href='#' data-id='{$bookmark['id']}' 
                             data-controller='Bookmark' class='delete'>

@@ -460,6 +460,8 @@ if (!empty($_POST['get_calendar_param'])) {
     $status = array();
     $slots = array();
     $all = array();
+    $session_ids = array();
+
     foreach($Sessions->all() as $session_id=>$session_data) {
         // Count how many presentations there are for this day
         $nb = 0;
@@ -471,6 +473,7 @@ if (!empty($_POST['get_calendar_param'])) {
         $slots[] = $session_data[0]['slots'];
         $formatdate[] = date('d-m-Y', strtotime($session_data[0]['date']));
         $nb_pres[] = $nb;
+        $session_ids[] = $session_id;
     }
 
     // Get user's availability and assignments
@@ -515,7 +518,8 @@ if (!empty($_POST['get_calendar_param'])) {
         "status"=>$status,
         "slots"=>$slots,
         "session_type"=>$type,
-        "force_select"=>$force_select
+        "force_select"=>$force_select,
+        "session_id"=>$session_ids
     );
     echo json_encode($result);
     exit;
@@ -780,13 +784,13 @@ if (isset($_POST['suggest'])) {
 // Display submission form
 if (!empty($_POST['get_submission_form'])) {
     $controller_name = htmlspecialchars($_POST['controller']);
-    $destination = isset($_POST['destination']) ? htmlspecialchars($_POST['destination']) : 'body';
+    $view = htmlspecialchars($_POST['view']) ? htmlspecialchars($_POST['view']) : 'body';
 
     /**
      * @var Suggestion|Presentation $Controller
      */
     $Controller = new $controller_name();
-    if ($destination === "body") {
+    if ($view === "body") {
         echo json_encode(Presentation::format_section($Controller->editor($_POST)));
     } else {
         echo json_encode(Presentation::format_modal($Controller->editor($_POST)));
@@ -804,6 +808,7 @@ if (!empty($_POST['getFormContent'])) {
 if (!empty($_POST['show_submission_details'])) {
     $id_Presentation = htmlspecialchars($_POST['id']);
     $controller_name = htmlspecialchars($_POST['controller']);
+    $view = htmlspecialchars($_POST['view']);
     if ($id_Presentation === "false") {
         $id_Presentation = false;
     }
@@ -816,7 +821,7 @@ if (!empty($_POST['show_submission_details'])) {
     $user = User::is_logged() ? new User($_SESSION['username']) : null;
     $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
             || $data['orator'] === $user->username);
-    $form = $Controller::details($data, $show);
+    $form = $Controller::details($data, $show, $view);
     echo json_encode($form);
     exit;
 }
@@ -834,23 +839,6 @@ if (!empty($_POST['getform'])) {
     $pub = new Presentation();
     $user = new User($_SESSION['username']);
     echo json_encode(Presentation::form($user, $pub, 'submit'));
-    exit;
-}
-
-// Display presentation (modal dialog)
-if (!empty($_POST['show_suggestion_details'])) {
-    $id_Presentation = htmlspecialchars($_POST['show_suggestion_details']);
-    if ($id_Presentation === "false") {
-        $id_Presentation = false;
-    }
-
-    $pub = new Suggestion();
-    $data = $pub->getInfo($id_Presentation);
-    $user = User::is_logged() ? new User($_SESSION['username']) : null;
-    $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
-            || $data['orator'] === $user->username);
-    $form = Suggestion::details($data, $show);
-    echo json_encode($form);
     exit;
 }
 

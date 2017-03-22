@@ -105,7 +105,6 @@ class Suggestion extends AppTable {
 
         $user = new User($_SESSION['username']);
         $destination = (!empty($post['destination'])) ? $post['destination'] : null;
-
         if ($operation == 'selection_list') {
             $result['content'] = $this->generate_selectwishlist('.selection_container', $destination);
             $result['title'] = "Select a wish";
@@ -114,7 +113,7 @@ class Suggestion extends AppTable {
         } elseif ($operation == 'select') {
             $Suggestion = new Suggestion();
             $Suggestion->getInfo($id_Presentation);
-            return Presentation::form($user, $Suggestion, 'edit', $operation, Session::getJcDates(1)[0]);
+            return Presentation::form($user, $Suggestion, 'edit', $operation, null);
         } else {
             $this->getInfo($id_Presentation);
             return Suggestion::form($user, $this, $operation, $type);
@@ -143,7 +142,22 @@ class Suggestion extends AppTable {
             $bookmark_icon = Bookmark::getIcon($item['id_pres'], 'Suggestion', $username);
             $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
-        return (is_null($wish_list)) ? self::no_wish() : $wish_list;
+
+        $wish_list = is_null($wish_list) ? self::no_wish() : $wish_list;
+        $add_button = User::is_logged() ? "
+            <div>
+            <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' 
+                        class='leanModal get_submission_form' data-controller='Suggestion' 
+                        data-destination='#submission_form' data-view='modal' data-operation='suggest'>
+                <input type='submit' value='Add' />
+            </a>
+            </div>
+        " : null;
+
+        return "
+            {$add_button}
+            {$wish_list}
+        ";
     }
 
     /**
@@ -241,6 +255,7 @@ class Suggestion extends AppTable {
     private function get_uploads() {
         $upload = new Uploads();
         $this->link = $upload->get_uploads($this->id_pres, 'Suggestion');
+        return $this->link;
     }
 
     // VIEWS
@@ -262,7 +277,7 @@ class Suggestion extends AppTable {
             </div>
             <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
                <div>
-                   <a href='$url' class='leanModal show_submission_details' data-section='submission_form' data-controller='Suggestion' data-id='{$item->id_pres}'>
+                   <a href='$url' class='leanModal show_submission_details' data-controller='Suggestion' data-view='modal' data-id='{$item->id_pres}'>
                         <div style='font-size: 16px;'>{$item->title}</div>
                         <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
                    </a>
@@ -296,7 +311,8 @@ class Suggestion extends AppTable {
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
               <div class='form-group field_auto' style='margin: auto; width: 250px;'>
-                <select name='id' id='select_wish' data-target='{$target}' data-destination='{$destination}'>
+                <select name='id' id='select_wish' data-controller='Suggestion' data-operation='select' 
+                data-view='{$destination}' data-destination='{$target}'>
                     {$option}
                 </select>
                 <label for='id'>Select a suggestion</label>
@@ -406,6 +422,11 @@ class Suggestion extends AppTable {
                 If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
                 ";
                 break;
+            case "edit":
+                $result = "
+                Here you can edit a suggestion.
+                ";
+                break;
 
         }
         return $result;
@@ -457,22 +478,24 @@ class Suggestion extends AppTable {
 
     /**
      * Display presentation details.
-     * @param array $data: presentation information
+     * @param array $data : presentation information
      * @param bool $show : show buttons (true)
+     * @param string $view: requested view ('modal' or 'body')
      * @return string
      */
-    public static function details(array $data, $show=false, $destination='#suggestion_container') {
+    public static function details(array $data, $show=false, $view='modal') {
 
-        $dl_menu = (!is_null($data['link'])) ? self::download_menu($data['link'], $show) : null;
+        $dl_menu = self::download_menu($data['link'], $show);
         $file_div = $show ? $dl_menu['menu'] : null;
+        $destination = $view === 'modal' ? '#submission_form' : '#suggestion_container';
 
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Suggestion' data-operation='edit'>
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='modify_ref' 
-                data-controller='Suggestion' data-destination='{$destination}'>
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='get_submission_form' 
+                data-controller='Suggestion' data-destination='{$destination}' data-view='modal' data-operation='edit'>
                 <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width:100px'></div>";
@@ -497,8 +520,8 @@ class Suggestion extends AppTable {
         </div>
         
         <div>
-            <input type='submit' class='select_suggestion' value='Present it' data-id='{$data['id_pres']}' 
-            data-target='#submission_form'/>
+            <input type='submit' class='select_suggestion' value='Present it' data-controller='Suggestion' data-id='{$data['id_pres']}' 
+            data-view='body' data-destination='{$destination}' data-operation='select'/>
         </div>
 
         <div class='pub_action_btn'>

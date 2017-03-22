@@ -24,10 +24,9 @@ $last_news = new Posts();
 $sessions = new Session();
 $suggestions = new Suggestion();
 
-$submitMenu = User::is_logged() ? Presentation::submitMenu('fixed') : null;
+$submitMenu = User::is_logged() ? Presentation::submitMenu('modal') : null;
 
 $result = "
-    {$submitMenu}
 
     <section>
         <h2>Last News</h2>

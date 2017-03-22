@@ -31,8 +31,9 @@ if (!empty($_POST['id'])) {
 
     $Suggestion = new Suggestion();
     $data = $Suggestion->getInfo(htmlspecialchars($_POST['id']));
-    $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
-    $content = Suggestion::details($data, $show, '#suggestion_container');
+    $show = $user !== false && (in_array($user->status, array('organizer', 'admin'))
+            || $data['username'] === $user->username);
+    $content = Suggestion::details($data, $show, 'body');
 
 } else {
     $content = "Nothing to show here";

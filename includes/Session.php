@@ -257,7 +257,7 @@ class Session extends AppTable {
                 if ($edit) {
                     $content .= self::emptySlotEdit();
                 } else {
-                    $content .= self::emptySlot($data[0]['date'], User::is_logged());
+                    $content .= self::emptySlot($data[0], User::is_logged());
                 }
             }
         }
@@ -293,7 +293,7 @@ class Session extends AppTable {
                     $content .= self::mail_slotContainer(Presentation::inSessionSimple($data[$i]));
                 }
             } else {
-                $content .= self::emptySlot($date, User::is_logged());
+                $content .= self::emptySlot($data[0], User::is_logged());
             }
         }
 
@@ -889,12 +889,10 @@ class Session extends AppTable {
         return "
         <div class='section_content'>
             <div class='form-group'>
-                <input type='date' class='selectSession datepicker' data-status='false' data-view='edit' name='date'>
-                <label>Session to show</label>
+                <input type='date' class='selectSession datepicker' data-status='false' data-view='edit' name='date' />
+                <label>Filter</label>
             </div>
-            <div id='sessionlist'>
-                " . $sessions . "
-            </div>
+            <div id='sessionlist'>{$sessions}</div>
         </div>
         ";
     }
@@ -911,7 +909,7 @@ class Session extends AppTable {
                 <div class='session_viewer_container'>
                     <h3>Edit a session</h3>
                     <div class='form-group'>
-                        <input type='date' class='selectSession datepicker' name='date' data-status='admin' data-view='edit'>
+                        <input type='date' class='selectSession datepicker' name='date' data-status='admin' data-view='edit' />
                         <label>Session to show</label>
                     </div>
                     <div id='sessionlist'>{$sessionEditor}</div>
@@ -945,37 +943,37 @@ class Session extends AppTable {
     public static function default_settings_form() {
         return "
         <section>
-        <h2>Default Session Settings</h2>
-        <div class='section_content'>
-            <form method='post' action='php/form.php'>
-                <div class='feedback' id='feedback_jcsession'></div>
-                <input type='hidden' name='config_modify' value='true'>
-                <div class='form-group'>
-                    <input type='text' name='room' value='" . AppConfig::getInstance()->room . "'>
-                    <label>Room</label>
-                </div>
-                <div class='form-group'>
-                    <select name='jc_day'>
-                        " . self::dayList() . "
-                    </select>
-                    <label for='jc_day'>Day</label>
-                </div>
-                <div class='form-group'>
-                    <input type='time' name='jc_time_from' value='" . AppConfig::getInstance()->jc_time_from . "' />
-                    <label>From</label>
-                </div>
-                <div class='form-group'>
-                    <input type='time' name='jc_time_to' value='" . AppConfig::getInstance()->jc_time_to . "' />
-                    <label>To</label>
-                </div>
-                <div class='form-group'>
-                    <input type='number' name='max_nb_session' value='" . AppConfig::getInstance()->max_nb_session . "'/>
-                    <label>Slots/Session</label>
-                </div>
-                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
-            </form>
-        </div>
-    </section>
+            <h2>Default Session Settings</h2>
+            <div class='section_content'>
+                <form method='post' action='php/form.php'>
+                    <div class='feedback' id='feedback_jcsession'></div>
+                    <input type='hidden' name='config_modify' value='true'>
+                    <div class='form-group'>
+                        <input type='text' name='room' value='" . AppConfig::getInstance()->room . "'>
+                        <label>Room</label>
+                    </div>
+                    <div class='form-group'>
+                        <select name='jc_day'>
+                            " . self::dayList() . "
+                        </select>
+                        <label for='jc_day'>Day</label>
+                    </div>
+                    <div class='form-group'>
+                        <input type='time' name='jc_time_from' value='" . AppConfig::getInstance()->jc_time_from . "' />
+                        <label>From</label>
+                    </div>
+                    <div class='form-group'>
+                        <input type='time' name='jc_time_to' value='" . AppConfig::getInstance()->jc_time_to . "' />
+                        <label>To</label>
+                    </div>
+                    <div class='form-group'>
+                        <input type='number' name='max_nb_session' value='" . AppConfig::getInstance()->max_nb_session . "'/>
+                        <label>Slots/Session</label>
+                    </div>
+                    <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
+                </form>
+            </div>
+        </section>
         ";
     }
 
@@ -1013,48 +1011,48 @@ class Session extends AppTable {
         return "
             <h3>Settings</h3>
             <form action='php/form.php' method='post'>
-            <div class='session_type'>
-                <div class='form-group field_small inline_field' style='width: 100%;'>
-                    <select class='mod_session' name='type'>
-                    {$type_list}
-                    </select>
-                    <label>Type</label>
+                <div class='session_type'>
+                    <div class='form-group field_small inline_field' style='width: 100%;'>
+                        <select class='mod_session' name='type'>
+                        {$type_list}
+                        </select>
+                        <label>Type</label>
+                    </div>
                 </div>
-            </div>
-            <div class='session_time'>
-                <div class='form-group field_small inline_field'>
-                    <input type='time' class='mod_session' name='start_time' value='{$session['start_time']}' />
-                    <label>From</label>
+                <div class='session_time'>
+                    <div class='form-group field_small inline_field'>
+                        <input type='time' class='mod_session' name='start_time' value='{$session['start_time']}' />
+                        <label>From</label>
+                    </div>
+                    <div class='form-group field_small inline_field'>
+                        <input type='time' class='mod_session' name='end_time' value='{$session['end_time']}' />
+                        <label>To</label>
+                    </div>
+                    <div class='form-group field_small inline_field'>
+                        <input type='text' class='mod_session' name='room' value='{$session['room']}' />
+                        <label>Room</label>
+                    </div>
+                    <div class='form-group field_small inline_field'>
+                        <input type='number' class='mod_session' name='slots' value='{$session['slots']}' />
+                        <label>Slots</label>
+                    </div>
                 </div>
-                <div class='form-group field_small inline_field'>
-                    <input type='time' class='mod_session' name='end_time' value='{$session['end_time']}' />
-                    <label>To</label>
-                </div>
-                <div class='form-group field_small inline_field'>
-                    <input type='text' class='mod_session' name='room' value='{$session['room']}' />
-                    <label>Room</label>
-                </div>
-                <div class='form-group field_small inline_field'>
-                    <input type='number' class='mod_session' name='slots' value='{$session['slots']}' />
-                    <label>Slots</label>
-                </div>
-            </div>
-            <div>
-                <div class='form-group field_small inline_field'>
-                    <select name='to_repeat' class='repeated_session'>
-                        $repeat_options
-                    </select>
-                    <label>Repeat</label>
-                </div>
-                <div class='form-group field_small inline_field settings_hidden' style='{$show_repeat_settings}'>
-                    <input type='date' name='end_date' value='{$session['end_date']}' />
-                    <label>End date</label>
-                </div>
-                <div class='form-group field_small inline_field settings_hidden' style='{$show_repeat_settings}'>
-                    <input type='number' name='frequency' value='{$session['frequency']}' />
-                    <label>Frequency (day)</label>
-                </div>
-            <div>
+                <div>
+                    <div class='form-group field_small inline_field'>
+                        <select name='to_repeat' class='repeated_session'>
+                            $repeat_options
+                        </select>
+                        <label>Repeat</label>
+                    </div>
+                    <div class='form-group field_small inline_field settings_hidden' style='{$show_repeat_settings}'>
+                        <input type='date' name='end_date' value='{$session['end_date']}' />
+                        <label>End date</label>
+                    </div>
+                    <div class='form-group field_small inline_field settings_hidden' style='{$show_repeat_settings}'>
+                        <input type='number' name='frequency' value='{$session['frequency']}' />
+                        <label>Frequency (day)</label>
+                    </div>
+                <div>
             </form>";
     }
 
@@ -1080,7 +1078,6 @@ class Session extends AppTable {
                 border-left: 2px solid rgba(175,175,175,.8);'>
                     {$presentations}
                 </div>
-
             </div>";
     }
 
@@ -1112,15 +1109,15 @@ class Session extends AppTable {
                 <label>Type</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='date' name='date' class='datepicker' data-view='edit' data-status='false' value='{$data['date']}'>
+                <input type='date' name='date' class='datepicker' data-view='edit' data-status='false' value='{$data['date']}' />
                 <label>Date</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='time' name='start_time' value='{$data['start_time']}'>
+                <input type='time' name='start_time' value='{$data['start_time']}' />
                 <label>From</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='time' name='end_time' value='{$data['end_time']}'>
+                <input type='time' name='end_time' value='{$data['end_time']}' />
                 <label>To</label>
             </div>
             <div class='form-group field_small inline_field'>
@@ -1186,8 +1183,7 @@ class Session extends AppTable {
         return "
                 <div class='type_div' id='session_$data'>
                     <div class='type_name'>".ucfirst($data)."</div>
-                    <div class='type_del' data-type='$data' data-class='{$type}'>
-                    </div>
+                    <div class='type_del' data-type='$data' data-class='{$type}'></div>
                 </div>
             ";
     }
@@ -1223,14 +1219,18 @@ class Session extends AppTable {
 
     /**
      * Show presentation slot as empty
-     * @param string $date : session date
+     * @param array $data : session data
      * @param bool $show_button: display add button
      * @return string
      */
-    public static function emptySlot($date, $show_button=true) {
-        $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $date;
-        $addButton = ($show_button) ? "<a href='{$url}' class='leanModal get_submission_form' data-controller='Presentation' data-section='submission_form' data-destination='modal' data-operation='edit' 
-                        data-date='{$date}'><div class='add-button'></div></a>" : null;
+    public static function emptySlot(array $data, $show_button=true) {
+        $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
+        $addButton = ($show_button) ? "
+            <a href='{$url}' class='leanModal get_submission_form' data-section='submission_form' 
+            data-controller='Presentation' data-view='modal' data-destination='#submission_form' data-operation='edit' 
+            data-date='{$data['date']}' data-session_id='{$data['id']}'>
+                <div class='add-button'></div>
+            </a>" : null;
 
         $content = "
                 <div>{$addButton}</div>";
@@ -1302,8 +1302,7 @@ class Session extends AppTable {
      */
     public static function slotEditContainer(array $data, $div_id=null) {
         return "
-            <div class='pres_container' id='{$div_id}' data-section='submission_form' 
-            data-id='{$div_id}' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
+            <div class='pres_container' id='{$div_id}' data-section='submission_form' data-id='{$div_id}' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
             border: 1px dashed rgb(200, 200, 200); border-radius: 5px; box-sizing: border-box; 
             padding: 5px; min-height: 56px;'>
                 <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; color: #222222; vertical-align: middle; 
@@ -1327,7 +1326,7 @@ class Session extends AppTable {
         return "
             <div class='session_container'>
                 <div class='session_header'>
-                     <div>
+                    <div>
                          <span style='color: #777; font-weight: 600; font-size: 16px;'>{$data['type']}</span>
                     </div>
                     <div class='session_info'>
@@ -1358,18 +1357,19 @@ class Session extends AppTable {
     public static function sessionEditContainer(array $data, $presentations) {
         $settings = self::session_settings($data, AppConfig::getInstance()->session_type);
         return "
-            <div class='session_div session_editor_div' id='session_{$data['session_id']}' data-id='{$data['session_id']}'>
-            <div class='session_editor_core'>
-                <div class='session_settings'>
-                    {$settings}
-                </div>
-
-                <div class='session_presentations'>
-                    <h3>Presentations</h3>
-                    {$presentations}
+            <div class='session_div session_editor_div' id='session_{$data['session_id']}' 
+            data-id='{$data['session_id']}'>
+                <div class='session_editor_core'>
+                    <div class='session_settings'>
+                        {$settings}
+                    </div>
+    
+                    <div class='session_presentations'>
+                        <h3>Presentations</h3>
+                        {$presentations}
+                    </div>
                 </div>
             </div>
-        </div>
         ";
 
     }
@@ -1404,7 +1404,7 @@ class Session extends AppTable {
                 <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>{$data['date']}</div>
                 <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
-            <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
             </div>
             <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
             Presentations

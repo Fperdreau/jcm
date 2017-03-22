@@ -37,6 +37,6 @@ if (!empty($_POST['id'])) {
 } else {
     $content = "Nothing to show here";
 }
-$content = "<section><div class='section_content presentation_container'>{$content}</div></section>";
+$content = "<section><div class='section_content' id='presentation_container'>{$content}</div></section>";
 
 echo $content;

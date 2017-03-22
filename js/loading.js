@@ -69,6 +69,23 @@ var loadCalendarSessions = function() {
 /**
  * Load JCM calendar
  */
+var loadCalendarSubmission = function() {
+    $('#ui-datepicker-div').remove();
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        async: true,
+        data: {get_calendar_param: true},
+        success: function (data) {
+            var result = jQuery.parseJSON(data);
+            init_submission_calendar(result);
+        }
+    });
+};
+
+/**
+ * Load JCM calendar
+ */
 var loadCalendarAvailability = function() {
     var formid = $('#availability_calendar');
     if (formid.length>0 && formid !== undefined) {

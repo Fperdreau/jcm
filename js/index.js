@@ -37,29 +37,17 @@ function trigger_modal(el) {
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /**
  * Show form to submit a presentation
- * @param el: ID of the form
- * @param id: ID of the presentation
- * @param controller
- * @param operation: form's type (submit, modify, suggest)
- * @param date: presentation's date
- * @param type: submission type
- * @param destination: destination view (body, modal)
+ * @param data
  */
-var get_submission_form = function (el, id, controller, operation, date, type, destination) {
-    if (id === undefined) {id = false; }
-    if (operation === undefined) {type = "new"; }
-    if (date === undefined) {date = false; }
-    if (type === undefined) {type = false; }
-    if (destination === undefined) destination = 'body';
-    var data = {
-        get_submission_form: true,
-        id: id,
-        controller: controller,
-        operation: operation,
-        date: date,
-        type: type,
-        destination: destination
-    };
+var get_submission_form = function (data) {
+    if (data['id'] === undefined) {data['id'] = false; }
+    if (data['operation'] === undefined) {data['operation'] = "new"; }
+    if (data['date'] === undefined) {data['date'] = false; }
+    if (data['type'] === undefined) {data['type'] = false; }
+    if (data['view'] === undefined) data['view'] = 'body';
+    data['get_submission_form'] = true;
+    var el = (data['destination'] === undefined) ? $('.submission_container') : $(data['destination']);
+
     // First we remove any existing submission form
     var callback = function (result) {
         el
@@ -74,7 +62,7 @@ var get_submission_form = function (el, id, controller, operation, date, type, d
     processAjax(el, data, callback, "php/form.php");
 
     // Load JCM calendar
-    loadCalendarSessions();
+    loadCalendarSubmission();
 };
 
 /**
@@ -109,6 +97,7 @@ var showpostform = function (postid) {
  */
 function confirmation_box(el, txt, txt_btn, callback) {
     trigger_modal(el);
+
     var container = $('.modalContainer');
 
     // Remove confirmation section if it already exist
@@ -129,7 +118,6 @@ function confirmation_box(el, txt, txt_btn, callback) {
 
     // Show  section
     show_section('confirmation_box');
-
     var section = $('.modal_section#confirmation_box');
     
     // User has confirmed
@@ -178,6 +166,35 @@ var inititdatepicker = function (data_availability) {
  * Initialize jQuery-UI calendar
  * @param data_availability: associative array providing journal club sessions and their information
  */
+var init_submission_calendar = function (data_availability) {
+    $('.datepicker_submission').each(function() {
+        var force_select = $(this).data('view') !== undefined ? $(this).data('view') === 'edit' : false;
+        $(this).datepicker({
+            defaultDate: selected,
+            firstDay: 1,
+            dateFormat: 'yy-mm-dd',
+            inline: true,
+            showOtherMonths: true,
+            beforeShowDay: function(date) {
+                return renderCalendarCallback(date, data_availability, force_select);
+            },
+            onSelect: function(dateText, inst) {
+                var form = $(inst.input[0].form);
+                var input = form.find('input[name="session_id"]');
+                if (input !== undefined && input.length > 0) {
+                    input.val(planned_sessions[dateText])
+                } else {
+                    form.append("<input type='hidden' name='session_id' value='" + planned_sessions[dateText] + "' />")
+                }
+            }
+        });
+    });
+};
+
+/**
+ * Initialize jQuery-UI calendar
+ * @param data_availability: associative array providing journal club sessions and their information
+ */
 var initAvailabilityCalendar = function (data_availability) {
     var formid = $('#availability_calendar');
     formid.datepicker({
@@ -208,6 +225,8 @@ var initAvailabilityCalendar = function (data_availability) {
 
 };
 
+var planned_sessions = {};
+
 /**
  * Render JQuery Datepicker
  * @param date
@@ -226,6 +245,7 @@ function renderCalendarCallback(date, data, force_select) {
     // If there are sessions planned on this day
     if (booked > -1) {
         css = [];
+        planned_sessions[$.datepicker.formatDate('yy-mm-dd', date)] = data.session_id[booked];
         var rem = data.slots[booked] - data.nb[booked]; // Number of presentations available that day
         var type = data.session_type[booked];
         text = type + ": (" + rem + " slot(s) available)";
@@ -377,30 +397,22 @@ var modalpubform = $('.modal_section#submission_form');
 
 /**
  * Display presentation's information in a modal window
- * @param id
- * @param controller
- * @param el
+ * @param data
  */
-function show_submission_details (id, controller, el) {
-    id = (id === undefined) ? false : id;
+function show_submission_details (data) {
+    var el = data['destination'] !== undefined ? $(data['destination']) : modalpubform;
+    data['show_submission_details'] = true;
     jQuery.ajax({
         url: 'php/form.php',
         type: 'POST',
         async: false,
-        data: {
-            show_submission_details: true,
-            id: id,
-            controller: controller
-        },
+        data: data,
         success: function (data) {
             var result = jQuery.parseJSON(data);
             el
                 .hide()
                 .html(result)
                 .fadeIn(200);
-
-            // Load JCM calendar
-            loadCalendarSessions();
         }
     });
 }
@@ -819,7 +831,7 @@ $(document).ready(function () {
                 trigger_modal($(this));
                 var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
                     'published as a news.' + ' Do you want to continue?';
-                confirmation_box(msg, 'Continue', callback);
+                confirmation_box($(this), msg, 'Continue', callback);
             } else {
                 callback();
                 close_modal();
@@ -1182,16 +1194,14 @@ $(document).ready(function () {
         // Select a wish
         .on('change','#select_wish',function (e) {
             e.preventDefault();
-            var id = $(this).val();
-            var form = $($(this).data('target'));
-            get_submission_form(form, id, 'Suggestion', 'select', undefined, undefined, 'modal');
+            var data = $(this).data();
+            data['id'] = $(this).val();
+            get_submission_form(data);
          })
 
         .on('click', '.select_suggestion', function(e) {
             e.preventDefault();
-            var id = $(this).data('id');
-            var form = $($(this).data('target'));
-            get_submission_form(form, id, 'Suggestion', 'select', undefined, undefined, 'modal');
+            get_submission_form($(this).data());
         })
 
         // Show download list
@@ -1230,12 +1240,14 @@ $(document).ready(function () {
             // Check if the form has been fully completed
             if (!checkform(form)) { return false;}
 
-            // Check if a data has been selected (except for wishes)
+            // Check if a data has been selected (except for suggestion)
             if (operation !== "suggest") {
                 var date = $("input.datepicker").val();
-                showfeedback('<p id="warning">You must choose a date!</p>');
-                form.find("input.datepicker").focus();
-                return false;
+                if (date.length == 0) {
+                    showfeedback('<p id="warning">You must choose a date!</p>');
+                    form.find("input.datepicker").focus();
+                    return false;
+                }
             }
 
             // Check if files have been uploaded and attach them to this presentation
@@ -1285,7 +1297,7 @@ $(document).ready(function () {
         .on('click', '.bookmark_container', function () {process_bookmark($(this))})
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Modal triggers
+         Login/Logout triggers
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Log out
         .on('click',"#logout",function (e) {
@@ -1301,27 +1313,19 @@ $(document).ready(function () {
             extend_session();
         })
 
+        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         Submission triggers
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Show publication information on click
         .on('click','.show_submission_details',function (e) {
             e.preventDefault();
-            var id_pres = $(this).attr('data-id');
-            var controller = $(this).data('controller');
-            show_submission_details(id_pres, controller, modalpubform);
+            show_submission_details($(this).data());
         })
 
         // Choose a wish
         .on('click','.get_submission_form',function (e) {
             e.preventDefault();
-            var id_pres = $(this).data('id');
-            var date = $(this).data('date');
-            var controller = $(this).data('controller');
-            var operation = $(this).data('operation');
-            var destination = $(this).data('destination');
-            if (destination === undefined) {
-                destination = 'body';
-            }
-            var el = (destination == 'body') ? $('.submission_container') : modalpubform;
-            get_submission_form(el, id_pres, controller, operation, date, undefined, destination);
+            get_submission_form($(this).data());
         })
 
         .on('click', '.get_suggestion_list', function(e) {
@@ -1357,11 +1361,7 @@ $(document).ready(function () {
                 };
                 processAjax(el, data, callback, "php/form.php");
             } else {
-                var id_pres = $(this).data('id');
-                var date = $(this).data('date');
-                var controller = $(this).data('controller');
-                operation = $(this).data('operation');
-                get_submission_form(el, id_pres, controller, operation, date);
+                get_submission_form($(this).data());
             }
         })
 
@@ -1406,10 +1406,7 @@ $(document).ready(function () {
 		// Show publication modification form
         .on('click','.modify_ref',function (e) {
             e.preventDefault();
-            var id_pres = $(this).data("id");
-            var controller = $(this).data("controller");
-            var destination = $(this).data("destination") !== undefined ? $(this).data('destination') : modalpubform;
-            get_submission_form($(destination), id_pres, controller, 'edit');
+            get_submission_form($(this).data());
         })
 
 		// Show publication deletion confirmation
