@@ -83,7 +83,6 @@ function removeLoadingButton(el) {
  */
 var processAjax = function(formid, data, callback, url, timing) {
     var btn = formid.find('input[type="submit"], .processform');
-
     jQuery.ajax({
         url: url,
         type: 'POST',
@@ -131,7 +130,6 @@ var validsubmitform = function (el, data, callback, timing, btn) {
     var result = jQuery.parseJSON(data);
     callback = (callback === undefined) ? false : callback;
     timing = (timing === undefined) ? 2000 : timing;
-
     if (btn !== undefined && btn.length > 0) {
         removeLoadingButton(btn);
         if (result.status) {
@@ -234,7 +232,6 @@ function showFeedBack(el, status, msg) {
     var feedbackForm = $('.feedbackForm');
 
     fade_inputs(el, true);
-
     feedbackForm
         .css({left: 0, width: width + 'px', height: height + 'px'})
         .html(text);
@@ -248,13 +245,38 @@ function showFeedBack(el, status, msg) {
 }
 
 /**
+ * Check if tinyMCE editor is active
+ * @param editor_id
+ * @param el
+ * @returns {boolean}
+ */
+var is_editor_active = function(el, editor_id){
+    var editor;
+    if(typeof tinyMCE === 'undefined'){
+        return false;
+    }
+
+    if( typeof editor_id === 'undefined' ){
+        editor = tinyMCE.activeEditor;
+    }else{
+        editor = tinyMCE.EditorManager.get(editor_id);
+    }
+
+    if (editor === null || el === undefined || !el.hasClass('tinymce') || tinyMCE.get(el.attr('id')) === null) {
+        return false;
+    }
+
+    return !editor.isHidden();
+};
+
+/**
  * Check whether every required fields have been filled up correctly
  * @param el: DOM element
  * @param btn: submit button
  * @returns {boolean}
  */
 var checkform = function(el, btn) {
-    btn = (btn === undefined) ?el.find("input[type=submit]:focus") : btn;
+    btn = (btn === undefined) ? el.find("input[type=submit]:focus") : btn;
 
     var valid = true;
     el.closest('.inputFeedback').remove();
@@ -269,7 +291,7 @@ var checkform = function(el, btn) {
             thisField = false;
         }
 
-        if ($(this).prop('required') && $(this).hasClass('tinymce') && tinyMCE.get($(this).attr('id')).getContent().length === 0) {
+        if ($(this).prop('required') && is_editor_active($(this)) && tinyMCE.get($(this).attr('id')).getContent().length === 0) {
             tinymce.execCommand('mceFocus',false,'consent');
             thisField = false;
         }
@@ -285,7 +307,7 @@ var checkform = function(el, btn) {
         }
 
         // Check if provided email is valid
-        if ($(this).val() !== null && $(this).val().length > 0 && $(this).attr('type') == 'email' && !checkemail($(this).val())) {
+        if ($(this).val() !== null && $(this).val().length > 0 && $(this).attr('type') === 'email' && !checkemail($(this).val())) {
             msg = "Invalid email";
             thisField = false;
         }
@@ -306,7 +328,7 @@ var checkform = function(el, btn) {
     var ok = true;
     checkbox.each(function() {  // first pass, create name mapping
         var name = this.name;
-        if (name_map[name] == undefined) {
+        if (name_map[name] === undefined) {
             ok = el.find("input[name='"+name+"']:checked").length > 0;
             if (!ok) {
                 el.find("input[name='"+name+"']")
@@ -380,7 +402,7 @@ var showfeedback = function (message, selector) {
 function modArray(data,prop,value) {
     var i;
     for (i = 0; i < data.length; ++i) {
-        if (data[i].name == prop) {
+        if (data[i].name === prop) {
             data[i].value = value;
             break;
         }
