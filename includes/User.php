@@ -29,7 +29,7 @@
  *
  * Handle user-related methods (generate users list/ get organizers list)
  */
-class Users extends AppTable {
+class User extends AppTable {
 
     /**
      * @var array $table_data: Table schema
@@ -53,175 +53,37 @@ class Users extends AppTable {
         "active" => array("INT(1) NOT NULL", 0),
         "attempt" => array("INT(1) NOT NULL", 0),
         "last_login" => array("DATETIME NOT NULL"),
-        "primary" => "id");
-
-
-    /**
-     * Users constructor.
-     */
-    function __construct() {
-        parent::__construct('User', $this->table_data);
-    }
-
-    /**
-     * Get organizers list
-     * @param null $admin
-     * @return array
-     */
-    public function getadmin($admin=null) {
-        $sql = "SELECT * FROM $this->tablename WHERE status='organizer'";
-        if (null != $admin) {
-            $sql .= "or status='admin'";
-        }
-        $req = $this->db->send_query($sql);
-        $user_info = array();
-        while ($row = mysqli_fetch_assoc($req)) {
-            $user_info[]= $row;
-        }
-        return $user_info;
-    }
-
-    /**
-     * Get user list
-     * @param bool $assign
-     * @return array
-     */
-    public function getUsers($assign = false) {
-        $sql = "SELECT * FROM $this->tablename WHERE active=1 and status!='admin'";
-        $sql = ($assign == true) ? $sql." and assign=1":$sql;
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-
-    /**
-     * Get all activated members except admins
-     * @return array
-     */
-    public function all_but_admin() {
-        $sql = "SELECT * FROM $this->tablename WHERE active=1 and status!='admin' ORDER BY fullname";
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-    }
-    
-    /**
-     * Generate and show list of users
-     * @param null $filter
-     * @return string
-     */
-    public function generateuserslist($filter = null) {
-        if (null == $filter) {
-            $filter = 'lastname';
-        }
-
-        $sql = "SELECT username FROM $this->tablename ORDER BY $filter";
-
-        $req = $this->db->send_query($sql);
-        $result =  "
-            <div class='list-container list-heading'>
-                <div class='user_select user_firstname' data-filter='firstname'>First Name</div>
-                <div class='user_select user_lastname' data-filter='lastname'>Last Name</div>
-                <div class='user_select user_email' data-filter='email'>Email</div>
-                <div class='user_select user_email' data-filter='email'>Position</div>
-                <div class='user_select user_small' data-filter='active'>Activated</div>
-                <div class='user_select user_small' data-filter='nbpres'>Submissions</div>
-                <div class='user_select user_op' data-filter='status'>Status</div>
-            </div>
-        ";
-
-        while ($cur_user = mysqli_fetch_array($req)) {
-            /** @var User $user */
-            $user = new User($cur_user['username']);
-
-            $nbpres = $user->get_nbpres();
-            // Compute age
-            if ($user->active == 1) {
-                $to   = new DateTime(date('Y-m-d'));
-                $from = new DateTime(date("Y-m-d",strtotime($user->date)));
-                $diff = $to->diff($from);
-
-                $cur_trage = "$diff->d days ago";
-                if ($diff->days >31) {
-                    $cur_age = $diff->m;
-                    $cur_trage = "$cur_age months ago";
-                    if ($diff->m >12) {
-                        $cur_age = $diff->y;
-                        $cur_trage = "$cur_age years ago";
-                    }
-                }
-                $option_active = "<option value='desactivate'>Deactivate</option>";
-            } else {
-                $cur_trage = "No";
-                $option_active = "<option value='activate'>Activate</option>";
-            }
-
-            $result .= "
-            <div class='list-container' id='section_$user->username'>
-                <div class='user_firstname'>$user->firstname</div>
-                <div class='user_lastname'>$user->lastname</div>
-                <div class='user_email'>$user->email</div>
-                <div class='user_email'>$user->position</div>
-                <div class='user_small'>$cur_trage</div>
-                <div class='user_small'>$nbpres</div>
-                <div class='user_op'>
-                    <select name='status' class='user_status modify_status' data-user='$user->username' style='max-width: 75%;'>
-                        <option value='$user->status' selected='selected'>$user->status</option>
-                        <option value='member'>Member</option>
-                        <option value='admin'>Admin</option>
-                        <option value='organizer'>Organizer</option>
-                        $option_active
-                        <option value='delete' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
-                    </select>
-                </div>
-            </div>
-            ";
-        }
-        return $result;
-    }
-}
-
-/**
- * Class User
- *
- * Handle User information (username,password,etc.) and user-related routines (creation, update of user information).
- */
-class User extends Users {
+        "primary" => "id"
+    );
 
     /**
      * @var int
      */
     public $id;
-    
+
     /** @var string  */
-    public $date = "";
+    public $date;
 
     /** @var null|string  */
-    public $username = "";
+    public $username;
 
     /** @var string  */
-    public $password = "";
+    public $password;
 
     /** @var string  */
-    public $firstname = "";
+    public $firstname;
 
     /** @var string  */
-    public $lastname = "";
+    public $lastname;
 
     /** @var string  */
-    public $fullname = "";
+    public $fullname;
 
     /** @var string  */
-    public $position = "";
+    public $position;
 
     /** @var string  */
-    public $email = "";
+    public $email;
 
     /** @var int  */
     public $reminder = 1;
@@ -254,13 +116,13 @@ class User extends Users {
     /** @var  string */
     protected $last_login;
 
+
     /**
-     * Constructor
-     *
+     * User constructor.
      * @param null $username
      */
     function __construct($username=null) {
-        parent::__construct();
+        parent::__construct('User', $this->table_data);
         $this->tablename = $this->db->tablesname["User"];
         $this->username = $username;
         if (!is_null($username)) {
@@ -268,6 +130,7 @@ class User extends Users {
         }
     }
 
+    // Controller
     /**
      * Create user
      *
@@ -292,7 +155,7 @@ class User extends Users {
         $post['active'] = ($post['status'] == "admin") ? 1:0; // Automatically activate the account if the user has an
         // admin level
 
-		$class_vars = get_class_vars("User");
+        $class_vars = get_class_vars("User");
         if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1)) && !$this->is_exist(array('email'=>$post['email']))) {
             $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
             $this->db->addcontent($this->tablename,$content); // Add to user table
@@ -324,8 +187,8 @@ class User extends Users {
             AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         } else {
             $result['status'] = false;
-			$result['msg'] = "This username/email address already exist in our database";
-		}
+            $result['msg'] = "This username/email address already exist in our database";
+        }
         return $result;
     }
 
@@ -342,7 +205,7 @@ class User extends Users {
             $this->firstname = ucfirst(strtolower($this->firstname));
             $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
-            $this->nbpres = self::get_nbpres();
+            $this->nbpres = self::get_nbPres($prov_username);
             $this->update(array('nbpres'=>$this->nbpres), array('username'=>$prov_username));
             return true;
         } else {
@@ -351,28 +214,50 @@ class User extends Users {
     }
 
     /**
-     * @param $id
-     * @return array|null
+     * Get organizers list
+     * @param bool $admin
+     * @return array
      */
-    public function getById($id) {
-        $sql = "SELECT * FROM $this->tablename WHERE id='{$id}'";
-        $req = $this->db -> send_query($sql);
-        return mysqli_fetch_assoc($req);
+    public function getAdmin($admin=false) {
+        if ($admin) {
+            $search = array('admin', 'organizer');
+        } else {
+            $search = 'organizer';
+        }
+        return $this->get(array('status'=>$search));
     }
 
     /**
-     * Get the number of presentations submitted by the user
-     * @return int
+     * Get user list
+     * @param bool $assign
+     * @return array
      */
-    function get_nbpres() {
-        $tablename = $this->db->tablesname['Presentation'];
-        $sql = "SELECT title FROM $tablename WHERE orator='$this->username' and type!='wishlist'";
-        $req = $this->db -> send_query($sql);
-        $cpt = 0;
-        while (mysqli_fetch_array($req)) {
-            $cpt++;
-        }
-        return $cpt;
+    public function getAll($assign = false) {
+        $search = array('active'=>1, 'status !='=>'admin');
+        if ($assign) $search['assign'] = 1;
+        return $this->get($search);
+    }
+
+    /**
+     * Get all activated members except admins
+     * @return array
+     */
+    public function all_but_admin() {
+        return $this->all(
+            array(
+                'active'=>1,
+                'status !='=>'admin'),
+            array('dir'=>'DESC', 'filter'=>'fullname')
+        );
+    }
+
+    /**
+     * Generate and show list of users
+     * @param string $filter
+     * @return string
+     */
+    public function generateuserslist($filter='lastname') {
+        return self::users_list($this->all(array(), array('dir'=>'ASC', 'filter'=>$filter)));
     }
 
     /**
@@ -533,7 +418,7 @@ class User extends Users {
                 $result['status'] = false;
                 $result['msg'] = "Sorry, your account is not activated yet. <br> You will receive an
                     email as soon as your registration is confirmed by an admin.<br> Please,
-                    <a href='index.php?page=contact'>contact us</a> if you have any question.";
+                    <a href='" . URL_TO_APP . "index.php?page=contact'>contact us</a> if you have any question.";
             }
         } else {
             $result['status'] = false;
@@ -653,49 +538,305 @@ class User extends Users {
     /**
      * Get user's list of publications to display it on his/her profile page
      *
-     * @param null $filter
      * @return string
      */
-    public function getpublicationlist($filter = NULL) {
+    public function getPublicationList() {
         $pub = new Presentation();
-
-        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='{$this->username}' and date<CURDATE()";
-        if (null != $filter) {
-            $sql .= " AND YEAR(date)=$filter";
-        }
-        $sql .= " ORDER BY date";
-        $req = $this->db->send_query($sql);
-
-        $content = "";
-        while ($row = mysqli_fetch_assoc($req)) {
-            $content .= $pub->show($row['id_pres'], true);
-        }
-
-        return "
-            <div class='table_container' style='display: table; width: 100%;'>
-                <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
-                    <div style='width: 20%; display: table-cell;'>Date</div>
-                    <div style='width: 75%; display: table-cell;'>Title</div>
-                </div>
-                {$content}
-            </div>
-        ";
+        return self::user_assignments($pub->getUserPresentations($this->username, 'previous'));
     }
 
     /**
      * Gets user's assignments list
-     * @param bool $show
-     * @param null|string $username
      * @return string
      */
-    public function getAssignments($show=true, $username=null) {
+    public function getAssignments() {
         $pub = new Presentation();
-        $sql = "SELECT id_pres FROM ".$this->db->tablesname['Presentation']." WHERE username='{$this->username}' AND date>CURDATE()";
-        $req = $this->db->send_query($sql);
-        $content = "";
-        while ($row = mysqli_fetch_assoc($req)) {
-            $content .= $pub->show($row['id_pres'], $username);
+        return self::user_assignments($pub->getUserPresentations($this->username, 'next'));
+    }
+
+    /**
+     * Get list of bookmarks
+     */
+    public function getBookmarks() {
+        $Bookmark = new Bookmark();
+        return $Bookmark->getList($_SESSION['username']);
+    }
+
+    /**
+     * View getter
+     * @param string $view: requested view name
+     * @param string $destination: view's destination (body or modal)
+     * @return string|array
+     */
+    public function get_view($view, $destination='body') {
+        $method_name = $view . '_' . $destination;
+        return self::$method_name();
+    }
+
+    /**
+     * @param $id
+     * @return array|null
+     */
+    public function getById($id) {
+        return $this->get(array('id'=>$id));
+    }
+
+    /**
+     * Get the number of presentations submitted by the user
+     * @param string $username: user name
+     * @return int
+     */
+    private static function get_nbPres($username) {
+        $pub = new Presentation();
+        return count($pub->all(array('orator'=>$username, 'type !='=>'wishlist')));
+    }
+
+    // View
+    /**
+     * Render users list
+     * @param array $data
+     * @return string
+     */
+    private static function users_list(array $data=array()) {
+        $content = null;
+        foreach ($data as $key=>$item) {
+            $content .= self::user_in_list($item);
         }
+        return "
+            <div class='list-container list-heading'>
+                <div class='user_select user_firstname' data-filter='firstname'>First Name</div>
+                <div class='user_select user_lastname' data-filter='lastname'>Last Name</div>
+                <div class='user_select user_email' data-filter='email'>Email</div>
+                <div class='user_select user_email' data-filter='email'>Position</div>
+                <div class='user_select user_small' data-filter='active'>Activated</div>
+                <div class='user_select user_op' data-filter='status'>Status</div>
+            </div>
+            {$content}
+        ";
+    }
+
+    /**
+     * Render user information in users list
+     * @param array $item
+     * @return string
+     */
+    private static function user_in_list(array $item) {
+        // Compute age
+        if ($item['active'] === 1) {
+            $to   = new DateTime(date('Y-m-d'));
+            $from = new DateTime(date("Y-m-d",strtotime($item['date'])));
+            $diff = $to->diff($from);
+
+            $cur_trage = "$diff->d days ago";
+            if ($diff->days >31) {
+                $cur_age = $diff->m;
+                $cur_trage = "$cur_age months ago";
+                if ($diff->m >12) {
+                    $cur_age = $diff->y;
+                    $cur_trage = "$cur_age years ago";
+                }
+            }
+            $option_active = "<option value='desactivate'>Deactivate</option>";
+        } else {
+            $cur_trage = "No";
+            $option_active = "<option value='activate'>Activate</option>";
+        }
+
+        return "
+            <div class='list-container' id='section_{$item['username']}->username'>
+                <div class='user_firstname'>{$item['firstname']}</div>
+                <div class='user_lastname'>{$item['lastname']}</div>
+                <div class='user_email'>{$item['email']}</div>
+                <div class='user_position'>{$item['position']}</div>
+                <div class='user_small'>$cur_trage</div>
+                <div class='user_op'>
+                    <select name='status' class='user_status modify_status' data-user='{$item['username']}' style='max-width: 75%;'>
+                        <option value='{$item['status']}' selected='selected'>{$item['status']}</option>
+                        <option value='member'>Member</option>
+                        <option value='admin'>Admin</option>
+                        <option value='organizer'>Organizer</option>
+                        $option_active
+                        <option value='delete' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
+                    </select>
+                </div>
+            </div>
+            ";
+    }
+
+    /**
+     * Render login form
+     * @return string|array
+     */
+    public static function login_form_body() {
+        return "
+            <form id='login_form' method='post' action='" . URL_TO_APP . 'php/form.php' . "'>
+                <input type='hidden' name='login' value='true'/>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='text' name='username' required autocomplete='on'>
+                    <label for='username'>Username</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='password' name='password' required>
+                    <label for='password'>Password</label>
+                </div>
+                <div class='action_btns'>
+                    <div class='first_half'>
+                        <input type='submit' id='login_form' value='Log In' class='processform login'/>
+                    </div>
+                    <div class='last_half' style='text-align: right;'>
+                        <input type='button' class='go_to_section' data-controller='User' data-action='get_view' 
+                        data-params='registration_form,modal' data-section='registration_form' value='Sign Up'>
+                    </div>
+                </div>
+            </form>
+            <div class='forgot_password'><a href='' class='go_to_section' data-controller='User' data-action='get_view' 
+            data-params='change_password_form,modal' data-section='change_password_form'>I forgot my password</a></div>
+        ";
+    }
+
+    /**
+     * Render login form for modal windows
+     * @return array
+     */
+    public static function login_form_modal() {
+        return array(
+            'id'=>'login_form',
+            'content'=>self::login_form_body(),
+            'title'=>'Login',
+            'buttons'=>null
+        );
+    }
+
+    /**
+     * Render signup form
+     * @return string
+     */
+    public static function registration_form_body() {
+        return  "
+            <form id='register_form' method='post' action='" . URL_TO_APP . 'php/form.php' . "'>
+                <input type='hidden' name='register' value='true'>
+                <input type='hidden' name='status' value='member'>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='text' name='firstname' required autocomplete='on'>
+                    <label for='firstname'>First Name</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='text' name='lastname' required autocomplete='on'>
+                    <label for='lastname'>Last Name</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='text' name='username' required autocomplete='on'>
+                    <label for='username'>Username</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='password' name='password' class='passwordChecker' required>
+                    <label for='password'>Password</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='password' name='conf_password' required>
+                    <label for='conf_password'>Confirm password</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <input type='email' name='email' required autocomplete='on'>
+                    <label for='email'>Email</label>
+                </div>
+                <div class='form-group' style='width: 100%;'>
+                    <select name='position' id='position' required>
+                        <option value='' selected disabled></option>
+                        <option value='researcher'>Researcher</option>
+                        <option value='post-doc'>Post-doc</option>
+                        <option value='phdstudent'>PhD student</option>
+                        <option value='master'>Master student</option>
+                    </select>   
+                    <label>Position</label>    
+                </div>
+                <div class='action_btns'>
+                    <div class='first_half'><input type='button' class='go_to_section' data-controller='User' data-action='get_view' 
+                        data-params='login_form,modal' data-section='login_form' value='Log in'></div>
+                    <div class='last_half'><input type='submit' class='register processform' value='Sign up'></div>
+                </div>
+            </form>
+        ";
+    }
+
+    /**
+     * Render registration form for modal windows
+     * @return array
+     */
+    public static function registration_form_modal() {
+        return array(
+            'id'=>'registration_form',
+            'content'=>self::registration_form_body(),
+            'title'=>'Sign up',
+            'buttons'=>null
+        );
+    }
+
+    /**
+     * Render dialog window to delete account
+     * @return string
+     */
+    public static function delete_account_form_body() {
+        return "
+            <div>Please, confirm your identity.</div>
+            <form id='confirmdeleteuser' method='post' action='" . URL_TO_APP . 'php/form.php' . "' autocomplete='off'>
+                <div><input type='hidden' name='delete_user' value='true'></div>
+                <div class='form-group'>
+                    <input type='text' id='del_username' name='username' value='' required autocomplete='off'/>
+                    <label for='del_username'>Username</label>
+                </div>
+                <div class='form-group'>
+                    <input type='password' id='del_password' name='password' value='' required autocomplete='off'/>
+                    <label for='del_password'>Password</label>
+                </div>
+                <div class='action_btns'>
+                    <input type='submit' class='confirmdeleteuser' value='Delete my account'>
+                </div>
+            </form>
+        ";
+    }
+
+    /**
+     * Render change password form
+     * @return string
+     */
+    public static function change_password_form_body() {
+        return "
+        <!-- Change password section -->
+        <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
+        <form id='modal_change_pwd' method='post' action='" . URL_TO_APP . 'php/form.php' . "'>
+            <input type='hidden' name='change_pw' value='true'>
+            <div class='form-group'>
+                <input type='email' name='email' value='' required/>
+                <label for='email'>Email</label>
+            </div>
+            <div class='action_btns'>
+                <div class='first_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
+                <div class='last_half'><input type='submit' class='processform' value='Send'></div>
+            </div>
+        </form>
+        ";
+    }
+
+    /**
+     * Render password modification form for modal windows
+     * @return array
+     */
+    public static function change_password_form_modal() {
+        return array(
+            'id'=>'change_password_form',
+            'content'=>self::change_password_form_body(),
+            'title'=>'Sign up',
+            'buttons'=>null
+        );
+    }
+
+    /**
+     * Render list of upcoming presentations
+     * @param $content
+     * @return string
+     */
+    private static function user_assignments($content) {
         if (empty($content)) return "You don't have any upcoming presentations.";
         return "
             <div class='table_container' style='display: table; width: 100%;'>
@@ -706,13 +847,5 @@ class User extends Users {
             {$content}
             </div>
         ";
-    }
-
-    /**
-     * Get list of bookmarks
-     */
-    public function getBookmarks() {
-        $Bookmark = new Bookmark();
-        return $Bookmark->getList($_SESSION['username']);
     }
 }
