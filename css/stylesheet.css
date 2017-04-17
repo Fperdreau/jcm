@@ -1243,6 +1243,17 @@ footer {
     background-size: 50px;
 }
 
+.blankDiv {
+    position:   absolute;
+    z-index:    90;
+    top:        0;
+    left:       0;
+    width:      100%;
+    height: 100%;
+    background: rgba( 255, 255, 255, 1);
+    background-size: 50px;
+}
+
 #pagecontent {
     display: none;
     position: relative;
@@ -1491,21 +1502,6 @@ h3 {
     margin-right: 5px;
 }
 
-.wish_container a, .pres_container a {
-    color: rgba(207,81,81,.8);
-    font-weight: 500;
-    font-size: 16px;
-}
-
-.wish_container:hover, .pres_container:hover {
-    background: rgba(220,220,220,.5);
-    cursor: pointer;
-}
-
-.wish_container:hover a {
-    color: rgba(68,68,68,1);
-}
-
 /* Submission floating menu */
 .submitMenuFloat {
     position: fixed;
@@ -1682,13 +1678,71 @@ h3 {
     margin-bottom: 10px;
 }
 
+.suggestion_container {
+    display: block;
+    position: relative;
+    margin: 10px auto;
+    font-size: 0.9em;
+    font-weight: 300;
+    overflow: hidden;
+    padding: 5px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.suggestion_container a, .pres_container a {
+    color: rgba(207,81,81,.8);
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.suggestion_container:hover, .pres_container:hover {
+    background: rgba(220,220,220,.5);
+    cursor: pointer;
+}
+
+.suggestion_container:hover a {
+    color: rgba(68,68,68,1);
+}
+
+.suggestion_container > div {
+    display: table-cell;
+    text-align: left;
+}
+
+.keywords_container {
+    width: 100%;
+    margin-top: 5px;
+    font-size: 0.8em;
+}
+
+.keywords_container > div {
+    display: inline-block;
+    vertical-align: top;
+    background-color: #6b88b3;
+    color: white;
+    padding: 4px 5px;
+    margin: 0 2px;
+}
+
+.suggestion_details_container {
+    width: 69%;
+    padding-left: 10px;
+}
+
+.suggestion_date {
+    font-weight: 600;
+    color: #222222;
+    vertical-align: top;
+    font-size: 0.9em;
+    width: 60px;
+}
+
+
 /* *********************************************************************/
 /* Vote icon
 /* *********************************************************************/
-.tiny_icon_container {
-    float: right;
-}
-
 .tiny_icon_container>div {
     display: inline-block;
     vertical-align: middle;
@@ -1738,7 +1792,6 @@ h3 {
 /* *********************************************************************/
 
 .bookmark_container {
-    float: right;
     background-image: url(../images/bookmark_16_bk.png);
 }
 
@@ -1778,7 +1831,6 @@ h3 {
 .bookmark_action {
     text-align: right;
 }
-
 
 /* *********************************************************************/
 /* Buttons
@@ -3114,23 +3166,26 @@ div.loadBtn {
 .modalContainer {
     position: absolute;
     padding: 0;
-    min-width: 300px;
     width: 90%;
     max-width: 700px;
     height: auto;
     top: 80px;
+    border-radius: 5px;
+    display: none;
 }
 
 .modalContainer .modal_section {
     display: none;
     margin: 0;
     width: auto;
-    padding-bottom: 10px;
     position: relative;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 .popupBody {
     width: 100%;
+    max-height: 100%;
     padding: 0;
     margin: 0;
     background: #FFF;
@@ -3138,13 +3193,8 @@ div.loadBtn {
     -moz-box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
     box-shadow: 0px 0px 1px 1px rgba(0,0,0,1);
     border-radius: 5px;
-}
-
-.modal_section {
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 500px;
-    padding: 0 10px;
+    box-sizing: content-box;
+    display: block;
 }
 
 /* Popup Styles*/
@@ -3153,23 +3203,48 @@ div.loadBtn {
     font-weight: 500;
     text-transform: uppercase;
     border-bottom:1px solid #DDD;
-    margin-bottom: 10px;
     padding: 5px 10px;
 }
 
-.modal_close {
-    vertical-align: top;
-    display: inline-block;
+.popupContent {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px 10px 0 10px;
+    box-sizing: border-box;
+    max-height: 100%;
+}
+
+.float_buttons_container {
     position: absolute;
     right: 0;
     top:0;
-    padding:10px 15px;
-    background: url('../images/close.png') no-repeat;
-    background-position: center center;
-    background-size: 50% auto;
+    background-color: #dddddd;
+    border-radius: 0 5px 0 5px;
+}
+
+.float_buttons_container > div {
+    display: inline-block;
+    padding: 5px;
     cursor: pointer;
-    color:#aaa;
-    font-size:1.2em;
+    vertical-align: top;
+    width: 20px;
+    height: 20px;
+    background-size: 20px auto;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.float_buttons_container > div:hover {
+    background-color: #aaaaaa;
+    border-radius: 0 5px 0 5px;
+}
+
+.modal_close {
+    background-image: url('../images/close.png');
+}
+
+.back_btn {
+    background-image: url("../images/prev.png");
 }
 
 .action_btns {
@@ -3180,6 +3255,8 @@ div.loadBtn {
     text-decoration: none;
     color:#ED6347;
 }
+
+
 
 .btn {padding:10px 20px; background: #F4F4F2;}
 .btn_red {background: rgba(207,81,81,1); color: #FFF;}
@@ -3212,20 +3289,43 @@ input.dateinput {
     padding: 10px;
 }
 
-#pub_date {
-    width:20%;
-    display: inline;
+.pub_date {
+    width: 20%;
+    display: inline-block;
+    margin-top: 5px;
 }
 
-#pub_title {
-    width: 100%;
+.pub_type {
+    color: white;
+    background: #777;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-weight: 400;
+    float: right;
     font-size: 1.2em;
-    margin-bottom: 10px;
-    display: block;
+}
+
+.pub_title {
+    width: 90%;
+    font-size: 1.2em;
+    margin-bottom: 2px;
+    display: inline-block;
     font-weight: bold;
 }
 
-#pub_orator {
+.pub_authors {
+    font-style: italic;
+    color: #555;
+    font-size: 1.1em;
+    font-weight: 400;
+}
+
+.pub_label {
+    color:#CF5151;
+    font-weight: bold;
+}
+
+.pub_orator {
     margin-right: 5px;
     text-align: right;
     width: 50%;
@@ -3251,10 +3351,19 @@ input.dateinput {
     display: inline-block;
 }
 
-.pub_one_half {width:50%; display: block; float:left; margin-bottom: 10px;}
-.pub_one_half.last {width:45%; margin-left:5%; margin-bottom: 10px; text-align: right;}
+.first_half {
+    width:50%;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+.last_half {
+    display: inline-block;
+    width: 49%;
+    margin-bottom: 10px;
+    text-align: right;
+}
 
-.pub_one_half.last>div {
+.last_half>div {
     vertical-align: top;
     display: inline-block;
 }
