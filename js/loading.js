@@ -24,10 +24,14 @@
 /**
  * Set up tinyMCE (rich-text textarea)
  */
-var tinymcesetup = function () {
+var tinymcesetup = function (selector) {
+    if (selector === undefined) selector = "tinymce";
+    tinyMCE.remove();
+    window.tinymce.dom.Event.domLoaded = true;
+
     tinymce.init({
         mode: "textareas",
-        selector: ".tinymce",
+        editor_selector : selector,
         width: "100%",
         height: 300,
         plugins: [
@@ -36,17 +40,19 @@ var tinymcesetup = function () {
             "save contextmenu directionality template paste textcolor"
         ],
         content_css: "js/tinymce/skins/lightgray/content.min.css",
-        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | l      ink image | print preview media fullpage | forecolor backcolor emoticons",
-        style_formats: [
-            {title: 'Bold text', inline: 'b'},
-            {title: 'Red text', inline: 'span', styles: {color: '#ff0000'}},
-            {title: 'Red header', block: 'h1', styles: {color: '#ff0000'}},
-            {title: 'Example 1', inline: 'span', classes: 'example1'},
-            {title: 'Example 2', inline: 'span', classes: 'example2'},
-            {title: 'AppTable styles'},
-            {title: 'AppTable row 1', selector: 'tr', classes: 'tablerow1'}
-        ]
+        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | " +
+        "bullist numlist outdent indent | l      ink image | print preview media fullpage " +
+        "| forecolor backcolor emoticons"
     });
+
+    // Attribute random unique ID to selector if does not have one yet
+    $('.' + selector).each(function() {
+        console.log($(this).attr('id'));
+        if ($(this).attr('id') === undefined || $(this).attr('id').length === 0) {
+            $(this).attr('id', 'tinymce_' + Math.round(new Date().getTime() + (Math.random() * 100)));
+        }
+        tinyMCE.execCommand("mceAddControl", true, $(this).attr('id'));
+    })
 };
 
 /**
@@ -174,6 +180,9 @@ var displayPage = function (page, data) {
 
     // Load availability calendar
     loadCalendarAvailability();
+
+    // Load submission calendar
+    loadCalendarSubmission();
 };
 
 /**
@@ -185,7 +194,7 @@ function pageTransition(content) {
     var container = $('#hidden_container');
     var current_content = container.find('#current_content');
 
-    if (container.find('#next_content').length == 0) {
+    if (container.find('#next_content').length === 0) {
         container.append('<div id="next_content"></div>');
         renderSection(current_content, content);
         return true;
