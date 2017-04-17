@@ -727,12 +727,10 @@ if (!empty($_POST['getfiles'])) {
 
 //  delete files
 if (!empty($_POST['del_upl'])) {
-    $uplname = htmlspecialchars($_POST['uplname']);
-    $fileid = explode(".",$uplname);
-    $fileid = $fileid[0];
+    $file_id = htmlspecialchars($_POST['file_id']);
     $up = new Media();
-    $result = $up->delete(array('fileid'=>$fileid));
-    $result['uplname'] = $fileid;
+    $result = $up->delete(array('fileid'=>$file_id));
+    $result['uplname'] = $file_id;
     echo json_encode($result);
     exit;
 }
