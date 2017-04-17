@@ -540,24 +540,32 @@ class AppDb {
     /**
      * Get content from table (given a column and a row(optional))
      * @param string $table_name
-     * @param array $what : e.g. array('name','id')
+     * @param array $fields : e.g. array('name','id')
      * @param array $where : e.g. array('city'=>'Paris')
-     * @param array|null $op : Array describing logical operators corresponding to the $where array. e.g. array('=','!=')
      * @param null|string $opt: options (e.g. "ORDER BY year")
      * @return array : associate array
      */
-    public function select($table_name, array $what, array $where=array(), array $op=null, $opt="") {
-        $cols = implode(',', $what); // format columns name
+    public function select($table_name, array $fields, array $where=array(), $opt=null) {
+        $cols = implode(',', $fields); // format columns name
 
         // Build query
         $params = null;
         if (!empty($where)) {
-            $i = 0;
             $cond = array(); // Condition (e.g.: name=:name)
             foreach ($where as $col => $value) {
-                $thisOp = ($op == NULL) ? "=" : $op[$i];
-                $cond[] = $col . $thisOp . "'{$value}'";
-                $i++;
+                if (is_array($value)) {
+                    $thisCond = array();
+                    foreach ($value as $item) {
+                        $parsedArg = explode(' ', $item);
+                        $thisOp = count($parsedArg) > 1 ? $parsedArg[1] : '=';
+                        $thisCond[] = $col . $thisOp . "'{$parsedArg[0]}'";
+                    }
+                    $cond[] = implode(' OR ', $thisCond);
+                } else {
+                    $parsedArg = explode(' ', $col);
+                    $thisOp = count($parsedArg) > 1 ? $parsedArg[1] : '=';
+                    $cond[] = $parsedArg[0] . $thisOp . "'{$value}'";
+                }
             }
             $cond = "WHERE " . implode(' AND ', $cond);
         } else {
