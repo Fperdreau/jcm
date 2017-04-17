@@ -37,49 +37,44 @@
             var defaults={
                 top:100,
                 overlay:0.5,
-                closeButton: '.modal_close'};
+                closeButton: '.modal_close',
+                load: true,
+                callback: undefined
+            };
 
             var overlay=$("<div id='lean_overlay'></div>");
 
-            $("body").append(overlay);
+            if ($('#lean_overlay').length === 0) {
+                $("body").append(overlay);
+            }
 
             options = $.extend(defaults,options);
-            return this.each(function(){
+            return this.click(function(e){
+
                 var o=options;
-                $(this).click(function(e){
-                    var overlayEL = $('#lean_overlay');
-                    var modal_id = $(this).data("modal");
-                    modal_id = (modal_id === undefined) ? '#modal':modal_id; // Define default DOM target
-                    var section = $(this).data('section');
+                var overlayEL = $('#lean_overlay');
+                var modal_id = $(this).data("modal");
+                modal_id = (modal_id === undefined) ? '#modal': modal_id; // Define default DOM target
+                var section = $(this).data('section');
 
-                    overlayEL.click(function(){
-                        close_modal(modal_id);
-                    });
-
-                    $(o.closeButton).click(function(){
-                        close_modal(modal_id);
-                    });
-
-                    var max_height = $(window).height();
-                    var modal_width = $(modal_id).outerWidth();
-                    var top = $(document).scrollTop();
-                    overlayEL
-                        .css({"display":"block",opacity:0})
-                        .fadeTo(200,o.overlay);
-                    $(modal_id).css({
-                        "display": "block",
-                        "position": "absolute",
-                        "opacity": 0,
-                        "z-index": 11000,
-                        "left": 50 + "%",
-                        "margin-left": -(modal_width/2) + "px",
-                        "top": (top + o.top) + "px"
-                    });
-                    $(modal_id).fadeTo(200,1);
-                    $('.modal_section#'+section).css('max-height',0.9*max_height- o.top+'px');
-                    show_section(section);
-                    e.preventDefault();
+                overlayEL.click(function(){
+                    close_modal(modal_id);
                 });
+
+                $(o.closeButton).click(function(){
+                    close_modal(modal_id);
+                });
+
+                overlayEL
+                    .css({"display":"block", opacity:0})
+                    .fadeTo(200,o.overlay);
+
+                if (o.load === true) {
+                    load_section($(this).data(), o.callback);
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
             });
 
         }
@@ -98,29 +93,246 @@ function close_modal(modal_id){
 
 /**
  * Show the targeted modal section and hide the others
- * @param sectionid: section id
- * @param modalid: modal container id
+ * @param section: section id
+ * @param modal_id: modal container id
  */
-function show_section(sectionid, modalid) {
-    modalid = (modalid === undefined) ? '#modal':modalid; // Define default DOM target
-    $('.modal_section').hide();
-    var title = $(modalid+" .modal_section#"+sectionid).data('title');
-    $(".popupHeader").text(title);
-    $(modalid+' .modal_section').each(function() {
-        var thisid = $(this).attr('id');
-        if (thisid === sectionid) {
-            $(this).show();
-        } else {
-            $(this).hide();
+function show_section(section, modal_id) {
+    modal_id = modal_id === undefined ? 'modal' : modal_id;
+    var modal = $(".modalContainer#" + modal_id);
+    var modalContainer = modal.find('.popupBody');
+    var sections = $(".modalContainer#" + modal_id + ' .modal_section');
+
+    // Tag previous section
+    var previous_section = null;
+    sections.each(function() {
+        if ($(this).is(':visible') || $(this).hasClass('current_section')) {
+            $(this).addClass('previous_section');
+            $(this).removeClass('current_section');
+            previous_section = $(this).attr('id');
+        } else if ($(this).hasClass('previous_section')) {
+            $(this).removeClass('previous_section');
+        }
+    });
+
+    // Remove back button
+    if (modal.find('.back_btn').length > 0) {
+        modal.find('.back_btn').remove();
+    }
+
+    // Hide all sections
+    sections.hide();
+
+    // Add back button
+    if (previous_section !== null && previous_section.length > 0) {
+        var back_button = "<div class='back_btn' data-prev='" + previous_section + "'></div>";
+        modal.find('.float_buttons_container').prepend(back_button)
+    }
+
+    // Show target section
+    if (modalContainer.children('.modal_section#' + section).length > 0) {
+        transition(modal, modalContainer.children('.modal_section#' + section));
+        modalContainer.children('.modal_section#' + section).addClass('current_section');
+    }
+}
+
+/**
+ * Render loading layout on top of modal window
+ * @param modal: modal selector
+ */
+function animate_before(modal) {
+    var start_width = 50;
+    var start_height = 50;
+    modal.css({
+        height: start_height + 'px',
+        width: start_width + 'px'
+    });
+    loadingDiv(modal);
+}
+
+/**
+ * Animate modal loading
+ * @param modal
+ * @param section
+ */
+function transition(modal, section) {
+
+    // Add blank layout
+    modal.append("<div class='blankDiv'></div>");
+
+    // Get dimensions
+    var section_dim = realDim(section);
+    var section_content_dim = realDim(section.find('.popupContent'));
+    var section_header_dim = realDim(section.find('.popupHeader'));
+    var modal_dim = realDim(modal);
+
+    var win_height = $(window).height();
+    var win_width = $(window).width();
+    var modal_max_height = Math.round(0.9*win_height) - section_header_dim['height'];
+    var auto_height = Math.min(Math.max(section_dim['height'], section_content_dim['height']), modal_max_height);
+
+    // Set max-height of section content
+    modal.find('.popupContent').css({
+        'overflow': 'hidden',
+        'max-height': auto_height + 'px'
+    });
+
+    modal
+        // Set modal position
+        .css({
+            "display": "block",
+            "position": "absolute",
+            "z-index": 11000,
+            "left": Math.round( (0.5 * win_width) - (0.5*modal_dim.width) ) + 'px',
+            "top": Math.round( (0.5 * win_height) - (0.5*modal_dim.height) ) + "px"
+        })
+        // Show modal
+        .fadeTo(200, 1)
+
+        // Animate transition
+        .animate({
+            'top': Math.round(0.5 * (win_height - auto_height)) + $(document).scrollTop() + 'px',
+            'left': Math.round(0.5 * (win_width - parseInt(modal_dim['max-width']))) + 'px',
+            'width': modal_dim['max-width'],
+            'margin-left': 0
+        }, 300, function() {
+            $(this).find('.popupContent').css('overflow-y', 'auto');
+
+            // Show section
+            section.show();
+
+            // Remove blank layer
+            $(this).find('.blankDiv').css({'opacity': 0,'transition':'.15s ease-in-out'}).remove();
+        });
+}
+
+/**
+ * Get size of hidden objects
+ * @param obj (DOM element)
+ * @returns {*}
+ */
+function realDim(obj) {
+    var clone = obj.clone();
+    clone.css({"visibility": "hidden", 'max-height': 'none'});
+    $('body').append(clone);
+    var data = {
+        height: clone.outerHeight(true),
+        width: clone.outerWidth(),
+        'max-width': clone.css('max-width'),
+        'max-height': clone.css('max-height')
+    };
+    clone.remove();
+    return data;
+}
+
+/**
+ * load section content and remove previous content if section already exists
+ * @param data: section information
+ * @param callback: callback function
+ */
+function load_section(data, callback) {
+    var modal_id = (data.modal === undefined) ? 'modal' : data.modal; // Define default modal target
+    var modalContainer = $('.modalContainer#' + modal_id).find('.popupBody');
+    var target_section = modalContainer.find('.modal_section#' + data.section);
+
+    // Remove section if it already exists
+    if (target_section.length > 0) {
+        target_section.remove();
+    }
+
+    data.get_modal = true;
+    jQuery.ajax({
+        url: 'php/form.php',
+        data: data,
+        type: 'post',
+        beforeSend: function () {
+            animate_before($('.modalContainer#' + modal_id))
+        },
+        complete: function() {
+            removeLoading($('.modalContainer#' + modal_id));
+        },
+        success: function(json) {
+            var result = jQuery.parseJSON(json);
+            modalContainer.append(result);
+            show_section(data.section, modal_id);
+            if (callback !== undefined) {
+                callback();
+            }
+        },
+        error: function () {
+            removeLoading($('.modalContainer#' + modal_id));
         }
     });
 }
 
-$(document).ready(function() {
-    $('body')
-        // Bind leanModal to triggers
-        .on('mouseover',".leanModal",function(e) {
-            e.preventDefault();
-            $(this).leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close" });
+/**
+ * Go to previous section
+ * @param selector_id
+ * @param modal_id
+ */
+function go_to_previous(selector_id, modal_id) {
+    modal_id = modal_id === undefined ? 'modal' : modal_id;
+    var modalContainer = $('.modalContainer#' + modal_id).find('.popupBody');
+    var sections;
+    if (selector_id === undefined) {
+        sections = $(".modalContainer#" + modal_id + ' .previous_section');
+    } else {
+        sections = $('.modalContainer#' + modal_id + ' .modal_section#' + selector_id);
+    }
+    if (sections.length === 0) return false;
+    show_section(sections.attr('id'), modal_id);
+}
+
+/**
+ * load section content if it does not exist yet, otherwise show it
+ * @param data: section information
+ */
+function go_to_section(data) {
+    var modal_id = (data.modal === undefined) ? 'modal' : data.modal; // Define default DOM target
+    var modalContainer = $('.modalContainer#' + modal_id).find('.popupBody');
+    var target_section = modalContainer.find('.modal_section#' + data.section);
+    if (target_section.length > 0) {
+        show_section(data.section, modal_id);
+    } else {
+        data.get_modal = true;
+        jQuery.ajax({
+            url: 'php/form.php',
+            data: data,
+            type: 'post',
+            complete: function() {
+                removeLoading($('.modalContainer#' + modal_id));
+            },
+            success: function(json) {
+                var result = jQuery.parseJSON(json);
+                modalContainer.append(result);
+                show_section(data.section, modal_id);
+            }
         });
-});
+    }
+}
+
+/**
+ * Trigger modal window
+ * @param el
+ * @param load: load content on click
+ * @param callback: callback function call on content load
+ */
+function trigger_modal(el, load, callback) {
+    if (load === undefined) load = true;
+    if (el.data('leanModal') === undefined) {
+        el.leanModal({top : 50, overlay : 0.6, closeButton: ".modal_close", load: load, callback: callback});
+        el.data('leanModal', true);
+        el.click();
+    }
+}
+
+/**
+ * Check if selector is rendered within a modal window
+ * @param el: selector
+ * @param modal_id: id of modal window ('modal' by default)
+ * @returns {boolean}
+ */
+function in_modal(el, modal_id) {
+    modal_id = (modal_id === undefined) ? 'modal' : modal_id; // Define default DOM target
+    return $('.modalContainer#' + modal_id).find(el).length > 0;
+
+}
