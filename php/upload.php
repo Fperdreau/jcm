@@ -28,7 +28,8 @@ require('../includes/boot.php');
 
 if (isset($_FILES['file'])) {
     $upload = new Media();
-    $result = $upload->make($_FILES['file']);
+    $controller = (!empty($_GET['controller'])) ? htmlspecialchars($_GET['controller']) : null;
+    $result = $upload->make($_FILES['file'], $controller);
 } else {
     $result = array('name'=>false, 'error'=>"Oops, something went wrong");
 }
