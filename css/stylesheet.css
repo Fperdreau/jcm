@@ -1940,12 +1940,14 @@ button.add_btn:active {
 /* Downloads
 /* *********************************************************************/
 .dl_menu {
-    width: 100%;
     position: relative;
     z-index: 1100;
-    margin: 0;
-    padding: 0;
+    margin: 10px 0 0 0;
     text-align: left;
+    border: 3px dashed #dddddd;
+    background-color: rgb(255, 255, 255);
+    padding: 5px;
+    color: #676767;
 }
 
 .dl_menu_header {
@@ -1955,8 +1957,6 @@ button.add_btn:active {
 }
 
 .dl_menu_content {
-    background-color: rgb(165, 165, 165);
-    padding: 5px;
 }
 
 .dl_info {
@@ -1966,6 +1966,7 @@ button.add_btn:active {
     margin: 5px auto;
     padding: 5px 2px;
     border-radius: 5px;
+    border: 1px solid #dddddd;
     cursor: pointer;
     background-color: #fafafa;
 }
