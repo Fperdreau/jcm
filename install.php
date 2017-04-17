@@ -258,8 +258,8 @@ if (!empty($_POST['operation'])) {
             if ($op == false) {
                 patching();
                 Suggestion::patch();
-                Presentations::patch_uploads();
-                Presentations::patch_session_id();
+                Presentation::patch_uploads();
+                Presentation::patch_session_id();
                 Session::patch_time();
                 Posts::patch_table();
             }
@@ -794,7 +794,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
          */
         function loadingDiv(el) {
             el.css('position', 'relative');
-            if (el.find('.loadingDiv').length == 0) {
+            if (el.find('.loadingDiv').length === 0) {
                 el.append("<div class='loadingDiv'></div>");
             }
             el.find('.loadingDiv').css('position', 'absolute').fadeIn();
