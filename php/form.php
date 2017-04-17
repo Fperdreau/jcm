@@ -641,7 +641,7 @@ if (!empty($_POST['change_pw'])) {
     if ($user->is_exist(array('email'=>$email))) {
         $username = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'),
             array("email"=>$email));
-        $user->getUser($username);
+        $user->getUser($username[0]['username']);
         $reset_url = URL_TO_APP . "index.php?page=renew&hash=$user->hash&email=$user->email";
         $subject = "Change password";
         $content = "
@@ -781,48 +781,10 @@ if (isset($_POST['suggest'])) {
     exit;
 }
 
-// Display submission form
-if (!empty($_POST['get_submission_form'])) {
-    $controller_name = htmlspecialchars($_POST['controller']);
-    $view = htmlspecialchars($_POST['view']) ? htmlspecialchars($_POST['view']) : 'body';
-
-    /**
-     * @var Suggestion|Presentation $Controller
-     */
-    $Controller = new $controller_name();
-    if ($view === "body") {
-        echo json_encode(Presentation::format_section($Controller->editor($_POST)));
-    } else {
-        echo json_encode(Presentation::format_modal($Controller->editor($_POST)));
-    }
-    exit;
-}
-
 if (!empty($_POST['getFormContent'])) {
     $type = htmlspecialchars($_POST['getFormContent']);
     $Presentation = new Presentation();
     echo json_encode($Presentation::get_form_content($Presentation, $type));
-}
-
-// Display presentation (modal dialog)
-if (!empty($_POST['show_submission_details'])) {
-    $id_Presentation = htmlspecialchars($_POST['id']);
-    $controller_name = htmlspecialchars($_POST['controller']);
-    $view = htmlspecialchars($_POST['view']);
-    if ($id_Presentation === "false") {
-        $id_Presentation = false;
-    }
-
-    /**
-     * @var Suggestion|Presentation $Controller
-     */
-    $Controller = new $controller_name();
-    $data = $Controller->getInfo($id_Presentation);
-    $user = User::is_logged() ? new User($_SESSION['username']) : null;
-    $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
-            || $data['orator'] === $user->username);
-    $form = $Controller::details($data, $show, $view);
-    echo json_encode($form);
     exit;
 }
 
@@ -852,7 +814,7 @@ if (!empty($_POST['select_year'])) {
 	if ($selected_year == "" || $selected_year == "all") {
 		$selected_year = null;
 	}
-    $publist = $Presentation -> getpublicationlist($selected_year);
+    $publist = $Presentation -> getAllList($selected_year);
     echo json_encode($publist);
     exit;
 }
@@ -905,7 +867,7 @@ if (!empty($_POST['user_select'])) {
 	if ($filter == "") {
 		$filter = null;
 	}
-    $Users = new Users();
+    $Users = new User();
     $userlist = $Users->generateuserslist($filter);
     echo json_encode($userlist);
     exit;
@@ -913,7 +875,7 @@ if (!empty($_POST['user_select'])) {
 
 // Change user status
 if (!empty($_POST['modify_status'])) {
-    $Users = new Users();
+    $Users = new User();
     $username = htmlspecialchars($_POST['username']);
     $newStatus = htmlspecialchars($_POST['option']);
     $user = new User($username);
@@ -1234,5 +1196,38 @@ if (!empty($_POST['process_vote'])) {
     $Operation = $_POST['operation'];
     $Controller = new $controller_name();
     echo json_encode($Controller->$Operation($_POST));
+    exit;
+}
+
+if (!empty($_POST['get_modal'])) {
+    $Modal = new Modal();
+    $result = $Modal->get_modal($_POST);
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['loadContent'])) {
+    $controllerName = htmlspecialchars($_POST['controller']);
+    $action = htmlspecialchars($_POST['action']);
+    $params = isset($_POST['params']) ? explode(',', htmlspecialchars($_POST['params'])) : array();
+    if (class_exists($controllerName, true)) {
+        $Controller = new $controllerName();
+        if (method_exists($controllerName, $action)) {
+            echo json_encode(call_user_func_array(array($Controller,$action), $params));
+        }
+    }
+    exit;
+}
+
+if (!empty($_POST['set_modal'])) {
+    $Modal = new Modal();
+    $result = $Modal->set_modal($_POST);
+    echo json_encode($result);
+    exit;
+}
+
+if (!empty($_POST['get_confirmation_box'])) {
+    $result = Modal::confirmation_box($_POST);
+    echo json_encode($result);
     exit;
 }
