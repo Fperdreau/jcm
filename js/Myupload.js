@@ -49,14 +49,14 @@ var getdrop = function (e) {
 var processUpl = function (data) {
     var el = $('.upl_container');
     var id = el.attr('id');
+    var controller = el.data('controller');
     var animBack = new AnimateBack(el);
     var form = $('form#' + id);
-
     jQuery.ajax({
         type:'POST',
-        url:'php/upload.php',
+        url:'php/upload.php?controller=' + controller,
         headers:{'Cache-Control':'no-cache'},
-        data:data,
+        data: data,
         contentType:false,
         processData:false,
         beforeSend: animBack.start(),
@@ -218,7 +218,7 @@ $(document).ready(function() {
 
         // Delete uploaded file
         .on('click','.del_upl',function() {
-            var data = {del_upl: true, uplname: $(this).attr('id')};
+            var data = {del_upl: true, file_id: $(this).attr('id')};
             var el = $('.upl_container');
             var callback = function(result) {
                 if (result.status === true) {
