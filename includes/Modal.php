@@ -43,7 +43,7 @@ class Modal {
         if (class_exists($controllerName, true)) {
             $Controller = new $controllerName();
             if (method_exists($controllerName, $action)) {
-                $content = call_user_func_array(array($Controller,$action), $params);
+                $content = call_user_func_array(array($Controller, $action), $params);
                 if (isset($post['section'])) $content['id'] = $post['section'];
                 return self::section($content);
             }
