@@ -1939,20 +1939,8 @@ button.add_btn:active {
 /* *********************************************************************/
 /* Downloads
 /* *********************************************************************/
-.dl_btn {
-    width: 20px;
-    text-align: center;
-    cursor: pointer;
-    color:#444;
-}
-
-.dl_btn:hover {
-    color:#EEE;
-}
-
-.dlmenu {
-    display: none;
-    width: 130px;
+.dl_menu {
+    width: 100%;
     position: relative;
     z-index: 1100;
     margin: 0;
@@ -1960,38 +1948,56 @@ button.add_btn:active {
     text-align: left;
 }
 
+.dl_menu_header {
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.dl_menu_content {
+    background-color: rgb(165, 165, 165);
+    padding: 5px;
+}
+
 .dl_info {
-    display: block;
-    width: auto;
-    font-size: 0;
-    height: 30px;
-    line-height: 30px;
-    margin: 5px auto 0 auto;
-    padding: 0;
+    display: inline-table;
+    width: 150px;
+    font-size: .9em;
+    margin: 5px auto;
+    padding: 5px 2px;
+    border-radius: 5px;
     cursor: pointer;
+    background-color: #fafafa;
 }
 
-.dl_info:hover > .dl_name {
-    color:rgba(207,81,81,1);
+.dl_info:hover {
+    background-color: #e8e8e8;
 }
 
-.dl_info:active > .dl_name {
-    color: rgba(34,34,34,.5);
+.dl_info>div {
+    display: table-cell;
+    text-align: center;
+    margin: 0;
+    padding: 0;
 }
 
 .dl_name {
-    display: inline-block;
-    font-size: 12px;
-    line-height: 30px;
-    padding-left: 10px;
-    width: 80px;
-    white-space: pre-wrap;
+    white-space: nowrap;
+    max-width: 90px;
     font-weight: bold;
-    border-bottom: 1px solid rgba(207,81,81,1);
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    padding: 0 5px 0 10px !important;
+    box-sizing: border-box;
 }
 
-.dl_name:hover {
-    color: #EEEEEE;
+.dl_name a {
+    color: #666666;
+}
+
+.dl_name:hover a {
+    color: #222222;
 }
 
 .dl_type {
@@ -2000,11 +2006,30 @@ button.add_btn:active {
     text-align: center;
     width: 30px;
     height: 30px;
+    line-height: 30px;
     margin: 0;
     font-weight: bold;
     background-color: #555555;
     color: #EEEEEE;
     border-radius: 100%;
+}
+
+.dl_btn {
+    background: rgba(255, 255, 255, .7) url(../images/download.png) no-repeat 50% 50%;
+    background-size: 20px;
+    border-left: 1px solid #999999;
+    width: 30px !important;
+    height: 20px;
+    padding: 0;
+    opacity: 0.8;
+}
+
+.dl_btn:hover {
+    opacity: 1;
+}
+
+.dl_btn:active {
+    opacity: 1;
 }
 
 /* *********************************************************************/
