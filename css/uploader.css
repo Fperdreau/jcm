@@ -130,11 +130,14 @@
 }
 
 .upl_name {
-    white-space: pre-wrap;
-    width: 160px;
+    white-space: nowrap;
+    max-width: 160px;
     font-weight: bold;
+    overflow: hidden;
     text-align: center;
-    padding-left: 10px;
+    text-overflow: ellipsis;
+    padding: 0 5px 0 10px !important;
+    box-sizing: border-box;
 }
 
 .upl_name:hover {
