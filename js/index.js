@@ -21,17 +21,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Trigger modal window
- * @param el
- */
-function trigger_modal(el) {
-    if (el.data('leanModal') === undefined) {
-        el.leanModal();
-        el.data('leanModal', true);
-        el.click();
-    }
-}
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  GET FORMS
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -45,7 +34,7 @@ var get_submission_form = function (data) {
     if (data['date'] === undefined) {data['date'] = false; }
     if (data['type'] === undefined) {data['type'] = false; }
     if (data['view'] === undefined) data['view'] = 'body';
-    data['get_submission_form'] = true;
+    data['loadContent'] = true;
     var el = (data['destination'] === undefined) ? $('.submission_container') : $(data['destination']);
 
     // First we remove any existing submission form
@@ -64,6 +53,31 @@ var get_submission_form = function (data) {
     // Load JCM calendar
     loadCalendarSubmission();
 };
+
+/**
+ * Load content into target selector
+ * @param el: current selector
+ */
+function loadContent(el) {
+    var data = el.data();
+    data['loadContent'] = true;
+    var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
+
+    // First we remove any existing submission form
+    var callback = function (result) {
+        destination
+            .html(result)
+            .fadeIn(200)
+            .find('textarea').html(result.content);
+        tinyMCE.remove();
+        window.tinymce.dom.Event.domLoaded = true;
+        tinymcesetup();
+    };
+    processAjax(destination, data, callback, "php/form.php");
+
+    // Load JCM calendar
+    loadCalendarSubmission();
+}
 
 /**
  * Display form to post a news
@@ -96,7 +110,7 @@ var showpostform = function (postid) {
  * @param callback: callback function (called if user has confirmed)
  */
 function confirmation_box(el, txt, txt_btn, callback) {
-    trigger_modal(el);
+    trigger_modal(el, false);
 
     var container = $('.modalContainer');
 
@@ -106,30 +120,37 @@ function confirmation_box(el, txt, txt_btn, callback) {
     }
 
     // Render section
-    var html = "<div class='modal_section' id='confirmation_box' data-title='Confirmation'>" +
-        "<div class='sys_msg warning'>" + txt + "</div>" +
-        "<div class='action_btns'>" +
-        "<div class='one_half'><input type='submit' name='cancel' class='pub_back_btn fa-angle-double-left' " +
-        "value='Cancel'></div>" +
-        "<div class='one_half last'><input type='submit' name='confirmation' value='" + txt_btn + "'></div>" +
-        "</div>" +
-        "</div>";
-    container.find('.popupBody').append(html);
+    jQuery.ajax({
+        'type': 'post',
+        'url': 'php/form.php',
+        'data': {
+            get_confirmation_box: true,
+            button_txt: txt_btn,
+            text: txt
+        },
+        success: function(json) {
+            var result = jQuery.parseJSON(json);
 
-    // Show  section
-    show_section('confirmation_box');
-    var section = $('.modal_section#confirmation_box');
-    
-    // User has confirmed
-    section.find("input[name='confirmation']").click(function() {
-        close_modal();
-        callback();
+            container.find('.popupBody').append(result);
+
+            // Show  section
+            show_section('confirmation_box');
+            var section = $('.modal_section#confirmation_box');
+
+            // User has confirmed
+            section.find("input[name='confirmation']").click(function() {
+                close_modal();
+                callback();
+            });
+
+            // User cancelled
+            section.find("input[name='cancel']").click(function() {
+                close_modal();
+            });
+        }
     });
 
-    // User cancelled
-    section.find("input[name='cancel']").click(function() {
-        close_modal();
-    });
+
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -285,7 +306,7 @@ function renderCalendarCallback(date, data, force_select) {
  */
 var logoutTemplate = "<div class='logoutWarning'><div class='logout_msg'></div><div class='logout_button'>OK</div></div>";
 var logout = function () {
-    if (logoutContainer.length == 0) {
+    if (logoutContainer.length === 0) {
         $('body').append(logoutTemplate);
     }
 
@@ -320,12 +341,12 @@ var logoutContainer = $('.logoutWarning');
  * Check login status and expiration
  */
 function check_login() {
-    if (logoutContainer.length == 0) {
+    if (logoutContainer.length === 0) {
         $('body').append(logoutTemplate);
         logoutContainer = $('.logoutWarning');
     }
 
-    if (login_start == null) {
+    if (login_start === null) {
         // Check login status
         jQuery.ajax({
             url: 'php/form.php',
@@ -409,10 +430,7 @@ function show_submission_details (data) {
         data: data,
         success: function (data) {
             var result = jQuery.parseJSON(data);
-            el
-                .hide()
-                .html(result)
-                .fadeIn(200);
+            load_section(result);
         }
     });
 }
@@ -523,16 +541,96 @@ function process_bookmark(el) {
         success: function(data) {
             var result = jQuery.parseJSON(data);
             if (result === true) {
-                if (operation == 'delete') {
+                if (operation === 'delete') {
                     el.toggleClass('bookmark_on bookmark_off');
                     el.attr('data-operation', 'add');
-                } else if (operation == 'add') {
+                } else if (operation === 'add') {
                     el.toggleClass('bookmark_off bookmark_on');
                     el.attr('data-operation', 'delete');
                 }
             }
         }
     });
+}
+
+/**
+ * Process submission form
+ * @param el: submit input selector
+ * @param e: events
+ * @returns {boolean}
+ */
+function process_submission(el, e) {
+    e.preventDefault();
+    var form = el.length > 0 ? $(el[0].form) : $();
+
+    // Check if the form has been fully completed
+    if (!checkform(form)) { return false;}
+    // Submission type
+    var type = form.find("select#type").val();
+
+    // Check if a data has been selected (except for suggestion)
+    var date_input = form.find("input[type=date]");
+    if (date_input !== undefined && date_input.length > 0) {
+        var date = date_input.val();
+        if (date === undefined || date.length === 0) {
+            showfeedback('<p id="warning">You must choose a date!</p>');
+            date_input.focus();
+            return false;
+        }
+    }
+
+    // Check if files have been uploaded and attach them to this presentation
+    var uploadInput = form.find('.upl_link');
+    if (uploadInput[0]) {
+        var links = [];
+        uploadInput.each(function () {
+            var link = $(this).val();
+            links.push(link);
+        });
+        links = links.join(',');
+        form.append("<input type='hidden' name='link' value='"+links+"'>");
+    }
+
+    // Form data
+    var data = form.serializeArray();
+    var controller = form.find('input[name="controller"]').val();
+
+    // Callback function
+    var callback = function (result) {
+        if (result.status === true) {
+            var container_id = controller.toLowerCase() + '_form';
+            $('section#' + container_id + ', .modal_section#' + container_id).empty();
+            var id_pres = form.find('input[name="id_pres"]').val().length > 0
+            && form.find('input[name="id_pres"]').length > 0 ? form.find('input[name="id_pres"]').val() : undefined;
+            var operation = id_pres !== undefined ? 'edit' : 'new';
+            if (in_modal(el)) {
+                close_modal();
+            } else {
+                get_submission_form({
+                    'controller': controller,
+                    'action': 'get_form',
+                    'operation': operation,
+                    'id': id_pres,
+                    'destination': '#' + controller.toLowerCase() + '_container'}
+                );
+            }
+        } else {
+            return false;
+        }
+    };
+
+    // Find tinyMCE textarea and gets their content
+    var tinyMCE_el = form.find('.tinymce');
+    if (is_editor_active(tinyMCE_el) && tinyMCE.get(tinyMCE_el.attr('id')).getContent().length > 0) {
+        tinyMCE_el.each(function() {
+            var content = tinyMCE.get($(this).attr('id')).getContent();
+            data = modArray(data, $(this).attr('name'), content);
+        })
+    }
+
+    // AJAX call
+    processAjax(el.closest('.form_container'), data, callback, "php/form.php");
+    e.stopImmediatePropagation();
 }
 
 
@@ -986,7 +1084,7 @@ $(document).ready(function () {
                 },
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
-                    if (json.status == true) {
+                    if (json.status === true) {
                         div.html(json.content);
                     }
                 }
@@ -1194,10 +1292,14 @@ $(document).ready(function () {
         // Select a wish
         .on('change','#select_wish',function (e) {
             e.preventDefault();
-            var data = $(this).data();
-            data['id'] = $(this).val();
-            get_submission_form(data);
+            $(this).data('id', $(this).val());
+            loadContent($(this));
          })
+
+        .on('click', '.loadContent', function(e) {
+            e.preventDefault();
+            loadContent($(this));
+        })
 
         .on('click', '.select_suggestion', function(e) {
             e.preventDefault();
@@ -1215,6 +1317,7 @@ $(document).ready(function () {
             var url = "uploads/"+uplname;
             window.open(url, '_blank');
         })
+
         // Select submission type
          .on('change', 'select#type', function (e) {
             e.preventDefault();
@@ -1232,59 +1335,7 @@ $(document).ready(function () {
          })
 
         // Submit a presentation
-        .on('click','.submit_pres',function (e) {
-            e.preventDefault();
-            var operation = $(this).attr('name');
-            var form = $(this).length > 0 ? $($(this)[0].form) : $();
-            var type = $("select#type").val();
-            // Check if the form has been fully completed
-            if (!checkform(form)) { return false;}
-
-            // Check if a data has been selected (except for suggestion)
-            if (operation !== "suggest") {
-                var date = $("input.datepicker").val();
-                if (date.length == 0) {
-                    showfeedback('<p id="warning">You must choose a date!</p>');
-                    form.find("input.datepicker").focus();
-                    return false;
-                }
-            }
-
-            // Check if files have been uploaded and attach them to this presentation
-            var uploadInput = $('input.upl_link');
-            if (uploadInput[0]) {
-                var links = [];
-                uploadInput.each(function () {
-                    var link = $(this).val();
-                    links.push(link);
-                });
-                links = links.join(',');
-                form.append("<input type='hidden' name='link' value='"+links+"'>");
-            }
-
-            // Submit presentation
-            var data = form.serializeArray();
-            var callback = function (result) {
-                $('section#submission_form, .modal_section#submission_form').empty();
-                if (result.status === true) {
-                    close_modal();
-                }
-            };
-
-            // Find tinyMCE textarea and gets their contentf
-            var tinyMCE_el = form.find('.tinymce');
-            if (tinyMCE_el.length > 0 && tinyMCE_el !== undefined) {
-                tinyMCE_el.each(function() {
-                    var id = $(this).attr('id');
-                    var input_name = $(this).attr('name');
-                    var content = tinyMCE.get(id).getContent();
-                    data = modArray(data, input_name, content);
-                })
-            }
-            var div = $(this).closest('.form_container');
-            processAjax(div, data, callback, "php/form.php");
-            e.stopImmediatePropagation();
-        })
+        .on('click','.submit_pres',function (e) { process_submission($(this), e) })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Votes
@@ -1305,28 +1356,15 @@ $(document).ready(function () {
             logout();
         })
 
-        .on('click', '.logout_button', function(e) {
+        .on('click', '.logout_button', function() {
             $('.logoutWarning').fadeOut(200).toggle();
         })
 
-        .on('click', '.extend_session', function(e) {
-            extend_session();
-        })
+        .on('click', '.extend_session', function() { extend_session(); })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Submission triggers
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        // Show publication information on click
-        .on('click','.show_submission_details',function (e) {
-            e.preventDefault();
-            show_submission_details($(this).data());
-        })
-
-        // Choose a wish
-        .on('click','.get_submission_form',function (e) {
-            e.preventDefault();
-            get_submission_form($(this).data());
-        })
 
         .on('click', '.get_suggestion_list', function(e) {
             var data = {'get_suggestion_list': true};
@@ -1351,7 +1389,7 @@ $(document).ready(function () {
             }
 
             var operation = (args['op'] !== undefined) ? args['op'] : false;
-            if (operation == 'wishpick') {
+            if (operation === 'wishpick') {
                 var data = {'get_suggestion_list': true};
                 // First we remove any existing submission form
                 var callback = function (result) {
@@ -1368,10 +1406,24 @@ $(document).ready(function () {
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+        // Bind leanModal to triggers
+        .on('click', ".leanModal", function(e) {
+            e.preventDefault();
+            var callback = function() {
+                tinymcesetup();
+            };
+            trigger_modal($(this), true, callback);
+        })
+
+        .on('click', '.go_to_section', function(e) {
+            e.preventDefault();
+            go_to_section($(this).data());
+        })
 
         .on('click', '.delete', function(e) {
             e.preventDefault();
             var el = $(this);
+            el.data('action', 'delete');
             confirmation_box(el, 'Are you sure you want to delete this item?', 'Delete', function () {
                 var data = el.data();
                 data['delete'] = true;
@@ -1381,66 +1433,14 @@ $(document).ready(function () {
                     data: data,
                     success: function(ajax) {
                         var result = jQuery.parseJSON(ajax);
-                        console.log(result);
+                        if (result === true) {
+                            showfeedback("<div class='sys_msg success'>Item deleted</div>", $('.confirmation_text'));
+                        } else {
+                            showfeedback("<div class='sys_msg warning'>Item could not be deleted</div>", $('.confirmation_text'));
+                        }
                     }
                 });
             });
-        })
-
-        .on('click', '.confirm_delete', function(e) {
-            e.preventDefault();
-            var formid = $(".modal_section#delete_confirmation");
-            var el_id = $('input[name="el_id"]').val();
-            var url_params = $('input[name="url"]').val();
-            var callback = function(result) {
-                if (result.status === true) {
-                    close_modal();
-                    $('.el_to_del#' + el_id).remove();
-                }
-                return false;
-            };
-            var data = {'delete_item': true, 'params': url_params};
-            processAjax(formid, data, callback, 'php/form.php');
-        })
-
-		// Show publication modification form
-        .on('click','.modify_ref',function (e) {
-            e.preventDefault();
-            get_submission_form($(this).data());
-        })
-
-		// Show publication deletion confirmation
-        .on('click',".delete_ref",function (e) {
-            e.preventDefault();
-            var id_pres = $(this).data("id");
-            var controller = $(this).data('controller');
-            show_section('pub_delete');
-            $("#pub_delete").append('' +
-                '<input type=hidden name="del_pub" value="' + id_pres + '"/>' +
-                    '<input type=hidden name="controller" value="' + controller + '"/>' +
-                '');
-        })
-
-        // Going back to publication
-        .on('click',".pub_back_btn",function (e) {
-            e.preventDefault();
-            show_section('submission_form');
-        })
-
-        // Confirm delete publication
-        .on('click',"#confirm_pubdel",function (e) {
-            e.preventDefault();
-            var id_pres = $("input[name='del_pub']").val();
-
-            var data = {del_pub:id_pres, controller: $("input[name='controller']").val()};
-            var el = $('.modal_section#pub_delete');
-            var callback = function (result) {
-                if (result.status === true) {
-                    close_modal('.modalContainer');
-                    $('#' + id_pres).remove();
-                }
-            };
-            processAjax(el, data, callback, "php/form.php");
         })
 
         // Dialog change password
@@ -1452,14 +1452,19 @@ $(document).ready(function () {
         // Going back to Login Forms
         .on('click',".back_btn",function (e) {
             e.preventDefault();
-            show_section('user_login');
+            go_to_previous($(this).data('prev'));
             return false;
+        })
+
+        .on('click', '.show_section', function(e) {
+            e.preventDefault();
+            load_section($(this).data());
         })
 
         // Go to sign up form
         .on('click','.gotoregister',function (e) {
             e.preventDefault();
-            show_section('user_register');
+            load_section($(this).data());
         })
 
         // Delete user account confirmation form
