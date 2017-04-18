@@ -431,7 +431,7 @@ class AppDb {
         $nb_ref = count($reference);
         $cond = array();
         foreach ($reference as $col=>$value) {
-            $cond[] = "$col='$value'";
+            $cond[] = "{$col}='{$value}'";
         }
         $cond = $nb_ref > 1 ? implode(' AND ',$cond):implode($cond);
 
@@ -439,11 +439,11 @@ class AppDb {
         $set = array();
         foreach ($content as $col=>$value) {
             $value = $this->escape_query($value);
-            $set[] = "$col='$value'";
+            $set[] = "{$col}='{$value}'";
         }
         $set = implode(',',$set);
 
-		$sql = "UPDATE $table_name SET $set WHERE $cond";
+		$sql = "UPDATE {$table_name} SET {$set} WHERE {$cond}";
         if (self::send_query($sql)) {
             return true;
         } else {
