@@ -427,7 +427,7 @@ class Suggestion extends AppTable {
                 $content .= "<div>{$keyword}</div>";
             }
         }
-        return $content;
+        return "<div class='keywords_container'>{$content}</div>";
     }
 
     /**
@@ -455,7 +455,7 @@ class Suggestion extends AppTable {
                         <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
                    </a>
                 </div>
-                <div class='keywords_container'>{$keywords}</div>
+                {$keywords}
             </div>
             <div class='tiny_icon_container'>
                 {$vote}
@@ -613,11 +613,10 @@ class Suggestion extends AppTable {
      * @return array
      */
     private static function download_menu(array $links, $email=false) {
-        $content = array();
+        $content = array('menu'=>null, 'button'=>null);
         if (!empty($links)) {
             if ($email) {
                 // Show files list as a drop-down menu
-                $content['button'] = null;
                 $menu = null;
                 foreach ($links as $file_id=>$info) {
                     $menu .= "
@@ -686,11 +685,17 @@ class Suggestion extends AppTable {
         // Suggestion type
         $type = ucfirst($data['type']);
 
+        // Present button
+        $present_button = (User::is_logged()) ? "<div>
+            <input type='submit' class='{$trigger}' value='Present it' data-controller='Suggestion' 
+            data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id_pres']}' 
+            data-view='{$view}' data-destination='{$destination}' data-operation='select'/>
+        </div>" : null;
+
         // Action buttons
         $buttons = "
             <div class='first_half'>
-                {$dl_menu['button']}
-                {$dl_menu['menu']}
+                {$present_button}
             </div>
             <div class='last_half'>
                 {$delete_button}
@@ -698,14 +703,14 @@ class Suggestion extends AppTable {
             </div>
         ";
 
-        $buttons_body = $view !== 'modal' ? $buttons : null;
-
-        // Present button
-        $present_button = (User::is_logged()) ? "<div>
-            <input type='submit' class='{$trigger}' value='Present it' data-controller='Suggestion' 
-            data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id_pres']}' 
-            data-view='{$view}' data-destination='{$destination}' data-operation='select'/>
-        </div>" : null;
+        $buttons_body = $view !== 'modal' ? "
+           <div class='first_half'>
+               {$present_button}
+           </div>
+            <div class='last_half'>
+                {$delete_button}
+                {$modify_button}
+            </div>" : null;
 
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
@@ -724,12 +729,11 @@ class Suggestion extends AppTable {
             <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>{$data['summary']}
         </div>
         
-        {$present_button}
+        {$file_div}
 
         <div class='pub_action_btn'>
             {$buttons_body}
         </div>
-        {$file_div}
         ";
 
         if ($view === 'body') {
