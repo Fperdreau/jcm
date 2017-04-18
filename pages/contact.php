@@ -20,8 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$Users = new Users();
-$admin = $Users->getadmin();
+$Users = new User();
+$admin = $Users->getAdmin();
 
 $mail_option = "";
 $msg = "";
