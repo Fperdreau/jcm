@@ -20,33 +20,18 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$Presentations = new Presentations();
-$years = $Presentations->get_years();
-// Select input (Years)
-$options = "
-<option value='all'>All</option>";
-foreach ($years as $year) {
-    $options .= "<option value='$year'>$year</option>";
-}
-
-$publist = $Presentations->getpublicationlist();
+$Presentation = new Presentation();
+$years = $Presentation->generateYearsList();
 
 $result = "    
     <section>
         <div class='section_content tool_bar'>
             <div class='feedback'></div>
-            <div class='form-group inline_field' style='width: 200px'>
-                <select name='year' class='archive_select'>
-                    {$options}
-                </select>
-                <label>Filter by year</label>
+                " . $Presentation->generateYearsList() . "
             </div>
-
         </div>
     </section>
     
-    <div id='archives_list'>
-        {$publist}
-    </div>";
+    <div id='archives_list'>" . $Presentation->getAllList() . "</div>";
 
 echo $result;

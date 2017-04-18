@@ -23,7 +23,7 @@
 // Declare classes
 $user = new User($_SESSION['username']);
 $Presentation = new Presentation();
-$publication_list = $user->getpublicationlist(null);
+$publication_list = $user->getPublicationList();
 $assignments = $user->getAssignments();
 $bookmarks = $user->getBookmarks();
 $notifStatus = ($user->notification == 1) ? "Yes":"No";

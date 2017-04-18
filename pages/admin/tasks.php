@@ -25,6 +25,7 @@ $user = new User($_SESSION['username']);
 $AppCron = new AppCron();
 
 $cronOpt = $AppCron->show();
+$AppConfig = AppConfig::getInstance();
 $result = "
     <div class='page_header'>
     <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
@@ -57,7 +58,7 @@ $result = "
     <section>
         <h2>Tasks list</h2>
         <div class='section_content'>
-        $cronOpt
+        {$cronOpt}
         </div>
     </section>
 ";

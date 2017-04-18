@@ -22,7 +22,7 @@
 
 // Declare classes
 $user = new User($_SESSION['username']);
-
+$AppConfig = AppConfig::getInstance();
 $result = "    
     <div class='section_container'>
             <section>
