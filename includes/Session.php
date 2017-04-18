@@ -357,7 +357,7 @@ class Session extends AppTable {
         $date = $info['date'];
         $url = URL_TO_APP.'index.php?page=sessions';
 
-        foreach ($user->getadmin() as $key=>$info) {
+        foreach ($user->getAdmin() as $key=> $info) {
             $content['body'] = "
                 <div style='width: 100%; margin: auto;'>
                     <p>Hello {$info['fullname']},</p>
@@ -830,7 +830,7 @@ class Session extends AppTable {
      * @return array|bool
      */
     public function getNextDates($limit=null) {
-        $sql = "SELECT date FROM {$this->tablename} WHERE date>CURDATE() ORDER BY date ASC";
+        $sql = "SELECT id,date FROM {$this->tablename} WHERE date>CURDATE() ORDER BY date ASC";
 
         $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
         $req = $this->db->send_query($sql);
@@ -838,6 +838,25 @@ class Session extends AppTable {
         $sessions = array();
         while ($row = $req->fetch_assoc()) {
             $sessions[] = $row['date'];
+        }
+        if (empty($sessions)) {$sessions = false;}
+        return $sessions;
+    }
+
+    /**
+     * Get upcoming dates
+     * @param null|int $limit
+     * @return array|bool
+     */
+    public function getNext($limit=null) {
+        $sql = "SELECT * FROM {$this->tablename} WHERE date>CURDATE() ORDER BY date ASC";
+
+        $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
+        $req = $this->db->send_query($sql);
+
+        $sessions = array();
+        while ($row = $req->fetch_assoc()) {
+            $sessions[] = $row;
         }
         if (empty($sessions)) {$sessions = false;}
         return $sessions;
@@ -1226,9 +1245,9 @@ class Session extends AppTable {
     public static function emptySlot(array $data, $show_button=true) {
         $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
         $addButton = ($show_button) ? "
-            <a href='{$url}' class='leanModal get_submission_form' data-section='submission_form' 
-            data-controller='Presentation' data-view='modal' data-destination='#submission_form' data-operation='edit' 
-            data-date='{$data['date']}' data-session_id='{$data['id']}'>
+            <a href='{$url}' class='leanModal' data-controller='Presentation' data-action='get_form'
+             data-params='modal' data-section='presentation' data-operation='edit' 
+            data-session_id='{$data['id']}'>
                 <div class='add-button'></div>
             </a>" : null;
 
@@ -1254,10 +1273,8 @@ class Session extends AppTable {
      * @return string
      */
     public static function slotContainer(array $data, $div_id=null) {
-        $modal_trigger = (!is_null($div_id)) ? 'leanModal modal_trigger_pubcontainer' : null;
         return "
-            <div class='pres_container {$modal_trigger}' id='{$div_id}' data-section='submission_form' 
-            data-id='{$div_id}' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
+            <div class='pres_container ' id='{$div_id}' data-id='{$div_id}' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
             border: 1px dashed rgb(200, 200, 200); border-radius: 5px; box-sizing: border-box; 
             padding: 5px; min-height: 56px;'>
                 <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; color: #222222; vertical-align: middle; 

@@ -55,7 +55,62 @@ class DigestMaker extends AppTable {
             $this->getInfo($name);
         }
     }
-    
+
+    // CONTROLLER
+
+    /**
+     * Install DigestMaker
+     * @param bool $op
+     * @return bool
+     */
+    public function setup($op=False) {
+        if (parent::setup($op)) {
+            return self::registerAll();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Renders digest email
+     * @param string $username
+     * @return mixed
+     */
+    public function makeDigest($username) {
+        $user = new User($username);
+        $string = "";
+        foreach ($this->all() as $key=>$item) {
+            if ($item['display'] == 1) {
+                if (class_exists($item['name'])) {
+                    $section = new $item['name']();
+                    if (method_exists($section, 'makeMail'))
+                        $string .= self::showSection($section->makeMail($username));
+                }
+
+            }
+        }
+
+        $content['body'] = "
+                <div style='width: 100%; margin: auto;'>
+                    <p>Hello {$user->firstname},</p>
+                    <p>This is your Journal Club weekly digest.</p>
+                </div>
+                {$string}
+                ";
+        $content['subject'] = "Digest - ".date('d M Y');
+        
+        return $content;
+    }
+
+    /**
+     * Show form
+     * @return string
+     */
+    public function edit() {
+        $data = $this->all(array(), array('dir'=>'asc', 'order'=>'position'));
+        return self::form($data);
+    }
+
     // MODEL
     /**
      * @param array $post
@@ -112,57 +167,6 @@ class DigestMaker extends AppTable {
             }
         }
         return true;
-    }
-
-    // CONTROLLER
-
-    /**
-     * Install DigestMaker
-     * @param bool $op
-     * @return bool
-     */
-    public function setup($op=False) {
-        if (parent::setup($op)) {
-            return self::registerAll();
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Renders digest email
-     * @param string $username
-     * @return mixed
-     */
-    public function makeDigest($username) {
-        $user = new User($username);
-        $string = "";
-        foreach ($this->all() as $key=>$item) {
-            if ($item['display'] == 1) {
-                $section = new $item['name']();
-                $string .= self::showSection($section->makeMail($username));
-            }
-        }
-
-        $content['body'] = "
-                <div style='width: 100%; margin: auto;'>
-                    <p>Hello {$user->firstname},</p>
-                    <p>This is your Journal Club weekly digest.</p>
-                </div>
-                {$string}
-                ";
-        $content['subject'] = "Digest - ".date('d M Y');
-        
-        return $content;
-    }
-
-    /**
-     * Show form
-     * @return string
-     */
-    public function edit() {
-        $data = $this->all(null, array('dir'=>'asc', 'order'=>'position'));
-        return self::form($data);
     }
     
     // VIEW

@@ -322,8 +322,8 @@ class Assignment extends AppTable {
             }
         } elseif ($source === 'users') {
             // Get users list
-            $Users = new Users($this->db);
-            foreach ($Users->getUsers(false) as $key=>$user) {
+            $Users = new User();
+            foreach ($Users->getAll() as $key=>$user) {
                 $usersList[] = $user['username'];
             }
         } else {
@@ -444,7 +444,7 @@ class Assignment extends AppTable {
      */
     public function makeMail($username=null) {
         $user = new User($username);
-        $content['body'] = $user->getAssignments(true, $username);;
+        $content['body'] = $user->getAssignments();;
         $content['title'] = 'Your assignments';
         return $content;
     }

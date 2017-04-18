@@ -52,8 +52,62 @@ class ReminderMaker extends AppTable {
         parent::__construct('ReminderMaker', $this->table_data);
         if ($name !== False) {
             $this->name = $name;
-            $this->get($name);
+            $this->get(array('name'=>$name));
         }
+    }
+
+    // CONTROLLER
+
+    /**
+     * Install ReminderMaker
+     * @param bool $op
+     * @return bool
+     */
+    public function setup($op=False) {
+        if (parent::setup($op)) {
+            return self::registerAll();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Renders digest email
+     * @param string $username
+     * @return mixed
+     */
+    public function makeDigest($username) {
+        $user = new User($username);
+        $string = "";
+        foreach ($this->all() as $key=>$item) {
+            if ($item['display'] == 1) {
+                if (class_exists($item['name'])) {
+                    $section = new $item['name']();
+                    if (method_exists($section, 'makeReminder'))
+                        $string .= self::showSection($section->makeReminder($username));
+                }
+            }
+        }
+
+        $content['body'] = "
+                <div style='width: 100%; margin: auto;'>
+                    <p>Hello {$user->firstname},</p>
+                    <p>This is a reminder about the next Journal Club session.</p>
+                </div>
+                {$string}
+                ";
+        $content['subject'] = "Reminder - ".date('d M Y');
+
+        return $content;
+    }
+
+    /**
+     * Show form
+     * @return string
+     */
+    public function edit() {
+        $data = $this->all(array(), array('dir'=>'asc', 'order'=>'position'));
+        return self::form($data);
     }
 
     // MODEL
@@ -112,57 +166,6 @@ class ReminderMaker extends AppTable {
             }
         }
         return true;
-    }
-
-    // CONTROLLER
-
-    /**
-     * Install ReminderMaker
-     * @param bool $op
-     * @return bool
-     */
-    public function setup($op=False) {
-        if (parent::setup($op)) {
-            return self::registerAll();
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Renders digest email
-     * @param string $username
-     * @return mixed
-     */
-    public function makeDigest($username) {
-        $user = new User($username);
-        $string = "";
-        foreach ($this->all() as $key=>$item) {
-            if ($item['display'] == 1) {
-                $section = new $item['name']();
-                $string .= self::showSection($section->makeReminder($username));
-            }
-        }
-
-        $content['body'] = "
-                <div style='width: 100%; margin: auto;'>
-                    <p>Hello {$user->firstname},</p>
-                    <p>This is a reminder about the next Journal Club session.</p>
-                </div>
-                {$string}
-                ";
-        $content['subject'] = "Reminder - ".date('d M Y');
-
-        return $content;
-    }
-
-    /**
-     * Show form
-     * @return string
-     */
-    public function edit() {
-        $data = $this->all(null, array('dir'=>'asc', 'order'=>'position'));
-        return self::form($data);
     }
 
     // VIEW
