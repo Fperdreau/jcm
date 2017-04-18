@@ -20,24 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-if (!empty($_POST['id'])) {
-    if (isset($_SESSION['username'])) {
-        $user = new User($_SESSION['username']);
-    } elseif (!empty($_POST['user'])) {
-        $user = new User($_POST['user']);
-    } else {
-        $user = false;
-    }
-
-    $Suggestion = new Suggestion();
-    $data = $Suggestion->getInfo(htmlspecialchars($_POST['id']));
-    $show = $user !== false && (in_array($user->status, array('organizer', 'admin'))
-            || $data['username'] === $user->username);
-    $content = Suggestion::details($data, $show, 'body');
-
-} else {
-    $content = "Nothing to show here";
-}
-$content = "<section><div class='section_content' id='suggestion_container'>{$content}</div></section>";
-
-echo $content;
+$suggestion = new Suggestion();
+$id = isset($_POST['id']) ? $_POST['id'] : null;
+echo $suggestion->index($id);
