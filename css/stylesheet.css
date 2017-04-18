@@ -3265,6 +3265,11 @@ div.loadBtn {
     border-radius: 0 5px 0 5px;
 }
 
+.modal_buttons_container {
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
 .modal_close {
     background-image: url('../images/close.png');
 }
