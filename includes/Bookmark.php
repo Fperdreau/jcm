@@ -76,10 +76,17 @@ class Bookmark extends AppTable {
     public function getList($username) {
         $content = null;
         foreach ($this->all(array('username'=>$username)) as $key=>$item) {
+            /**
+             * @var $Controller AppTable
+             */
             $Controller = new $item['ref_obj']();
             $data = $Controller->get(array('id_pres'=>$item['ref_id']));
-            $content .= self::inList($item, $data[0]);
+            if (!empty($data)) {
+                $content .= self::inList($item, $data[0]);
+            }
         }
+
+        if (is_null($content)) $content = self::nothing();
         return $content;
     }
 
@@ -124,6 +131,12 @@ class Bookmark extends AppTable {
                 <img src='".AppConfig::$site_url."images/trash.png'></a></div>
                 </div>              
             </div>
+        ";
+    }
+
+    private static function nothing() {
+        return "
+        <div class='bookmark_list_container'>Sorry, there is nothing to show here yet.</div>
         ";
     }
 
