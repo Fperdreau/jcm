@@ -324,8 +324,7 @@ class AppCron extends AppTable {
      * Check if this plugin is registered to the db
      */
     public function isInstalled() {
-        $plugins = $this->db->column($this->db->tablesname['Crons'], array('name'));
-        return in_array($this->name,$plugins);
+        return $this->is_exist(array('name'=>$this->name), $this->db->tablesname['Crons']);
     }
 
     /**
