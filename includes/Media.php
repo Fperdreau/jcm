@@ -73,12 +73,13 @@ class Media extends AppTable{
 
     /**
      * Delete all files corresponding to the actual presentation
-     * @param $pres_id: unique id of presentation
+     * @param string $pres_id : unique id of presentation
+     * @param string $controller: reference controller name
      * @return bool
      */
-    public function delete_files($pres_id) {
-        foreach ($this->all(array('fileid'=>$pres_id)) as $key=>$item) {
-            $up = new Media($item['fileid']);
+    public function delete_files($pres_id, $controller) {
+        foreach ($this->all(array('fileid'=>$pres_id, 'obj'=>$controller)) as $key=>$item) {
+            $up = new Media();
             $result = $up->delete(array('fileid'=>$item['fileid']));
             if (!$result['status']) {
                 return false;
@@ -147,7 +148,7 @@ class Media extends AppTable{
      * @param string $id: uploader id (must be identical to the corresponding submission form)
      * @return string
      */
-    public static function uploader(array $links=array(), $id='uploader') {
+    public static function uploader(array $links=array(), $id='uploader', $controller=null) {
         // Get files associated to this publication
         $filesList = "";
         if (!empty($links)) {
@@ -164,7 +165,7 @@ class Media extends AppTable{
 
 
         $result = "
-        <div class='upl_container' id='{$id}'>
+        <div class='upl_container' id='{$id}' data-controller='{$controller}'>
            <div class='upl_errors'></div>
     	   <div class='upl_form'>
                 <div class='text'>Drop here</div>
@@ -184,9 +185,10 @@ class Media extends AppTable{
     /**
      * Create Media object
      * @param $file
+     * @param null $controller: reference controller
      * @return bool|mixed|mysqli_result|string
      */
-    public function make($file) {
+    public function make($file, $controller=null) {
 
         // First check the file
         $result['error'] = $this->checkupload($file);
@@ -207,7 +209,8 @@ class Media extends AppTable{
             'filename'=>$result['filename'],
             'name'=>$result['name'],
             'fileid'=>$result['file_id'],
-            'type'=>$result['type']
+            'type'=>$result['type'],
+            'obj'=>$controller
         );
 
         // Third: add to the Media table
@@ -286,14 +289,22 @@ class Media extends AppTable{
      * @param $obj_name
      * @return mixed
      */
-    function add_presid($filename, $presid, $obj_name) {
-        if ($this->db->updatecontent($this->tablename,array('presid'=>$presid),array('filename'=>$filename, 'obj'=>$obj_name))) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->log("New id ({$presid}) associated with file ({$filename})");
-            return true;
+    public function add_presid($filename, $presid, $obj_name) {
+        $data = $this->get(array('fileid'=>$filename, 'obj'=>$obj_name));
+        if (!empty($data)) {
+            if ($this->db->updatecontent($this->tablename, array('presid'=>$presid), array('fileid'=>$filename, 'obj'=>$obj_name))) {
+                AppLogger::get_instance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$presid}) associated with file ({$filename})");
+                return true;
+            } else {
+                AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$presid}) to file ({$filename})");
+                return false;
+            }
         } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not associate id ({$presid}) to file ({$filename})");
+            AppLogger::get_instance(APP_NAME, get_class($this))->error(
+                "Could not associate id ({$obj_name}: {$presid}) to file ({$filename}) because this file does not exit in our database");
             return false;
         }
+
     }
 
     /**
@@ -302,27 +313,35 @@ class Media extends AppTable{
      * @return bool|string
      */
     public function delete(array $id) {
-        if (is_file($this->directory.$this->filename)) {
-            if (unlink($this->directory.$this->filename)) {
-                if ($this->db->delete($this->tablename, $id)) {
-                    $result['status'] = true;
-                    $result['msg'] = "File Deleted";
-                    AppLogger::get_instance(APP_NAME, __CLASS__)->info($result['msg']);
+        $data = $this->get(array('fileid'=>$id));
+        if (!empty($data)) {
+            if (is_file($this->directory . $data[0]['filename'])) {
+                if (unlink($this->directory . $data[0]['filename'])) {
+                    if ($this->db->delete($this->tablename, $id)) {
+                        $result['status'] = true;
+                        $result['msg'] = "File [name: {$data[0]['filename']}] Deleted";
+                        AppLogger::get_instance(APP_NAME, __CLASS__)->info($result['msg']);
+                    } else {
+                        $result['status'] = false;
+                        $result['msg'] = "Could not remove file entry from database [name: {$data[0]['filename']}]";
+                        AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                    }
                 } else {
                     $result['status'] = false;
-                    $result['msg'] = "Could not remove file entry from database";
+                    $result['msg'] = "Could not delete file [name: {$data[0]['filename']}]";
                     AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
                 }
             } else {
                 $result['status'] = false;
-                $result['msg'] = "Could not delete file";
+                $result['msg'] = "File does not exist [name: {$data[0]['filename']}]";
                 AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
             }
         } else {
             $result['status'] = false;
-            $result['msg'] = "File does not exist";
+            $result['msg'] = "Could not find media [id: {$id}] in our database";
             AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
         }
+
         return $result;
     }
 
