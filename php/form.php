@@ -756,8 +756,13 @@ if (!empty($_POST['del_pub'])) {
 
 // Submit a new presentation
 if (!empty($_POST['edit'])) {
-    $Presentation = new Presentation();
-    $result = $Presentation->edit($_POST);
+    $controller = $_POST['controller'];
+
+    /**
+     * @var $Controller Suggestion|Presentation
+     */
+    $Controller = new $controller();
+    $result = $Controller->edit($_POST);
     echo json_encode($result);
     exit;
 }
