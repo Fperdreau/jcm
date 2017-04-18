@@ -79,7 +79,8 @@ class AppTable {
         $post_keys = array_keys($post);
         $content = array();
         foreach ($post as $name=>$value) {
-            if (in_array($name, array_keys($class_vars)) && !in_array($name, $exclude) && !in_array($name, self::$default_exclude)) {
+            if (in_array($name, array_keys($class_vars)) && !in_array($name, $exclude) && !in_array($name,
+                    self::$default_exclude)) {
                 $value = in_array($name, $post_keys) ? $post[$name]: $this->$name;
                 $this->$name = $value;
                 $value = (is_array($value)) ? json_encode($value) : $value;
@@ -132,27 +133,10 @@ class AppTable {
      * @param array $filter
      * @return array|mixed
      */
-    public function all(array $id=null, array $filter=null) {
+    public function all(array $id=array(), array $filter=null) {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir:null;
-
-        if (!is_null($id)) {
-            $search = array();
-            foreach ($id as $field=>$value) {
-                $search[] = "{$field}='{$value}'";
-            }
-            $search = "WHERE " . implode('AND ', $search);
-        } else {
-            $search = null;
-        }
-
-        $sql = "SELECT * FROM {$this->tablename} {$search} {$param}";
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
+        return $this->db->select($this->tablename, array('*'), $id, $param);
     }
 
     /**
