@@ -628,7 +628,6 @@ class Suggestion extends AppTable {
                 }
                 $content['menu'] = "
                         <div class='dl_menu'>
-                            <div class='dl_menu_header'>Files</div>
                             <div class='dl_menu_content'>{$menu}</div>
                         </div>";
             } else {
@@ -684,6 +683,7 @@ class Suggestion extends AppTable {
 
         // Suggestion type
         $type = ucfirst($data['type']);
+        $type_in_body = $view !== 'modal' ? "<div class='pub_type'>{$type}</div>" : null;
 
         // Present button
         $present_button = (User::is_logged()) ? "<div>
@@ -703,6 +703,13 @@ class Suggestion extends AppTable {
             </div>
         ";
 
+        // Header
+        $header = "
+            <span style='color: #222; font-weight: 900;'>Suggestion</span>
+            <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
+            <span style='color: #777; font-weight: 600;'>{$type}</span>
+        ";
+
         $buttons_body = $view !== 'modal' ? "
            <div class='first_half'>
                {$present_button}
@@ -712,12 +719,11 @@ class Suggestion extends AppTable {
                 {$modify_button}
             </div>" : null;
 
+
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
-            <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
-                {$type}
-            </div>
             <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>{$data['title']}</div>
+            {$type_in_body}
             <div id='pub_orator'>
                 <span style='color:#CF5151; font-weight: bold;'>Suggested by: </span>{$data['fullname']}
             </div>
@@ -741,7 +747,7 @@ class Suggestion extends AppTable {
         } else {
             return array(
                 'content'=>$result,
-                'title'=>'Suggestion',
+                'title'=>$header,
                 'buttons'=>$buttons,
                 'id'=>'suggestion'
             );
