@@ -44,12 +44,41 @@ class Suggestion extends AppTable {
     }
 
     /**
+     * Render suggestion index page
+     * @param null $id
+     * @return string
+     */
+    public function index($id=null) {
+        if (!is_null($id)) {
+            if (isset($_SESSION['username'])) {
+                $user = new User($_SESSION['username']);
+            } elseif (!empty($_POST['user'])) {
+                $user = new User($_POST['user']);
+            } else {
+                $user = false;
+            }
+
+            $data = $this->getInfo(htmlspecialchars($_POST['id']));
+            $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
+            if ($show && isset($_POST['operation']) && $_POST['operation'] === 'edit') {
+                $content = $this->get_form('body');
+            } else {
+                $content = $this->show_details($_POST['id'], 'body');
+            }
+        } else {
+            $content = "Nothing to show here";
+        }
+
+        return self::container($content);
+
+    }
+
+    /**
      * Add a presentation to the database
      * @param array $post
      * @return bool|string
      */
     public function add_suggestion(array $post){
-        $class_vars = get_class_vars(get_called_class());
         if ($this->is_exist(array('title'=>$post['title'])) === false) {
 
             $post['id_pres'] = $this->generateID('id_pres');
@@ -58,11 +87,12 @@ class Suggestion extends AppTable {
             // Associates this presentation to an uploaded file if there is one
             if (!empty($post['link'])) {
                 $media = new Media();
-                $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Suggestion');
+                $media->add_upload(explode(',', $post['link']), $post['id_pres'], __CLASS__);
             }
 
+            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
             // Add publication to the database
-            if ($this->db->addcontent($this->tablename, $this->parsenewdata($class_vars, $post, array("link")))) {
+            if ($this->db->addcontent($this->tablename, $content)) {
                 return $post['id_pres'];
             } else {
                 return false;
@@ -81,43 +111,109 @@ class Suggestion extends AppTable {
         $this->getInfo($pres_id);
 
         // Delete corresponding file
-        $uploads = new Uploads();
-        $uploads->delete_files($this->id_pres);
+        $uploads = new Media();
+        $uploads->delete_files($pres_id, __CLASS__);
 
         // Delete corresponding entry in the publication table
         return $this->delete(array('id_pres'=>$pres_id));
     }
 
     /**
+     * Alias for editor()
+     * @return array|string
+     */
+    public function get_suggestion_list($view) {
+        $_POST['operation'] = 'selection_list';
+        if ($view === "body") {
+            return self::format_section($this->editor($_POST, $view));
+        } else {
+            return $this->editor($_POST, $view);
+        }
+    }
+
+    /**
      * Render submission editor
      * @param array|null $post
+     * @param string $view
      * @return array
      */
-    public function editor(array $post=null) {
+    public function editor(array $post=null, $view='body') {
         $post = (is_null($post)) ? $_POST : $post;
-
-        $id_Presentation = $post['id'];
-        if (!isset($_SESSION['username'])) {
-            $_SESSION['username'] = false;
-        }
         $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
-
+        $id = isset($post['id']) ? $post['id'] : false;
         $user = new User($_SESSION['username']);
         $destination = (!empty($post['destination'])) ? $post['destination'] : null;
-        if ($operation == 'selection_list') {
-            $result['content'] = $this->generate_selectwishlist('.selection_container', $destination);
+        if ($operation === 'selection_list') {
+            $result['content'] = $this->generate_selectwishlist($destination, $view);
             $result['title'] = "Select a wish";
             $result['description'] = Suggestion::description("wishpick");
             return $result;
-        } elseif ($operation == 'select') {
+        } elseif ($operation === 'select') {
             $Suggestion = new Suggestion();
-            $Suggestion->getInfo($id_Presentation);
-            return Presentation::form($user, $Suggestion, 'edit', $operation, null);
-        } else {
-            $this->getInfo($id_Presentation);
+            $Suggestion->getInfo($id);
+            $Session = new Session();
+            $next = $Session->getNext(1);
+            return Presentation::form($user, $Suggestion, 'edit', $operation,
+                array('date'=>$next[0]['date'], 'session_id'=>$next[0]['id']));
+        } elseif ($operation === 'edit') {
+            $this->getInfo($id);
             return Suggestion::form($user, $this, $operation, $type);
+        } elseif ($operation === 'suggest') {
+            return Suggestion::form($user, null, $operation, $type);
+        } else {
+            return null;
         }
+    }
+
+    /**
+     * Update information
+     * @param array $data
+     * @param array $id
+     * @return bool
+     */
+    public function update(array $data, array $id) {
+        // Associates this presentation to an uploaded file if there is one
+        if (!empty($data['link'])) {
+            $media = new Media();
+            if (!$media->add_upload(explode(',', $data['link']), $data['id_pres'], __CLASS__)) {
+                return false;
+            }
+        }
+        $content = $this->parsenewdata(get_class_vars(get_called_class()), $data, array("link"));
+        return $this->db->updatecontent($this->tablename, $content, $id);
+    }
+
+    /**
+     * Edit Presentation
+     * @param array $data
+     * @return mixed
+     */
+    public function edit(array $data) {
+        // check entries
+        $presid = htmlspecialchars($data['id_pres']);
+
+        // IF not a guest presentation, the one who posted is the planned speaker
+        if ($data['type'] !== "guest") {
+            $data['orator'] = $_SESSION['username'];
+        }
+
+        if ($presid !== "false") {
+            $created = $this->update($data, array('id_pres'=>$this->id_pres));
+        } else {
+            $created = $this->add_suggestion($data);
+        }
+
+        $result['status'] = $created === true;
+        if ($created === false) {
+            $result['msg'] = 'Oops, something went wrong';
+        } elseif ($created === 'exist') {
+            $result['msg'] = "Sorry, a suggestion with a similar title already exists in our database.";
+        } else {
+            $result['msg'] = "Thank you for your suggestion!";
+        }
+
+        return $result;
     }
 
     /**
@@ -147,17 +243,14 @@ class Suggestion extends AppTable {
         $add_button = User::is_logged() ? "
             <div>
             <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' 
-                        class='leanModal get_submission_form' data-controller='Suggestion' 
-                        data-destination='#submission_form' data-view='modal' data-operation='suggest'>
+                        class='leanModal' data-controller='Suggestion' data-action='get_form'
+                        data-params='modal' data-operation='suggest' data-section='suggestion'>
                 <input type='submit' value='Add' />
             </a>
             </div>
         " : null;
 
-        return "
-            {$add_button}
-            {$wish_list}
-        ";
+        return $add_button . $wish_list;
     }
 
     /**
@@ -194,6 +287,54 @@ class Suggestion extends AppTable {
         }
 
         return true;
+    }
+
+    /**
+     * Show suggestion details
+     * @param bool $id: suggestion unique id
+     * @param string $view: requested view
+     * @return string: view
+     */
+    public function show_details($id=false, $view='body') {
+        $data = $this->getInfo($id);
+        $user = User::is_logged() ? new User($_SESSION['username']) : null;
+        $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
+                || $data['username'] === $user->username);
+        if ($data !== false) {
+            return self::details($data, $show, $view);
+        } else {
+            return self::not_found();
+        }
+
+    }
+
+    /**
+     * Get submission form
+     * @param string $view
+     * @return string
+     */
+    public function get_form($view='body') {
+        if ($view === "body") {
+            return self::format_section($this->editor($_POST));
+        } else {
+            $content = $this->editor($_POST);
+            return array(
+                'content'=>$content['content'],
+                'id'=>'suggestion',
+                'buttons'=>null,
+                'title'=>$content['title']);
+        }
+    }
+
+    /**
+     * Renders digest section (called by DigestMaker)
+     * @param null|string $username
+     * @return mixed
+     */
+    public function makeMail($username=null) {
+        $content['body'] = $this->getWishList(4);
+        $content['title'] = "Wish list";
+        return $content;
     }
 
     // MODEL
@@ -253,12 +394,27 @@ class Suggestion extends AppTable {
      * Get associated files
      */
     private function get_uploads() {
-        $upload = new Uploads();
+        $upload = new Media();
         $this->link = $upload->get_uploads($this->id_pres, 'Suggestion');
         return $this->link;
     }
 
     // VIEWS
+
+    /**
+     * @param array $content
+     * @return string
+     */
+    public static function format_section(array $content) {
+        return "
+        <section id='suggestion_form'>
+            <h2>{$content['title']}</h2>
+            <p class='page_description'>{$content['description']}</p>       
+            <div class='section_content'>{$content['content']}</div>
+        </section>
+        ";
+    }
+
     /**
      * Render suggestion in list
      * @param stdClass $item
@@ -267,26 +423,33 @@ class Suggestion extends AppTable {
      * @return string
      */
     public static function inList(stdClass $item, $vote=null, $bookmark=null) {
-        $update = date('d M y',strtotime($item->up_date));
+        $update = date('d M y', strtotime($item->up_date));
         $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=suggestion&id={$item->id_pres}";
+        $keywords = null;
+        foreach (explode(',', $item->keywords) as $keyword) {
+            $keywords .= "<div>{$keyword}</div>";
+        }
+
         return "
-        <div class='wish_container' id='{$item->id_pres}' style='display: block; position: relative; margin: 10px auto; 
-        font-size: 0.9em; font-weight: 300; overflow: hidden; padding: 5px; border-radius: 5px;'>
-            <div style='display: inline-block;font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;'>
+        <div class='suggestion_container' id='{$item->id_pres}''>
+            <div class='suggestion_date'>
                 {$update}
             </div>
-            <div style='display: inline-block; margin-left: 20px; max-width: 70%;'>
-               <div>
-                   <a href='$url' class='leanModal show_submission_details' data-controller='Suggestion' data-view='modal' data-id='{$item->id_pres}'>
+            <div class='suggestion_details_container'>
+                <div class='suggestion_details'>
+                   <a href='$url' class='leanModal' data-controller='Suggestion' data-action='show_details' 
+                   data-section='suggestion' data-params='{$item->id_pres},modal' data-id='{$item->id_pres}'>
                         <div style='font-size: 16px;'>{$item->title}</div>
                         <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
                    </a>
-               </div>
+                </div>
+                <div class='keywords_container'>{$keywords}</div>
             </div>
             <div class='tiny_icon_container'>
                 {$vote}
                 {$bookmark}            
             </div>
+
         </div>";
     }
 
@@ -311,8 +474,9 @@ class Suggestion extends AppTable {
               <input type='hidden' name='page' value='presentations'/>
               <input type='hidden' name='op' value='wishpick'/>
               <div class='form-group field_auto' style='margin: auto; width: 250px;'>
-                <select name='id' id='select_wish' data-controller='Suggestion' data-operation='select' 
-                data-view='{$destination}' data-destination='{$target}'>
+                <select name='id' id='select_wish' data-controller='Suggestion' data-action='get_form' 
+                data-operation='select' data-section='suggestion' data-params='{$destination}' 
+                data-destination='{$target}'>
                     {$option}
                 </select>
                 <label for='id'>Select a suggestion</label>
@@ -334,10 +498,6 @@ class Suggestion extends AppTable {
             $Presentation = new self();
         }
 
-        // Submission type
-        $type = (is_null($type)) ? $type : $Presentation->type;
-        if (empty($type)) $type = 'paper';
-
         // Presentation ID
         $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres : 'false';
 
@@ -351,10 +511,10 @@ class Suggestion extends AppTable {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader($Presentation->link) . "
+                    " . Media::uploader($Presentation->link, 'suggestion_form', __CLASS__) . "
                 </div>
                 
-                <form method='post' action='php/form.php' enctype='multipart/form-data' id='submit_form'>
+                <form method='post' action='php/form.php' enctype='multipart/form-data' id='suggestion_form'>
                     
                     <div class='form_aligned_block matched_bg'>
                         
@@ -374,7 +534,8 @@ class Suggestion extends AppTable {
                         " . Presentation::get_form_content($Presentation, $submit) . "
                     </div>
                     <div class='submit_btns'>
-                        <input type='submit' name='$submit' class='submit_pres processform'>
+                        <input type='submit' name='$submit' class='submit_pres'>
+                        <input type='hidden' name='controller' value='". __CLASS__ . "'>
                         <input type='hidden' name='$submit' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
                         <input type='hidden' id='id_pres' name='id_pres' value='{$idPres}'/>
@@ -444,17 +605,21 @@ class Suggestion extends AppTable {
         if (!empty($links)) {
             if ($email) {
                 // Show files list as a drop-down menu
-                $content['button'] = "<div class='dl_btn pub_btn icon_btn'>
-                    <img src='".AppConfig::$site_url."images/download.png'></div>";
+                $content['button'] = null;
                 $menu = null;
                 foreach ($links as $file_id=>$info) {
                     $menu .= "
                         <div class='dl_info'>
                             <div class='dl_type'>".strtoupper($info['type'])."</div>
-                            <div class='link_name dl_name' id='".$info['filename']."'>$file_id</div>
+                            <div class='dl_name' id='{$info['filename']}'>{$info['name']}</div>
+                            <div class='icon_btn dl_btn link_name' id='{$info['filename']}'></div>
                         </div>";
                 }
-                $content['menu'] .= "<div class='dlmenu'>{$menu}</div>";
+                $content['menu'] = "
+                        <div class='dl_menu'>
+                            <div class='dl_menu_header'>Files</div>
+                            <div class='dl_menu_content'>{$menu}</div>
+                        </div>";
             } else {
                 // Show files list as links
                 $menu = null;
@@ -487,22 +652,49 @@ class Suggestion extends AppTable {
 
         $dl_menu = self::download_menu($data['link'], $show);
         $file_div = $show ? $dl_menu['menu'] : null;
-        $destination = $view === 'modal' ? '#submission_form' : '#suggestion_container';
+        $destination = $view === 'modal' ? '#suggestion' : '#suggestion_container';
+        $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
 
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
-                data-controller='Suggestion' data-operation='edit'>
-                <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id_pres']}' class='get_submission_form' 
-                data-controller='Suggestion' data-destination='{$destination}' data-view='modal' data-operation='edit'>
-                <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
+                data-controller='Suggestion' data-action='delete'>
+                <img src='".AppConfig::$site_url."images/trash.png'></a>
+                </div>";
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}' data-controller='Suggestion' 
+                data-action='get_form' data-section='suggestion' data-params='{$view}' data-id='{$data['id_pres']}' 
+                data-operation='edit' data-destination='{$destination}'>
+                <img src='".AppConfig::$site_url."images/edit.png'></a>
+                </div>";
         } else {
             $delete_button = "<div style='width:100px'></div>";
             $modify_button = "<div style='width:100px'></div>";
         }
 
+        // Suggestion type
         $type = ucfirst($data['type']);
+
+        // Action buttons
+        $buttons = "
+            <div class='first_half'>
+                {$dl_menu['button']}
+                {$dl_menu['menu']}
+            </div>
+            <div class='last_half'>
+                {$delete_button}
+                {$modify_button}
+            </div>
+        ";
+
+        $buttons_body = $view !== 'modal' ? $buttons : null;
+
+        // Present button
+        $present_button = (User::is_logged()) ? "<div>
+            <input type='submit' class='{$trigger}' value='Present it' data-controller='Suggestion' 
+            data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id_pres']}' 
+            data-view='{$view}' data-destination='{$destination}' data-operation='select'/>
+        </div>" : null;
+
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
             <div style='display: block; position: relative; float: right; margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; background-color: #555555; color: #FFF; padding: 5px;'>
@@ -519,24 +711,54 @@ class Suggestion extends AppTable {
             <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>{$data['summary']}
         </div>
         
-        <div>
-            <input type='submit' class='select_suggestion' value='Present it' data-controller='Suggestion' data-id='{$data['id_pres']}' 
-            data-view='body' data-destination='{$destination}' data-operation='select'/>
-        </div>
+        {$present_button}
 
         <div class='pub_action_btn'>
-            <div class='pub_one_half'>
-                {$dl_menu['button']}
-                {$dl_menu['menu']}
-            </div>
-            <div class='pub_one_half last'>
-                {$delete_button}
-                {$modify_button}
-            </div>
+            {$buttons_body}
         </div>
         {$file_div}
         ";
-        return $result;
+
+        if ($view === 'body') {
+            return $result;
+        } else {
+            return array(
+                'content'=>$result,
+                'title'=>'Suggestion',
+                'buttons'=>$buttons,
+                'id'=>'suggestion'
+            );
+        }
+    }
+
+    /**
+     * Render error message (not found)
+     * @return string
+     */
+    public static function not_found() {
+        return "
+            <section>
+                <div class='section_content'>
+                    <div style='color: rgb(105,105,105); font-size: 50px; text-align: center; font-weight: 600; margin-bottom: 20px;'>Oops</div>
+                    <div style=\"color: rgb(105,105,105); text-align: center; font-size: 1.2em; font-weight: 400;\">
+                        If you were looking for the answer to the question:
+                        <p style='font-size: 1.4em; text-align: center;'>What is the universe?</p>
+                        We can tell you it is 42.
+                        <p>But since you were looking for a page that does not exist, then we must tell you:</p>
+                        <p style='font-size: 2em; text-align: center;'>ERROR 404!</p>
+                    </div>
+                </div>
+            </section>
+            ";
+    }
+
+    /**
+     * Render suggestion container
+     * @param $content
+     * @return string
+     */
+    private static function container($content) {
+        return "<section><div class='section_content' id='suggestion_container'>{$content}</div></section>";
     }
 
 }
