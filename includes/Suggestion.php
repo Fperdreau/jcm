@@ -416,6 +416,21 @@ class Suggestion extends AppTable {
     }
 
     /**
+     * Render keywords list
+     * @param string $keywords: list of keywords (comma-separated)
+     * @return null|string
+     */
+    private static function keywords_list($keywords) {
+        $content = null;
+        if (!empty($keywords)) {
+            foreach (explode(',', $keywords) as $keyword) {
+                $content .= "<div>{$keyword}</div>";
+            }
+        }
+        return $content;
+    }
+
+    /**
      * Render suggestion in list
      * @param stdClass $item
      * @param null|string $vote
@@ -425,10 +440,7 @@ class Suggestion extends AppTable {
     public static function inList(stdClass $item, $vote=null, $bookmark=null) {
         $update = date('d M y', strtotime($item->up_date));
         $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=suggestion&id={$item->id_pres}";
-        $keywords = null;
-        foreach (explode(',', $item->keywords) as $keyword) {
-            $keywords .= "<div>{$keyword}</div>";
-        }
+        $keywords = self::keywords_list($item->keywords);
 
         return "
         <div class='suggestion_container' id='{$item->id_pres}''>
@@ -705,6 +717,7 @@ class Suggestion extends AppTable {
                 <span style='color:#CF5151; font-weight: bold;'>Suggested by: </span>{$data['fullname']}
             </div>
             <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>{$data['authors']}</div>
+            ". self::keywords_list($data['keywords']) . " 
         </div>
 
         <div class='pub_abstract'>
