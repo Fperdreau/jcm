@@ -36,6 +36,7 @@ $menu = AppPage::menu();
         <!-- Stylesheets -->
         <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
         <link type='text/css' rel='stylesheet' href="css/uploader.min.css"/>
+        <link  type='text/css' rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
         <!-- JQuery -->
         <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
@@ -45,7 +46,7 @@ $menu = AppPage::menu();
     </head>
 
     <body class="mainbody">
-        <?php require(PATH_TO_PAGES . 'modal.php'); ?>
+        <?php echo Modal::template(); ?>
 
         <div class="sideMenu">
             <?php echo $menu; ?>
@@ -70,8 +71,8 @@ $menu = AppPage::menu();
                 <?php
                 if (!User::is_logged()) {
                     $showlogin = "
-                <div class='leanModal' id='login_button' data-section='user_login'><img src='images/login_bk.png' alt='login'></div>
-                <div class='leanModal' id='user_register' data-section='user_register'><img src='images/signup_bk.png' alt='signup'></div>
+                <div class='leanModal' data-controller='User' data-action='get_view' data-params='login_form,modal' data-section='login_form'><img src='images/login_bk.png' alt='login'></div>
+                <div class='leanModal' data-controller='User' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='images/signup_bk.png' alt='signup'></div>
                  ";
                 } else {
                     $showlogin = "
@@ -109,11 +110,11 @@ $menu = AppPage::menu();
         </footer>
 
         <!-- Bunch of jQuery functions -->
-        <script type="text/javascript" src="js/index.min.js"></script>
-        <script type="text/javascript" src="js/form.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/form.js"></script>
         <script type="text/javascript" src="js/plugins.min.js"></script>
         <script type="text/javascript" src="js/Myupload.min.js"></script>
-        <script type="text/javascript" src="js/jquery.leanModal.min.js"></script>
+        <script type="text/javascript" src="js/jquery.leanModal.js"></script>
         <script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js"></script>
         <link type='text/css' rel='stylesheet' href='js/passwordchecker/css/style.min.css' />
 
