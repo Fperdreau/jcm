@@ -142,16 +142,18 @@ var validsubmitform = function (el, data, callback, timing, btn) {
     // Display feedback message and/or run callback function
     if (result.msg !== undefined) {
         showFeedBack(el, result.status, result.msg);
-        setTimeout(function() {
-            removeFeedBack(el);
+        if (result.status === true) {
+            setTimeout(function() {
+                removeFeedBack(el);
 
-            if (btn !== undefined && btn.length > 0) resetButton(btn);
+                if (btn !== undefined && btn.length > 0) resetButton(btn);
 
-            // Run callback function
-            if (callback !== false) {
-                callback(result);
-            }
-        }, timing);
+                // Run callback function
+                if (callback !== false) {
+                    callback(result);
+                }
+            }, timing);
+        }
     } else {
 
         if (btn !== undefined && btn.length > 0) resetButton(btn);
@@ -228,7 +230,17 @@ function showFeedBack(el, status, msg) {
     var height = el.height();
     var text = format_msg(status, msg);
 
-    el.append("<div class='feedbackForm'></div>");
+    // Tag target container
+    if (!el.hasClass('feedbackFormTarget')) {
+        el.addClass('feedbackFormTarget');
+    }
+
+    // Add unique id to target if it does not have one already
+    if (el.attr('id') === undefined) {
+        el.attr('id', 'fb_' + Math.round(new Date().getTime() + (Math.random() * 100)));
+    }
+
+    el.append("<div class='feedbackForm' id='" + el.attr('id') + "'></div>");
     var feedbackForm = $('.feedbackForm');
 
     fade_inputs(el, true);
@@ -378,17 +390,19 @@ var checkemail = function (email) {
 
 /**
  * Show a feedback after having processed the form
- * @param message: feedback
- * @param selector: feeback div
+ * @param message: feedback message
+ * @param selector: feedback container
+ * @param close: remove message (true)
  * @returns {boolean}
  */
-var showfeedback = function (message, selector) {
-    var el = (typeof selector === "undefined") ? ".feedback":".feedback#"+selector;
+var showfeedback = function (message, selector, close) {
+    var el = (typeof selector === "undefined") ? ".feedback" : selector;
+    close = close === undefined ? true : close;
     $(el)
         .html(message)
         .fadeIn(1000)
-        .delay(3000)
-        .fadeOut(1000);
+        .delay(3000);
+    if (close) $(el).fadeOut(1000);
     return false;
 };
 
@@ -430,6 +444,6 @@ $(document).ready(function () {
         })
 
         .on('click', '.feedbackForm', function() {
-            removeFeedBack($(this).parent('form'));
+            removeFeedBack($('.feedbackFormTarget#' + $(this).attr('id')));
         });
 });
