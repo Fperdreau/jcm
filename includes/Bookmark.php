@@ -117,12 +117,12 @@ class Bookmark extends AppTable {
      * @return string
      */
     public static function inList(array $bookmark, array $data) {
+        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=". strtolower($bookmark['ref_obj']). "&id={$bookmark['ref_id']}";
         return "
             <div class='bookmark_list_container'>
                 <div class='bookmark_title'>
-                    <a href='" . URL_TO_APP . "index.php?page={$bookmark['ref_obj']}&id={$bookmark['ref_id']}" . "' 
-                    class='leanModal show_submission_details' data-controller='{$bookmark['ref_obj']}' data-id='{$bookmark['ref_id']}' 
-                    data-view='modal'>
+                   <a href='$url' class='leanModal' data-controller='Suggestion' data-action='show_details' 
+                   data-section='suggestion' data-params='{$bookmark['ref_id']},modal' data-id='{$bookmark['ref_id']}'>
                     {$data['title']}</a>
                 </div>
                 <div class='bookmark_action'>
