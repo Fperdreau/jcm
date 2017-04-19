@@ -314,8 +314,7 @@ input[type="submit"]:active, input[type="button"]:active {
 
 .feedbackForm>p, .feedbackForm>div {
     position: absolute;
-    top: 15px;
-
+    top: 50%;
     z-index: 2;
     width: 300px;
     max-width: 300px;
