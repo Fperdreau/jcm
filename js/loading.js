@@ -47,7 +47,6 @@ var tinymcesetup = function (selector) {
 
     // Attribute random unique ID to selector if does not have one yet
     $('.' + selector).each(function() {
-        console.log($(this).attr('id'));
         if ($(this).attr('id') === undefined || $(this).attr('id').length === 0) {
             $(this).attr('id', 'tinymce_' + Math.round(new Date().getTime() + (Math.random() * 100)));
         }
