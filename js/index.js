@@ -139,7 +139,6 @@ function confirmation_box(el, txt, txt_btn, callback) {
 
             // User has confirmed
             section.find("input[name='confirmation']").click(function() {
-                close_modal();
                 callback();
             });
 
@@ -1434,9 +1433,13 @@ $(document).ready(function () {
                     success: function(ajax) {
                         var result = jQuery.parseJSON(ajax);
                         if (result === true) {
-                            showfeedback("<div class='sys_msg success'>Item deleted</div>", $('.confirmation_text'));
+                            showfeedback("<div class='sys_msg success'>Item deleted</div>", '.confirmation_text');
+                            setTimeout(function() {
+                                close_modal();
+                                location.reload();
+                            }, 2000);
                         } else {
-                            showfeedback("<div class='sys_msg warning'>Item could not be deleted</div>", $('.confirmation_text'));
+                            showfeedback("<div class='sys_msg warning'>Item could not be deleted</div>", '.confirmation_text', false);
                         }
                     }
                 });
