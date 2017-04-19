@@ -110,7 +110,7 @@ class Modal {
                 <div class='one_half last'><input type='submit' name='confirmation' value='{$data['button_txt']}'></div>
             </div>";
 
-        $html = "<div class='sys_msg warning confirmation_text'>{$data['text']}</div>";
+        $html = "<div class='confirmation_text'><div class='sys_msg warning'>{$data['text']}</div></div>";
 
         return self::section(array(
                     'get_confirmation_box'=> true,
