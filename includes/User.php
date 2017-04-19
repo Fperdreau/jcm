@@ -939,7 +939,7 @@ class User extends AppTable {
                 <div class='section_content'>
                     <h2>Change password</h2>
                     <form action='' method='post'>
-                        <input type='hidden' name='conf_changepw' value='true'/>
+                        <input type='hidden' name='password_change' value='true'/>
                         <input type='hidden' name='username' value='{$data[0]['username']}' id='ch_username'/>
                         <div class='form-group'>
                             <input type='password' name='password' class='passwordChecker' value='' required/>
