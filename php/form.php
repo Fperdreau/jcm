@@ -633,54 +633,16 @@ if (!empty($_POST['delete_user'])) {
 }
 
 // Send password change request if email exists in database
-if (!empty($_POST['change_pw'])) {
-    $AppMail = new AppMail();
-    $email = htmlspecialchars($_POST['email']);
+if (!empty($_POST['request_password_change'])) {
     $user = new User();
-
-    if ($user->is_exist(array('email'=>$email))) {
-        $username = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'),
-            array("email"=>$email));
-        $user->getUser($username[0]['username']);
-        $reset_url = URL_TO_APP . "index.php?page=renew&hash=$user->hash&email=$user->email";
-        $subject = "Change password";
-        $content = "
-            Hello $user->firstname $user->lastname,<br>
-            <p>You requested us to change your password.</p>
-            <p>To reset your password, click on this link:
-            <br><a href='$reset_url'>$reset_url</a></p>
-            <br>
-            <p>If you did not request this change, please ignore this email.</p>
-            ";
-
-        $body = $AppMail->formatmail($content);
-        if ($AppMail->send_mail($email,$subject,$body)) {
-            $result['msg'] = "An email has been sent to your address with further information";
-            $result['status'] = true;
-        } else {
-            $result['msg'] = "Oops, we couldn't send you the verification email";
-            $result['status'] = false;
-        }
-    } else {
-        $result['msg'] = "This email does not exist in our database";
-        $result['status'] = false;
-    }
-    echo json_encode($result);
+    echo json_encode($user->request_password_change( htmlspecialchars($_POST['email'])));
     exit;
 }
 
 // Change user password after confirmation
-if (!empty($_POST['conf_changepw'])) {
-    $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
-    $user = new User($username);
-    if ($user->update(array('password'=>$user->crypt_pwd($password)), array('username'=>$username))) {
-        $result['msg'] = "Your password has been changed!";
-        $result['status'] = true;
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
+if (!empty($_POST['password_change'])) {
+    $user = new User();
+    echo json_encode($user->password_change(htmlspecialchars($_POST['username']), htmlspecialchars($_POST['password'])));
     exit;
 }
 

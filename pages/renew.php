@@ -23,48 +23,5 @@
 require_once('../includes/boot.php');
 
 $user = new User();
-
-// Modify user password
-if (!empty($_POST['hash']) && !empty($_POST['email'])) {
-    $hash = htmlspecialchars($_POST['hash']);
-    $email = htmlspecialchars($_POST['email']);
-    $user_data = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'), array("email"=>$email));
-    $data = $user->get(array('username'=>$user_data[0]['username']));
-    if ($data[0]['hash'] == $hash) {
-        $content = "
-            <form id='conf_changepw'>
-                <input type='hidden' name='conf_changepw' value='true'/>
-                <input type='hidden' name='username' value='{$user_data[0]['username']}' id='ch_username'/>
-                <div class='form-group'>
-                    <input type='password' name='password' class='passwordChecker' value='' required/>
-                    <label for='password'>New Password</label>
-                </div>
-                <div class='form-group'>
-                    <input type='password' name='conf_password' value='' required/></br>
-                    <label for='conf_password'>Confirm password</label>
-                </div>
-                <div class='submit_btns'>
-                    <input type='submit' name='login' value='Submit' class='conf_changepw'/>
-                </div>
-            </form>";
-    } else {
-        $content = "<div class='sys_msg warning'>Incorrect email or hash id.</div>";
-    }
-    $result = "
-        <section style='width: 300px;'>
-            <div class=\"section_content\">
-                <h2>Change password</h2>
-                <div class='section_content'>{$content}</div>
-            </div>
-        </section>";
-} else {
-    $result = "
-        <section style='width: 300px;'>
-            <div class=\"section_content\">
-                <h2>Change password</h2>
-                <div class='section_content'><div class='sys_msg warning'>Incorrect email or hash id.</div></div>
-            </div>
-        </section>";
-}
-
+$result = $user->get_password_form();
 echo $result;

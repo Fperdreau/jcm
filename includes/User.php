@@ -428,6 +428,85 @@ class User extends AppTable {
     }
 
     /**
+     * Procedure for password modification request
+     * @param $email
+     * @return array: array('status'=>bool, 'msg"=>string)
+     */
+    public function request_password_change($email) {
+        if ($this->is_exist(array('email'=>$email))) {
+            $username = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'),
+                array("email"=>$email));
+            $this->getUser($username[0]['username']);
+            $reset_url = URL_TO_APP . "index.php?page=renew&hash=$this->hash&email=$this->email";
+            $subject = "Change password";
+            $content = "
+            Hello $this->firstname $this->lastname,<br>
+            <p>You requested us to change your password.</p>
+            <p>To reset your password, click on this link:
+            <br><a href='$reset_url'>$reset_url</a></p>
+            <br>
+            <p>If you did not request this change, please ignore this email.</p>
+            ";
+
+            $AppMail = new AppMail();
+            $body = $AppMail->formatmail($content);
+            if ($AppMail->send_mail($email,$subject,$body)) {
+                $result['msg'] = "An email has been sent to your address with further information";
+                $result['status'] = true;
+            } else {
+                $result['msg'] = "Oops, we couldn't send you the verification email";
+                $result['status'] = false;
+            }
+        } else {
+            $result['msg'] = "This email does not exist in our database";
+            $result['status'] = false;
+        }
+        return $result;
+    }
+
+    /**
+     * Get password modification form
+     * @return string
+     */
+    public function get_password_form() {
+        // Modify user password
+        if (!empty($_POST['hash']) && !empty($_POST['email'])) {
+            $hash = htmlspecialchars($_POST['hash']);
+            $email = htmlspecialchars($_POST['email']);
+            $data = $this->get(array('email'=>$email));
+            if ($data[0]['hash'] === $hash) {
+                $result = self::password_form($data);
+            } else {
+                $result = self::incorrect_hash();
+            }
+        } else {
+            $result = self::incorrect_hash();
+        }
+        return $result;
+    }
+
+    /**
+     * Modify user's password
+     * @param $username
+     * @param $password
+     * @return mixed
+     */
+    public function password_change($username, $password) {
+        if ($this->is_exist(array('username'=>$username))) {
+            if ($this->update(array('password' => $this->crypt_pwd($password)), array('username' => $username))) {
+                $result['msg'] = "Your password has been changed!";
+                $result['status'] = true;
+            } else {
+                $result['status'] = false;
+            }
+        } else {
+            $result['status'] = False;
+            $result['msg'] = 'This account does not exist';
+        }
+        return $result;
+    }
+
+    /**
      * Check if user is logged in
      * @return bool
      */
@@ -847,5 +926,49 @@ class User extends AppTable {
             {$content}
             </div>
         ";
+    }
+
+    /**
+     * Password modification form
+     * @param array $data
+     * @return string
+     */
+    private static function password_form(array $data) {
+        return "
+            <section>
+                <div class='section_content'>
+                    <h2>Change password</h2>
+                    <form action='' method='post'>
+                        <input type='hidden' name='conf_changepw' value='true'/>
+                        <input type='hidden' name='username' value='{$data[0]['username']}' id='ch_username'/>
+                        <div class='form-group'>
+                            <input type='password' name='password' class='passwordChecker' value='' required/>
+                            <label for='password'>New Password</label>
+                        </div>
+                        <div class='form-group'>
+                            <input type='password' name='conf_password' value='' required/></br>
+                            <label for='conf_password'>Confirm password</label>
+                        </div>
+                        <div class='submit_btns'>
+                            <input type='submit' name='login' value='Submit' class='conf_changepw'/>
+                        </div>
+                    </form>
+                </div>
+            </section>  
+            ";
+    }
+
+    /**
+     * Error message if hash does not match user information
+     * @return string
+     */
+    private static function incorrect_hash() {
+        return "
+            <section>
+                <div class='section_content'>
+                    <h2>Change password</h2>
+                    <div class='sys_msg warning'>Incorrect email or hash id.</div>
+                </div>
+            </section>";
     }
 }
