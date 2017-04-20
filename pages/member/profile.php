@@ -153,7 +153,7 @@ $result = "
             <h2>Delete my account</h2>
             <div class='section_content' id='delete_account_container'>
                 <p>You can delete your account by clicking the button below.</p>
-                <div class='operation_button leanModal' id='user_delete' data-section='user_delete'>Delete my account</div>
+                <div class='operation_button user_delete' data-controller='User' data-action='delete' data-id='' data-section='user_delete'>Delete my account</div>
                 <div class='sys_msg warning'>Deleted accounts cannot be recovered. All your account information will 
                 be lost.</div>
             </div>   
