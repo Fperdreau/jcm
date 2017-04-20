@@ -138,12 +138,14 @@ function show_section(section, modal_id) {
  * @param modal: modal selector
  */
 function animate_before(modal) {
-    var start_width = 50;
-    var start_height = 50;
-    modal.css({
-        height: start_height + 'px',
-        width: start_width + 'px'
-    });
+    if (!modal.is(':visible')) {
+        var start_width = 50;
+        var start_height = 50;
+        modal.css({
+            height: start_height + 'px',
+            width: start_width + 'px'
+        });
+    }
     loadingDiv(modal);
 }
 
