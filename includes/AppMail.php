@@ -78,7 +78,7 @@ class AppMail {
      */
     function send_verification_mail($hash,$user_mail,$username) {
         $MailManager = new MailManager();
-        $Users = new Users();
+        $Users = new User();
         $admins = $Users->getadmin('admin');
         $to = array();
         foreach ($admins as $key=>$admin) {
@@ -109,7 +109,7 @@ class AppMail {
     public function send_test_email(array $data, $to=null) {
         $MailManager = new MailManager();
         if (is_null($to)) {
-            $Users = new Users();
+            $Users = new User();
             $admins = $Users->getadmin('admin');
             $to = array();
             foreach ($admins as $key=>$admin) {
