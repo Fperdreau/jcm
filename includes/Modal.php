@@ -102,13 +102,18 @@ class Modal {
      * @return string
      */
     public static function confirmation_box($data) {
+        $buttons_confirm = !empty($data['button_txt']) ? "
+            <input type='submit' name='confirmation' value='{$data['button_txt']}'>
+            " : null;
+
         $buttons = "
             <div class='action_btns'>
                 <div class='one_half'>
                     <input type='submit' name='cancel' class='fa-angle-double-left' value='Cancel'>
                 </div>
-                <div class='one_half last'><input type='submit' name='confirmation' value='{$data['button_txt']}'></div>
-            </div>";
+                <div class='one_half last'>{$buttons_confirm}</div>
+            </div>
+        ";
 
         $html = "<div class='confirmation_text'><div class='sys_msg warning'>{$data['text']}</div></div>";
 
