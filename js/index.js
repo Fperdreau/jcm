@@ -1446,6 +1446,42 @@ $(document).ready(function () {
             });
         })
 
+        .on('click', '.user_delete', function(e) {
+            e.preventDefault();
+            var el = $(this);
+            el.data('action', 'delete');
+            jQuery.ajax({
+                'url': 'php/form.php',
+                'type': 'post',
+                data: {'get_delete_account_form': true},
+                success: function(data) {
+                    var json = jQuery.parseJSON(data);
+                    confirmation_box(el, json.content, null, function () {
+                        var data = el.data();
+                        data['delete'] = true;
+                        jQuery.ajax({
+                            url: 'php/form.php',
+                            type: 'post',
+                            data: data,
+                            success: function(ajax) {
+                                var result = jQuery.parseJSON(ajax);
+                                if (result === true) {
+                                    showfeedback("<div class='sys_msg success'>Account successfully deleted. You are going to be logged out.</div>", '.confirmation_text');
+                                    setTimeout(function() {
+                                        close_modal();
+                                        location.reload();
+                                    }, 2000);
+                                } else {
+                                    showfeedback("<div class='sys_msg warning'>Sorry, we could not delete your account. Please, try later.</div>", '.confirmation_text', false);
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+
+        })
+
         // Dialog change password
         .on('click',".modal_trigger_changepw",function (e) {
             e.preventDefault();
