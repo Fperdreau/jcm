@@ -132,7 +132,7 @@ var validsubmitform = function (el, data, callback, timing, btn) {
     timing = (timing === undefined) ? 2000 : timing;
     if (btn !== undefined && btn.length > 0) {
         removeLoadingButton(btn);
-        if (result.status) {
+        if ( (typeof(result) === "boolean" && result)|| result.status) {
             btn.addClass('processform_success');
         } else {
             btn.addClass('processform_failure');
