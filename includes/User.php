@@ -387,19 +387,22 @@ class User extends AppTable {
     /**
      * User login
      * @param $post
+     * @param bool $login: log user in
      * @return mixed
      */
-    public function login($post) {
+    public function login($post, $login=true) {
         $password = htmlspecialchars($post['password']);
         if ($this->getUser($this->username)) {
             if ($this->active == 1) {
                 if ($this -> check_pwd($password) == true) {
-                    $_SESSION['logok'] = true;
-                    $_SESSION['login_start'] = time();
-                    $_SESSION['login_expire'] = $_SESSION['login_start'] + SessionInstance::timeout;
-                    $_SESSION['login_warning'] = SessionInstance::warning;
-                    $_SESSION['username'] = $this -> username;
-                    $_SESSION['status'] = $this -> status;
+                    if ($login) {
+                        $_SESSION['logok'] = true;
+                        $_SESSION['login_start'] = time();
+                        $_SESSION['login_expire'] = $_SESSION['login_start'] + SessionInstance::timeout;
+                        $_SESSION['login_warning'] = SessionInstance::warning;
+                        $_SESSION['username'] = $this -> username;
+                        $_SESSION['status'] = $this -> status;
+                    }
                     $result['msg'] = "Hi $this->fullname,<br> welcome back!";
                     $result['status'] = true;
                 } else {
@@ -575,7 +578,9 @@ class User extends AppTable {
         if ($check == 1) {
             $this->attempt = 0;
             $this->last_login = date('Y-m-d H:i:s');
-            $this->db->updatecontent($this->tablename,array('attempt'=>$this->attempt,'last_login'=>$this->last_login),array("username"=>$this->username));
+            $this->db->updatecontent($this->tablename,
+                array('attempt'=>$this->attempt,'last_login'=>$this->last_login),
+                array("username"=>$this->username));
             return true;
         } else {
             return false;
@@ -596,12 +601,31 @@ class User extends AppTable {
     /**
      * Delete user's account
      *
-     * @param null $username
-     * @return bool
+     * @param $current_user: logged user
+     * @param null $username: provided username
+     * @return array
      */
-    public function delete_user($username=null) {
-        $username = ($username == null) ? $this->username:$username;
-        return $this->delete(array("username"=>$username));
+    public function delete_user($username, $current_user=null) {
+        // check if user has admin status and if there will be remaining admins after we delete this account.
+        $is_admin = false;
+        $admins = $this->all(array('status'=>'admin'));
+        foreach ($admins as $key=>$admin) {
+            if ($admin['username'] == $username) {
+                $is_admin = true;
+                break;
+            }
+        }
+        if (is_null($current_user) || (!is_null($current_user) && $current_user === $username)) {
+            if ($is_admin and count($admins) === 1) {
+                return array(
+                    'status'=>false,
+                    'msg'=>'This account has an admin status and there must be at least one admin account registered'
+                );
+            }
+            return array('status'=>$this->delete(array("username"=>$username)));
+        } else {
+            return array('status'=>false, 'msg'=>"You cannot delete another user's account");
+        }
     }
 
     /**
@@ -873,6 +897,35 @@ class User extends AppTable {
                 </div>
             </form>
         ";
+    }
+
+    /**
+     * Render registration form for modal windows
+     * @return array
+     */
+    public static function delete_account_form_modal() {
+        return array(
+            'id'=>'user_delete',
+            'content'=>"
+                <div>Please, confirm your identity.</div>
+                <form id='confirmdeleteuser' method='post' action='" . URL_TO_APP . 'php/form.php' . "' autocomplete='off'>
+                    <div><input type='hidden' name='delete_user' value='true'></div>
+                    <div class='form-group'>
+                        <input type='text' id='del_username' name='username' value='' required autocomplete='off'/>
+                        <label for='del_username'>Username</label>
+                    </div>
+                    <div class='form-group'>
+                        <input type='password' id='del_password' name='password' value='' required autocomplete='off'/>
+                        <label for='del_password'>Password</label>
+                    </div>
+                    <div class='action_btns'>
+                        <input type='submit' class='confirmdeleteuser' value='Delete my account'>
+                    </div>
+                </form>
+            ",
+            'title'=>'Delete account',
+            'buttons'=>"Delete my account"
+        );
     }
 
     /**
