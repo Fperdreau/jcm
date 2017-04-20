@@ -146,7 +146,7 @@ class AppTable {
      * @return bool
      */
     public function update(array $data, array $id) {
-        return $this->db->updatecontent($this->tablename, $data, $id);
+        return $this->db->updatecontent($this->tablename,  $this->parsenewdata(get_class_vars(get_called_class()), $data), $id);
     }
 
     /**
@@ -164,7 +164,7 @@ class AppTable {
      * @return mixed
      */
     public function add(array $post) {
-        return $this->db->addcontent($this->tablename, $this->parsenewdata($post));
+        return $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()), $post));
     }
 
     /**
