@@ -403,13 +403,17 @@ class Presentation extends AppTable {
         $Media = new Media();
         foreach ($Publications->all() as $key=>$item) {
             if ($Media->is_exist(array('presid'=>$item['id_pres']))) {
-                $Media->update(array('obj'=>'Presentation'), array('presid'=>$item['id_pres']));
+                if (!$Media->update(array('obj'=>'Presentation'), array('presid'=>$item['id_pres']))) {
+                    return false;
+                }
             }
         }
+        return true;
     }
 
     /**
-     *
+     * Patch Presentation table by adding session ids if missing
+     * @return bool
      */
     public static function patch_session_id() {
         $Publications = new self();
