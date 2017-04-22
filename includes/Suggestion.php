@@ -31,8 +31,8 @@ class Suggestion extends AppTable {
     public $title;
     public $authors;
     public $summary;
-    public $link = array();
-    public $notified = 0;
+    public $link;
+    public $notified;
     public $vote;
     public $keywords;
 
@@ -519,6 +519,9 @@ class Suggestion extends AppTable {
         // Make submission's type selection list
         $type_options = Session::presentation_type(array('minute'));
 
+        // Download links
+        $links = !is_null($Presentation->link) ? $Presentation->link : array();
+
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
             <div class='feedback'></div>
@@ -527,7 +530,7 @@ class Suggestion extends AppTable {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader($Presentation->link, 'suggestion_form', __CLASS__) . "
+                    " . Media::uploader($links, 'suggestion_form', __CLASS__) . "
                 </div>
                 
                 <form method='post' action='php/form.php' enctype='multipart/form-data' id='suggestion_form'>

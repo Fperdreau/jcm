@@ -48,29 +48,27 @@ class Presentation extends AppTable {
         "primary" => "id"
     );
 
-    public $type = "";
-    public $date = "1970-01-01";
-    public $jc_time = "17:00,18:00";
-    public $up_date = "1970-01-01 00:00:00";
-    public $username = "";
-    public $title = "";
-    public $authors = "";
-    public $summary = "";
-    public $link = array();
-    public $orator = "";
-    public $chair = "TBA";
-    public $notified = 0;
-    public $id_pres = "";
+    public $type;
+    public $date;
+    public $jc_time;
+    public $up_date;
+    public $username;
+    public $title;
+    public $authors;
+    public $summary;
+    public $link;
+    public $orator;
+    public $chair;
+    public $notified;
+    public $id_pres;
     public $session_id;
 
     /**
      * Constructor
+     * @param null $id_pres
      */
     function __construct($id_pres=null){
         parent::__construct("Presentation", $this->table_data);
-        /** @var AppConfig $config */
-        $config = AppConfig::getInstance();
-        $this->date = Session::getJcDates(1)[0]; // Set next planned session date as default
         if (!is_null($id_pres)) {
             $this->getInfo($id_pres);
         }
@@ -126,7 +124,8 @@ class Presentation extends AppTable {
                 $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Presentation');
             }
 
-            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link","chair"));
+            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
+
             // Add publication to the database
             if ($this->db->addcontent($this->tablename,$content)) {
                 return $this->id_pres;
@@ -176,7 +175,7 @@ class Presentation extends AppTable {
             $created = $this->make($data);
         }
 
-        $result['status'] = $created === true;
+        $result['status'] = $created !== false;
         if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
@@ -707,6 +706,7 @@ class Presentation extends AppTable {
      */
     public static function details(array $data, $show=false, $view='modal') {
         $dl_menu = Media::download_menu($data['link'], $show);
+
         $file_div = $show ? $dl_menu['menu'] : null;
         $destination = $view === 'modal' ? '#presentation' : '#presentation_container';
         $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
@@ -902,6 +902,9 @@ class Presentation extends AppTable {
         // Make submission's type selection list
         $type_options = Session::presentation_type();
 
+        // Download links
+        $links = !is_null($Presentation->link) ? $Presentation->link : array();
+
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
             <div class='feedback'></div>
@@ -910,7 +913,7 @@ class Presentation extends AppTable {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader($Presentation->link, 'presentation_form', 'Presentation') . "
+                    " . Media::uploader($links, 'presentation_form', 'Presentation') . "
                 </div>
                 
                 <form method='post' action='php/form.php' enctype='multipart/form-data' id='presentation_form'>
