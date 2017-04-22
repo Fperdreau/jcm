@@ -546,6 +546,7 @@ function process_bookmark(el) {
         url: 'php/form.php',
         data: data,
         type: 'post',
+        async: true,
         success: function(data) {
             var result = jQuery.parseJSON(data);
             if (result === true) {
