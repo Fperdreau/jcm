@@ -754,8 +754,16 @@ if (isset($_POST['suggest'])) {
 
 if (!empty($_POST['getFormContent'])) {
     $type = htmlspecialchars($_POST['getFormContent']);
-    $Presentation = new Presentation();
-    echo json_encode($Presentation::get_form_content($Presentation, $type));
+    $controller_name = htmlspecialchars($_POST['controller']);
+
+    /**
+     * @var $Controller Presentation|Suggestion
+     */
+    $Controller = new $controller_name();
+    if ($_POST['id'] !== 'false') {
+        $Controller->getInfo($_POST['id']);
+    }
+    echo json_encode(Presentation::get_form_content($Controller, $type));
     exit;
 }
 

@@ -1209,12 +1209,15 @@ class Session extends AppTable {
 
     /**
      * Get presentation types
+     * @param array|null $exclude
      * @return string
      */
-    public static function presentation_type() {
+    public static function presentation_type(array $exclude=null) {
         $prestype = "";
         $options = null;
         foreach (AppConfig::getInstance()->pres_type as $type) {
+            if (!is_null($exclude) && in_array($type, $exclude)) continue;
+
             $prestype .= self::render_type($type, 'pres');
             $options .= $type == AppConfig::getInstance()->get_setting('default_type') ?
                 "<option value='$type' selected>$type</option>"

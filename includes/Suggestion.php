@@ -510,11 +510,15 @@ class Suggestion extends AppTable {
             $Presentation = new self();
         }
 
+        // Get class of instance
+        $controller = get_class($Presentation);
+
         // Presentation ID
         $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres : 'false';
 
         // Make submission's type selection list
-        $type_options = Session::presentation_type();
+        $type_options = Session::presentation_type(array('minute'));
+
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
             <div class='feedback'></div>
@@ -534,7 +538,7 @@ class Suggestion extends AppTable {
                             Select a presentation type
                         </div>
                         <div class='form-group'>
-                            <select class='change_pres_type' name='type' id='type' required>
+                            <select class='change_pres_type' name='type' id='{$controller}_{$idPres}' required>
                                 {$type_options['options']}
                             </select>
                             <label>Type</label>

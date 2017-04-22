@@ -1318,17 +1318,17 @@ $(document).ready(function () {
         })
 
         // Select submission type
-         .on('change', 'select#type', function (e) {
+         .on('change', '.change_pres_type', function (e) {
             e.preventDefault();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var type = $(this).val();
+            var id = $(this).attr('id').split('_');
+            var controller = id[0];
+            var pres_id = id[1];
             var callback = function(result) {
                 $('.special_inputs_container').html(result);
-                tinyMCE.remove();
-                window.tinymce.dom.Event.domLoaded = true;
-                tinymcesetup();
             };
-            var data = {getFormContent: type};
+            var data = {getFormContent: type, controller: controller, id: pres_id};
             processAjax($('.special_inputs_container'), data, callback, "php/form.php");
 
          })

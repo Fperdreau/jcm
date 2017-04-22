@@ -885,6 +885,9 @@ class Presentation extends AppTable {
             $session_id = $Presentation->session_id;
         }
 
+        // Get class of instance
+        $controller = get_class($Presentation);
+
         // Submission date
         $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker_submission' name='date' 
                     value='{$date}' data-view='view'><label>Date</label>" : null;
@@ -918,7 +921,7 @@ class Presentation extends AppTable {
                             Select a presentation type and pick a date
                         </div>
                         <div class='form-group'>
-                            <select class='change_pres_type' name='type' id='type' required>
+                            <select class='change_pres_type' name='type' id='{$controller}_{$idPres}' required>
                                 {$type_options['options']}
                             </select>
                             <label>Type</label>
