@@ -24,7 +24,9 @@
 require('../includes/boot.php');
 
 if (!empty($_GET)) {
-    $_POST = $_GET;
+    foreach ($_GET as $key=>$value) {
+        $_POST[$key] = htmlspecialchars($value);
+    }
 }
 
 if (!empty($_POST['get_app_status'])) {

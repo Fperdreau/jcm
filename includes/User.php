@@ -936,8 +936,8 @@ class User extends AppTable {
         return "
         <!-- Change password section -->
         <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
-        <form id='modal_change_pwd' method='post' action='" . URL_TO_APP . 'php/form.php' . "'>
-            <input type='hidden' name='change_pw' value='true'>
+        <form id='modal_change_pwd' method='post' action='" . URL_TO_APP . 'php/form.php?request_password_change=true' . "'>
+            <input type='hidden' name='request_password_change' value='true'>
             <div class='form-group'>
                 <input type='email' name='email' value='' required/>
                 <label for='email'>Email</label>
