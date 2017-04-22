@@ -199,13 +199,7 @@ var init_submission_calendar = function (data_availability) {
                 return renderCalendarCallback(date, data_availability, force_select);
             },
             onSelect: function(dateText, inst) {
-                var form = $(inst.input[0].form);
-                var input = form.find('input[name="session_id"]');
-                if (input !== undefined && input.length > 0) {
-                    input.val(planned_sessions[dateText])
-                } else {
-                    form.append("<input type='hidden' name='session_id' value='" + planned_sessions[dateText] + "' />")
-                }
+                refresh_date(inst, planned_sessions[dateText]);
             }
         });
     });
@@ -294,6 +288,21 @@ function renderCalendarCallback(date, data, force_select) {
         return [clickable, css, text];
     } else {
         return [clickable, "", "No session planned on this day"];
+    }
+}
+
+/**
+ * Refresh submission form when date is changed
+ * @param el: input selector
+ * @param session_id: session id corresponding to new date
+ */
+function refresh_date(el, session_id) {
+    var form = $(el.input[0].form);
+    var input = form.find('input[name="session_id"]');
+    if (input !== undefined && input.length > 0) {
+        input.val(session_id)
+    } else {
+        form.append("<input type='hidden' name='session_id' value='" + session_id + "' />")
     }
 }
 
@@ -1332,9 +1341,8 @@ $(document).ready(function () {
             };
             var data = {getFormContent: type, controller: controller, id: pres_id};
             processAjax($('.special_inputs_container'), data, callback, "php/form.php");
-
          })
-
+             
         // Submit a presentation
         .on('click','.submit_pres',function (e) { process_submission($(this), e) })
 
@@ -1412,6 +1420,9 @@ $(document).ready(function () {
             e.preventDefault();
             var callback = function() {
                 tinymcesetup();
+
+                // Load JCM calendar
+                loadCalendarSubmission();
             };
             trigger_modal($(this), true, callback);
         })
