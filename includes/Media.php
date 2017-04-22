@@ -480,4 +480,43 @@ class Media extends AppTable{
         }
         return $content;
     }
+
+    /**
+     * Presentation's attached files (for emails)
+     * @param array $links
+     * @param $app_url
+     * @return string
+     */
+    public static function download_menu_email(array $links, $app_url) {
+        $icon_css = "display: inline-block;
+            font-size: 10px;
+            text-align: center;
+            width: 30px;
+            height: 30px;
+            font-weight: bold;
+            background-color: #555555;
+            color: #EEEEEE;
+            border-radius: 100%;
+            line-height: 30px;
+            margin: 2px 5px 2px 0px;
+        ";
+
+        // Get file list
+        $filediv = "";
+        if (!empty($links)) {
+            $filecontent = "";
+            foreach ($links as $fileid=>$info) {
+                $urllink = $app_url."uploads/".$info['filename'];
+                $filecontent .= "
+                        <div style='{$icon_css}'>
+                            <a href='$urllink' target='_blank' style='color: #EEEEEE;'>".strtoupper($info['type'])."</a>
+                        </div>";
+            }
+            $filediv = "<div style='display: block; text-align: right; width: 95%; min-height: 20px; height: auto;
+                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$filecontent}</div>";
+        }
+
+        return $filediv;
+    }
+
 }
