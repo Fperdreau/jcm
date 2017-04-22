@@ -1323,13 +1323,13 @@ $(document).ready(function () {
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var type = $(this).val();
             var callback = function(result) {
-                $('.form_lower_container').html(result);
+                $('.special_inputs_container').html(result);
                 tinyMCE.remove();
                 window.tinymce.dom.Event.domLoaded = true;
                 tinymcesetup();
             };
             var data = {getFormContent: type};
-            processAjax($('.form_lower_container'), data, callback, "php/form.php");
+            processAjax($('.special_inputs_container'), data, callback, "php/form.php");
 
          })
 
