@@ -1019,7 +1019,8 @@ if (!empty($_POST['add_type'])) {
     }
     if (AppConfig::getInstance()->update_all()) {
         //Get session types
-        $result = showtypelist($types, $class, $div_id);
+        $session_types = Session::session_type();
+        $result = $session_types['types'];
     } else {
         $result = false;
     }
@@ -1058,7 +1059,8 @@ if (!empty($_POST['del_type'])) {
 
     if ($result['status'] && AppConfig::getInstance()->update_all()) {
         //Get session types
-        $result['msg'] = showtypelist($types, $class, $divid);
+        $session_types = Session::session_type();
+        $result = $session_types['types'];
     }
     echo json_encode($result);
     exit;
@@ -1127,23 +1129,30 @@ if (!empty($_POST['mod_session_type'])) {
 if (!empty($_POST['modSpeaker'])) {
     $speaker = $_POST['modSpeaker'];
     $presid = $_POST['presid'];
-    $date = $_POST['date'];
+    $session_id = $_POST['session_id'];
     $previous = new User($_POST['previous']);
     $speaker = new User($speaker);
     $Presentation = new Presentation();
     $Assignment = new Assignment();
+    $session = new Session($session_id);
+
+    // Make presentation if new
     if (empty($presid)) {
         $presid = $Presentation->make(array(
             'title'=>'TBA',
-            'date'=>$date,
+            'date'=>$session->date,
+            'session_id'=>$session_id,
             'orator'=>$speaker->username,
             'username'=>$speaker->username,
             'type'=>'paper'));
     }
-    $session = new Session($date);
-    $info['type'] = $session->type;
-    $info['date'] = $session->date;
-    $info['presid'] = $presid;
+
+    $info = array(
+        'type'=>$session->type,
+        'date'=>$session->date,
+        'presid'=>$presid
+    );
+
     if (!is_null($previous->username)) {
         // Only send notification to real users
         $result['status'] = $Assignment->updateAssignment($previous, $info, false, true);
@@ -1158,8 +1167,8 @@ if (!empty($_POST['modSpeaker'])) {
             $result['status'] = true;
         }
         if ($result['status']) {
-            if ($Presentation->update(array('orator'=>$speaker->username), array('id_pres'=>$presid))) {
-                $result['msg'] = "$speaker->fullname is the new speaker!";
+            if ($Presentation->update(array('username'=>$speaker->username), array('id_pres'=>$presid))) {
+                $result['msg'] = "{$speaker->fullname} is the new speaker!";
                 $result['status'] = true;
             } else {
                 $result['status'] = false;
