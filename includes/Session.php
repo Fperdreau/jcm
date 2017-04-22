@@ -1274,17 +1274,14 @@ class Session extends AppTable {
      */
     public static function slotContainer(array $data, $div_id=null) {
         return "
-            <div class='pres_container ' id='{$div_id}' data-id='{$div_id}' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
-            border: 1px dashed rgb(200, 200, 200); border-radius: 5px; box-sizing: border-box; 
-            padding: 5px; min-height: 56px;'>
-                <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; color: #222222; vertical-align: middle; 
-                    text-transform: capitalize;'>
+            <div class='pres_container ' id='{$div_id}' data-id='{$div_id}'>
+                <div class='pres_type'>
                     {$data['name']}
                 </div>
-                <div class='pres_info' style='display: inline-block; width: 210px; margin-left: 20px; vertical-align: middle;'>
+                <div class='pres_info'>
                     {$data['content']}
                 </div>
-                <div class='pres_btn' style='display: inline-block; width: 35px; vertical-align: middle;'>{$data['button']}</div>
+                <div class='pres_btn'>{$data['button']}</div>
             </div>
             ";
     }
@@ -1296,9 +1293,7 @@ class Session extends AppTable {
      */
     public static function mail_slotContainer(array $data) {
         return "
-            <div class='pres_container ' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
-            border: 1px dashed rgb(200, 200, 200); border-radius: 5px; box-sizing: border-box; 
-            padding: 5px; min-height: 56px;'>
+            <div class='pres_container '>
                 <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; color: #222222; vertical-align: middle; 
                     text-transform: capitalize;'>
                     {$data['name']}
@@ -1319,17 +1314,14 @@ class Session extends AppTable {
      */
     public static function slotEditContainer(array $data, $div_id=null) {
         return "
-            <div class='pres_container' id='{$div_id}' data-section='submission_form' data-id='{$div_id}' style='width: 100%; margin: 5px auto; font-size: 0.9em; font-weight: 300; overflow: hidden; 
-            border: 1px dashed rgb(200, 200, 200); border-radius: 5px; box-sizing: border-box; 
-            padding: 5px; min-height: 56px;'>
-                <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; color: #222222; vertical-align: middle; 
-                    text-transform: capitalize;'>
+            <div class='pres_container' id='{$div_id}' data-section='submission_form' data-id='{$div_id}'>
+                <div class='pres_type'>
                     {$data['name']}
                 </div>
-                <div class='pres_info' style='display: inline-block; width: 210px; vertical-align: middle;'>
+                <div class='pres_info'>
                     {$data['content']}
                 </div>
-                <div class='pres_btn' style='display: inline-block; width: 35px; vertical-align: middle;'>{$data['button']}</div>
+                <div class='pres_btn'>{$data['button']}</div>
             </div>
             ";
     }
@@ -1343,9 +1335,7 @@ class Session extends AppTable {
         return "
             <div class='session_container'>
                 <div class='session_header'>
-                    <div>
-                         <span style='color: #777; font-weight: 600; font-size: 16px;'>{$data['type']}</span>
-                    </div>
+                    <div class='session_type'>{$data['type']}</div>
                     <div class='session_info'>
                         <div>
                             <div><img src='".URL_TO_IMG . 'clock_bk.png'."'/></div>
