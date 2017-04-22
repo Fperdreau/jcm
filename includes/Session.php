@@ -544,12 +544,12 @@ class Session extends AppTable {
      * @param int $session_id: session id
      * @return bool
      */
-    public function isBooked($session_id) {
-        $data = $this->getInfo(array('id'=>$session_id));
-
+    public static function isBooked($session_id) {
+        $session = new self();
+        $data = $session->getInfo(array('id'=>$session_id));
         if ($data === false) {
             return false;
-        } elseif ($data['nbpres']<$data['slots']) {
+        } elseif ($data[0]['nbpres']<$data[0]['slots']) {
             return false;
         } else {
             return true;
@@ -565,7 +565,9 @@ class Session extends AppTable {
         // Get the associated presentations
         $data = $this->get($id);
         if (!empty($data)) {
-            $this->getPresids($data);
+            foreach ($data as $key=>$item) {
+                $data[0] = $this->getPresids($data[0]);
+            }
             return $data;
         } else {
             return false;
@@ -787,13 +789,15 @@ class Session extends AppTable {
 
     /**
      * Get presentations and speakers
+     * @param array $data: session information
+     * @return array $data: updated session information
      */
     private function getPresids(array $data) {
         $sql = "SELECT p.id_pres,u.fullname 
             FROM " . AppDb::getInstance()->getAppTables('Presentations') . " p
                 INNER JOIN " . AppDb::getInstance()->getAppTables('Users'). " u
                 ON p.username=u.username                
-            WHERE p.date='{$this->date}'";
+            WHERE p.session_id='{$data['id']}'";
         $req = $this->db->send_query($sql);
         $data['presids'] = array();
         $data['speakers'] = array();
@@ -801,6 +805,7 @@ class Session extends AppTable {
             $data['presids'][] = $row['id_pres'];
             $data['speakers'][] = $row['fullname'];
         }
+        $data['nbpres'] = count($data['presids']);
         return $data;
     }
 
