@@ -1690,6 +1690,37 @@ h3 {
     box-sizing: border-box;
 }
 
+.pres_container {
+    margin: 0;
+    font-size: 0.9em;
+    font-weight: 300;
+    overflow: hidden;
+    border: 1px dashed rgb(200, 200, 200);
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 5px;
+}
+
+.pres_container > div {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.pres_type {
+    width: 50px;
+    font-weight: 600;
+    color: #222222;
+    text-transform: capitalize;
+}
+
+.pres_info {
+    width: 200px;
+}
+
+.pres_btn {
+    width: 30px;
+}
+
 .suggestion_container a, .pres_container a {
     color: rgba(207,81,81,.8);
     font-weight: 500;
@@ -1837,8 +1868,8 @@ h3 {
 
 div.add-button {
     vertical-align: middle;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     overflow: visible;
     -webkit-transition: transform .4s cubic-bezier(.58,-0.37,.45,1.46),
     color 0s ease .4s,font-size .2s;
@@ -1847,7 +1878,7 @@ div.add-button {
     transition: transform .4s cubic-bezier(.58,-0.37,.45,1.46),
     color 0s ease .4s,font-size .2s;
     text-align: center;
-    line-height: 40px;
+    line-height: 30px;
     font-size: 22px;
     color: rgba(255,255,255,1);
     background-color: rgba(207,81,81,1);
@@ -3050,7 +3081,6 @@ div.loadBtn {
     font-size: 13px;
 }
 
-
 .session_header {
     margin: 0;
     text-align: left;
@@ -3068,6 +3098,12 @@ div.loadBtn {
     line-height: 20px;
     padding: 5px;
     font-size: 1em;
+}
+
+.session_type {
+    color: #777;
+    font-weight: 600;
+    font-size: 16px;
 }
 
 .session_info {
