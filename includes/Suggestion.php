@@ -702,13 +702,14 @@ class Suggestion extends AppTable {
                 <span style='color:#CF5151; font-weight: bold;'>Suggested by: </span>{$data['fullname']}
             </div>
             <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>{$data['authors']}</div>
-            ". self::keywords_list($data['keywords']) . " 
         </div>
 
         <div class='pub_abstract'>
             <span style='color:#CF5151; font-weight: bold;'>Abstract: </span>{$data['summary']}
         </div>
         
+        ". self::keywords_list($data['keywords']) . " 
+
         {$file_div}
 
         <div class='pub_action_btn'>
