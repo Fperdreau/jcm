@@ -564,8 +564,9 @@ function process_submission(el, e) {
 
     // Check if the form has been fully completed
     if (!checkform(form)) { return false;}
+
     // Submission type
-    var type = form.find("select#type").val();
+    var type = form.find("select[name='type']").val();
 
     // Check if a data has been selected (except for suggestion)
     var date_input = form.find("input[type=date]");
