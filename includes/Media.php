@@ -143,46 +143,6 @@ class Media extends AppTable{
     }
 
     /**
-     * Renders upload form
-     * @param array $links
-     * @param string $id: uploader id (must be identical to the corresponding submission form)
-     * @return string
-     */
-    public static function uploader(array $links=array(), $id='uploader', $controller=null) {
-        // Get files associated to this publication
-        $filesList = "";
-        if (!empty($links)) {
-            foreach ($links as $fileid=>$info) {
-                $filesList .= self::file_div($info);
-            }
-        }
-
-        $types = explode(',', AppConfig::getInstance()->upl_types);
-        $type_list = null;
-        foreach ($types as $type) {
-            $type_list .= "<div class='file_type'>{$type}</div>";
-        }
-
-
-        $result = "
-        <div class='upl_container' id='{$id}' data-controller='{$controller}'>
-           <div class='upl_errors'></div>
-    	   <div class='upl_form'>
-                <div class='text'>Drop here</div>
-                <form method='post' enctype='multipart/form-data'>
-                    <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
-                    <div class='upl_btn'>
-                        <div>Browse</div>
-                        <div class='upl_file_types'>$type_list</div>
-                    </div>
-                </form>
-    	   </div>
-           <div class='upl_filelist'>$filesList</div>
-        </div>";
-        return $result;
-    }
-
-    /**
      * Create Media object
      * @param $file
      * @param null $controller: reference controller
@@ -225,28 +185,6 @@ class Media extends AppTable{
         $data['input'] = self::hidden_input($data);
         $data['file_div'] = self::file_div($data);
         return $data;
-    }
-
-    /**
-     * Render hidden input
-     * @param array $data
-     * @return string
-     */
-    private static function hidden_input(array $data) {
-        return "<input type='hidden' class='upl_link' id='{$data['fileid']}' value='{$data['fileid']}' />";
-    }
-
-    /**
-     * Render file div (in uploader files list)
-     * @param array $data
-     * @return string
-     */
-    private static function file_div(array $data) {
-        $url = URL_TO_APP . '/uploads/' . $data['filename'];
-        return  "<div class='upl_info' id='upl_{$data['fileid']}'>
-                    <div class='upl_name'><a href='{$url}' target='_blank'>{$data['name']}</a></div>
-                    <div class='del_upl' id='{$data['fileid']}'></div>
-                </div>";
     }
 
     /**
@@ -432,5 +370,114 @@ class Media extends AppTable{
             $new_name = $rnd . '.' . $type;
         }
         return array('fileid' => $rnd, 'filename'=>$new_name);
+    }
+
+    // VIEWS
+
+    /**
+     * Renders upload form
+     * @param array $links
+     * @param string $id: uploader id (must be identical to the corresponding submission form)
+     * @return string
+     */
+    public static function uploader(array $links=array(), $id='uploader', $controller=null) {
+        // Get files associated to this publication
+        $filesList = "";
+        if (!empty($links)) {
+            foreach ($links as $fileid=>$info) {
+                $filesList .= self::file_div($info);
+            }
+        }
+
+        $types = explode(',', AppConfig::getInstance()->upl_types);
+        $type_list = null;
+        foreach ($types as $type) {
+            $type_list .= "<div class='file_type'>{$type}</div>";
+        }
+
+
+        $result = "
+        <div class='upl_container' id='{$id}' data-controller='{$controller}'>
+           <div class='upl_errors'></div>
+    	   <div class='upl_form'>
+                <div class='text'>Drop here</div>
+                <form method='post' enctype='multipart/form-data'>
+                    <input type='file' name='upl' class='upl_input' multiple style='display: none;' />
+                    <div class='upl_btn'>
+                        <div>Browse</div>
+                        <div class='upl_file_types'>$type_list</div>
+                    </div>
+                </form>
+    	   </div>
+           <div class='upl_filelist'>$filesList</div>
+        </div>";
+        return $result;
+    }
+
+    /**
+     * Render hidden input
+     * @param array $data
+     * @return string
+     */
+    private static function hidden_input(array $data) {
+        return "<input type='hidden' class='upl_link' id='{$data['fileid']}' value='{$data['fileid']}' />";
+    }
+
+    /**
+     * Render file div (in uploader files list)
+     * @param array $data
+     * @return string
+     */
+    private static function file_div(array $data) {
+        $url = URL_TO_APP . '/uploads/' . $data['filename'];
+        return  "<div class='upl_info' id='upl_{$data['fileid']}'>
+                    <div class='upl_name'><a href='{$url}' target='_blank'>{$data['name']}</a></div>
+                    <div class='del_upl' id='{$data['fileid']}'></div>
+                </div>";
+    }
+
+    /**
+     * Render download menu
+     * @param array $links
+     * @param bool $email
+     * @return array
+     */
+    public static function download_menu(array $links, $email=false) {
+        $content = array('menu'=>null, 'button'=>null);
+        if (!empty($links)) {
+            if ($email) {
+                // Show files list as a drop-down menu
+                $menu = null;
+                foreach ($links as $file_id=>$info) {
+                    $menu .= "
+                        <div class='dl_info'>
+                            <div class='dl_type'>".strtoupper($info['type'])."</div>
+                            <div class='dl_name' id='{$info['filename']}'>{$info['name']}</div>
+                            <div class='icon_btn dl_btn link_name' id='{$info['filename']}'></div>
+                        </div>";
+                }
+                $content['menu'] = "
+                        <div class='dl_menu'>
+                            <div class='dl_menu_content'>{$menu}</div>
+                        </div>";
+            } else {
+                // Show files list as links
+                $menu = null;
+                foreach ($links as $file_id=>$info) {
+                    $url_link = AppConfig::$site_url."uploads/".$info['filename'];
+                    $menu .= "
+                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
+                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
+                        <a href='$url_link' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                    </div>";
+                }
+                $content['menu'] = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; 
+                    height: auto; margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$menu}</div>";
+            }
+        } else {
+            $content['button'] = "<div style='width: 100px'></div>";
+            $content['menu'] = null;
+        }
+        return $content;
     }
 }

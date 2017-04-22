@@ -607,51 +607,6 @@ class Suggestion extends AppTable {
     }
 
     /**
-     * Render download menu
-     * @param array $links
-     * @param bool $email
-     * @return array
-     */
-    private static function download_menu(array $links, $email=false) {
-        $content = array('menu'=>null, 'button'=>null);
-        if (!empty($links)) {
-            if ($email) {
-                // Show files list as a drop-down menu
-                $menu = null;
-                foreach ($links as $file_id=>$info) {
-                    $menu .= "
-                        <div class='dl_info'>
-                            <div class='dl_type'>".strtoupper($info['type'])."</div>
-                            <div class='dl_name' id='{$info['filename']}'>{$info['name']}</div>
-                            <div class='icon_btn dl_btn link_name' id='{$info['filename']}'></div>
-                        </div>";
-                }
-                $content['menu'] = "
-                        <div class='dl_menu'>
-                            <div class='dl_menu_content'>{$menu}</div>
-                        </div>";
-            } else {
-                // Show files list as links
-                $menu = null;
-                foreach ($links as $file_id=>$info) {
-                    $url_link = AppConfig::$site_url."uploads/".$info['filename'];
-                    $menu .= "
-                    <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
-                                margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
-                        <a href='$url_link' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
-                    </div>";
-                }
-                $content['menu'] = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; 
-                    height: auto; margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$menu}</div>";
-            }
-        } else {
-            $content['button'] = "<div style='width: 100px'></div>";
-            $content['menu'] = null;
-        }
-        return $content;
-    }
-
-    /**
      * Display presentation details.
      * @param array $data : presentation information
      * @param bool $show : show buttons (true)
@@ -660,7 +615,7 @@ class Suggestion extends AppTable {
      */
     public static function details(array $data, $show=false, $view='modal') {
 
-        $dl_menu = self::download_menu($data['link'], $show);
+        $dl_menu = Media::download_menu($data['link'], $show);
         $file_div = $show ? $dl_menu['menu'] : null;
         $destination = $view === 'modal' ? '#suggestion' : '#suggestion_container';
         $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
