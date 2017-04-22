@@ -1245,13 +1245,13 @@ $(document).ready(function () {
             // Do something with the previous value after the change
             var speaker = $(this).val();
             var container = $(this).closest('.pres_container');
-            var presid = container.attr('id');
-            var date = $(this).closest('.session_div').data('id');
+            var pres_id = container.attr('id');
+            var session_id = $(this).closest('.session_div').data('id');
             var data = {
                 modSpeaker: speaker,
                 previous: previous,
-                presid: presid,
-                date:date
+                presid: pres_id,
+                session_id: session_id
             };
             processAjax($(this).closest('.session_div'), data, null, "php/form.php");
         })

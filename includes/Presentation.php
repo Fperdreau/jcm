@@ -1111,7 +1111,7 @@ class Presentation extends AppTable {
                     <div class='submitMenuSection'>
                         <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' 
                         class='{$modal}' data-controller='Suggestion' data-action='get_form' data-params='{$destination}'
-                        data-destination='.submission_container' data-operation='suggest'>
+                        data-destination='.submission_container' data-operation='edit'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
                                 <div class='text'>Add a wish</div>
