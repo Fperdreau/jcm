@@ -543,7 +543,19 @@ class Suggestion extends AppTable {
                     </div>
                 
                     <div class='form_lower_container'>
-                        " . Presentation::get_form_content($Presentation, $submit) . "
+                        <div class='special_inputs_container'>
+                        " . Presentation::get_form_content($Presentation, $type) . "
+                        </div>
+                        
+                        <div class='form-group'>
+                            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords'>
+                            <label>Keywords (comma-separated)</label>
+                        </div>
+                        
+                        <div class='form-group'>
+                            <label>Abstract</label>
+                            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                        </div>
                     </div>
                     <div class='submit_btns'>
                         <input type='submit' name='$submit' class='submit_pres'>

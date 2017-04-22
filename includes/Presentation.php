@@ -653,44 +653,6 @@ class Presentation extends AppTable {
     }
 
     /**
-     * Presentation's attached files (for emails)
-     * @param array $links
-     * @param $app_url
-     * @return string
-     */
-    private static function downloadMenu(array $links, $app_url) {
-        $icon_css = "display: inline-block;
-            font-size: 10px;
-            text-align: center;
-            width: 30px;
-            height: 30px;
-            font-weight: bold;
-            background-color: #555555;
-            color: #EEEEEE;
-            border-radius: 100%;
-            line-height: 30px;
-            margin: 2px 5px 2px 0px;
-        ";
-
-        // Get file list
-        $filediv = "";
-        if (!empty($links)) {
-            $filecontent = "";
-            foreach ($links as $fileid=>$info) {
-                $urllink = $app_url."uploads/".$info['filename'];
-                $filecontent .= "
-                        <div style='{$icon_css}'>
-                            <a href='$urllink' target='_blank' style='color: #EEEEEE;'>".strtoupper($info['type'])."</a>
-                        </div>";
-            }
-            $filediv = "<div style='display: block; text-align: right; width: 95%; min-height: 20px; height: auto;
-                margin: auto; border-top: 1px solid rgba(207,81,81,.8);'>{$filecontent}</div>";
-        }
-
-        return $filediv;
-    }
-
-    /**
      * Show presentation details
      * @param array $data: presentation information
      * @param bool $show : show list of attached files
@@ -698,7 +660,7 @@ class Presentation extends AppTable {
      */
     public static function mail_details(array $data, $show=false) {
         // Make download menu if required
-        $file_div = $show ? self::downloadMenu($data['link'], AppConfig::getInstance()->getAppUrl()) : null;
+        $file_div = $show ? Media::download_menu_email($data['link'], AppConfig::getInstance()->getAppUrl()) : null;
 
         // Format presentation's type
         $type = ucfirst($data['type']);
@@ -968,7 +930,13 @@ class Presentation extends AppTable {
                     </div>
                 
                     <div class='form_lower_container'>
+                        <div class='special_inputs_container'>
                         " . self::get_form_content($Presentation, $type) . "
+                        </div>
+                        <div class='form-group'>
+                            <label>Abstract</label>
+                            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                        </div>
                     </div>
                     <div class='submit_btns'>
                         <input type='submit' name='$submit' class='submit_pres'>
@@ -1019,36 +987,6 @@ class Presentation extends AppTable {
      * @param Suggestion|Presentation $Presentation
      * @return string
      */
-    private static function wish_form($Presentation) {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
-
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='$Presentation->title' required/>
-            <label>Title</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
-            <label>Authors</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords' required>
-            <label>Keywords (comma-separated)</label>
-        </div>
-        <div class='form-group'>
-            <label>Abstract</label>
-            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
-        </div>
-        ";
-    }
-
-    /**
-     * Render form for wishes
-     * @param Suggestion|Presentation $Presentation
-     * @return string
-     */
     private static function suggest_form($Presentation) {
         return "
         <div class='form_description'>
@@ -1062,14 +1000,6 @@ class Presentation extends AppTable {
         <div class='form-group'>
             <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
             <label>Authors</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords' required>
-            <label>Keywords (comma-separated)</label>
-        </div>
-        <div class='form-group'>
-            <label>Abstract</label>
-            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
         </div>
         ";
     }
@@ -1092,10 +1022,6 @@ class Presentation extends AppTable {
         <div class='form-group'>
             <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
             <label>Authors</label>
-        </div>
-        <div class='form-group'>
-            <label>Abstract</label>
-            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
         </div>
         ";
     }
@@ -1123,10 +1049,6 @@ class Presentation extends AppTable {
             <input type='text' id='orator' name='orator' required>
             <label>Speaker</label>
         </div>
-        <div class='form-group'>
-            <label>Abstract</label>
-            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
-        </div>
         ";
     }
 
@@ -1144,10 +1066,6 @@ class Presentation extends AppTable {
         <div class='form-group'>
             <input type='text' id='title' name='title' value='Minutes for session held on {$Presentation->date}' disabled/>
             <label>Title</label>
-        </div>
-        <div class='form-group'>
-            <label>Minutes</label>
-            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
         </div>
         ";
     }
