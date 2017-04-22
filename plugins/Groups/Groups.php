@@ -149,8 +149,8 @@ class Groups extends AppPlugins {
      */
     private function get_next_session() {
         $session = new Session();
-        $nextdate = $session->getNextDates(1);
-        return $session->getInfo($nextdate[0]);
+        $nextSession = $session->getNextDates(1);
+        return $nextSession[0];
     }
 
     /**

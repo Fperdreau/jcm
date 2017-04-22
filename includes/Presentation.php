@@ -416,7 +416,7 @@ class Presentation extends AppTable {
         $Session = new Session();
         foreach ($Publications->all() as $key=>$item) {
             if ($Session->is_exist(array('date'=>$item['date']))) {
-                $session_info = $Session->getInfo($item['date']);
+                $session_info = $Session->getInfo(array('date'=>$item['date']));
                 if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id_pres'=>$item['id_pres']))) {
                     AppLogger::get_instance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
                     return false;

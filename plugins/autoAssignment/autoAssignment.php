@@ -172,8 +172,8 @@ class autoAssignment extends AppPlugins {
         $assignedSpeakers = array();
 
         // Check if there is enough users
-        $User = new Users($this->db);
-        $usersList = $User->getUsers(true);
+        $User = new User($this->db);
+        $usersList = $User->all_but_admin();
         if (empty($usersList)) {
             $result['msg'] = 'There is not enough assignable members';
             $result['status'] = false;
@@ -241,14 +241,14 @@ class autoAssignment extends AppPlugins {
                 }
 
                 // Update session info
-                $session->getInfo();
+                $data = $session->getInfo(array('id'=>$session->id));
                 
                 // Notify assigned user
                 $info = array(
                     'speaker'=>$speaker->username, 
-                    'type'=>$session->type, 
+                    'type'=>$data[0]['type'],
                     'presid'=>$Presentation->id_pres,
-                    'date'=>$session->date
+                    'date'=>$data[0]['date']->date
                 );
                 $session->notify_session_update($speaker, $info);
 
