@@ -605,6 +605,7 @@ function process_submission(el, e) {
             var operation = id_pres !== undefined ? 'edit' : 'new';
             if (in_modal(el)) {
                 close_modal();
+                location.reload();
             } else {
                 get_submission_form({
                     'controller': controller,
