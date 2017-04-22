@@ -68,15 +68,16 @@ class Session extends AppTable {
     private static $default = array();
 
     /**
-     * @param string|null $date: session date (Y-m-d)
+     * Constructor
+     * @param null $id: Session id
      */
-    public function __construct($date=null) {
+    public function __construct($id=null) {
         parent::__construct("Session", $this->table_data);
         self::getDefaults();
         $this->max_nb_session = AppConfig::getInstance()->max_nb_session;
 
-        if (!is_null($date)) {
-            $this->getInfo($date);
+        if (!is_null($id)) {
+            $this->getInfo(array('id'=>$id));
         }
     }
 
@@ -540,35 +541,29 @@ class Session extends AppTable {
 
     /**
      * Check if the date of presentation is already booked
-     * @param $date
-     * @return string
+     * @param int $session_id: session id
+     * @return bool
      */
-    public function isbooked($date) {
-        $session = new self($date);
+    public function isBooked($session_id) {
+        $data = $this->getInfo(array('id'=>$session_id));
 
-        if ($session === false) {
-            return "Free";
-        } elseif ($session->nbpres<$session->slots) {
-            if ($session->nbpres == 0) {
-                return "Free";
-            } else {
-                return "Booked";
-            }
+        if ($data === false) {
+            return false;
+        } elseif ($data['nbpres']<$data['slots']) {
+            return false;
         } else {
-            return "Booked out";
+            return true;
         }
     }
 
     /**
      * Get session info
-     * @param null $date
+     * @param array $id: session id
      * @return array|bool
      */
-    public function getInfo($date=null) {
-        $this->date = ($date !== null) ? $date : $this->date;
-
+    public function getInfo(array $id) {
         // Get the associated presentations
-        $data = $this->get(array('date'=>$date));
+        $data = $this->get($id);
         if (!empty($data)) {
             $this->getPresids($data);
             return $data;
