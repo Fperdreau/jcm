@@ -51,7 +51,7 @@ if (isset($_POST['op'])) {
 
 // Suggest a presentation
     } elseif ($op == 'suggest') {
-        $section_content = Presentation::form($user, null, "suggest");
+        $section_content = Suggestion::form($user, null, "suggest");
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
