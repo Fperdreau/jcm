@@ -45,12 +45,13 @@ class Bookmark extends AppTable {
 
     /**
      * delete vote from db
-     * @param array $id
+     * @param array $post
      * @return bool
      */
-    public function delete(array $id) {
+    public function delete(array $post) {
         if (User::is_logged()) {
-            return $this->db->delete($this->tablename, $id);
+            return $this->db->delete($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
+                $post));
         } else {
             return false;
         }

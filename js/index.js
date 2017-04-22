@@ -536,24 +536,20 @@ function process_vote(el) {
  * Process bookmark
  */
 function process_bookmark(el) {
-    // If user is not logged in, then prompt login window
-    if (login_start === null) {popLogin(); return false;}
-
     var data = el.data();
     data['process_vote'] = true;
-    var operation = data['operation'];
     jQuery.ajax({
         url: 'php/form.php',
         data: data,
         type: 'post',
         async: true,
-        success: function(data) {
-            var result = jQuery.parseJSON(data);
+        success: function(json) {
+            var result = jQuery.parseJSON(json);
             if (result === true) {
-                if (operation === 'delete') {
+                if (data['operation'] === 'delete') {
                     el.toggleClass('bookmark_on bookmark_off');
                     el.attr('data-operation', 'add');
-                } else if (operation === 'add') {
+                } else if (data['operation'] === 'add') {
                     el.toggleClass('bookmark_off bookmark_on');
                     el.attr('data-operation', 'delete');
                 }
