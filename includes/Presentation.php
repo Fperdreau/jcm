@@ -111,7 +111,8 @@ class Presentation extends AppTable {
      * @return bool|string
      */
     public function make(array $post){
-        if (!Session::isBooked($post['session_id'])) {
+        $is_full = Session::isBooked($post['session_id']);
+        if ($is_full === false) {
             if ($this->pres_exist($post['title']) === false) {
                 // Create an unique ID
                 $post['id_pres'] = $this->generateID('id_pres');
@@ -137,7 +138,7 @@ class Presentation extends AppTable {
                 return "exist";
             }
         } else {
-            return "booked";
+            return $is_full;
         }
     }
 
@@ -179,13 +180,15 @@ class Presentation extends AppTable {
             $created = $this->make($data);
         }
 
-        $result['status'] = !in_array($created, array(false, 'exist', 'booked'));
+        $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'));
         if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
             $result['msg'] = "Sorry, a presentation with a similar title already exists in our database.";
         } elseif ($created === 'booked') {
             $result['msg'] = "Sorry, the selected session is already full.";
+        } elseif ($created === 'no_session') {
+            $result['msg'] = "Sorry, there is no session planned on this date.";
         } else {
             $result['msg'] = "Thank you for your submission!";
         }

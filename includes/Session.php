@@ -548,11 +548,11 @@ class Session extends AppTable {
         $session = new self();
         $data = $session->getInfo(array('id'=>$session_id));
         if ($data === false) {
-            return false;
+            return 'no_session';
         } elseif ($data[0]['nbpres']<$data[0]['slots']) {
             return false;
         } else {
-            return true;
+            return 'booked';
         }
     }
 
