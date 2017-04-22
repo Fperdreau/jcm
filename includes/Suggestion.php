@@ -321,9 +321,17 @@ class Suggestion extends AppTable {
         if ($data !== false) {
             return self::details($data, $show, $view);
         } else {
-            return self::not_found();
+            if ($view === 'body') {
+                return  self::not_found();
+            } else {
+                return array(
+                    'content'=> self::not_found(),
+                    'title'=> 'Not found',
+                    'buttons'=>null,
+                    'id'=>'suggestion'
+                );
+            }
         }
-
     }
 
     /**
