@@ -111,29 +111,33 @@ class Presentation extends AppTable {
      * @return bool|string
      */
     public function make(array $post){
-        if ($post['title'] === "TBA" || $this->pres_exist($post['title']) === false) {
-            // Create an unique ID
-            $post['id_pres'] = $this->generateID('id_pres');
+        if (!Session::isBooked($post['session_id'])) {
+            if ($this->pres_exist($post['title']) === false) {
+                // Create an unique ID
+                $post['id_pres'] = $this->generateID('id_pres');
 
-            // Upload datetime
-            $post['up_date'] = date('Y-m-d h:i:s');
+                // Upload datetime
+                $post['up_date'] = date('Y-m-d h:i:s');
 
-            // Associates this presentation to an uploaded file if there is one
-            if (!empty($post['link'])) {
-                $media = new Media();
-                $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Presentation');
-            }
+                // Associates this presentation to an uploaded file if there is one
+                if (!empty($post['link'])) {
+                    $media = new Media();
+                    $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Presentation');
+                }
 
-            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
+                $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
 
-            // Add publication to the database
-            if ($this->db->addcontent($this->tablename,$content)) {
-                return $this->id_pres;
+                // Add publication to the database
+                if ($this->db->addcontent($this->tablename,$content)) {
+                    return $this->id_pres;
+                } else {
+                    return false;
+                }
             } else {
-                return false;
+                return "exist";
             }
         } else {
-            return "exist";
+            return "booked";
         }
     }
 
@@ -175,11 +179,13 @@ class Presentation extends AppTable {
             $created = $this->make($data);
         }
 
-        $result['status'] = $created !== false;
+        $result['status'] = !in_array($created, array(false, 'exist', 'booked'));
         if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
             $result['msg'] = "Sorry, a presentation with a similar title already exists in our database.";
+        } elseif ($created === 'booked') {
+            $result['msg'] = "Sorry, the selected session is already full.";
         } else {
             $result['msg'] = "Thank you for your submission!";
         }

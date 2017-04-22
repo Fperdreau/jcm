@@ -191,7 +191,7 @@ class Suggestion extends AppTable {
         $data['id_pres'] = "false";
         $Presentation = new Presentation();
         $result = $Presentation->edit($data);
-        if ($result['status']) {
+        if ($result['status'] == true) {
             $result['status'] = $this->delete_pres($id_pres);
         }
         return $result;
