@@ -822,7 +822,6 @@ class Presentation extends AppTable {
         $user = new User($_SESSION['username']);
         $this->getInfo($id_Presentation);
         return Presentation::form($user, $this, $operation, $type, $post);
-
     }
 
     /**
@@ -886,7 +885,7 @@ class Presentation extends AppTable {
         }
 
         // Get class of instance
-        $controller = get_class($Presentation);
+        $controller = !empty($data['controller']) ? $data['controller'] : get_class($Presentation);
 
         // Submission date
         $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker_submission' name='date' 
@@ -946,10 +945,11 @@ class Presentation extends AppTable {
                     </div>
                     <div class='submit_btns'>
                         <input type='submit' name='$submit' class='submit_pres'>
-                        <input type='hidden' name='controller' value='". __CLASS__ . "'>
+                        <input type='hidden' name='controller' value='{$controller}'>
+                        <input type='hidden' name='operation' value='{$submit}'/>
+                        <input type='hidden' name='process_submission' value='true'/>
                         <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
                         <input type='hidden' name='session_id' value='{$session_id}'/>
-                        <input type='hidden' name='$submit' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
                         <input type='hidden' id='id_pres' name='id_pres' value='{$idPres}'/>
                     </div>
@@ -957,12 +957,10 @@ class Presentation extends AppTable {
             </div>
         ":"";
 
-        if ($submit == 'suggest') {
-            $result['title'] = "Make a wish";
-        } elseif ($submit == "edit") {
+        if ($submit == "edit") {
             $result['title'] = "Add/Edit presentation";
-        } elseif ($submit == "wishpick") {
-            $result['title'] = "Select a wish";
+        } elseif ($submit == "select") {
+            $result['title'] = "Select a suggestion";
         }
         $result['content'] = "
             <div class='submission'>

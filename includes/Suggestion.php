@@ -132,41 +132,6 @@ class Suggestion extends AppTable {
     }
 
     /**
-     * Render submission editor
-     * @param array|null $post
-     * @param string $view
-     * @return array
-     */
-    public function editor(array $post=null, $view='body') {
-        $post = (is_null($post)) ? $_POST : $post;
-        $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
-        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
-        $id = isset($post['id']) ? $post['id'] : false;
-        $user = new User($_SESSION['username']);
-        $destination = (!empty($post['destination'])) ? $post['destination'] : null;
-        if ($operation === 'selection_list') {
-            $result['content'] = $this->generate_selectwishlist($destination, $view);
-            $result['title'] = "Select a wish";
-            $result['description'] = Suggestion::description("wishpick");
-            return $result;
-        } elseif ($operation === 'select') {
-            $Suggestion = new Suggestion();
-            $Suggestion->getInfo($id);
-            $Session = new Session();
-            $next = $Session->getNext(1);
-            return Presentation::form($user, $Suggestion, 'edit', $operation,
-                array('date'=>$next[0]['date'], 'session_id'=>$next[0]['id']));
-        } elseif ($operation === 'edit') {
-            $this->getInfo($id);
-            return Suggestion::form($user, $this, $operation, $type);
-        } elseif ($operation === 'suggest') {
-            return Suggestion::form($user, null, $operation, $type);
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * Update information
      * @param array $data
      * @param array $id
@@ -204,7 +169,7 @@ class Suggestion extends AppTable {
             $created = $this->add_suggestion($data);
         }
 
-        $result['status'] = $created === true;
+        $result['status'] = $created !== false;
         if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
@@ -214,6 +179,59 @@ class Suggestion extends AppTable {
         }
 
         return $result;
+    }
+
+    /**
+     * Select suggestion to present it
+     * @param array $data
+     * @return array: returns status and msg
+     */
+    public function select(array $data) {
+        $id_pres = $data['id_pres'];
+        $data['id_pres'] = "false";
+        $Presentation = new Presentation();
+        $result = $Presentation->edit($data);
+        if ($result['status']) {
+            $result['status'] = $this->delete_pres($id_pres);
+        }
+        return $result;
+    }
+
+    /**
+     * Render submission editor
+     * @param array|null $post
+     * @param string $view
+     * @return array
+     */
+    public function editor(array $post=null, $view='body') {
+        $post = (is_null($post)) ? $_POST : $post;
+        $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
+        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
+        $id = isset($post['id']) ? $post['id'] : false;
+        $user = new User($_SESSION['username']);
+        $destination = (!empty($post['destination'])) ? $post['destination'] : null;
+        if ($operation === 'selection_list') {
+            $result['content'] = $this->generate_selectwishlist($destination, $view);
+            $result['title'] = "Select a wish";
+            $result['description'] = Suggestion::description("wishpick");
+            return $result;
+        } elseif ($operation === 'select') {
+            $Suggestion = new Suggestion();
+            $Suggestion->getInfo($id);
+            $Session = new Session();
+            $next = $Session->getNext(1);
+            return Presentation::form($user, $Suggestion, 'select', $operation, array(
+                    'date'=>$next[0]['date'],
+                    'session_id'=>$next[0]['id'],
+                    'controller'=>__CLASS__)
+            );
+
+        } elseif ($operation === 'edit') {
+            $this->getInfo($id);
+            return Suggestion::form($user, $this, $operation, $type);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -244,7 +262,7 @@ class Suggestion extends AppTable {
             <div>
             <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' 
                         class='leanModal' data-controller='Suggestion' data-action='get_form'
-                        data-params='modal' data-operation='suggest' data-section='suggestion'>
+                        data-params='modal' data-operation='edit' data-section='suggestion'>
                 <input type='submit' value='Add' />
             </a>
             </div>
@@ -567,7 +585,8 @@ class Suggestion extends AppTable {
                     <div class='submit_btns'>
                         <input type='submit' name='$submit' class='submit_pres'>
                         <input type='hidden' name='controller' value='". __CLASS__ . "'>
-                        <input type='hidden' name='$submit' value='true'/>
+                        <input type='hidden' name='operation' value='{$submit}'/>
+                        <input type='hidden' name='process_submission' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
                         <input type='hidden' id='id_pres' name='id_pres' value='{$idPres}'/>
                     </div>

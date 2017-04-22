@@ -24,6 +24,12 @@
 require('../includes/boot.php');
 
 if (!empty($_GET)) {
+    // Sanitize $_POST data
+    foreach ($_POST as $key=>$value) {
+        $_POST[$key] = htmlspecialchars($value);
+    }
+
+    // Merge and sanitize $_GET data
     foreach ($_GET as $key=>$value) {
         $_POST[$key] = htmlspecialchars($value);
     }
@@ -723,15 +729,20 @@ if (!empty($_POST['del_pub'])) {
 }
 
 // Submit a new presentation
-if (!empty($_POST['edit'])) {
-    $controller = $_POST['controller'];
-
-    /**
-     * @var $Controller Suggestion|Presentation
-     */
-    $Controller = new $controller();
-    $result = $Controller->edit($_POST);
-    echo json_encode($result);
+if (!empty($_POST['process_submission'])) {
+    $controllerName = $_POST['controller'];
+    $action = $_POST['operation'];
+    if (class_exists($controllerName, true)) {
+        $Controller = new $controllerName();
+        if (method_exists($controllerName, $action)) {
+            try {
+                echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
+            } catch (Exception $e) {
+                AppLogger::get_instance(APP_NAME)->error($e);
+                echo json_encode(array('status'=>false));
+            }
+        }
+    }
     exit;
 }
 
