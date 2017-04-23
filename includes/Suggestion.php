@@ -156,15 +156,15 @@ class Suggestion extends AppTable {
      */
     public function edit(array $data) {
         // check entries
-        $presid = htmlspecialchars($data['id_pres']);
+        $id_pres = htmlspecialchars($data['id_pres']);
 
         // IF not a guest presentation, the one who posted is the planned speaker
         if ($data['type'] !== "guest") {
             $data['orator'] = $_SESSION['username'];
         }
 
-        if ($presid !== "false") {
-            $created = $this->update($data, array('id_pres'=>$this->id_pres));
+        if ($id_pres !== "false") {
+            $created = $this->update($data, array('id_pres'=>$id_pres));
         } else {
             $created = $this->add_suggestion($data);
         }

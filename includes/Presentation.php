@@ -152,7 +152,7 @@ class Presentation extends AppTable {
         // Associates this presentation to an uploaded file if there is one
         if (!empty($data['link'])) {
             $media = new Media();
-            if (!$media->add_upload(explode(',', $data['link']), $data['id_pres'], 'Presentation')) {
+            if (!$media->add_upload(explode(',', $data['link']), $data['id_pres'], __CLASS__)) {
                 return false;
             }
         }
@@ -167,21 +167,22 @@ class Presentation extends AppTable {
      */
     public function edit(array $data) {
         // check entries
-        $presid = htmlspecialchars($data['id_pres']);
+        $id_pres = htmlspecialchars($data['id_pres']);
 
         // IF not a guest presentation, the one who posted is the planned speaker
         if ($data['type'] !== "guest") {
             $data['orator'] = $_SESSION['username'];
         }
 
-        if ($presid !== "false") {
-            $created = $this->update($data, array('id_pres'=>$this->id_pres));
+        if ($id_pres !== "false") {
+            $created = $this->update($data, array('id_pres'=>$id_pres));
         } else {
             $created = $this->make($data);
         }
 
-        $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'));
-        if ($created === false) {
+        $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'), true);
+
+        if ($created === false || $result['status'] === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
             $result['msg'] = "Sorry, a presentation with a similar title already exists in our database.";
