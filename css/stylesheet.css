@@ -2068,6 +2068,7 @@ button.add_btn:active {
 /* *********************************************************************/
 .table_container {
     display: table;
+    table-layout:fixed;
     width: 100%;
 }
 
@@ -2214,6 +2215,7 @@ button.add_btn:active {
     width: 100%;
     border-collapse: collapse;
     position: relative;
+    display: table;
 }
 
 .table_container td {
@@ -2239,6 +2241,7 @@ button.add_btn:active {
 .list-container-header {
     background-color: rgba(220, 220, 220, 1);
     font-weight: 500;
+    display: table-header-group !important;
 }
 
 .list-container-header a {
@@ -2246,6 +2249,7 @@ button.add_btn:active {
 }
 
 .list-container-row {
+    display: table-row;
     position: relative;
     width: 100%;
     margin-top: 5px;
@@ -2255,8 +2259,8 @@ button.add_btn:active {
     box-sizing: border-box;
 }
 
-.list-container-row div {
-    display: inline-block;
+.list-container-row > div {
+    display: table-cell;
     text-align: left;
     vertical-align: middle;
 }
@@ -3709,6 +3713,16 @@ input.dateinput {
     padding: 5px 0 5px 27px;
 }
 
+.post_edit_container {
+    width: 100%;
+    display: block;
+    visibility: hidden;
+}
+
+.post_edit_container > div {
+    width: 100%;
+    display: table-cell;
+}
 /* Help */
 .appName {
     font-style: italic;
