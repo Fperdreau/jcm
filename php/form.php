@@ -906,7 +906,7 @@ if (!empty($_POST['mailing_send'])) {
 
     if ($make_news) {
         $news = new Posts();
-        $news->make(array(
+        $news->add(array(
             'title'=>$content['subject'],
             'content'=>$content['body'],
             'username'=>$_SESSION['username'],
@@ -961,28 +961,13 @@ if (!empty($_POST['config_modify'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 POSTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Add a new post
-if (!empty($_POST['post_add'])) {
-    if ($_POST['post_add'] === 'post_add') {
-        $post = new Posts();
-        $result = $post->make($_POST);
-    } else {
-        $id = htmlspecialchars($_POST['postid']);
-        $post = new Posts($id);
-        $result = $post->update($_POST, array('postid'=>$id));
-    }
-    echo json_encode($result);
-    exit;
-}
-
 // Show selected post
 if (!empty($_POST['post_show'])) {
-    $postid = $_POST['postid'];
-    if ($postid == "false") $postid = false;
+    $postid = ($_POST['postid'] === "false") ? null : $_POST['postid'];
     $username = htmlspecialchars($_SESSION['username']);
     $user = new User($username);
-    $post = new Posts($postid);
-    $result = $post->form($user->username, $postid);
+    $Post = new Posts($postid);
+    $result = Posts::form($user, $Post);
     echo json_encode($result);
     exit;
 }
