@@ -62,11 +62,11 @@ function loadContent(el) {
     var data = el.data();
     data['loadContent'] = true;
     var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
-
     // First we remove any existing submission form
     var callback = function (result) {
         destination
             .html(result)
+            .css('visibility', 'visible')
             .fadeIn(200)
             .find('textarea').html(result.content);
         tinyMCE.remove();
@@ -564,6 +564,71 @@ function process_bookmark(el) {
  * @param e: events
  * @returns {boolean}
  */
+function process_post(el, e) {
+    e.preventDefault();
+    var form = el.length > 0 ? $(el[0].form) : $();
+
+    // Check if the form has been fully completed
+    if (!checkform(form)) { return false;}
+
+    // Check if files have been uploaded and attach them to this presentation
+    var uploadInput = form.find('.upl_link');
+    if (uploadInput[0]) {
+        var links = [];
+        uploadInput.each(function () {
+            var link = $(this).val();
+            links.push(link);
+        });
+        links = links.join(',');
+        form.append("<input type='hidden' name='link' value='"+links+"'>");
+    }
+
+    // Form data
+    var data = form.serializeArray();
+    var controller = form.find('input[name="controller"]').val();
+
+    // Callback function
+    var callback = function (result) {
+        if (result.status === true) {
+            var container_id = controller.toLowerCase() + '_form';
+            $('section#' + container_id + ', .modal_section#' + container_id).empty();
+            var id_pres = form.find('input[name="id_pres"]').val().length > 0
+            && form.find('input[name="id_pres"]').length > 0 ? form.find('input[name="id_pres"]').val() : undefined;
+            var operation = id_pres !== undefined ? 'edit' : 'new';
+
+            get_submission_form({
+                'controller': controller,
+                'action': 'get_form',
+                'operation': operation,
+                'id': id_pres,
+                'destination': '#' + controller.toLowerCase() + '_container'}
+            );
+
+        } else {
+            return false;
+        }
+    };
+
+    // Find tinyMCE textarea and gets their content
+    var tinyMCE_el = form.find('.tinymce');
+    if (is_editor_active(tinyMCE_el) && tinyMCE.get(tinyMCE_el.attr('id')).getContent().length > 0) {
+        tinyMCE_el.each(function() {
+            var content = tinyMCE.get($(this).attr('id')).getContent();
+            data = modArray(data, $(this).attr('name'), content);
+        })
+    }
+
+    // AJAX call
+    processAjax(el.closest('.form_container'), data, callback, "php/form.php");
+    e.stopImmediatePropagation();
+}
+
+/**
+ * Process submission form
+ * @param el: submit input selector
+ * @param e: events
+ * @returns {boolean}
+ */
 function process_submission(el, e) {
     e.preventDefault();
     var form = el.length > 0 ? $(el[0].form) : $();
@@ -999,19 +1064,8 @@ $(document).ready(function () {
         })
 
         // Add a news to the homepage
-        .on('click','.submit_post',function (e) {
-            e.preventDefault();
-            var form = $(this).closest('#post_form');
-            if (!checkform(form)) {return false;}
-            var callback = function (result) {
-                if (result.status === true) {
-                    form.fadeOut();
-                }
-            };
-            var data = form.serializeArray();
-            var content = tinyMCE.get('post_content').getContent();
-            data = modArray(data,'content',content);
-            processAjax(form, data, callback, "php/form.php");
+        .on('click','.process_post',function (e) {
+            process_post($(this), e);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
