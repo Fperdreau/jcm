@@ -71,35 +71,67 @@ class Posts extends AppTable {
     }
 
     /**
-     * Create a post and add it to the database
-     * @param $post
-     * @return bool
+     * Add a post to the database
+     * @param array $post
+     * @return bool|string
      */
-    public function make($post) {
-        $this->date = date('Y-m-d H:i:s');
-        $this->day = date('Y-m-d',strtotime($this->date));
-        $this->time = date('H:i',strtotime($this->date));
-        $post['postid'] = self::makeID();
+    public function add(array $post){
+        if ($this->is_exist(array('title'=>$post['title'])) === false) {
 
-        $class_vars = get_class_vars("Posts");
-        $content = $this->parsenewdata($class_vars, $post, array('day','time'));
+            $post['postid'] = $this->generateID('postid');
+            $post['date'] = date('Y-m-d H:i:s');
+            $post['day'] = date('Y-m-d',strtotime($this->date));
+            $post['time'] = date('H:i',strtotime($this->date));
 
-        // Add post to the database
-        if ($this->db->addcontent($this->tablename,$content)) {
-            $result['status'] = true;
-            $result['msg'] = "Thank you for your post!";
+            // Associates this presentation to an uploaded file if there is one
+            if (!empty($post['link'])) {
+                $media = new Media();
+                $media->add_upload(explode(',', $post['link']), $post['postid'], __CLASS__);
+            }
+
+            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
+            // Add publication to the database
+            if ($this->db->addcontent($this->tablename, $content)) {
+                return $post['postid'];
+            } else {
+                return false;
+            }
         } else {
-            $result['status'] = false;
-            $result['msg'] = 'We could not add your post';
+            return "exist";
         }
-        AppLogger::get_instance(APP_NAME, get_class($this))->info($result);
+    }
+
+    /**
+     * Edit Post
+     * @param array $data
+     * @return mixed
+     */
+    public function edit(array $data) {
+        // check entries
+        $post_id = htmlspecialchars($data['postid']);
+
+        if ($post_id !== "false") {
+            $created = $this->update($data, array('postid'=>$post_id));
+        } else {
+            $created = $this->add($data);
+        }
+
+        $result['status'] = $created !== false;
+        if ($created === false) {
+            $result['msg'] = 'Oops, something went wrong';
+        } elseif ($created === 'exist') {
+            $result['msg'] = "Sorry, a post with a similar title already exists in our database.";
+        } else {
+            $result['msg'] = "Thank you for your post!";
+        }
+
         return $result;
     }
 
     /**
      * Get post information
      * @param $id
-     * @return bool
+     * @return array|bool
      */
     public function getInfo($id) {
         $data = $this->get(array('postid'=>$id));
@@ -107,25 +139,20 @@ class Posts extends AppTable {
             $this->map($data);
             $this->day = date('Y-m-d',strtotime($this->date));
             $this->time = date('H:i',strtotime($this->date));
-            return true;
+            $data['link'] = $this->get_uploads();
+            return $data;
         } else {
             return false;
         }
     }
 
     /**
-     * Create an ID for the new post
-     * @return string
+     * Get associated files
      */
-    function makeID() {
-        $id = md5($this->date.rand(1,10000));
-
-        // Check if random ID does not already exist in our database
-        $prev_id = $this->db->column($this->tablename, 'postid');
-        while (in_array($id, $prev_id)) {
-            $id = md5($this->date.rand(1,10000));
-        }
-        return $id;
+    private function get_uploads() {
+        $upload = new Media();
+        $link = $upload->get_uploads($this->postid, __CLASS__);
+        return $link;
     }
 
     /**
@@ -309,73 +336,134 @@ class Posts extends AppTable {
             </select>";
     }
 
+    /**
+     * Get submission form
+     * @param string $view
+     * @return string
+     */
+    public function get_form($view='body') {
+        if ($view === "body") {
+            return self::format_section($this->editor($_POST));
+        } else {
+            $content = $this->editor($_POST);
+            return array(
+                'content'=>$content['content'],
+                'id'=>'suggestion',
+                'buttons'=>null,
+                'title'=>$content['title']);
+        }
+    }
+
+    /**
+     * Render submission editor
+     * @param array|null $post
+     * @param string $view
+     * @return array
+     */
+    public function editor(array $post=null, $view='body') {
+        $post = (is_null($post)) ? $_POST : $post;
+        $id = isset($post['id']) ? $post['id'] : false;
+        $user = new User($_SESSION['username']);
+        $data = $this->getInfo($id);
+        return self::form($user, (object)$data[0]);
+    }
+
+    /**
+     * @param array $content
+     * @return string
+     */
+    public static function format_section(array $content) {
+        return "
+        {$content['content']}
+        ";
+    }
+
+    /**
+     * render selection menu for edit page
+     * @param array $data
+     * @return string
+     */
     public static function selection_menu(array $data) {
         $content = null;
         foreach ($data as $key=>$item) {
             $day = date('d M y', strtotime($item['date']));
             $content .= "
-                <tr class='list-container-row news-details el_to_del' id='{$item['postid']}'>
-                    <td>{$day}</td>
-                    <td>{$item['username']}</td>
-                    <td>{$item['title']}</td>
-                    <td class='action_cell'>
-                        <div class='action_icon'><a href='' class='edit_post'><img src='" . URL_TO_IMG . 'edit.png' . "' /></a></div>
-                        <div class='action_icon'><a href='' class='delete' id='{$item['postid']}' 
-                        data-params='Posts/delete/{$item['postid']}'><img src='" . URL_TO_IMG . 'trash.png' . "' /></a></div>
-                    </td>
-                </tr>";
+                <div class='table_container'>
+                    <div class='list-container-row news-details el_to_del' id='{$item['postid']}'>
+                        <div>{$day}</div>
+                        <div>{$item['username']}</div>
+                        <div>{$item['title']}</div>
+                        <div class='action_cell'>
+                            <div class='action_icon'><a href='' class='loadContent' data-destination='.post_edit_container#{$item['postid']}' data-controller='Posts' data-action='get_form' data-id='{$item['postid']}'><img src='" . URL_TO_IMG . 'edit.png' . "' /></a></div>
+                            <div class='action_icon'><a href='' class='delete' id='{$item['postid']}' 
+                            data-params='Posts/delete/{$item['postid']}'><img src='" . URL_TO_IMG . 'trash.png' . "' /></a></div>
+                        </div>
+                    </div>
+                </div>
+                <div class='list-container-row post_edit_container' id='{$item['postid']}'></div>
+                ";
         }
-        return "<table class='table_container'>
-                    <tr class='list-container-header'>
-                        <td>Date</td>
-                        <td>Author</td>
-                        <td>Title</td>
-                        <td>Actions</td>
-                    </tr>
-                    {$content}
-                </table>";
+        return "<div class='table_container'>
+                    <div class='list-container-row list-container-header'>
+                        <div>Date</div>
+                        <div>Author</div>
+                        <div>Title</div>
+                        <div>Actions</div>
+                    </div>
+                </div>
+                {$content}
+                ";
     }
 
     /**
      * Show post form
-     * @param $username
-     * @param bool $postid
+     * @param User $user
+     * @param null|Posts $Post
      * @return mixed
      */
-    public function form($username, $postid=false) {
-        if (false == $postid) {
-            $post = new self();
-            $op = "post_add";
-            $submit = "Add";
+    public static function form(User $user, $Post=null) {
+        if (is_null($Post)) {
+            $Post = new self();
             $del_btn = "";
         } else {
-            $post = new self($postid);
-            $op = "post_mod";
-            $submit = "Modify";
-            $del_btn = "<input type='button' class='post_del' id='submit' data-id='$post->postid' value='Delete'/>";
+            $del_btn = "<input type='button' class='post_del' id='submit' data-id='$Post->postid' value='Delete'/>";
         }
 
-        $result['form'] = "
+        $result['content'] = "
             <form method='post' action='php/form.php' id='post_form'>
                 <div class='submit_btns'>
                     $del_btn
-                    <input type='submit' name='$op' value='$submit' class='submit_post'/>
+                    <input type='submit' class='process_post'/>
                 </div>
-                <input type='hidden' name='postid' value='$post->postid'>
-                <input type='hidden' name='post_add' value='$op'>
-                <input type='hidden' name='username' value='$username'/>
+                <input type='hidden' name='controller' value='Posts'>
+                <input type='hidden' name='operation' value='edit'/>
+                <input type='hidden' name='postid' value='$Post->postid'>
+                <input type='hidden' name='username' value='$user->username'/>
+                <input type='hidden' name='process_submission' value='true'/>
+
                 <div class='form-group'>
-                    <input type='text' name='title' value='$post->title' required>
+                    <input type='text' name='title' value='$Post->title' required>
                     <label>Title (255 c. max)</label>
                 </div>
                 <div class='form-group'>
-                    <div class='post_txtarea' style='display: block; text-align: right;'>
-                    </div>
+                    <textarea name='content' class='tinymce' style='display: block; text-align: right;'>
+                    {$Post->content}
+                    </textarea>
                     <label>Message</label>
                 </div>
             </form>";
-        $result['content'] = $post->content;
+
+        $result['title'] = "Add/Edit presentation";
+        $result['description'] = self::description();
         return $result;
+    }
+
+    /**
+     * Submission form instruction
+     * @return string
+     */
+    public static function description() {
+        return "";
     }
 
     /**
