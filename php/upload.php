@@ -24,7 +24,10 @@
  * Processing of uploads (called by Myupload.js)
  */
 
-require('../includes/boot.php');
+// Bootstrap
+include('../includes/App.php');
+App::boot(true);
+
 
 if (isset($_FILES['file'])) {
     $upload = new Media();
