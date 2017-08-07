@@ -1,0 +1,6 @@
+{
+  "require": {
+    "phpmailer/phpmailer": "~5.2",
+    "soundasleep/html2text": "~0.2"
+  }
+}
