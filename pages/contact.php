@@ -20,24 +20,24 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$Users = new User();
-$admin = $Users->getAdmin();
+$Users = new Users();
 
 $mail_option = "";
 $msg = "";
 $organizers = "";
-for ($i=0; $i<count($admin); $i++) {
-    if ($admin[$i]['username'] != "admin") {
-        $admin_mail = $admin[$i]['email'];
-        $admin_name = $admin[$i]['firstname'].' '.$admin[$i]['lastname'];
+foreach ($Users->getAdmin() as $key=>$item) {
+    if ($item['username'] != "admin") {
+        $admin_mail = $item['email'];
+        $admin_name = $item['firstname'].' '.$item['lastname'];
         $mail_option .= "<option value='$admin_mail'>$admin_name</option>";
         $organizers .= "<div>$admin_name</div>";
     }
 }
 
-$AppConfig = AppConfig::getInstance();
+$Lab = new Lab();
+$Session = new Session();
 $admin_contact = "$organizers";
-$jc_day = ucfirst($AppConfig->jc_day);
+$jc_day = ucfirst($Session->getSettings('jc_day'));
 // Lab information
 
 $result = "   
@@ -45,26 +45,26 @@ $result = "
         <section>
             <h2>Where</h2>
             <div class='section_content'>
-            $AppConfig->lab_name</br>
-            $AppConfig->lab_street</br>
-            $AppConfig->lab_postcode, $AppConfig->lab_city</br>
-            $AppConfig->lab_country
+            " . $Lab->getSettings('name') ."</br>
+            " . $Lab->getSettings('street') ."</br>
+            " . $Lab->getSettings('city') ."</br>
+            " . $Lab->getSettings('country') ."
             </div>
         </section>
 
         <section>
             <h2>When</h2>
             <div class='section_content'>
-            <b>Day:</b> $jc_day<br>
-            <b>From</b> $AppConfig->jc_time_from <b>to</b> $AppConfig->jc_time_to<br>
-            <b>Room:</b> $AppConfig->room
+            <b>Day:</b> " . $Session->getSettings('jc_day'). "<br>
+            <b>From</b> " . $Session->getSettings('jc_time_from'). " <b>to</b> " . $Session->getSettings('jc_time_to'). "<br>
+            <b>Room:</b> " . $Session->getSettings('room'). "
             </div>
         </section>
 
         <section>
             <h2>Map</h2>
             <div class='section_content'>
-            <iframe src='$AppConfig->lab_mapurl' width='100%' height='auto' frameborder='0' style='border:0'>
+            <iframe src='" . $Lab->getSettings('url'). "' width='100%' height='auto' frameborder='0' style='border:0'>
             </iframe>
             </div>
         </section>
