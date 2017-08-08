@@ -29,7 +29,7 @@
 /**
  * Class AppLogger
  */
-class AppLogger {
+class Logger {
 
     /**
      * @var string: log file name
@@ -126,7 +126,7 @@ class AppLogger {
      * Get logger
      * @param string $log_name
      * @param null|string $class_name
-     * @return AppLogger
+     * @return Logger
      */
     public static function get_instance($log_name, $class_name=null) {
         if (is_null(self::$instances) or !isset(self::$instances[$log_name]) ) {
@@ -150,7 +150,7 @@ class AppLogger {
      * @param bool $echo
      */
     public function info($msg, $echo=false) {
-        $this->log($msg, $echo, AppLogger::INFO);
+        $this->log($msg, $echo, Logger::INFO);
     }
 
     /**
@@ -159,7 +159,7 @@ class AppLogger {
      * @param bool $echo
      */
     public function debug($msg, $echo=false) {
-        $this->log($msg, $echo, AppLogger::DEBUG);
+        $this->log($msg, $echo, Logger::DEBUG);
     }
 
     /**
@@ -168,7 +168,7 @@ class AppLogger {
      * @param bool $echo
      */
     public function warning($msg, $echo=false) {
-        $this->log($msg, $echo, AppLogger::WARN);
+        $this->log($msg, $echo, Logger::WARN);
     }
 
     /**
@@ -177,7 +177,7 @@ class AppLogger {
      * @param bool $echo
      */
     public function critical($msg, $echo=false) {
-        $this->log($msg, $echo, AppLogger::CRIT);
+        $this->log($msg, $echo, Logger::CRIT);
     }
 
     /**
@@ -186,7 +186,7 @@ class AppLogger {
      * @param bool $echo
      */
     public function fatal($msg, $echo=false) {
-        $this->log($msg, $echo, AppLogger::FATAL);
+        $this->log($msg, $echo, Logger::FATAL);
     }
 
     /**
@@ -195,7 +195,7 @@ class AppLogger {
      * @param bool $echo
      */
     public function error($msg, $echo=false) {
-        $this->log($msg, $echo, AppLogger::ERROR);
+        $this->log($msg, $echo, Logger::ERROR);
     }
 
     /**
@@ -367,7 +367,7 @@ class AppLogger {
     public static function delete_all($name=null) {
         $name = (is_null($name)) ? get_class() : $name;
         $result = false;
-        foreach (AppLogger::get_logs($name) as $path) {
+        foreach (Logger::get_logs($name) as $path) {
             $result = self::delete($path);
         }
         return $result;
@@ -379,7 +379,7 @@ class AppLogger {
      * @return null
      */
     public static function last($class) {
-        $logs = AppLogger::get_logs($class);
+        $logs = Logger::get_logs($class);
         if (empty($logs)) {
             return null;
         }
@@ -430,7 +430,7 @@ class AppLogger {
      * @return null|string
      */
     public static function all($class) {
-        $logs = AppLogger::get_logs($class);
+        $logs = Logger::get_logs($class);
         if (empty($logs)) {
             return null;
         }

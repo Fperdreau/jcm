@@ -6,22 +6,7 @@
  * Date: 23/02/2017
  * Time: 08:19
  */
-class Suggestion extends AppTable {
-
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "id_pres" => array("BIGINT(15)", false),
-        "up_date" => array("DATETIME", false),
-        "username" => array("CHAR(255) NOT NULL"),
-        "type" => array("CHAR(30)", false),
-        "keywords" => array("CHAR(255)", false),
-        "title" => array("CHAR(150)", false),
-        "authors" => array("CHAR(150)", false),
-        "summary" => array("TEXT(5000)", false),
-        "notified" => array("INT(1) NOT NULL", 0),
-        "vote" => array("INT(10) NOT NULL", 0),
-        "primary" => "id"
-    );
+class Suggestion extends BaseModel {
 
     public $id;
     public $id_pres;
@@ -40,7 +25,7 @@ class Suggestion extends AppTable {
      * Constructor
      */
     function __construct(){
-        parent::__construct("Suggestion", $this->table_data);
+        parent::__construct();
     }
 
     /**
@@ -51,9 +36,9 @@ class Suggestion extends AppTable {
     public function index($id=null) {
         if (!is_null($id)) {
             if (isset($_SESSION['username'])) {
-                $user = new User($_SESSION['username']);
-            } elseif (!empty($_POST['user'])) {
-                $user = new User($_POST['user']);
+                $user = new Users($_SESSION['username']);
+            } elseif (!empty($_POST['Users'])) {
+                $user = new Users($_POST['Users']);
             } else {
                 $user = false;
             }
@@ -92,7 +77,7 @@ class Suggestion extends AppTable {
 
             $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
             // Add publication to the database
-            if ($this->db->addcontent($this->tablename, $content)) {
+            if ($this->db->insert($this->tablename, $content)) {
                 return $post['id_pres'];
             } else {
                 return false;
@@ -146,7 +131,7 @@ class Suggestion extends AppTable {
             }
         }
         $content = $this->parsenewdata(get_class_vars(get_called_class()), $data, array("link"));
-        return $this->db->updatecontent($this->tablename, $content, $id);
+        return $this->db->update($this->tablename, $content, $id);
     }
 
     /**
@@ -208,7 +193,7 @@ class Suggestion extends AppTable {
         $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
         $id = isset($post['id']) ? $post['id'] : false;
-        $user = new User($_SESSION['username']);
+        $user = new Users($_SESSION['username']);
         $destination = (!empty($post['destination'])) ? $post['destination'] : null;
         if ($operation === 'selection_list') {
             $result['content'] = $this->generate_selectwishlist($destination, $view);
@@ -251,22 +236,18 @@ class Suggestion extends AppTable {
         $limit = (is_null($number)) ? null : " LIMIT {$number}";
         $wish_list = null;
         $username = isset($_SESSION['username']) ? $_SESSION['username'] : null;
+
+        $Vote = new Vote();
+        $Bookmark = new Bookmark();
+
         foreach ($this->getAll($limit) as $key=>$item) {
-            $vote_icon = Vote::getIcon($item['id_pres'], 'Suggestion', $username);
-            $bookmark_icon = Bookmark::getIcon($item['id_pres'], 'Suggestion', $username);
+            $vote_icon = $Vote->getIcon($item['id_pres'], 'Suggestion', $username);
+            $bookmark_icon = $Bookmark->getIcon($item['id_pres'], 'Suggestion', $username);
             $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
 
         $wish_list = is_null($wish_list) ? self::no_wish() : $wish_list;
-        $add_button = User::is_logged() ? "
-            <div>
-            <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' 
-                        class='leanModal' data-controller='Suggestion' data-action='get_form'
-                        data-params='modal' data-operation='edit' data-section='suggestion'>
-                <input type='submit' value='Add' />
-            </a>
-            </div>
-        " : null;
+        $add_button = Auth::is_logged() ? self::add_button() : null;
 
         return $add_button . $wish_list;
     }
@@ -311,11 +292,11 @@ class Suggestion extends AppTable {
      * Show suggestion details
      * @param bool $id: suggestion unique id
      * @param string $view: requested view
-     * @return string: view
+     * @return mixed: view
      */
     public function show_details($id=false, $view='body') {
         $data = $this->getInfo($id);
-        $user = User::is_logged() ? new User($_SESSION['username']) : null;
+        $user = Auth::is_logged() ? new Users($_SESSION['username']) : null;
         $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
                 || $data['username'] === $user->username);
         if ($data !== false) {
@@ -337,7 +318,7 @@ class Suggestion extends AppTable {
     /**
      * Get submission form
      * @param string $view
-     * @return string
+     * @return mixed
      */
     public function get_form($view='body') {
         if ($view === "body") {
@@ -363,6 +344,19 @@ class Suggestion extends AppTable {
         return $content;
     }
 
+    /**
+     * Get Presentation types
+     * @return array
+     */
+    public function getTypes() {
+        $Presentation = new Presentation();
+        if (!empty($Presentation->getSettings('types'))) {
+            return $Presentation->getSettings('types');
+        } else {
+            return $Presentation->getSettings('defaults');
+        }
+    }
+
     // MODEL
 
     /**
@@ -373,7 +367,7 @@ class Suggestion extends AppTable {
     public function getInfo($id_pres) {
         $sql = "SELECT p.*, u.fullname as fullname 
                 FROM {$this->tablename} p
-                LEFT JOIN ". AppDb::getInstance()->getAppTables('Users') . " u
+                LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
                     ON u.username=p.username
                 WHERE id_pres='{$id_pres}'";
         $data = $this->db->send_query($sql)->fetch_assoc();
@@ -400,11 +394,11 @@ class Suggestion extends AppTable {
     public function getAll($limit=null, $order='count_vote', $dir='DESC') {
         $sql = "SELECT *, COUNT((v.ref_id)) as count_vote
                   FROM {$this->tablename} p 
-                  LEFT JOIN " . AppDb::getInstance()->getAppTables('Users'). " u 
+                  LEFT JOIN " . Db::getInstance()->getAppTables('Users'). " u 
                     ON p.username = u.username
-                  LEFT JOIN " . AppDb::getInstance()->getAppTables('Media') . " m
+                  LEFT JOIN " . Db::getInstance()->getAppTables('Media') . " m
                     ON p.id_pres = m.presid
-                  LEFT JOIN " . AppDb::getInstance()->getAppTables('Vote') . " v
+                  LEFT JOIN " . Db::getInstance()->getAppTables('Vote') . " v
                     ON v.ref_id = p.id_pres
                   GROUP BY id_pres
                   ORDER BY {$order} {$dir}" . $limit;
@@ -426,6 +420,22 @@ class Suggestion extends AppTable {
     }
 
     // VIEWS
+
+    /**
+     * Render "Add" button
+     * @return string
+     */
+    private static function add_button() {
+        return "
+            <div>
+                <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
+                            class='leanModal' data-controller='Suggestion' data-action='get_form'
+                            data-params='modal' data-operation='edit' data-section='suggestion'>
+                    <input type='submit' value='Add' />
+                </a>
+            </div>
+        ";
+    }
 
     /**
      * @param array $content
@@ -465,7 +475,7 @@ class Suggestion extends AppTable {
      */
     public static function inList(stdClass $item, $vote=null, $bookmark=null) {
         $update = date('d M y', strtotime($item->up_date));
-        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=suggestion&id={$item->id_pres}";
+        $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id_pres}";
         $keywords = self::keywords_list($item->keywords);
 
         return "
@@ -525,28 +535,33 @@ class Suggestion extends AppTable {
 
     /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
-     * @param User $user
-     * @param null|Suggestion $Presentation
+     * @param Users $user
+     * @param null|Suggestion $Suggestion
      * @param string $submit
      * @param bool $type
      * @return array
      */
-    public static function form(User $user, Suggestion $Presentation=null, $submit="edit", $type=null) {
-        if (is_null($Presentation)) {
-            $Presentation = new self();
+    public static function form(Users $user, Suggestion $Suggestion=null, $submit="edit", $type=null) {
+        if (is_null($Suggestion)) {
+            $Suggestion = new self();
         }
 
         // Get class of instance
-        $controller = get_class($Presentation);
+        $controller = get_class($Suggestion);
 
         // Presentation ID
-        $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres : 'false';
+        $idPres = ($Suggestion->id_pres != "") ? $Suggestion->id_pres : 'false';
 
         // Make submission's type selection list
-        $type_options = Session::presentation_type(array('minute'));
+        $Presentation = new Presentation();
+        $type_options = $Presentation::renderTypes(
+            $Presentation->getSettings('types'),
+            $Presentation->getSettings('default_type'),
+            array('minute')
+        );
 
         // Download links
-        $links = !is_null($Presentation->link) ? $Presentation->link : array();
+        $links = !is_null($Suggestion->link) ? $Suggestion->link : array();
 
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
@@ -577,17 +592,18 @@ class Suggestion extends AppTable {
                 
                     <div class='form_lower_container'>
                         <div class='special_inputs_container'>
-                        " . Presentation::get_form_content($Presentation, $type) . "
+                        " . Presentation::get_form_content($Suggestion, $type) . "
                         </div>
                         
                         <div class='form-group'>
-                            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords'>
+                            <input type='text' id='keywords' name='keywords' value='$Suggestion->keywords'>
                             <label>Keywords (comma-separated)</label>
                         </div>
                         
                         <div class='form-group'>
                             <label>Abstract</label>
-                            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' 
+                            style='width: 90%;' required>$Suggestion->summary</textarea>
                         </div>
                     </div>
                     <div class='submit_btns'>
@@ -670,12 +686,12 @@ class Suggestion extends AppTable {
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Suggestion' data-action='delete'>
-                <img src='".AppConfig::$site_url."images/trash.png'></a>
+                <img src='".App::getAppUrl()."images/trash.png'></a>
                 </div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}' data-controller='Suggestion' 
                 data-action='get_form' data-section='suggestion' data-params='{$view}' data-id='{$data['id_pres']}' 
                 data-operation='edit' data-destination='{$destination}'>
-                <img src='".AppConfig::$site_url."images/edit.png'></a>
+                <img src='".App::getAppUrl()."images/edit.png'></a>
                 </div>";
         } else {
             $delete_button = "<div style='width:100px'></div>";
@@ -687,7 +703,7 @@ class Suggestion extends AppTable {
         $type_in_body = $view !== 'modal' ? "<div class='pub_type'>{$type}</div>" : null;
 
         // Present button
-        $present_button = (User::is_logged()) ? "<div>
+        $present_button = (Auth::is_logged()) ? "<div>
             <input type='submit' class='{$trigger}' value='Present it' data-controller='Suggestion' 
             data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id_pres']}' 
             data-view='{$view}' data-destination='{$destination}' data-operation='select'/>
@@ -723,12 +739,12 @@ class Suggestion extends AppTable {
 
         $result = "
         <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
-            <div id='pub_title' style='font-size: 1.1em; font-weight: bold; margin-bottom: 10px; display: inline-block;' itemprop='name'>{$data['title']}</div>
+            <div class='pub_title' itemprop='name'>{$data['title']}</div>
             {$type_in_body}
-            <div id='pub_orator'>
+            <div class='pub_authors' itemprop='author'>{$data['authors']}</div>
+            <div class='pub_orator'>
                 <span style='color:#CF5151; font-weight: bold;'>Suggested by: </span>{$data['fullname']}
             </div>
-            <div id='pub_authors' itemprop='author'><span style='color:#CF5151; font-weight: bold;'>Authors: </span>{$data['authors']}</div>
         </div>
 
         <div class='pub_abstract'>

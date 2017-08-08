@@ -1,6 +1,6 @@
 <?php
 /**
- * File for class Users and User
+ * File for class Users
  *
  * PHP version 5
  *
@@ -29,32 +29,7 @@
  *
  * Handle user-related methods (generate users list/ get organizers list)
  */
-class User extends AppTable {
-
-    /**
-     * @var array $table_data: Table schema
-     */
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "date" => array("DATETIME", false),
-        "firstname" => array("CHAR(30)", false),
-        "lastname" => array("CHAR(30)", false),
-        "fullname" => array("CHAR(30)", false),
-        "username" => array("CHAR(30)", false),
-        "password" => array("CHAR(255)", false),
-        "position" => array("CHAR(10)", false),
-        "email" => array("CHAR(100)", false),
-        "notification" => array("INT(1) NOT NULL", 1),
-        "reminder" => array("INT(1) NOT NULL", 1),
-        "assign" => array("INT(1) NOT NULL", 1),
-        "nbpres" => array("INT(3) NOT NULL", 0),
-        "status" => array("CHAR(10)", false),
-        "hash" => array("CHAR(32)", false),
-        "active" => array("INT(1) NOT NULL", 0),
-        "attempt" => array("INT(1) NOT NULL", 0),
-        "last_login" => array("DATETIME NOT NULL"),
-        "primary" => "id"
-    );
+class Users extends BaseModel {
 
     /**
      * @var int
@@ -116,14 +91,12 @@ class User extends AppTable {
     /** @var  string */
     protected $last_login;
 
-
     /**
-     * User constructor.
+     * Users constructor.
      * @param null $username
      */
     function __construct($username=null) {
-        parent::__construct('User', $this->table_data);
-        $this->tablename = $this->db->tablesname["User"];
+        parent::__construct();
         $this->username = $username;
         if (!is_null($username)) {
             $this->getUser($username);
@@ -137,11 +110,10 @@ class User extends AppTable {
      * @param array $post
      * @return bool|string
      */
-    function make($post=array()) {
+    public function make($post=array()) {
         $post = self::sanitize($post); // Escape $_POST content
 
-        $this->date = date("Y-m-d H:i:s"); // Date of creation (today)
-        $this->last_login = $this->date;
+        $post['date'] = date("Y-m-d H:i:s"); // Date of creation (today)
 
         // Reformat first and last names
         if (!empty($post['firstname'])) {
@@ -151,19 +123,19 @@ class User extends AppTable {
         }
 
         $post['hash'] = $this->make_hash(); // Create an unique hash for this user
-        $post['password']= self::crypt_pwd($post['password']); // Encrypt password
-        $post['active'] = ($post['status'] == "admin") ? 1:0; // Automatically activate the account if the user has an
+        $post['password']= Auth::crypt_pwd($post['password']); // Encrypt password
+        $post['active'] = ($post['status'] == "admin") ? 1 : 0; // Automatically activate the account if the user has an
         // admin level
 
-        $class_vars = get_class_vars("User");
+        $class_vars = get_class_vars("Users");
         if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1)) && !$this->is_exist(array('email'=>$post['email']))) {
             $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
-            $this->db->addcontent($this->tablename,$content); // Add to user table
+            $this->db->insert($this->tablename,$content); // Add to user table
 
             if ($this->status !=  "admin") {
                 // Send verification email to admins/organizer
-                $mail = new AppMail();
-                if ($mail-> send_verification_mail($this->hash,$this->email,$this->fullname)) {
+                $mail = new MailManager();
+                if ($mail->send_verification_mail($this->hash,$this->email,$this->fullname)) {
                     $result['status'] = true;
                     $result['msg'] = "Your account has been created. You will receive an email after
                         its validation by our admins.";
@@ -184,7 +156,7 @@ class User extends AppTable {
                         Your registration cannot be validated for the moment. Please try again later.";;
                 }
             }
-            AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
+            Logger::get_instance(APP_NAME, get_class($this))->log($result);
         } else {
             $result['status'] = false;
             $result['msg'] = "This username/email address already exist in our database";
@@ -201,7 +173,7 @@ class User extends AppTable {
     public function getUser($prov_username) {
         $data = $this->get(array('username'=>$prov_username));
         if (!empty($data)) {
-            $this->map($data[0]);
+            $this->map($data);
             $this->firstname = ucfirst(strtolower($this->firstname));
             $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
@@ -224,7 +196,7 @@ class User extends AppTable {
         } else {
             $search = 'organizer';
         }
-        return $this->get(array('status'=>$search));
+        return $this->all(array('status'=>$search));
     }
 
     /**
@@ -277,15 +249,15 @@ class User extends AppTable {
      * @param $hash
      * @param $email
      * @param $activ
-     * @return string
+     * @return array
      */
     public function check_account_activation($hash, $email, $activ) {
-        $username = $this->db->select($this->tablename, array('username'), array("email"=>$email));
-        $this->getUser($username[0]['username']);
+        $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
+        $this->getUser($username['username']);
         if ($activ === "true") {
             if ($this->active == 0) {
                 if ($this->hash === $hash) {
-                    $this->db->updatecontent($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
+                    $this->db->update($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
                     if ($this->send_confirmation_mail()) {
                         $result['status'] = true;
                         $result['msg'] = "Account successfully activated. An email has been sent to the user!";
@@ -307,21 +279,23 @@ class User extends AppTable {
             $result['status'] = false;
             $result['msg'] = "Permission denied by the admin. Account successfully deleted.";
         }
-        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
+        Logger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
     /**
      * Activate or deactivate the user's account
      *
-     * @param $option
-     * @return string
+     * @param string $hash: user hash
+     * @param string $email: user email address
+     * @param bool $option: activate (true) or deactivate account (false)
+     * @return array
      */
-    private function activation($option) {
-        if ($option == 1){
-            $result = self::check_account_activation($this->hash,$this->email,true);
+    public function activation($hash, $email, $option) {
+        if ($option === true){
+            $result = $this->check_account_activation($hash, $email,true);
         } else {
-            if ($this->db->updatecontent($this->tablename,array('active'=>0),array("email"=>$this->email))) {
+            if ($this->db->update($this->tablename, array('active'=>0), array("email"=>$email))) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully deactivated";
             } else {
@@ -329,7 +303,7 @@ class User extends AppTable {
                 $result['msg'] = "We could not deactivate this account";
             }
         }
-        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
+        Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
         return $result;
     }
 
@@ -337,97 +311,26 @@ class User extends AppTable {
      * Send a confirmation email to the new user once his/her registration has been validated by an organizer
      * @return bool
      */
-    private function send_confirmation_mail() {
-        $config = AppConfig::getInstance();
-        $AppMail = new AppMail();
-        $subject = 'Sign up | Confirmation'; // Give the email a subject
-        $login_url = $config->getAppUrl()."index.php";
-
-        $content = "
-        <div style='width: 100%; margin: auto;'>
-            <p>Hello $this->fullname,</p>
-            <p>Thank you for signing up!</p>
-        </div>
-        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-            Your account has been created, you can now <a href='$login_url'>log in</a> with the following credentials.
-            <p><b>Username</b>: $this->username</p>
-            <p></p><b>Password</b>: Only you know it!</p>
-        </div>";
-        $body = $AppMail->formatmail($content);
-        return $AppMail->send_mail($this->email,$subject,$body);
+    public function send_confirmation_mail() {
+        $MailManager = new MailManager();
+        $body = $MailManager->formatmail(self::confirmation_mail($this->fullname, $this->username));
+        return $MailManager->send(array(
+            'body'=>$body,
+            'subject'=>'Sign up | Confirmation'
+        ), array($this->email));
     }
 
     /**
      * Send an email to the user if his/her account has been deactivated due to too many login attempts.
      * @return bool
      */
-    private function send_activation_mail() {
-        $AppMail = new AppMail();
-
-        $subject = 'Your account has been deactivated'; // Give the email a subject
-        $authorize_url = AppConfig::getInstance()->getAppUrl()."index.php?page=verify&email=$this->email&hash=$this->hash&result=true";
-        $newpwurl = AppConfig::getInstance()->getAppUrl()."index.php?page=renew_pwd&hash=$this->hash&email=$this->email";
-        $content = "
-        <div style='width: 100%; margin: auto;'>
-            <p>Hello $this->fullname,</p>
-            <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
-        </div>
-        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-            <p>You can reactivate your account by following this link:</br>
-                <a href='$authorize_url'>$authorize_url</a>
-            </p>
-            <p>If you forgot your password, you can ask for another one here:<br>
-                <a href='$newpwurl'>$newpwurl</a>
-            </p>
-        </div>";
-        $body = $AppMail->formatmail($content);
-        return $AppMail->send_mail($this->email,$subject,$body);
-    }
-
-    /**
-     * User login
-     * @param $post
-     * @param bool $login: log user in
-     * @return mixed
-     */
-    public function login($post, $login=true) {
-        $password = htmlspecialchars($post['password']);
-        if ($this->getUser($this->username)) {
-            if ($this->active == 1) {
-                if ($this -> check_pwd($password) == true) {
-                    if ($login) {
-                        $_SESSION['logok'] = true;
-                        $_SESSION['login_start'] = time();
-                        $_SESSION['login_expire'] = $_SESSION['login_start'] + SessionInstance::timeout;
-                        $_SESSION['login_warning'] = SessionInstance::warning;
-                        $_SESSION['username'] = $this -> username;
-                        $_SESSION['status'] = $this -> status;
-                    }
-                    $result['msg'] = "Hi $this->fullname,<br> welcome back!";
-                    $result['status'] = true;
-                } else {
-                    $_SESSION['logok'] = false;
-                    $result['status'] = false;
-                    $attempt = $this->checkattempt();
-                    if ($attempt == false) {
-                        $result['msg'] = "Wrong password. You have exceeded the maximum number
-                            of possible attempts, hence your account has been deactivated for security reasons.
-                            We have sent an email to your address including an activation link.";
-                    } else {
-                        $result['msg'] = "Wrong password. $attempt login attempts remaining";
-                    }
-                }
-            } else {
-                $result['status'] = false;
-                $result['msg'] = "Sorry, your account is not activated yet. <br> You will receive an
-                    email as soon as your registration is confirmed by an admin.<br> Please,
-                    <a href='" . URL_TO_APP . "index.php?page=contact'>contact us</a> if you have any question.";
-            }
-        } else {
-            $result['status'] = false;
-            $result['msg'] = "Wrong username";
-        }
-        return $result;
+    public function send_activation_mail() {
+        $MailManager = new MailManager();
+        $body = $MailManager->formatmail(self::activation_email($this->fullname, $this->email, $this->hash));
+        return $MailManager->send(array(
+            'body'=>$body,
+            'subject'=>'Your account has been deactivated'
+        ), array($this->email));
     }
 
     /**
@@ -437,24 +340,14 @@ class User extends AppTable {
      */
     public function request_password_change($email) {
         if ($this->is_exist(array('email'=>$email))) {
-            $username = AppDb::getInstance()->select(AppDb::getInstance()->tablesname['User'], array('username'),
-                array("email"=>$email));
-            $this->getUser($username[0]['username']);
-            $reset_url = URL_TO_APP . "index.php?page=renew&hash=$this->hash&email=$this->email";
-            $subject = "Change password";
-            $content = "
-            Hello $this->firstname $this->lastname,<br>
-            <p>You requested us to change your password.</p>
-            <p>To reset your password, click on this link:
-            <br><a href='$reset_url'>$reset_url</a></p>
-            <br>
-            <p>If you did not request this change, please ignore this email.</p>
-            ";
 
-            $AppMail = new AppMail();
-            $body = $AppMail->formatmail($content);
-            if ($AppMail->send_mail($email,$subject,$body)) {
-                $result['msg'] = "An email has been sent to your address with further information";
+            $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
+            $this->getUser($username[0]['username']);
+
+            $MailManager = new MailManager();
+            $body = $MailManager->formatmail(self::password_request_email($this->fullname, $this->hash, $this->username));
+            if ($MailManager->send(array('body'=>$body, 'subject'=>'Change password request'), array($email))) {
+                $result['msg'] = "An email has been sent to your address with further instructions";
                 $result['status'] = true;
             } else {
                 $result['msg'] = "Oops, we couldn't send you the verification email";
@@ -477,7 +370,7 @@ class User extends AppTable {
             $hash = htmlspecialchars($_POST['hash']);
             $email = htmlspecialchars($_POST['email']);
             $data = $this->get(array('email'=>$email));
-            if ($data[0]['hash'] === $hash) {
+            if ($data['hash'] === $hash) {
                 $result = self::password_form($data);
             } else {
                 $result = self::incorrect_hash();
@@ -496,7 +389,7 @@ class User extends AppTable {
      */
     public function password_change($username, $password) {
         if ($this->is_exist(array('username'=>$username))) {
-            if ($this->update(array('password' => $this->crypt_pwd($password)), array('username' => $username))) {
+            if ($this->update(array('password' => Auth::crypt_pwd($password)), array('username' => $username))) {
                 $result['msg'] = "Your password has been changed!";
                 $result['status'] = true;
             } else {
@@ -510,92 +403,29 @@ class User extends AppTable {
     }
 
     /**
-     * Check if user is logged in
-     * @return bool
-     */
-    public static function is_logged() {
-        return SessionInstance::is_started() && isset($_SESSION['logok']) && $_SESSION['logok'] == true;
-    }
-
-    /**
      * Set User's status (delete/activate/deactivate/permission level)
-     * @param $newstatus
-     * @return string
+     * @param $newStatus
+     * @return mixed
      */
-    public function setStatus($newstatus) {
+    public function setStatus($newStatus) {
         $result['status'] = false; // Set default status as false
-        if ($newstatus == 'delete') {
-            if ($this -> delete_user()) {
+        if ($newStatus == 'delete') {
+            if ($this->delete_user($this->username)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully deleted";
             }
-        } elseif ($newstatus == "activate") {
-            $result = $this -> activation(1);
-        } elseif ($newstatus == "desactivate") {
-            $result = $this -> activation(0);
+        } elseif ($newStatus == "activate") {
+            $result = $this->activation($this->hash, $this->email, true);
+        } elseif ($newStatus == "desactivate") {
+            $result = $this->activation($this->hash, $this->email, false);
         } else {
-            if ($this -> change_user_status($newstatus))  {
+            if ($this -> change_user_status($newStatus))  {
                 $result['status'] = true;
-                $result['msg'] = "User status is now $newstatus!";
+                $result['msg'] = "User status is now $newStatus!";
             }
         }
-        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
+        Logger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
-    }
-
-    /**
-     * Check number of unsuccessful login attempts.
-     * Deactivate the user's account if this number exceeds the maximum
-     * allowed number of attempts and send an email to the user with an activation link.
-     * @return int
-     */
-    private function checkattempt() {
-        $last_login = new DateTime($this->last_login);
-        $now = new DateTime();
-        $diff = $now->diff($last_login);
-        // Reset the number of attempts if last login attempt was 1 hour ago
-        $this->attempt = $diff->h >= 1 ? 0:$this->attempt;
-        $this->attempt += 1;
-        if ($this->attempt >= AppConfig::getInstance()->max_nb_attempt) {
-            self::activation(0); // We deactivate the user's account
-            $this->send_activation_mail();
-            return false;
-        }
-        $this->last_login = date('Y-m-d H:i:s');
-        $this->db->updatecontent($this->tablename,array('attempt'=>$this->attempt,'last_login'=>$this->last_login),array("username"=>$this->username));
-        return AppConfig::getInstance()->max_nb_attempt - $this->attempt;
-    }
-
-    /**
-     * Check if the provided password is correct (TRUE) or not (FALSE)
-     *
-     * @param $password
-     * @return bool
-     */
-    private function check_pwd($password) {
-        $truepwd = $this->db->select($this->tablename, array("password"), array("username"=>$this->username));
-        $check = validate_password($password, $truepwd[0]['password']);
-        if ($check == 1) {
-            $this->attempt = 0;
-            $this->last_login = date('Y-m-d H:i:s');
-            $this->db->updatecontent($this->tablename,
-                array('attempt'=>$this->attempt,'last_login'=>$this->last_login),
-                array("username"=>$this->username));
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Encrypt the password before adding it to the database
-     *
-     * @param $password
-     * @return string
-     */
-    public function crypt_pwd($password) {
-        $hash = create_hash($password);
-        return $hash;
     }
 
     /**
@@ -631,11 +461,11 @@ class User extends AppTable {
     /**
      * Change the user's status (admin/organizer/member)
      *
-     * @param $newstatus
+     * @param $newStatus
      * @return bool
      */
-    public function change_user_status($newstatus) {
-        return $this->db->updatecontent($this->tablename,array('status'=>$newstatus),array("username"=>$this->username));
+    public function change_user_status($newStatus) {
+        return $this->db->update($this->tablename,array('status'=>$newStatus),array("username"=>$this->username));
     }
 
     /**
@@ -673,7 +503,11 @@ class User extends AppTable {
      */
     public function get_view($view, $destination='body') {
         $method_name = $view . '_' . $destination;
-        return self::$method_name();
+        if (method_exists($this, $method_name)) {
+            return self::$method_name();
+        } else {
+            return Page::notFound();
+        }
     }
 
     /**
@@ -772,7 +606,7 @@ class User extends AppTable {
      */
     public static function login_form_body() {
         return "
-            <form id='login_form' method='post' action='" . URL_TO_APP . 'php/form.php' . "'>
+            <form id='login_form' method='post' action='" . URL_TO_APP . 'php/router.php?controller=Auth&action=login' . "'>
                 <input type='hidden' name='login' value='true'/>
                 <div class='form-group' style='width: 100%;'>
                     <input type='text' name='username' required autocomplete='on'>
@@ -784,15 +618,15 @@ class User extends AppTable {
                 </div>
                 <div class='action_btns'>
                     <div class='first_half'>
-                        <input type='submit' id='login_form' value='Log In' class='processform login'/>
+                        <input type='submit' id='login_form' value='Log In' class='processform reload'/>
                     </div>
                     <div class='last_half' style='text-align: right;'>
-                        <input type='button' class='go_to_section' data-controller='User' data-action='get_view' 
+                        <input type='button' class='go_to_section' data-controller='Users' data-action='get_view' 
                         data-params='registration_form,modal' data-section='registration_form' value='Sign Up'>
                     </div>
                 </div>
             </form>
-            <div class='forgot_password'><a href='' class='go_to_section' data-controller='User' data-action='get_view' 
+            <div class='forgot_password'><a href='' class='go_to_section' data-controller='Users' data-action='get_view' 
             data-params='change_password_form,modal' data-section='change_password_form'>I forgot my password</a></div>
         ";
     }
@@ -854,12 +688,46 @@ class User extends AppTable {
                     <label>Position</label>    
                 </div>
                 <div class='action_btns'>
-                    <div class='first_half'><input type='button' class='go_to_section' data-controller='User' data-action='get_view' 
+                    <div class='first_half'><input type='button' class='go_to_section' data-controller='Users' data-action='get_view' 
                         data-params='login_form,modal' data-section='login_form' value='Log in'></div>
                     <div class='last_half'><input type='submit' class='register processform' value='Sign up'></div>
                 </div>
             </form>
         ";
+    }
+
+    /**
+     * Render admin creation form (for installation)
+     * @return string
+     */
+    public static function admin_creation_form() {
+        return "
+            <div class='feedback'></div>
+			<form action='php/router.php?controller=Users&action=make' method='post'>
+                <input type='hidden' name='status' value='admin'/>
+
+			    <div class='form-group'>
+				    <input type='text' name='username' required autocomplete='on'>
+                    <label for='username'>UserName</label>
+                </div>
+                <div class='form-group'>
+				    <input type='password' name='password' class='passwordChecker' required>
+                    <label for='password'>Password</label>
+                </div>
+                <div class='form-group'>
+				    <input type='password' name='conf_password' required>
+                    <label for='conf_password'>Confirm password</label>
+                </div>
+                <div class='form-group'>
+				    <input type='email' name='email' required autocomplete='on'>
+                    <label for='admin_email'>Email</label>
+                </div>
+                <input type='hidden' name='status' value='admin'>
+                <div class='submit_btns'>
+                    <input type='submit' value='Next' class='process_form'>
+                </div>
+			</form>
+		";
     }
 
     /**
@@ -1023,5 +891,72 @@ class User extends AppTable {
                     <div class='sys_msg warning'>Incorrect email or hash id.</div>
                 </div>
             </section>";
+    }
+
+    /**
+     * Render account confirmation email
+     * @param $fullname: user full name
+     * @param $username: user username
+     * @return string
+     */
+    private static function confirmation_mail($fullname, $username) {
+        $login_url = App::$site_url . "index.php";
+
+        return "
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello {$fullname},</p>
+            <p>Thank you for signing up!</p>
+        </div>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            Your account has been created, you can now <a href='{$login_url}'>log in</a> with the following credentials.
+            <p><b>Username</b>: {$username}</p>
+            <p></p><b>Password</b>: Only you know it!</p>
+        </div>";
+    }
+
+    /**
+     * Render activation request email
+     * @param $fullname
+     * @param $email
+     * @param $hash
+     * @return string
+     */
+    private static function activation_email($fullname, $email, $hash) {
+        $authorize_url =App::getAppUrl() . "index.php?page=verify&email={$email}&hash={$hash}&result=true";
+        $newpwurl = App::getAppUrl() . "index.php?page=renew_pwd&hash={$hash}&email={$email}";
+
+        return "
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello {$fullname},</p>
+            <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
+        </div>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            <p>You can reactivate your account by following this link:</br>
+                <a href='{$authorize_url}'>{$authorize_url}</a>
+            </p>
+            <p>If you forgot your password, you can ask for another one here:<br>
+                <a href='{$newpwurl}'>{$newpwurl}</a>
+            </p>
+        </div>";
+    }
+
+    /**
+     * Render change password request email
+     * @param $full_name
+     * @param $hash
+     * @param $email
+     * @return string
+     */
+    private static function password_request_email($full_name, $hash, $email) {
+        $reset_url = URL_TO_APP . "index.php?page=renew&hash={$hash}&email={$email}";
+
+        return "
+            Hello {$full_name},<br>
+            <p>You requested us to change your password.</p>
+            <p>To reset your password, click on this link:
+            <br><a href='$reset_url'>$reset_url</a></p>
+            <br>
+            <p>If you did not request this change, please ignore this email.</p>
+            ";
     }
 }

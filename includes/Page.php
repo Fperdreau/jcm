@@ -29,21 +29,7 @@
  *
  * Handle pages' settings, meta-information, display and menu
  */
-class AppPage extends AppTable {
-
-    protected $table_data = array(
-        "id"=>array('INT NOT NULL AUTO_INCREMENT',false),
-        "name"=>array('CHAR(20)',false),
-        "filename"=>array('CHAR(255)',false),
-        "parent"=>array('CHAR(255)',false),
-        "status"=>array('INT(2)',false),
-        "rank"=>array('INT(2)', 0),
-        "show_menu"=>array('INT(1)',false),
-        "meta_title"=>array('VARCHAR(255)',false),
-        "meta_keywords"=>array('TEXT(1000)',false),
-        "meta_description"=>array('TEXT(1000)',false),
-        "primary"=>"id"
-    );
+class Page extends BaseModel {
 
     // Access levels
     public static $levels = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
@@ -63,7 +49,7 @@ class AppPage extends AppTable {
      * @param bool $name
      */
     public function __construct($name=False) {
-        parent::__construct('Pages', $this->table_data);
+        parent::__construct();
         if ($name !== False) {
             $this->getInfo($name);
         }
@@ -75,12 +61,7 @@ class AppPage extends AppTable {
      * @return bool
      */
     public function setup($op = False) {
-        if (parent::setup($op)) {
-            $this->getPages();
-            return true;
-        } else {
-            return false;
-        }
+        return $this->getPages() !== false;
     }
 
     /**
@@ -89,9 +70,9 @@ class AppPage extends AppTable {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $class_vars = get_class_vars('AppPage');
+        $class_vars = get_class_vars('Page');
         $content = $this->parsenewdata($class_vars,$post, array('levels'));
-        return $this->db->addcontent($this->tablename,$content);
+        return $this->db->insert($this->tablename,$content);
     }
 
     /**
@@ -110,8 +91,7 @@ class AppPage extends AppTable {
      * Check if this plugin is registered to the db
      */
     public function isInstalled() {
-        $plugins = $this->db->select($this->db->tablesname['Pages'], array('name'));
-        return in_array($this->name,$plugins);
+        return $this->is_exist(array('name'=>$this->name));
     }
 
     /**
@@ -121,7 +101,7 @@ class AppPage extends AppTable {
     public function check_login() {
         $split = explode('\\', $this->name);
         $page_level = (in_array($split[0], array_keys(self::$levels))) ? $split[0] : 'none';
-        if (!User::is_logged()) {
+        if (!Auth::is_logged()) {
             if (self::$levels[$page_level] > -1) {
                 $result['msg'] = self::login_required();
                 $result['status'] = false;
@@ -130,7 +110,7 @@ class AppPage extends AppTable {
                 $result['msg'] = null;
             }
         } else {
-            $user = new User($_SESSION['username']);
+            $user = new Users($_SESSION['username']);
             if (self::$levels[$user->status]>=self::$levels[$page_level] || self::$levels[$page_level] == -1) {
                 $result['status'] = true;
                 $result['msg'] = $user->status;
@@ -205,8 +185,6 @@ class AppPage extends AppTable {
      */
     public static function render($page) {
 
-        require('../includes/boot.php');
-
         // Start buffering
         ob_start("ob_gzhandler");
 
@@ -230,7 +208,7 @@ class AppPage extends AppTable {
 
     /**
      * Get application pages
-     * @return array
+     * @return bool|array: pages information if success, False otherwise
      */
     public function getPages() {
         // First cleanup Page table
@@ -254,7 +232,7 @@ class AppPage extends AppTable {
      * @param $dir
      * @param null $parent
      * @param array $excludes
-     * @return array
+     * @return bool|array
      */
     private function browse($dir, $parent=null, array $excludes=array()) {
         $content = scandir($dir);
@@ -278,13 +256,15 @@ class AppPage extends AppTable {
                         $status = -1;
                     }
                     $name = (!is_null($parent)) ? $parent . DS .$element : $element;
-                    $this->make(array(
+                    if (!$this->make(array(
                         'name'=>$name,
                         'filename'=>$url,
                         'status'=>$status,
                         'parent'=>$parent,
                         'show_menu'=>1,
-                        'rank'=>$rank));
+                        'rank'=>$rank))) {
+                        return False;
+                    };
                 }
             } elseif (is_dir($dir . DS . $element) && !in_array($element, array_merge(array('.', '..'), $excludes))) {
                 $temp_dir[$element] = $this->browse($dir . DS . $element, $element, $excludes);

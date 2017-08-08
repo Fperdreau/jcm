@@ -29,23 +29,16 @@
  *
  * Handle methods to display presentations list (archives, homepage, wish list)
  */
-class Presentation extends AppTable {
+class Presentation extends BaseModel {
 
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "up_date" => array("DATETIME", false),
-        "id_pres" => array("BIGINT(15)", false),
-        "username" => array("CHAR(30) NOT NULL"),
-        "type" => array("CHAR(30)", false),
-        "date" => array("DATE", false),
-        "jc_time" => array("CHAR(15)", false),
-        "title" => array("CHAR(150)", false),
-        "authors" => array("CHAR(150)", false),
-        "summary" => array("TEXT(5000)", false),
-        "orator" => array("CHAR(50)", false),
-        "notified" => array("INT(1) NOT NULL", 0),
-        "session_id" => array("INT", false),
-        "primary" => "id"
+    /**
+     * Presentation settings
+     * @var array
+     */
+    protected $settings = array(
+        'default_type'=>"paper",
+        'defaults'=>array("paper", "research", "methodology", "guest", "minute"),
+        'types'=>array("paper", "research", "methodology", "guest", "minute")
     );
 
     public $type;
@@ -63,12 +56,18 @@ class Presentation extends AppTable {
     public $id_pres;
     public $session_id;
 
+    private static $default = array();
+
     /**
      * Constructor
      * @param null $id_pres
      */
     function __construct($id_pres=null){
-        parent::__construct("Presentation", $this->table_data);
+        parent::__construct();
+
+        // Set types to defaults before loading custom information
+        $this->settings['types'] = $this->settings['defaults'];
+
         if (!is_null($id_pres)) {
             $this->getInfo($id_pres);
         }
@@ -83,9 +82,9 @@ class Presentation extends AppTable {
     public function index($id=null) {
         if (!is_null($id)) {
             if (isset($_SESSION['username'])) {
-                $user = new User($_SESSION['username']);
-            } elseif (!empty($_POST['user'])) {
-                $user = new User($_POST['user']);
+                $user = new Users($_SESSION['username']);
+            } elseif (!empty($_POST['Users'])) {
+                $user = new Users($_POST['Users']);
             } else {
                 $user = false;
             }
@@ -103,6 +102,24 @@ class Presentation extends AppTable {
 
         return self::container($content);
 
+    }
+
+    /**
+     * Get default presentation settings
+     * @return array: default settings
+     */
+    private function getDefaults() {
+        self::$default = array(
+            'date'=>self::getJcDates($this->settings['jc_day'],1)[0],
+            'frequency'=>null,
+            'slot'=>$this->settings['max_nb_session'],
+            'type'=>$this->settings['default_type'],
+            'types'=>$this->getTypes(),
+            'start_time'=>$this->settings['jc_time_from'],
+            'end_time'=>$this->settings['jc_time_to'],
+            'room'=>$this->settings['room']
+        );
+        return self::$default;
     }
 
     /**
@@ -129,7 +146,7 @@ class Presentation extends AppTable {
                 $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
 
                 // Add publication to the database
-                if ($this->db->addcontent($this->tablename,$content)) {
+                if ($this->db->insert($this->tablename,$content)) {
                     return $this->id_pres;
                 } else {
                     return false;
@@ -157,7 +174,7 @@ class Presentation extends AppTable {
             }
         }
         $content = $this->parsenewdata(get_class_vars(get_called_class()), $data, array("link","chair"));
-        return $this->db->updatecontent($this->tablename, $content, $id);
+        return $this->db->update($this->tablename, $content, $id);
     }
 
     /**
@@ -205,7 +222,7 @@ class Presentation extends AppTable {
      */
     public function show_details($id=false, $view='body') {
         $data = $this->getInfo($id);
-        $user = User::is_logged() ? new User($_SESSION['username']) : null;
+        $user = Auth::is_logged() ? new Users($_SESSION['username']) : null;
         $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
                 || $data['username'] === $user->username);
         if ($data !== false) {
@@ -217,7 +234,7 @@ class Presentation extends AppTable {
     /**
      * Get submission form
      * @param string $view
-     * @return string
+     * @return string|mixed
      */
     public function get_form($view='body') {
         if ($view === "body") {
@@ -323,11 +340,11 @@ class Presentation extends AppTable {
         // Update table
         $class_vars = get_class_vars("Presentation");
         $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
-        if ($this->db->updatecontent($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
+        if ($this->db->update($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
+            Logger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
             return true;
         } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id_pres})");
+            Logger::get_instance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id_pres})");
             return false;
         }
     }
@@ -377,7 +394,7 @@ class Presentation extends AppTable {
     public function show($id, $profile=false) {
         $data = $this->getInfo($id);
         if ($profile === false) {
-            $speaker = new User($this->orator);
+            $speaker = new Users($this->orator);
             $speakerDiv = "<div class='pub_speaker warp'>$speaker->fullname</div>";
         } else {
             $speakerDiv = "";
@@ -391,6 +408,29 @@ class Presentation extends AppTable {
      */
     public function generateYearsList() {
         return self::yearsSelectionList($this->get_years());
+    }
+
+    /**
+     * Get presentation types
+     * @param $default_type: Default presentation type
+     * @param array|null $exclude
+     * @return string
+     */
+    public static function presentation_type($default_type, array $exclude=null) {
+        $prestype = "";
+        $options = null;
+        foreach (AppConfig::getInstance()->pres_type as $type) {
+            if (!is_null($exclude) && in_array($type, $exclude)) continue;
+
+            $prestype .= self::render_type($type, 'pres');
+            $options .= $type == $default_type ?
+                "<option value='$type' selected>$type</option>"
+                : "<option value='$type'>$type</option>";
+        }
+        return array(
+            'types'=>$prestype,
+            "options"=>$options
+        );
     }
 
     // PATCH
@@ -432,7 +472,7 @@ class Presentation extends AppTable {
             if ($Session->is_exist(array('date'=>$item['date']))) {
                 $session_info = $Session->getInfo(array('date'=>$item['date']));
                 if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id_pres'=>$item['id_pres']))) {
-                    AppLogger::get_instance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
+                    Logger::get_instance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
                     return false;
                 }
             }
@@ -505,7 +545,7 @@ class Presentation extends AppTable {
         if (!is_null($filter)) $search['YEAR(date)'] = $filter;
         if (!is_null($username)) $search['username'] = $username;
 
-        $data = $this->db->select(
+        $data = $this->db->resultSet(
             $this->tablename,
             array('YEAR(date)', 'id_pres'),
             $search,
@@ -527,7 +567,7 @@ class Presentation extends AppTable {
     public function getInfo($id_pres) {
         $sql = "SELECT p.*, u.fullname as fullname 
                 FROM {$this->tablename} p
-                LEFT JOIN ". AppDb::getInstance()->getAppTables('Users') . " u
+                LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
                     ON u.username=p.username
                 WHERE id_pres='{$id_pres}'";
         $data = $this->db->send_query($sql)->fetch_assoc();
@@ -602,7 +642,7 @@ class Presentation extends AppTable {
      * @return string
      */
     public static function speakerList($cur_speaker=null) {
-        $Users = new User();
+        $Users = new Users();
         // Render list of available speakers
         $speakerOpt = (is_null($cur_speaker)) ? "<option selected disabled>Select a speaker</option>" : null;
         foreach ($Users->getAll() as $key=>$speaker) {
@@ -653,6 +693,7 @@ class Presentation extends AppTable {
      */
     public static function inSessionSimple(array $data) {
         $show_but = self::RenderTitle($data);
+        $Bookmark = new Bookmark();
         return array(
             "name"=>$data['pres_type'],
             "content"=>"
@@ -661,7 +702,10 @@ class Presentation extends AppTable {
                 <span style='font-size: 12px; font-style: italic;'>Presented by </span>
                 <span style='font-size: 14px; font-weight: 500; color: #777;'>{$data['fullname']}</span>
             </div>",
-            "button"=>Bookmark::getIcon($data['id_pres'], 'Presentation', User::is_logged() ? $_SESSION['username'] : null)
+            "button"=>$Bookmark->getIcon(
+                $data['id_pres'],
+                'Presentation',
+                Auth::is_logged() ? $_SESSION['username'] : null)
         );
     }
 
@@ -673,7 +717,7 @@ class Presentation extends AppTable {
      */
     public static function mail_details(array $data, $show=false) {
         // Make download menu if required
-        $file_div = $show ? Media::download_menu_email($data['link'], AppConfig::getInstance()->getAppUrl()) : null;
+        $file_div = $show ? Media::download_menu_email($data['link'], App::getAppUrl()) : null;
 
         // Format presentation's type
         $type = ucfirst($data['type']);
@@ -729,11 +773,11 @@ class Presentation extends AppTable {
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Presentation' data-operation='edit'>
-                <img src='".AppConfig::$site_url."images/trash.png'></a></div>";
+                <img src='" . App::getAppUrl() . "images/trash.png'></a></div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}'
                 data-controller='Presentation' data-section='presentation' data-action='get_form' data-params='{$view}' 
                 data-id='{$data['id_pres']}' data-operation='edit' data-date='{$data['date']}' data-destination='{$destination}'>
-                <img src='".AppConfig::$site_url."images/edit.png'></a></div>";
+                <img src='".App::getAppUrl()."images/edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
             $modify_button = "<div style='width: 100px'></div>";
@@ -775,12 +819,16 @@ class Presentation extends AppTable {
             {$type_in_body}
             <div class='pub_authors' itemprop='author'>{$data['authors']}</div>
 
-            <div class='pub_date'>
-                <span class='pub_label'>Date: </span>" . date('d M Y', strtotime($data['date'])) . "
+            <div class='pub_header_table'>
+                <div class='pub_date'>
+                    <span class='pub_label'>Date: </span>" . date('d M Y', strtotime($data['date'])) . "
+                </div>
+                
+                <div class='pub_orator'>
+                    <span class='pub_label'>Presented by: </span>{$data['fullname']}
+                </div>
             </div>
-            <div class='pub_orator'>
-                <span class='pub_label'>Presented by: </span>{$data['fullname']}
-            </div>
+
         </div>
 
         <div class='pub_abstract'>
@@ -816,25 +864,38 @@ class Presentation extends AppTable {
         $post = (is_null($post)) ? $_POST : $post;
         $Session = new Session();
 
+        // Get presentation id (if none, then this is a new presentation)
         $id_Presentation = isset($post['id']) ? $post['id'] : false;
-        if (!isset($_SESSION['username'])) {
-            $_SESSION['username'] = false;
+
+        // Get presentation information
+        $this->getInfo($id_Presentation);
+
+        // Get session id
+        if (!is_null($this->session_id)) {
+            $post['session_id'] = $this->session_id;
+        } else {
+            $post['session_id'] = (!empty($post['session_id']) && $post['session_id'] !== 'false') ? $post['session_id'] : null;
         }
 
-        // Get presentation date, and if not present, then automatically select next planned session date.
-        $post['session_id'] = (!empty($post['session_id']) && $post['session_id'] !== 'false') ? $post['session_id'] : null;
+        // Get presentation date, and if not present, then automatically resultSet next planned session date.
         if (is_null($post['session_id'])) {
             $next = $Session->getNext(1);
             $post['date'] = $next[0]['date'];
             $post['session_id'] = $next[0]['id'];
         } else {
             $data = $Session->get(array('id'=>$post['session_id']));
-            $post['date'] = $data[0]['date'];
+            $post['date'] = $data['date'];
         }
+
+        // Get operation type
         $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
+
+        // Get presentation type
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
-        $user = new User($_SESSION['username']);
-        $this->getInfo($id_Presentation);
+
+        // Get user information
+        $user = new Users($_SESSION['username']);
+
         return Presentation::form($user, $this, $operation, $type, $post);
     }
 
@@ -877,7 +938,7 @@ class Presentation extends AppTable {
 
     /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
-     * @param User $user
+     * @param Users $user
      * @param Suggestion|Presentation $Presentation
      * @param string $submit
      * @param bool $type
@@ -885,7 +946,7 @@ class Presentation extends AppTable {
      * @return array
      * @internal param bool $date
      */
-    public static function form(User $user, $Presentation=null, $submit="edit", $type=null, array $data=null) {
+    public static function form(Users $user, $Presentation=null, $submit="edit", $type=null, array $data=null) {
         if (is_null($Presentation)) {
             $Presentation = new self();
             $date = !is_null($data) && isset($data['date']) ? $data['date'] : null;
@@ -913,7 +974,7 @@ class Presentation extends AppTable {
         $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres : 'false';
 
         // Make submission's type selection list
-        $type_options = Session::presentation_type();
+        $type_options = self::renderTypes($Presentation->getTypes(), $type);
 
         // Download links
         $links = !is_null($Presentation->link) ? $Presentation->link : array();
@@ -954,7 +1015,7 @@ class Presentation extends AppTable {
                         </div>
                         <div class='form-group'>
                             <label>Abstract</label>
-                            <textarea name='summary' class='tinymce' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
                         </div>
                     </div>
                     <div class='submit_btns'>
@@ -1100,31 +1161,31 @@ class Presentation extends AppTable {
             <div class='{$style}'>
                 <div class='submitMenuContainer'>
                     <div class='submitMenuSection'>
-                        <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=edit' . "' 
+                        <a href='" . App::getAppUrl() . 'index.php?page=submission&op=edit' . "' 
                         class='{$modal}' data-controller='Presentation' data-action='get_form'
                         data-destination='.submission_container' data-params='{$destination}' data-operation='edit'>
                            <div class='icon_container'>
-                                <div class='icon'><img src='" . AppConfig::$site_url.'images/add_paper.png'. "'></div>
+                                <div class='icon'><img src='" . App::getAppUrl().'images/add_paper.png'. "'></div>
                                 <div class='text'>Submit</div>
                             </div>
                        </a>
                     </div>
                     <div class='submitMenuSection'>
-                        <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=suggest' . "' 
+                        <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
                         class='{$modal}' data-controller='Suggestion' data-action='get_form' data-params='{$destination}'
                         data-destination='.submission_container' data-operation='edit'>
                            <div class='icon_container'>
-                                <div class='icon'><img src='" . AppConfig::$site_url.'images/wish_paper.png'. "'></div>
+                                <div class='icon'><img src='" . App::getAppUrl().'images/wish_paper.png'. "'></div>
                                 <div class='text'>Add a wish</div>
                             </div>
                         </a>
                     </div>
                     <div class='submitMenuSection'>
-                        <a href='" . AppConfig::$site_url . 'index.php?page=submission&op=wishpick' . "' 
+                        <a href='" . App::getAppUrl() . 'index.php?page=submission&op=wishpick' . "' 
                         class='{$modal}' data-controller='Suggestion' data-action='get_suggestion_list' 
                         data-destination='.submission_container' data-params='{$destination}'>
                             <div class='icon_container'>
-                                <div class='icon'><img src='" . AppConfig::$site_url.'images/select_paper.png'. "'></div>
+                                <div class='icon'><img src='" . App::getAppUrl().'images/select_paper.png'. "'></div>
                                 <div class='text'>Select a wish</div>
                             </div>
                         </a>
@@ -1180,6 +1241,53 @@ class Presentation extends AppTable {
                     </div>
                 </div>
             </section>
+            ";
+    }
+
+    /**
+     * Get session types
+     * @return array
+     */
+    public function getTypes() {
+        if (!empty($this->settings['types'])) {
+            return $this->settings['types'];
+        } else {
+            return $this->settings['defaults'];
+        }
+    }
+
+    /**
+     * Get session types
+     * @param array $types: list of default types
+     * @param $default_type : default session type
+     * @return array
+     */
+    public static function renderTypes(array $types, $default_type=null) {
+        $Sessionstype = "";
+        $opttypedflt = "";
+        foreach ($types as $type) {
+            $Sessionstype .= self::render_type($type);
+            $opttypedflt .= $type == $default_type ?
+                "<option value='$type' selected>$type</option>"
+                : "<option value='$type'>$type</option>";
+        }
+        return array(
+            'types'=>$Sessionstype,
+            "options"=>$opttypedflt
+        );
+    }
+
+    /**
+     * Render session/presentation type list
+     * @param $data
+     * @return string
+     */
+    private static function render_type($data) {
+        return "
+                <div class='type_div' id='session_$data'>
+                    <div class='type_name'>".ucfirst($data)."</div>
+                    <div class='type_del' data-type='$data' data-class='" . strtolower(__CLASS__). "'></div>
+                </div>
             ";
     }
 }

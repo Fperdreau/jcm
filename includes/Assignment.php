@@ -30,16 +30,7 @@
  *
  * Class that handles speaker assignment routines
  */
-class Assignment extends AppTable {
-
-    /**
-     * @var array
-     */
-    protected $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "username"=>array("CHAR(255)",false),
-        "primary"=>'id'
-    );
+class Assignment extends BaseModel {
 
     /**
      * @var Session
@@ -50,22 +41,15 @@ class Assignment extends AppTable {
      * Constructor
      */
     public function __construct() {
-        parent::__construct('Assignment', $this->table_data);
+        parent::__construct();
     }
 
     /**
-     * Install Assignment
-     * @param bool $op
-     * @return bool
+     * Setup
      */
-    public function setup($op=False) {
-        if (parent::setup($op)) {
-            $this->check();
-            $this->getPresentations();
-            return true;
-        } else {
-            return false;
-        }
+    public function setup() {
+        $this->check();
+        $this->getPresentations();
     }
 
     /**
@@ -195,7 +179,7 @@ class Assignment extends AppTable {
         if ($source === 'app') {
             // Get session types
             $session_types = array();
-            foreach (AppConfig::getInstance()->session_type as $type) {
+            foreach ($this->get_session_instance()->getTypes() as $type) {
                 $session_types[] = self::prettyName($type, true);
             }
 
@@ -213,7 +197,7 @@ class Assignment extends AppTable {
      */
     public function getPresentations() {
         // Step 1: get users' presentations sorted by session type
-        $sql = "SELECT * FROM " . $this->db->tablesname['Presentation'];
+        $sql = "SELECT * FROM " . $this->db->gen_name('Presentation');
         $req = $this->db->send_query($sql);
         $list = array();
 
@@ -232,7 +216,7 @@ class Assignment extends AppTable {
         foreach ($list as $username=>$info) {
             foreach ($info as $type=>$value) {
                 $type = self::prettyName($type, true);
-                $this->db->updatecontent($this->tablename, array($type=>$value), array('username'=>$username));
+                $this->db->update($this->tablename, array($type=>$value), array('username'=>$username));
             }
         }
     }
@@ -280,7 +264,7 @@ class Assignment extends AppTable {
      */
     private function add_user(array $users=array()) {
         foreach ($users as $user) {
-            if (!$this->db->addcontent($this->tablename, array('username'=>$user))) {
+            if (!$this->db->insert($this->tablename, array('username'=>$user))) {
                 return false;
             }
         }
@@ -322,7 +306,7 @@ class Assignment extends AppTable {
             }
         } elseif ($source === 'users') {
             // Get users list
-            $Users = new User();
+            $Users = new Users();
             foreach ($Users->getAll() as $key=>$user) {
                 $usersList[] = $user['username'];
             }
@@ -343,7 +327,7 @@ class Assignment extends AppTable {
     public function all(array $id=null, array $filter=null) {
         $sql = "SELECT p.*, u.fullname
                 FROM {$this->tablename} p
-                LEFT JOIN {$this->db->tablesname['User']} u
+                LEFT JOIN {$this->db->gen_name('Users')} u
                 ON p.username=u.username";
         $req = $this->db->send_query($sql);
         $data = array();
@@ -365,7 +349,7 @@ class Assignment extends AppTable {
         $req = $this->db->send_query("
             SELECT * 
             FROM {$this->tablename} a
-            INNER JOIN ".$this->db->tablesname['User']." u
+            INNER JOIN ".$this->db->tablesname['Users']." u
             ON a.username=u.username
             WHERE (a.$session_type<$max)
                 AND u.assign=1 AND u.status!='admin'
@@ -412,27 +396,27 @@ class Assignment extends AppTable {
                                         FROM {$this->tablename} 
                                         WHERE username='{$speaker}'")->fetch_array();
         $value = ((int)$value > 0) ? (int)$value[$session_type] + $inc: 0; // Assignment number can be negative
-        return $this->db->updatecontent($this->tablename, array($session_type=>$value), array("username"=>$speaker));
+        return $this->db->update($this->tablename, array($session_type=>$value), array("username"=>$speaker));
     }
 
     /**
      * Update speaker assignment: update assignment table and notify user
-     * @param User $user
-     * @param array $info: array('type'=>session_type, 'date'=>session_date, 'presid'=>presentation_id)
+     * @param Users $user
+     * @param array $info: array('type'=>renderTypes, 'date'=>session_date, 'presid'=>presentation_id)
      * @param bool $assign : assign (true) or unassign (false) user
      * @param bool $notify: notify user by email
      * @return bool
      */
-    public function updateAssignment(User $user, array $info, $assign=true, $notify=false) {
+    public function updateAssignment(Users $user, array $info, $assign=true, $notify=false) {
         $session = new Session($info['date']);
         if ($this->updateTable(self::prettyName($info['type'], true), $user->username, $assign)) {
             if ($notify) {
                 $session->notify_session_update($user, $info, $assign);
             }
-            AppLogger::get_instance(APP_NAME, get_class($this))->info("Assignments for {$user->username} have been updated");
+            Logger::get_instance(APP_NAME, get_class($this))->info("Assignments for {$user->username} have been updated");
             return true;
         } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
+            Logger::get_instance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
             return false;
         }
     }
@@ -443,7 +427,7 @@ class Assignment extends AppTable {
      * @return mixed
      */
     public function makeMail($username=null) {
-        $user = new User($username);
+        $user = new Users($username);
         $content['body'] = $user->getAssignments();;
         $content['title'] = 'Your assignments';
         return $content;

@@ -29,21 +29,7 @@
  *
  * Handle plugins settings and routines (installation, running, ect.)
  */
-class AppPlugins extends AppTable {
-
-    /**
-     * @var array $table_data: Table schema
-     */
-    protected $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "name"=>array("CHAR(20)",false),
-        "version"=>array("CHAR(5)",false),
-        "page"=>array("CHAR(20)",false),
-        "status"=>array("CHAR(3)",false),
-        "options"=>array("TEXT",false),
-        "description"=>array("TEXT",false),
-        "primary"=>'id'
-    );
+class Plugins extends BaseModel {
 
     /**
      * @var string $tablename: Table name
@@ -100,7 +86,7 @@ class AppPlugins extends AppTable {
      * @param bool $name
      */
     public function __construct($name=False) {
-        parent::__construct('Plugins', $this->table_data);
+        parent::__construct();
         if ($name !== False) {
             $this->name = $name;
             $this->getInfo();
@@ -113,9 +99,9 @@ class AppPlugins extends AppTable {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $class_vars = get_class_vars('AppPlugins');
+        $class_vars = get_class_vars('Plugins');
         $content = $this->parsenewdata($class_vars,$post, array('installed', 'description'));
-        return $this->db->addcontent($this->db->tablesname['Plugins'],$content);
+        return $this->db->insert($this->db->tablesname['Plugins'],$content);
     }
 
     /**
@@ -160,14 +146,13 @@ class AppPlugins extends AppTable {
      * @return bool
      */
     public function isInstalled() {
-        $plugins = $this->db->select($this->db->tablesname['Plugins'], array('name'));
-        return in_array($this->name,$plugins);
+        return $this->is_exist(array('name'=>$this->name));
     }
 
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return AppPlugins
+     * @return Plugins
      */
     public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/plugins/';
@@ -197,7 +182,7 @@ class AppPlugins extends AppTable {
         foreach ($pluginList as $key=>$pluginfile) {
             if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
                 /**
-                 * @var AppPlugins $thisPlugin
+                 * @var Plugins $thisPlugin
                  */
 
                 $thisPlugin = $this->instantiate($pluginfile);
@@ -319,7 +304,7 @@ class AppPlugins extends AppTable {
      */
     public function install() {
         // Create corresponding table
-        $table = new AppTable($this->name, $this->table_data, strtolower($this->name));
+        $table = new BaseModel(strtolower($this->name), $this->table_data);
         $table->setup();
 
         // Register the plugin in the db

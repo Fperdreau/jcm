@@ -33,21 +33,14 @@
  * - run
  *
  */
-class AppCron extends AppTable {
+class Task extends BaseModel {
 
     /**
-     * @var array $table_data: Task table schema
+     * Scheduled tasks settings
+     * @var array
      */
-    protected $table_data = array(
-        "id"=>array('INT NOT NULL AUTO_INCREMENT',false),
-        "name"=>array('CHAR(20)',false),
-        "time"=>array('DATETIME',false),
-        "frequency"=>array('CHAR(15)',false),
-        "path"=>array('VARCHAR(255)',false),
-        "status"=>array('CHAR(3)',false),
-        "options"=>array('TEXT',false),
-        "running"=>array('INT(1) NOT NULL',0),
-        "primary"=>"id"
+    protected $settings = array(
+        'notify_admin_task'=>'yes'
     );
 
     /**
@@ -63,7 +56,7 @@ class AppCron extends AppTable {
     /**
      * @var datetime $time: running time
      */
-    public $time = '1970-01-01 00:00:00';
+    public $time;
 
     /**
      * @var string $frequency: running frequency (format: 'month,days,hours,minutes')
@@ -114,7 +107,7 @@ class AppCron extends AppTable {
     public static $description;
 
     /** Application logger
-     * @var AppLogger
+     * @var Logger
      */
     public static $logger;
 
@@ -123,7 +116,7 @@ class AppCron extends AppTable {
      * @param null $name
      */
     public function __construct($name=null) {
-        parent::__construct('Crons', $this->table_data);
+        parent::__construct();
         $this->path = dirname(dirname(__FILE__).'/');
 
         self::get_logger();
@@ -131,19 +124,19 @@ class AppCron extends AppTable {
         // Get task's information
         if (!is_null($name)) {
             $this->name = $name;
+            $this->getInfo();
         }
-        $this->getInfo();
 
         // If time is default, set time to now
-        $this->time = ($this->time === '1970-01-01 00:00:00') ? date('Y-m-d H:i:s', time()) : $this->time;
+        $this->time = (is_null($this->time)) ? date('Y-m-d H:i:s', time()) : $this->time;
     }
 
     /**
      * Factory for logger
-     * @return AppLogger
+     * @return Logger
      */
     public static function get_logger() {
-        self::$logger = AppLogger::get_instance(get_class());
+        self::$logger = Logger::get_instance(get_class());
         return self::$logger;
     }
 
@@ -185,7 +178,7 @@ class AppCron extends AppTable {
         self::get_logger();
         /**
          * Instantiate job object
-         * @var AppCron $thisJob
+         * @var Task $thisJob
          */
         $thisJob = $this->instantiate($task_name);
         $thisJob->getInfo();
@@ -264,7 +257,7 @@ class AppCron extends AppTable {
         }
 
         // Get admins email
-        $adminMails = $this->db->select($this->db->tablesname['User'],array('email'),array('status'=>"admin"));
+        $adminMails = $this->db->resultSet($this->db->tablesname['Users'],array('email'),array('status'=>"admin"));
         if (!is_array($adminMails)) $adminMails = array($adminMails);
         $content['body'] = "
             <p>Hello, </p>
@@ -291,9 +284,9 @@ class AppCron extends AppTable {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $class_vars = get_class_vars('AppCron');
+        $class_vars = get_class_vars('Task');
         $content = $this->parsenewdata($class_vars,$post,array('installed', 'daysNames', 'daysNbs', 'hours', 'description'));
-        return $this->db->addcontent($this->tablename,$content);
+        return $this->db->insert($this->tablename,$content);
     }
 
     /**
@@ -303,7 +296,7 @@ class AppCron extends AppTable {
         $data = $this->get(array('name'=>$this->name));
         if (empty($data)) return false;
 
-        foreach ($data[0] as $prop=>$value) {
+        foreach ($data as $prop=>$value) {
             $value = ($prop == "options") ? json_decode($value,true) : $value;
             $this->$prop = $value;
         }
@@ -330,7 +323,7 @@ class AppCron extends AppTable {
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return AppCron
+     * @return Task
      */
     public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/cronjobs/';
@@ -366,7 +359,7 @@ class AppCron extends AppTable {
             }
             return $result;
         } catch (Exception $e) {
-            AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
+            Logger::get_instance(APP_NAME, __CLASS__)->error($e);
             $result['status'] = False;
             return $result;
         }
@@ -404,7 +397,7 @@ class AppCron extends AppTable {
                 $name = $name[0];
                 
                 /**
-                 * @var AppCron $thisPlugin
+                 * @var Task $thisPlugin
                  */
                 $thisPlugin = $this->instantiate($name);
                 
@@ -471,7 +464,7 @@ class AppCron extends AppTable {
      * @return null|string: logs
      */
     public static function showLog($name) {
-        $logs = AppLogger::get_logs(get_class());
+        $logs = Logger::get_logs(get_class());
         if (empty($logs)) {
             return null;
         }
@@ -501,7 +494,7 @@ class AppCron extends AppTable {
     public static function deleteLog($name=null) {
         $name = (is_null($name)) ? get_class() : $name;
         $result = false;
-        foreach (AppLogger::get_logs($name) as $path) {
+        foreach (Logger::get_logs($name) as $path) {
             if (is_file($path)) {
                 $result = unlink($path);
             } else {

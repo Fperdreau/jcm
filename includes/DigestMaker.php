@@ -27,19 +27,8 @@
 /**
  * Class DigestMaker
  */
-class DigestMaker extends AppTable {
+class DigestMaker extends BaseModel {
 
-    /**
-     * @var array $table_data: Table schema
-     */
-    protected $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "name"=>array("CHAR(20)",false),
-        "position"=>array("INT(5) NOT NULL", 0),
-        "display"=>array("INT(1) NOT NULL", 1),
-        "primary"=>'id'
-    );
-    
     public $name;
     public $position;
     public $display;
@@ -49,7 +38,7 @@ class DigestMaker extends AppTable {
      * @param bool $name
      */
     public function __construct($name=False) {
-        parent::__construct('DigestMaker', $this->table_data);
+        parent::__construct();
         if ($name !== False) {
             $this->name = $name;
             $this->getInfo($name);
@@ -64,11 +53,7 @@ class DigestMaker extends AppTable {
      * @return bool
      */
     public function setup($op=False) {
-        if (parent::setup($op)) {
-            return self::registerAll();
-        } else {
-            return false;
-        }
+        return self::registerAll();
     }
 
     /**
@@ -77,7 +62,7 @@ class DigestMaker extends AppTable {
      * @return mixed
      */
     public function makeDigest($username) {
-        $user = new User($username);
+        $user = new Users($username);
         $string = "";
         foreach ($this->all() as $key=>$item) {
             if ($item['display'] == 1) {
@@ -119,7 +104,7 @@ class DigestMaker extends AppTable {
     public function add(array $post) {
         $class_vars = get_class_vars(get_class());
         $content = $this->parsenewdata($class_vars,$post);
-        return $this->db->addcontent($this->tablename,$content);
+        return $this->db->insert($this->tablename,$content);
     }
 
     /**
@@ -145,9 +130,9 @@ class DigestMaker extends AppTable {
     public function register($name) {
         if (!$this->getInfo($name)) {
             if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
-                AppLogger::get_instance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into digest table");
+                Logger::get_instance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into digest table");
             } else {
-                AppLogger::get_instance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into digest table");
+                Logger::get_instance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into digest table");
             }
         }
     }

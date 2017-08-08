@@ -102,17 +102,16 @@ class Modal {
      * @return string
      */
     public static function confirmation_box($data) {
+        $title = !empty($data['title']) ? $data['title'] : "Confirmation";
         $buttons_confirm = !empty($data['button_txt']) ? "
             <input type='submit' name='confirmation' value='{$data['button_txt']}'>
             " : null;
 
         $buttons = "
-            <div class='action_btns'>
                 <div class='one_half'>
                     <input type='submit' name='cancel' class='fa-angle-double-left' value='Cancel'>
                 </div>
                 <div class='one_half last'>{$buttons_confirm}</div>
-            </div>
         ";
 
         $html = "<div class='confirmation_text'><div class='sys_msg warning'>{$data['text']}</div></div>";
@@ -121,9 +120,32 @@ class Modal {
                     'get_confirmation_box'=> true,
                     'id'=> 'confirmation_box',
                     'content'=> $html,
-                    'title'=> 'Delete confirmation',
+                    'title'=> $title,
                     'buttons'=> $buttons
                 ));
+    }
+
+    /**
+     * Render confirmation box
+     * @param $data
+     * @return string
+     */
+    public static function dialog_box($data) {
+        $buttons = "
+                <div class='one_half'>
+                    <input type='submit' name='cancel' class='fa-angle-double-left' value='Cancel'>
+                </div>
+        ";
+
+        $html = "<div class='confirmation_text'>{$data['text']}</div>";
+
+        return self::section(array(
+            'get_confirmation_box'=> true,
+            'id'=> 'confirmation_box',
+            'content'=> $html,
+            'title'=> $data['title'],
+            'buttons'=> $buttons
+        ));
     }
 
 }

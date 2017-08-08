@@ -24,18 +24,15 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class Media extends AppTable{
+class Media extends BaseModel{
 
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "date" => array('DATETIME', false),
-        "fileid" => array('CHAR(20)', false),
-        "filename" => array('CHAR(20)', false),
-        "name" => array('CHAR(255)', false),
-        "presid" => array('CHAR(20)', false),
-        "obj" => array('CHAR(255)', false),
-        "type" => array('CHAR(5)', false),
-        "primary" => 'id');
+    /**
+     * Media settings
+     */
+    protected $settings = array(
+        'upl_types'=>"pdf,doc,docx,ppt,pptx,opt,odp",
+        'upl_maxsize'=>10000000
+    );
 
     protected $directory;
     protected $maxsize;
@@ -54,11 +51,10 @@ class Media extends AppTable{
      * @param null $file_id
      */
     function __construct($file_id=null) {
-        parent::__construct('Media', $this->table_data);
-        $this->directory = PATH_TO_APP.'/uploads/';
-        $AppConfig = new AppConfig();
-        $this->maxsize = $AppConfig->upl_maxsize;
-        $this->allowed_types = explode(',', $AppConfig->upl_types);
+        parent::__construct();
+        $this->directory = PATH_TO_APP . '/uploads/';
+        $this->maxsize = $this->settings['upl_maxsize'];
+        $this->allowed_types = explode(',', $this->settings['upl_types']);
 
         // Create uploads folder if it does not exist yet
         if (!is_dir($this->directory)) {
@@ -96,7 +92,7 @@ class Media extends AppTable{
      */
     public function get_uploads($presid, $obj_name) {
         $uploads = array();
-        foreach ($this->db->select($this->tablename, array('*'), array('presid'=>$presid, 'obj'=>$obj_name)) as $key=>$item) {
+        foreach ($this->db->resultSet($this->tablename, array('*'), array('presid'=>$presid, 'obj'=>$obj_name)) as $key=> $item) {
             $uploads[$item['fileid']] =$item;
         }
         return $uploads;
@@ -124,7 +120,7 @@ class Media extends AppTable{
      * @return bool
      */
     protected function files2db() {
-        $dbfiles = $this->db->select($this->tablename, array('filename'));
+        $dbfiles = $this->db->resultSet($this->tablename, array('filename'));
         $files = scandir($this->directory);
         foreach ($dbfiles as $filename) {
             // Delete Db entry if the file does not exit on the server
@@ -134,7 +130,7 @@ class Media extends AppTable{
                 $data = mysqli_fetch_assoc($req);
                 $file = new Media($data['fileid']);
                 if  (!$this->db->delete($this->tablename, array('fileid'=>$file->fileid))) {
-                    AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
+                    Logger::get_instance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;
                 }
             }
@@ -153,14 +149,14 @@ class Media extends AppTable{
         // First check the file
         $result['error'] = $this->checkupload($file);
         if ($result['error'] !== true) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+            Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);
             return $result;
         }
 
         // Second: Proceed to upload
         $result = $this->upload($file);
         if ($result['error'] !== true) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+            Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);
             return $result;
         }
 
@@ -176,10 +172,11 @@ class Media extends AppTable{
         // Third: add to the Media table
         $content = $this->parsenewdata(get_class_vars(get_called_class()), $data,
             array('directory','maxsize','allowed_types'));
-        $result['error'] = $this->db->addcontent($this->tablename,$content);
-        if ($result['error'] !== true) {
+        if (!$this->db->insert($this->tablename,$content)) {
             $result['error'] = 'SQL: Could not add the file to the media table';
-            AppLogger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+            Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+        } else {
+            $result['error'] = true;
         }
         $data['error'] = $result['error'];
         $data['input'] = self::hidden_input($data);
@@ -230,15 +227,15 @@ class Media extends AppTable{
     public function add_presid($filename, $presid, $obj_name) {
         $data = $this->get(array('fileid'=>$filename, 'obj'=>$obj_name));
         if (!empty($data)) {
-            if ($this->db->updatecontent($this->tablename, array('presid'=>$presid), array('fileid'=>$filename, 'obj'=>$obj_name))) {
-                AppLogger::get_instance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$presid}) associated with file ({$filename})");
+            if ($this->db->update($this->tablename, array('presid'=>$presid), array('fileid'=>$filename, 'obj'=>$obj_name))) {
+                Logger::get_instance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$presid}) associated with file ({$filename})");
                 return true;
             } else {
-                AppLogger::get_instance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$presid}) to file ({$filename})");
+                Logger::get_instance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$presid}) to file ({$filename})");
                 return false;
             }
         } else {
-            AppLogger::get_instance(APP_NAME, get_class($this))->error(
+            Logger::get_instance(APP_NAME, get_class($this))->error(
                 "Could not associate id ({$obj_name}: {$presid}) to file ({$filename}) because this file does not exit in our database");
             return false;
         }
@@ -253,31 +250,31 @@ class Media extends AppTable{
     public function delete(array $id) {
         $data = $this->get(array('fileid'=>$id));
         if (!empty($data)) {
-            if (is_file($this->directory . $data[0]['filename'])) {
-                if (unlink($this->directory . $data[0]['filename'])) {
+            if (is_file($this->directory . $data['filename'])) {
+                if (unlink($this->directory . $data['filename'])) {
                     if ($this->db->delete($this->tablename, $id)) {
                         $result['status'] = true;
-                        $result['msg'] = "File [name: {$data[0]['filename']}] Deleted";
-                        AppLogger::get_instance(APP_NAME, __CLASS__)->info($result['msg']);
+                        $result['msg'] = "File [name: {$data['filename']}] Deleted";
+                        Logger::get_instance(APP_NAME, __CLASS__)->info($result['msg']);
                     } else {
                         $result['status'] = false;
-                        $result['msg'] = "Could not remove file entry from database [name: {$data[0]['filename']}]";
-                        AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                        $result['msg'] = "Could not remove file entry from database [name: {$data['filename']}]";
+                        Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
                     }
                 } else {
                     $result['status'] = false;
-                    $result['msg'] = "Could not delete file [name: {$data[0]['filename']}]";
-                    AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                    $result['msg'] = "Could not delete file [name: {$data['filename']}]";
+                    Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
                 }
             } else {
                 $result['status'] = false;
-                $result['msg'] = "File does not exist [name: {$data[0]['filename']}]";
-                AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                $result['msg'] = "File does not exist [name: {$data['filename']}]";
+                Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
             }
         } else {
             $result['status'] = false;
             $result['msg'] = "Could not find media [id: {$id}] in our database";
-            AppLogger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+            Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
         }
 
         return $result;
@@ -375,9 +372,52 @@ class Media extends AppTable{
     // VIEWS
 
     /**
+     * Settings form
+     * @param array $settings
+     * @return array
+     */
+    public static function settingsForm(array $settings) {
+        return array(
+            'title'=>'Media settings',
+            'body'=>"
+                    <form method='post' action='php/form.php'>
+                        <div class='submit_btns'>
+                            <input type='submit' name='modify' value='Modify' class='processform'>
+                        </div>
+                        <input type='hidden' name='config_modify' value='true'/>
+                        <div class='form-group'>
+                            <input type='text' name='upl_types' value='{$settings['upl_types']}'>
+                            <label>Allowed file types (upload)</label>
+                        </div>
+                        <div class='form-group'>
+                            <input type='text' name='upl_maxsize' value='{$settings['upl_maxsize']}'>
+                            <label>Maximum file size (in Kb)</label>
+                        </div>
+                        <div class='feedback' id='feedback_site'></div>
+                    </form>
+        ");
+    }
+
+    /**
+     * Generate list of allowed file types
+     * @return null|string
+     */
+    private static function getTypes() {
+        $self = new self();
+        $types = explode(',', $self->settings['upl_types']);
+
+        $type_list = null;
+        foreach ($types as $type) {
+            $type_list .= "<div class='file_type'>{$type}</div>";
+        }
+        return $type_list;
+    }
+
+    /**
      * Renders upload form
      * @param array $links
-     * @param string $id: uploader id (must be identical to the corresponding submission form)
+     * @param string $id : uploader id (must be identical to the corresponding submission form)
+     * @param null $controller
      * @return string
      */
     public static function uploader(array $links=array(), $id='uploader', $controller=null) {
@@ -389,12 +429,8 @@ class Media extends AppTable{
             }
         }
 
-        $types = explode(',', AppConfig::getInstance()->upl_types);
-        $type_list = null;
-        foreach ($types as $type) {
-            $type_list .= "<div class='file_type'>{$type}</div>";
-        }
-
+        // List of allowed file types
+        $type_list = self::getTypes();
 
         $result = "
         <div class='upl_container' id='{$id}' data-controller='{$controller}'>
@@ -464,7 +500,7 @@ class Media extends AppTable{
                 // Show files list as links
                 $menu = null;
                 foreach ($links as $file_id=>$info) {
-                    $url_link = AppConfig::$site_url."uploads/".$info['filename'];
+                    $url_link = App::getAppUrl() . "uploads/".$info['filename'];
                     $menu .= "
                     <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
                                 margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>

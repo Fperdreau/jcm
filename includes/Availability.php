@@ -6,17 +6,7 @@
  * Date: 15/04/2016
  * Time: 19:24
  */
-class Availability extends AppTable {
-
-    /**
-     * @var array
-     */
-    protected $table_data = array(
-        "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "username"=>array("CHAR(255)",false),
-        "date"=>array("DATE NOT NULL", false),
-        "primary"=>'id'
-    );
+class Availability extends BaseModel {
 
     /**
      * @var string $date
@@ -32,7 +22,7 @@ class Availability extends AppTable {
      * Constructor
      */
     public function __construct() {
-        parent::__construct('Availability', $this->table_data);
+        parent::__construct();
     }
 
     /**
@@ -41,7 +31,7 @@ class Availability extends AppTable {
      */
     public function add(array $post) {
         $class_vars = get_class_vars(get_class());
-        return $this->db->addcontent($this->tablename, $this->parsenewdata($class_vars, $post, array('session')));
+        return $this->db->insert($this->tablename, $this->parsenewdata($class_vars, $post, array('session')));
     }
 
     /**

@@ -31,7 +31,7 @@
  * and environmental information (list of tables associated to the application,...).
  */
 
-class AppDb {
+class Db {
 
     /**
      * Link to the database
@@ -39,19 +39,6 @@ class AppDb {
      * @var mysqli
      */
     private $bdd = NULL;
-
-    /**
-     * Default settings
-     * @var array
-     */
-    static $default = array(
-        "version"=>false,
-        "dbname"=>"test",
-        "host"=>"localhost",
-        "dbprefix"=>"jcm",
-        "username"=>"root",
-        "passw"=>""
-    );
 
     /**
      * @var array $config
@@ -79,8 +66,13 @@ class AppDb {
     public $charset = 'utf8';
 
     /**
+     * @var bool
+     */
+    private $connected = false;
+
+    /**
      * Db instance
-     * @var null|AppDb
+     * @var null|Db
      */
     private static $instance = null;
 
@@ -88,34 +80,18 @@ class AppDb {
      * Constructor
      */
     private function __construct() {
+        // Get DB config
         $this->config = self::get_config();
-        $this->tablesname = array(
-            "Presentation" => $this->config['dbprefix'] . "_presentations",
-            "AppConfig" => $this->config['dbprefix'] . "_config",
-            "User" => $this->config['dbprefix'] . "_users",
-            "Session" => $this->config['dbprefix'] . "_session",
-            "Posts" => $this->config['dbprefix'] . "_post",
-            "Media" => $this->config['dbprefix'] . "_media",
-            "Plugins" => $this->config['dbprefix'] . "_plugins",
-            "Pages" => $this->config['dbprefix'] . "_pages",
-            "Crons" => $this->config['dbprefix'] . "_crons",
-            "MailManager" => $this->config['dbprefix'] . "_mailmanager",
-            "DigestMaker" => $this->config['dbprefix'] . "_digestmaker",
-            "ReminderMaker" => $this->config['dbprefix'] . "_remindermaker",
-            "Assignment" => $this->config['dbprefix'] . "_assignment",
-            "Availability" => $this->config['dbprefix'] . "_availability",
-            "Suggestion" => $this->config['dbprefix'] . "_suggestion",
-            "Vote" => $this->config['dbprefix'] . "_vote",
-            "Bookmark" => $this->config['dbprefix'] . "_bookmark"
-        );
+        $this->bdd_connect();
     }
 
     /**
      * Factory for Db instance
-     * @return AppDb
+     * @return Db
      */
     public static function getInstance() {
         if (is_null(self::$instance)) {
+            Logger::get_instance(APP_NAME, __CLASS__)->debug('Creating new instance of DB');
             self::$instance = new self();
         }
         return self::$instance;
@@ -126,21 +102,16 @@ class AppDb {
      * @return array
      */
     public static function get_config() {
-        $version_file = PATH_TO_CONFIG . "config.php";
-        if (is_file($version_file)) {
-            require $version_file;
-            if (!isset($config)) {
-                $config['version'] = isset($version) ? $version : "unknown";
-                $config['host'] = $host;
-                $config['username'] = $username;
-                $config['passw'] = $passw;
-                $config['dbname'] = $dbname;
-                $config['dbprefix'] = str_replace('_','',$db_prefix);
-            }
-        } else {
-            $config = self::$default;
-        }
-        return $config;
+        return Config::getInstance()->getAll();
+    }
+
+    /**
+     * Generate table name
+     * @param $name
+     * @return string
+     */
+    public function gen_name($name) {
+        return $this->config['dbprefix'] . '_' . strtolower($name);
     }
 
     /**
@@ -150,27 +121,33 @@ class AppDb {
      */
     public function bdd_connect() {
 
-        try {
-            if (!$this->bdd = @mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw'])) {
-                throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
+        if (!$this->connected) {
+            try {
+                if (!$this->bdd = @mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw'])) {
+                    throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
+                }
+            } catch(Exception $e) {
+                $result['status'] = false;
+                $result['msg'] = $e->getMessage();
+                Logger::get_instance(APP_NAME)->critical($result['msg']);
+                die($result['msg']);
             }
-        } catch(Exception $e) {
-            $result['status'] = false;
-            $result['msg'] = $e->getMessage();
-            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
-            die($result['msg']);
-        }
 
-        if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
-            $result['msg'] = "Database '" . $this->config['dbname'] . "' cannot be selected<br/>".mysqli_error($this->bdd);
-            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
-            die(json_encode($result['msg']));
-        }
+            if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
+                $result['msg'] = "Database '" . $this->config['dbname'] . "' cannot be selected<br/>".mysqli_error($this->bdd);
+                Logger::get_instance(APP_NAME)->critical($result['msg']);
+                die(json_encode($result['msg']));
+            }
 
-        if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
-            $result['msg'] = "Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd);
-            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
-            die(json_encode($result['msg']));
+            if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
+                $result['msg'] = "Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd);
+                Logger::get_instance(APP_NAME)->critical($result['msg']);
+                die(json_encode($result['msg']));
+            }
+
+            $this->connected = true;
+            Logger::get_instance(APP_NAME)->debug('Connected to DB');
+
         }
 
         return $this->bdd;
@@ -186,14 +163,14 @@ class AppDb {
         if (!$link) {
             $result['status'] = false;
             $result['msg'] = "Failed to connect to the database";
-            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
+            Logger::get_instance(APP_NAME)->critical($result['msg']);
             return $result;
         }
 
         if (!@mysqli_select_db($link,$config['dbname'])) {
             $result['status'] = false;
             $result['msg'] = "Database '".$config['dbname']."' cannot be selected";
-            AppLogger::get_instance(APP_NAME)->critical($result['msg']);
+            Logger::get_instance(APP_NAME)->critical($result['msg']);
             return $result;
         }
         $result['status'] = true;
@@ -211,7 +188,7 @@ class AppDb {
     /**
      * Get list of tables associated to the application
      * @param null|string $id: table name
-     * @return array
+     * @return string|null|array
      */
     public function getAppTables($id=null) {
         $sql = "SHOW TABLES FROM " . $this->config['dbname'] . " LIKE '" . $this->config['dbprefix'] . "%'";
@@ -223,7 +200,15 @@ class AppDb {
             $appTables[$tableId] = $row[0];
         }
         $this->apptables = $appTables;
-        return (is_null($id)) ? $appTables : $appTables[strtolower($id)];
+        if (!is_null($id)) {
+            if (key_exists(strtolower($id), $appTables)) {
+                return $appTables[strtolower($id)];
+            } else {
+                return null;
+            }
+        } else {
+            return $appTables;
+        }
     }
 
     /**
@@ -232,35 +217,21 @@ class AppDb {
      * @return int
      */
     public function tableExists($table) {
-		$sql = 'SHOW COLUMNS FROM '.$table;
-		if (self :: send_query($sql,true)) {
-			$result = 1;
-		} else {
-			$result = 0;
-		}
-		return $result;
+		return $this->send_query("SHOW TABLES LIKE '{$table}'")->num_rows > 0;
 	}
 
     /**
      * Send query to the database
      * @param $sql
-     * @param bool $silent
      * @return bool|mysqli_result
      */
-    public function send_query($sql,$silent=false) {
-        $this->bdd_connect();
-        $req = mysqli_query($this->bdd, $sql);
+    public function send_query($sql) {
+        $req = $this->bdd->query($sql);
         if ($req === false) {
             $msg = "Database Error [{$this->bdd->errno}]: COMMAND [{$sql}]: {$this->bdd->error}";
-            AppLogger::get_instance(APP_NAME, get_called_class())->error($msg);
-            if ($silent == false) {
-                //echo json_encode('SQL command: '.$sql.' <br>SQL message: <br>'.mysqli_error($this->bdd).'<br>');
-            }
-            return false;
-        } else {
-            self::bdd_close();
-            return $req;
+            Logger::get_instance(APP_NAME, get_called_class())->error($msg);
         }
+        return $req;
     }
 
     /**
@@ -269,8 +240,15 @@ class AppDb {
      * @return string
      */
     public function escape_query($query) {
-        $this->bdd_connect();
         return mysqli_real_escape_string($this->bdd,$query);
+    }
+
+    /**
+     * Get id of last inserted row
+     * @return mixed
+     */
+    public function getLastId() {
+        return mysqli_insert_id($this->bdd);
     }
 
     /**
@@ -385,17 +363,21 @@ class AppDb {
      * Add content (row) to a table
      * @param $table_name
      * @param $content
-     * @return bool|mysqli_result
+     * @return bool|int: failure or Id of inserted row
      */
-    public function addcontent($table_name,$content) {
+    public function insert($table_name, $content) {
         $cols_name = array();
         $values = array();
         foreach ($content as $col=>$value) {
             $cols_name[] = $col;
             $values[] = "'".$this->escape_query($value)."'";
         }
-		$sql = 'INSERT INTO '.$table_name.'('.implode(',',$cols_name).') VALUES('.implode(',',$values).')';
-        return self::send_query($sql);
+
+        if ($this->send_query('INSERT INTO '.$table_name.'('.implode(',',$cols_name).') VALUES('.implode(',',$values).')')) {
+            return $this->bdd->insert_id;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -413,9 +395,7 @@ class AppDb {
 		}
         $cond = $cpt > 1 ? implode(' AND ', $cond) : implode('', $cond);
 
-		$sql = "DELETE FROM {$table_name} WHERE " . $cond;
-        self::send_query($sql);
-        return true;
+        return $this->send_query("DELETE FROM {$table_name} WHERE " . $cond);
     }
 
     /**
@@ -423,9 +403,9 @@ class AppDb {
      * @param string $table_name
      * @param array $content
      * @param array $reference
-     * @return bool
+     * @return bool|mysqli_result
      */
-    public function updatecontent($table_name, array $content, $reference=array()) {
+    public function update($table_name, array $content, $reference=array()) {
 
         # Parse conditions
         $nb_ref = count($reference);
@@ -443,12 +423,7 @@ class AppDb {
         }
         $set = implode(',',$set);
 
-		$sql = "UPDATE {$table_name} SET {$set} WHERE {$cond}";
-        if (self::send_query($sql)) {
-            return true;
-        } else {
-            return false;
-        }
+        return $this->send_query("UPDATE {$table_name} SET {$set} WHERE {$cond}");
     }
 
     /**
@@ -458,7 +433,7 @@ class AppDb {
      * @param bool $overwrite
      * @return bool
      */
-    public function makeorupdate($tablename,$tabledata,$overwrite=false) {
+    public function makeorupdate($tablename, $tabledata, $overwrite=false) {
         $columns = array();
         $defcolumns = array();
         foreach ($tabledata as $column=>$data) {
@@ -478,11 +453,14 @@ class AppDb {
         $columndata = implode(',',$columns);
 
         // If overwrite, then we simply create a new table and drop the previous one
-        if ($overwrite || self::tableExists($tablename) == false) {
-            self::createtable($tablename,$columndata,$overwrite);
+        if ($overwrite || $this->tableExists($tablename) == false) {
+            Logger::get_instance(APP_NAME, get_called_class())->info("Creating table '{$tablename}'");
+            $this->createtable($tablename,$columndata,$overwrite);
         } else {
+            Logger::get_instance(APP_NAME, get_called_class())->info("Updating table schema '{$tablename}'");
+
             // Get existent columns
-            $keys = self::getColumns($tablename);
+            $keys = $this->getColumns($tablename);
             // Add new non existent columns or update previous version
             $prevcolumn = "id";
             foreach ($tabledata as $column=>$data) {
@@ -495,27 +473,27 @@ class AppDb {
                     if ($oldname !== false && in_array($oldname,$keys)) {
                         $sql = "ALTER TABLE $tablename CHANGE $oldname $column $datatype";
                         if ($default !== false) $sql .= " DEFAULT '$default'";
-                        self::send_query($sql);
+                        $this->send_query($sql);
                     // If the column does not exist already, then we simply add it to the table
                     } elseif (!in_array($column,$keys)) {
-                        self::add_column($tablename,$column,$datatype,$prevcolumn);
+                        $this->add_column($tablename,$column,$datatype,$prevcolumn);
                     // Check if the column's data type is consistent with the new version
                     } else {
                         $sql = "ALTER TABLE $tablename MODIFY $column $datatype";
                         if ($default !== false) $sql .= " DEFAULT '$default'";
-                        self::send_query($sql);
+                        $this->send_query($sql);
                     }
                     $prevcolumn = $column;
                 }
             }
 
             // Get updated columns
-            $keys = self::getColumns($tablename);
+            $keys = $this->getColumns($tablename);
             // Remove deprecated columns
             foreach ($keys as $key) {
                 if (!in_array($key,$defcolumns)) {
                     $sql = "ALTER TABLE $tablename DROP COLUMN $key";
-                    self::send_query($sql);
+                    $this->send_query($sql);
                 }
             }
         }
@@ -545,11 +523,46 @@ class AppDb {
      * @param null|string $opt: options (e.g. "ORDER BY year")
      * @return array : associate array
      */
-    public function select($table_name, array $fields, array $where=array(), $opt=null) {
+    public function resultSet($table_name, array $fields, array $where=array(), $opt=null) {
+        $parsed = self::parse($fields, $where);
+
+        $req = $this->send_query("SELECT {$parsed['columns']} FROM {$table_name}" . " {$parsed['cond']}" . " {$opt}");
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+
+        return $data;
+	}
+
+    /**
+     * Get content from table (given a column and a row(optional))
+     * @param string $table_name
+     * @param array $fields : e.g. array('name','id')
+     * @param array $where : e.g. array('city'=>'Paris')
+     * @param null|string $opt : options (e.g. "ORDER BY year")
+     * @return array
+     */
+    public function single($table_name, array $fields, array $where=array(), $opt=null) {
+        $parsed = self::parse($fields, $where);
+
+        $req = $this->send_query("SELECT {$parsed['columns']} FROM {$table_name}" . " {$parsed['cond']}" . " {$opt}");
+
+        return $req->fetch_assoc();
+    }
+
+    /**
+     * Parse query arguments
+     * @param $fields
+     * @param $where
+     * @return array
+     */
+	private static function parse($fields, $where) {
         $cols = implode(',', $fields); // format columns name
 
         // Build query
         $params = null;
+        $cond = null;
         if (!empty($where)) {
             $cond = array(); // Condition (e.g.: name=:name)
             foreach ($where as $col => $value) {
@@ -572,13 +585,8 @@ class AppDb {
             $cond = null;
         }
 
-        $req = self::send_query("SELECT {$cols} FROM {$table_name}" . " {$cond}" . " {$opt}");
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-        return $data;
-	}
+        return array('cond'=>$cond, 'columns'=>$cols);
+    }
 
     /**
      * Get content from column
@@ -615,7 +623,7 @@ class AppDb {
             }
             return $data;
         } else {
-            AppLogger::get_instance(APP_NAME, __CLASS__)->critical("Database error: COMMAND [{$sql}]");
+            Logger::get_instance(APP_NAME, __CLASS__)->critical("Database error: COMMAND [{$sql}]");
             throw new Exception("Database error: COMMAND [{$sql}]");
         }
 
@@ -626,8 +634,10 @@ class AppDb {
      * @return null
      */
     public function bdd_close() {
-		mysqli_close($this->bdd);
-		$bdd = null;
-        return $bdd;
+        if ($this->connected) {
+            mysqli_close($this->bdd);
+            $this->bdd = null;
+        }
+        return $this->bdd;
 	}
 }

@@ -27,19 +27,25 @@
 /**
  * Class MailManager
  */
-class MailManager extends AppTable {
+class MailManager extends BaseModel {
 
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "date" => array("DATETIME", false),
-        "mail_id" => array("CHAR(15)", false),
-        "status" => array("INT(1)", 0),
-        "recipients" => array("TEXT NOT NULL", false),
-        "attachments" => array("TEXT NOT NULL", false),
-        "content" => array("TEXT NOT NULL"),
-        "subject" => array("TEXT(500)", false),
-        "primary" => "id");
+    /**
+     * MailManager settings
+     * @var array $Settings
+     */
+    protected $settings = array(
+        'mail_from'=>"jcm@jcm.com",
+        'mail_from_name'=>"Journal Club Manager",
+        'mail_host'=>null,
+        'mail_port'=>null,
+        'mail_username'=>null,
+        'mail_password'=>null,
+        'SMTP_secure'=>"ssl",
+        'pre_header'=>"[JCM]",
+        'SMTP_debug'=>1
+    );
 
+    // Entity properties
     public $date; // Date of creation
     public $status; // Email status (1:sent, 0:not sent)
     public $recipients; // Email's recipients (comma-separated list of emails)
@@ -47,12 +53,24 @@ class MailManager extends AppTable {
     public $content; // Email body content
     public $subject; // Email header
     public $attachments; // Attached files (comma-separated)
+    public $logs; // Logs
+
+    /**
+     * @var Lab $Lab: Lab instance
+     */
+    private $Lab;
+
+    /**
+     * @var Mail $Mail: Mail instance
+     */
+    private $Mail;
 
     /**
      * Constructor
      */
-    function __construct() {
-        parent::__construct("MailManager", $this->table_data);
+    public function __construct() {
+        parent::__construct();
+        $this->setLab();
     }
 
     /**
@@ -67,7 +85,41 @@ class MailManager extends AppTable {
         $class_vars = get_class_vars("MailManager");
 
         $content = $this->parsenewdata($class_vars, $post);
-        return $this->db->addcontent($this->tablename, $content);
+        return $this->db->insert($this->tablename, $content);
+    }
+
+    /**
+     * Set Mail instance
+     * @param array $settings: Mail settings
+     * @return void
+     */
+    private function setMail(array $settings) {
+        $this->Mail = new Mail($settings);
+    }
+
+    /**
+     * Lab setter
+     * @return void
+     */
+    private function setLab() {
+        $this->Lab = new Lab();
+    }
+
+    /**
+     * Set custom settings
+     * @param array $settings
+     */
+    private function setSettings(array $settings) {
+        foreach ($settings as $key=>$value) {
+            if (in_array($key, array_keys($this->settings))) {
+                $this->settings[$key] = $value;
+            }
+        }
+
+        // Update Mail object if instantiated
+        if (!is_null($this->Mail)) {
+            $this->Mail->setSettings($this->settings);
+        }
     }
 
     /**
@@ -112,14 +164,12 @@ class MailManager extends AppTable {
      * @return mixed
      */
     public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null) {
-        $AppMail = new AppMail();
-
         // Generate ID
         $data['mail_id'] = $this->generateID('mail_id');
 
         // Format email content
         $auto = !isset($content['mail_from']); // Is this message sent by a human or automatically
-        $body = $AppMail->formatmail($content['body'], $data['mail_id'], $auto);
+        $body = $this->formatmail($content['body'], $data['mail_id'], $auto);
 
         $data['status'] = 0;
         $data['content'] = $body;
@@ -129,14 +179,26 @@ class MailManager extends AppTable {
         // Set sender
         if (isset($content['mail_from'])) {
             if (is_null($settings)) {
-                $settings = array();
+                $settings = $this->settings;
             }
+
+            // Add custom settings
             $settings['mail_from'] = $content['mail_from'];
             $settings['mail_from_name'] = (isset($content['mail_from_name'])) ? $content['mail_from_name'] : $content['mail_from'];
+
+            // Email title
             $content['subject'] = "Sent by {$settings['mail_from_name']} - {$content['subject']}";
         }
+
+        // Update object settings
+        if (!is_null($settings)) {
+            $this->setSettings($settings);
+        }
+
+        $content['subject'] = $this->settings['pre_header'] . ' ' . $content['subject'];
         $data['subject'] = $content['subject'];
 
+        // Add attachments
         if (!is_null($data['attachments'])) {
             $attachments = array();
             foreach (explode(',', $data['attachments']) as $file_name) {
@@ -149,14 +211,18 @@ class MailManager extends AppTable {
         // Add email to the MailManager table
         if ($this->add($data)) {
 
-            // Send email
-            if ($AppMail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed, $settings)) {
+            // Set Email instance
+            $this->setMail($this->settings);
 
+            // Send email
+            $result = $this->Mail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed);
+
+            if ($result['status'] === true) {
                 // Update MailManager table
-                $result['status'] = $this->update(array('status'=>1), array('mail_id'=>$data['mail_id']));
+                $result['status'] = $this->update(array('status'=>1, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
             } else {
-                $result['status'] = false;
-                $result['msg'] = 'Could not send email';
+                $this->update(array('status'=>0, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
+                $result['msg'] = $result['logs'];
             };
 
         } else {
@@ -166,18 +232,67 @@ class MailManager extends AppTable {
 
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
+        } else {
+            Logger::get_instance(APP_NAME, get_class($this))->error($result['msg']);
+            $result['msg'] = 'Oops, something went wrong!';
         }
-        AppLogger::get_instance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
     /**
+     * Send a test email to verify the email host settings
+     * @param array $data: email host settings
+     * @param null|string $to: recipient email
+     * @return mixed
+     */
+    public function send_test_email(array $data, $to=null) {
+        if (is_null($to)) {
+            $Users = new Users();
+            $admins = $Users->getadmin('admin');
+            $to = array();
+            foreach ($admins as $key=>$admin) {
+                $to[] = $admin['email'];
+            }
+        } else {
+            $to = array($to);
+        }
+
+        $content['subject'] = 'Test: email host settings'; // Give the email a subject
+        $content['body'] = "
+        Hello,<br><br>
+        <p>This is just a test email sent to verify your email host settings. If you can read this message, it means 
+        that everything went fine and that your settings are valid!</p>
+        ";
+
+        return $this->send($content, $to, true, $data);
+    }
+
+    /**
+     * Get list of users' email
+     * @param null $type
+     * @return array
+     */
+    public static function get_mailinglist($type=null) {
+        $User = new Users();
+        $criteria = array("active"=>1);
+        if (!is_null($type)) {
+            $criteria[$type] = 1;
+        }
+        $mailing_list = array();
+        foreach ($User->all($criteria, array('order'=>'fullname')) as $key=>$item) {
+            $mailing_list[$item['fullname']] = array('email'=>$item['email'], 'username'=>$item['username']);
+        }
+
+        return $mailing_list;
+    }
+
+    /**
      * Gets contact form
-     * @param array|null $recipients : list of recipients
+     * @param string|null $recipients : list of recipients
      * @return string
      */
     public function getContactForm($recipients=null) {
-        $user = new User();
+        $user = new Users();
 
         if (!is_null($recipients)) {
             $recipients_list = array();
@@ -194,11 +309,129 @@ class MailManager extends AppTable {
             if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
         }
 
-        $sender_obj = new User($_SESSION['username']);
+        $sender_obj = new Users($_SESSION['username']);
         $sender = array('mail_from'=>$sender_obj->email, 'mail_from_name'=>$sender_obj->fullname);
+
         // Upload
         $uploader = Media::uploader();
         return self::contactForm($uploader, $mailing_list, $recipients_list, $sender);
+    }
+
+    /**
+     * Send a verification email to organizers when someone signed up to the application.
+     * @param $hash
+     * @param $user_mail
+     * @param $username
+     * @return bool
+     */
+    public function send_verification_mail($hash,$user_mail,$username) {
+        $Users = new Users();
+        $admins = $Users->getadmin('admin');
+        $to = array();
+        foreach ($admins as $key=>$admin) {
+            $to[] = $admin['email'];
+        }
+
+        $content['subject'] = 'Signup | Verification'; // Give the email a subject
+        $authorize_url = URL_TO_APP."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
+        $deny_url = URL_TO_APP."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
+
+        $content['body'] = "
+        Hello,<br><br>
+        <p><b>$username</b> wants to create an account.</p>
+        <p><a href='$authorize_url'>Authorize</a></p>
+        or
+        <p><a href='$deny_url'>Deny</a></p>
+        ";
+
+        return $this->send($content, $to);
+    }
+
+    /**
+     * Send an email to the whole mailing list (but only to users who agreed upon receiving emails)
+     * @param $subject
+     * @param $body
+     * @param null $type
+     * @param null $attachment
+     * @return bool
+     */
+    function send_to_mailinglist($subject,$body,$type=null,$attachment = NULL) {
+        $to = array();
+        foreach (self::get_mailinglist($type) as $fullname=>$data) {
+            $to[] = $data['email'];
+        }
+        if ($this->send($to,$subject,$body,$attachment)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Format email (html)
+     * @param string $content
+     * @param null $email_id
+     * @param bool $auto: has this email been sent automatically
+     * @return string
+     */
+    public function formatmail($content, $email_id=null, $auto=True) {
+        $show_in_browser = (is_null($email_id)) ? null:
+            "<a href='" . URL_TO_APP . "pages/mail.php?mail_id={$email_id}"
+            . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
+        $profile_url = URL_TO_APP.'index.php?page=member/profile';
+        $css_title = "
+                color: rgba(255,255,255,1);
+                text-align: left;
+                font-size: 0;
+                font-weight: 300;
+                margin: 0;
+                padding: 0;
+                position: relative;
+        ";
+        $footer = self::footer_template($show_in_browser, $profile_url, $auto);
+        $body = "
+            <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
+                <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
+                    <div style='padding: 10px 20px;  margin: 2% auto; width: 100%; background-color: rgba(68, 68, 68, 1);
+                     border: 1px solid #e0e0e0; font-size: 2em; text-align: center;'>
+                        <div style='{$css_title}'>
+                            <span style='font-size: 30px; font-weight: 400;'>JCM</span>
+                            <span style='font-size: 25px; color: rgba(200,200,200,.8);'>anager</span>
+                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>" . $this->Lab->getSettings('name') . "</div>
+                        </div>
+                    </div>
+
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; text-align: justify;'>
+                        {$content}
+                    </div>
+
+                    {$footer}
+                </div>
+            </div>";
+        return $body;
+    }
+
+    /**
+     * Render email footer
+     * @param $url_browser
+     * @param $profile_url
+     * @param bool $auto: has this email been sent automatically
+     * @return string
+     */
+    static function footer_template($url_browser, $profile_url, $auto=True) {
+        $auto_msg = ($auto) ? "
+            <div style='border-top: 1px solid #e0e0e0;'>This email has been sent automatically. You can choose to no longer receive email 
+                notifications by going to your
+                <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
+            </div>
+        " : null;
+        return "
+        <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
+            <div style='text-align: center;'>{$url_browser}</div>
+            {$auto_msg}
+            <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='" . App::repository . "' style='color: #CF5151; text-decoration: none;'>" . App::app_name . " " . App::copyright . "</a></div>
+        </div>
+        ";
     }
 
     /**
@@ -312,6 +545,87 @@ class MailManager extends AppTable {
             </form>
         </div>
         ";
+    }
+
+    /**
+     * Render settings form
+     * @param array $settings MailManager->settings
+     * @return array
+     */
+    public static function settingsForm(array $settings) {
+        // Make SMTP options list
+        $debug_options = "";
+        for ($i=0; $i<=5; $i++) {
+            $selected = $settings['SMTP_debug'] == $i ? "selected" : null;
+            $label = ($i == 0) ? 'Off' : 'Level ' . $i;
+            $debug_options .= "
+             <option value='{$i}' {$selected}>{$label}</option>
+            ";
+        }
+
+        return  array(
+            'title'=>'Email settings',
+            'body'=>"
+            <form action='php/router.php?controller=MailManager&action=updateSettings' method='post'>
+                <input type='hidden' name='version' value='" . App::version. "'>
+                <input type='hidden' name='operation' value='mail_settings'/>
+
+                <h3>Mailing service</h3>
+                <div class='form-group'>
+                    <input name='mail_from' type='email' value='{$settings['mail_from']}'>
+                    <label for='mail_from'>Sender Email address</label>
+                </div>
+                <div class='form-group'>
+                    <input name='mail_from_name' type='text' value='{$settings['mail_from_name']}'>
+                    <label for='mail_from_name'>Sender name</label>
+                </div>
+                <div class='form-group'>
+                    <input name='mail_host' type='text' value='{$settings['mail_host']}'>
+                    <label for='mail_host'>Email host</label>
+                </div>
+                <div class='form-group'>
+                    <select name='SMTP_secure'>
+                        <option value='{$settings['SMTP_secure']}' selected='selected'>{$settings['SMTP_secure']}</option>
+                        <option value='ssl'>ssl</option>
+                        <option value='tls'>tls</option>
+                        <option value='none'>none</option>
+                     </select>
+                     <label for='SMTP_secure'>SMTP access</label>
+                </div>
+                <div class='form-group'>
+                    <select name='SMTP_debug'>
+                        {$debug_options}
+                     </select>
+                     <label for='SMTP_secure'>SMTP debug</label>
+                </div>
+                <div class='form-group'>
+                    <input name='mail_port' type='text' value='{$settings['mail_port']}'>
+                    <label for='mail_port'>Email port</label>
+                </div>
+                <div class='form-group'>
+                    <input name='mail_username' type='text' value='{$settings['mail_username']}'>
+                    <label for='mail_username'>Email username</label>
+                </div>
+                <div class='form-group'>
+                    <input name='mail_password' type='password' value='{$settings['mail_password']}'>
+                    <label for='mail_password'>Email password</label>
+                </div>
+                <div class='form-group'>
+                    <input name='pre_header' type='text' value='{$settings['pre_header']}'>
+                    <label for='mail_password'>Email tag</label>
+                </div>
+                <div class='form-group'>
+                    <input name='test_email' type='email' value=''>
+                    <label for='test_email'>Your email (for testing only)</label>
+                </div>
+
+                <div class='submit_btns'>
+                    <input type='submit' value='Test settings' class='test_email_settings'> 
+                    <input type='submit' value='Next' class='process_form'>
+                </div>
+            </form>
+            <div class='feedback'></div>
+        ");
     }
 
 }

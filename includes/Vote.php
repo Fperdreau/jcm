@@ -6,16 +6,7 @@
  * Date: 23/02/2017
  * Time: 08:19
  */
-class Vote extends AppTable {
-
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "ref_id" => array("BIGINT(15)", false),
-        "ref_obj" => array("CHAR(55)", false),
-        "date" => array("DATETIME", false),
-        "username" => array("CHAR(255) NOT NULL"),
-        "primary" => "id"
-    );
+class Vote extends BaseModel {
 
     public $id;
     public $ref_id;
@@ -24,27 +15,22 @@ class Vote extends AppTable {
     public $username;
 
     /**
-     * Constructor
-     */
-    public function __construct(){
-        parent::__construct(__CLASS__, $this->table_data);
-    }
-
-    /**
      * Add vote to db if it does not already exist
      * @param array $post
      * @return array
      */
     public function add(array $post) {
         $result = array('status'=>false, 'msg'=>null);
-        if (User::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
+        if (Auth::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
                 'username'=>$_SESSION['username']))) {
             $post['date'] = date('Y-m-d');
             $post['username'] = $_SESSION['username'];
-            $result['status'] = $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
-                $post));
+            $result['status'] = $this->db->insert($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
+                $post)) !== false;
             if ($result['status']) {
-                $result['msg'] = self::getIcon($post['ref_id'], $post['ref_obj'], $post['username']);
+                $info = $this->get_summary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
+                $result['count'] = $info['count'];
+                $result['state'] = $info['status'];
             }
         }
 
@@ -59,7 +45,7 @@ class Vote extends AppTable {
      */
     public function delete(array $post) {
         $result = array('status'=>false, 'msg'=>null);
-        if (User::is_logged()) {
+        if (Auth::is_logged()) {
             $id = array(
                 'ref_id'=>$post['ref_id'],
                 'ref_obj'=>$post['ref_obj'],
@@ -67,7 +53,9 @@ class Vote extends AppTable {
             );
             $result['status'] = $this->db->delete($this->tablename, $id);
             if ($result['status']) {
-                $result['msg'] = self::getIcon($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
+                $info = $this->get_summary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
+                $result['count'] = $info['count'];
+                $result['state'] = $info['status'];
             }
         }
         return $result;
@@ -84,19 +72,47 @@ class Vote extends AppTable {
     }
 
     /**
+     * Get summary information
+     * @param $id: reference id
+     * @param $ref_obj: reference class
+     * @param $username: username
+     * @return array: array('count'=>int, 'status'=>boolean)
+     */
+    public function get_summary($id, $ref_obj, $username) {
+        $data = $this->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
+        return array(
+            'count' => !empty($data) ? count($data) : 0,
+            'status' => $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
+        );
+    }
+
+    /**
      * Get vote icon
      * @param $id
      * @param $ref_obj
      * @param $username
      * @return string
      */
-    public static function getIcon($id, $ref_obj, $username) {
+    public function getIcon($id, $ref_obj, $username) {
+        $info = $this->get_summary($id, $ref_obj, $username);
+        return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$info['count']), $info['status']);
+    }
+
+    /**
+     * Get vote icon
+     * @param $id
+     * @param $ref_obj
+     * @param $username
+     * @return string
+     */
+    public function getCount($id, $ref_obj, $username) {
         $self = new self();
         $data = $self->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
         $vote = !empty($data) ? count($data) : 0;
         $status = $self->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
         return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$vote), $status);
     }
+
 
     // VIEWS
     /**

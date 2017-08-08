@@ -25,10 +25,6 @@
  */
 
 
-namespace Backup;
-
-use ZipArchive;
-
 /**
  * Class Backup
  * @package Core\Backup
@@ -38,11 +34,11 @@ class Backup {
     /**
      * Backup database and save it as a *.sql file. Clean backup folder (remove oldest versions) at the end.
      * @param $nbVersion: Number of previous backup versions to keep on the server (the remaining will be removed)
-     * @return bool|string : False or Path to *.sql file
+     * @return mixed: array('status'=>boolean, 'msg'=>string)
      */
     public static function backupDb($nbVersion){
         try {
-            $db = \AppDb::getInstance();
+            $db = \Db::getInstance();
             // Create Backup Folder
             $mysqlrelativedir = 'backup/mysql';
             $mysqlSaveDir = PATH_TO_APP .'/'. $mysqlrelativedir;
@@ -58,7 +54,7 @@ class Backup {
 
             // Do backup
             /* Store All AppTable name in an Array */
-            $allTables = \AppDb::getInstance()->getapptables();
+            $allTables = \Db::getInstance()->getapptables();
 
             $return = "";
             //cycle through
@@ -94,10 +90,18 @@ class Backup {
             fclose($handle);
 
             self::cleanBackups($mysqlSaveDir,$nbVersion);
-            return "$mysqlrelativedir/$fileNamePrefix.sql";
+
+            return array(
+                'status'=>true,
+                'msg'=>'Database Backup completed',
+                'filename'=>"$mysqlrelativedir/$fileNamePrefix.sql"
+            );
         } catch (\Exception $e) {
-            \AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
-            return false;
+            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+            return array(
+                'status'=>false,
+                'msg'=>'Sorry, something went wrong'
+            );
         }
 
     }
@@ -131,7 +135,7 @@ class Backup {
 
             return rmdir($dir);
         } catch (\Exception $e) {
-            \AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
             return false;
         }
     }
@@ -203,7 +207,7 @@ class Backup {
             }
             return true;
         } catch (\Exception $e) {
-            \AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
             return false;
         }
     }
@@ -215,7 +219,7 @@ class Backup {
      */
     public static function mail_backup($backup_file) {
         $mail = new \MailManager();
-        $user = new \User();
+        $user = new \Users();
 
         foreach ($user->get(array('status'=>'admin')) as $key=>$item) {
             try {
@@ -229,7 +233,7 @@ class Backup {
                 );
                 $mail->send($content, array($item['email']));
             } catch (\Exception $e) {
-                \AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
+                \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
             }
         }
         return true;
@@ -276,7 +280,7 @@ class Backup {
                 return "backup/complete/$fileNamePrefix.zip";
             }
         } catch (\Exception $e) {
-            \AppLogger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
             return false;
         }
     }

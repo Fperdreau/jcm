@@ -29,17 +29,7 @@
  *
  * Handle creation of posts
  */
-class Posts extends AppTable {
-
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "postid" => array("CHAR(50) NOT NULL"),
-        "date" => array("DATETIME", False),
-        "title" => array("VARCHAR(255) NOT NULL"),
-        "content" => array("TEXT(5000) NOT NULL", false, "post"),
-        "username" => array("CHAR(30) NOT NULL", false),
-        "homepage" => array("INT(1) NOT NULL", 0),
-        "primary" => "id");
+class Posts extends BaseModel {
 
     public $postid = "";
     public $title = "";
@@ -55,7 +45,7 @@ class Posts extends AppTable {
      * @param null $id
      */
     public function __construct($id=null) {
-        parent::__construct('Posts', $this->table_data);
+        parent::__construct();
         if (null !== $id) {
             $this->getInfo($id);
         }
@@ -91,7 +81,7 @@ class Posts extends AppTable {
 
             $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
             // Add publication to the database
-            if ($this->db->addcontent($this->tablename, $content)) {
+            if ($this->db->insert($this->tablename, $content)) {
                 return $post['postid'];
             } else {
                 return false;
@@ -222,7 +212,7 @@ class Posts extends AppTable {
             $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
             foreach ($posts_ids as $id) {
                 $post = new self($id);
-                $user = new User($post->username);
+                $user = new Users($post->username);
                 $news .= self::display($post, $user->fullname, true);
             }
         } else {
@@ -241,7 +231,7 @@ class Posts extends AppTable {
             $news = "";
             foreach ($posts_ids as $id) {
                 $post = new self($id);
-                $user = new User($post->username);
+                $user = new Users($post->username);
                 $news .= self::display($post, $user->fullname);
             }
         } else {
@@ -257,7 +247,7 @@ class Posts extends AppTable {
      */
     public function show($id) {
         $this->getInfo($id);
-        $user = new User($this->username);
+        $user = new Users($this->username);
         return self::display($this, $user->fullname, false);
     }
 
@@ -305,12 +295,12 @@ class Posts extends AppTable {
 
     /**
      * Generate selection list of news (for editing)
-     * @param User $user
+     * @param Users $user
      * @return string
      */
-    public function get_selection_list(User $user) {
+    public function get_selection_list(Users $user) {
         // Get all posted news if user has at least the organizer level, otherwise only get user's posts.
-        $post_list = (AppPage::$levels[$user->status] >= 1) ? $this->all() : $this->all(array('username'=>$user->username));
+        $post_list = (Page::$levels[$user->status] >= 1) ? $this->all() : $this->all(array('username'=>$user->username));
         if (!empty($post_list)) {
             return self::selection_menu($post_list);
         } else {
@@ -363,7 +353,7 @@ class Posts extends AppTable {
     public function editor(array $post=null, $view='body') {
         $post = (is_null($post)) ? $_POST : $post;
         $id = isset($post['id']) ? $post['id'] : false;
-        $user = new User($_SESSION['username']);
+        $user = new Users($_SESSION['username']);
         $data = $this->getInfo($id);
         return self::form($user, (object)$data[0]);
     }
@@ -417,11 +407,11 @@ class Posts extends AppTable {
 
     /**
      * Show post form
-     * @param User $user
+     * @param Users $user
      * @param null|Posts $Post
      * @return mixed
      */
-    public static function form(User $user, $Post=null) {
+    public static function form(Users $user, $Post=null) {
         if (is_null($Post)) {
             $Post = new self();
             $del_btn = "";
@@ -495,12 +485,12 @@ class Posts extends AppTable {
         $self = new self();
         $sql = "SELECT * FROM {$self->tablename}";
         $req = $self->db->send_query($sql);
-        $user = new User();
+        $user = new Users();
         while ($row = mysqli_fetch_assoc($req)) {
             $data = $user->get(array('fullname'=>$row['username']));
             if (!empty($data)) {
                 $cur_post = new self($row['postid']);
-                $cur_post->update(array('username'=>$data[0]['username']), array('postid'=>$row['postid']));
+                $cur_post->update(array('username'=>$data['username']), array('postid'=>$row['postid']));
             }
         }
     }

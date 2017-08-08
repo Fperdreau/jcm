@@ -30,12 +30,22 @@
  * Used by any class that needs to store information in database. Handle creation of tables, updates and retrieval of
  * information from the database.
  */
-class AppTable {
+class BaseModel {
 
     /**
-     * @var AppDb
+     * @var Db
      */
     protected $db; // Instantiation of db
+
+    /**
+     * @var $Settings Settings
+     */
+    protected $Settings;
+
+    /**
+     * @var $settings null|array
+     */
+    protected $settings;
 
     /**
      * @var string $tablename
@@ -50,22 +60,23 @@ class AppTable {
     /**
      * @var static array $default_exclude
      */
-    private static $default_exclude = array("id", "db", "tablename", "table_data", "logger");
+    private static $default_exclude = array("id", "db", "tablename", "table_data", "logger", 'Settings', 'settings');
 
     /**
      * Constructor
-     * @param $table_name
-     * @param $table_data
      * @param bool $plugin
      */
-    function __construct($table_name, $table_data, $plugin=False) {
-        $this->db = AppDb::getInstance();
+    public function __construct($plugin=False) {
+        $this->db = Db::getInstance();
         if ($plugin !== False) {
-            $this->tablename = $this->db->config['dbprefix'].'_'.$plugin;
+            $this->tablename = $this->db->config['dbprefix'] . '_' . $plugin;
         } else {
-            $this->tablename = $this->db->tablesname[$table_name];
+            $this->tablename = $this->getTableName();
         }
-        $this->table_data = $table_data;
+        $this->table_data = $this->get_table_data(strtolower(get_class($this)));
+
+        // Load settings
+        $this->loadSettings();
     }
 
     /**
@@ -91,25 +102,111 @@ class AppTable {
     }
 
     /**
+     * Load Settings instance
+     * @return Settings
+     */
+    protected function loadSettings() {
+        if (!is_null($this->settings) && is_null($this->Settings)) {
+            $this->Settings = new Settings(get_called_class(), $this->settings);
+            $this->settings = $this->Settings->settings;
+        }
+        return $this->Settings;
+    }
+
+    /**
+     * Load Controller settings
+     * @param null $setting
+     * @return mixed
+     * @throws Exception
+     */
+    public function getSettings($setting=null) {
+        if (!is_null($this->settings)) {
+            $this->loadSettings()->load();
+
+            if (is_null($setting)) {
+                return $this->Settings->settings;
+            } elseif (!is_null($setting) && key_exists($setting, $this->Settings->settings)) {
+                return $this->Settings->settings[$setting];
+            } else {
+                throw new Exception("Setting '{$setting}' for '" . get_called_class() . "' does not exist!");
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Update controller settings
+     * @param array|null $data
+     * @return array
+     */
+    public function updateSettings(array $data=null) {
+        if (!is_null($this->settings)) {
+            if (!is_null($data)) {
+                foreach ($data as $key=>$value) {
+                    if (key_exists($key, $this->settings)) {
+                        $this->settings[$key] = $value;
+                    }
+                }
+            }
+
+            if ($this->Settings->update($this->settings, array('object'=>__CLASS__))) {
+                return array('status'=>true, 'msg'=>'Ok');
+            } else {
+                return array('status'=>false, 'msg'=>'Sorry, something went wrong!');
+            }
+        } else {
+            return array('status'=>true, 'msg'=>'Nothing to update');
+        }
+    }
+
+    /**
      * Create or update table
      * @param bool $op
-     * @return mixed
+     * @return array
      */
-    public function setup($op=False) {
+    public function install_db($op=False) {
+        if (is_null($this->get_table_data(get_class($this)))) return array('status'=>true, 'msg'=>null);
+
         try {
-            if ($this->db->makeorupdate($this->tablename, $this->table_data, $op)) {
+            if ($this->db->makeorupdate($this->getTableName(), $this->get_table_data(get_class($this)), $op)) {
                 $result['status'] = True;
-                $result['msg'] = "'$this->tablename' created";
-                AppLogger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
+                $result['msg'] = "'{$this->tablename}' table created";
+                Logger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
                 $result['status'] = False;
-                $result['msg'] = "'$this->tablename' not created";
-                AppLogger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
+                $result['msg'] = "'{$this->tablename}' table not created";
+                Logger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
             }
             return $result;
         } catch (Exception $e) {
-            AppLogger::get_instance(APP_NAME, get_class($this))->critical($e);
-            return false;
+            Logger::get_instance(APP_NAME, get_class($this))->critical($e);
+            $result['status'] = false;
+            $result['msg'] = $e;
+            return $result;
+        }
+    }
+
+    /**
+     * This function returns database table name from class name
+     * @return string
+     */
+    protected function getTableName() {
+        return Db::getInstance()->gen_name(get_class($this));
+    }
+
+    /**
+     * This function returns table information from schema.php file
+     * @param string $tableName
+     * @return array
+     */
+    protected static function get_table_data($tableName) {
+        $tableName = strtolower($tableName);
+        $tables_data = require(PATH_TO_APP . 'config' . DS . 'schema.php');
+        if (key_exists($tableName, $tables_data)) {
+            return $tables_data[$tableName];
+        } else {
+            return null;
         }
     }
 
@@ -136,7 +233,7 @@ class AppTable {
     public function all(array $id=array(), array $filter=null) {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir:null;
-        return $this->db->select($this->tablename, array('*'), $id, $param);
+        return $this->db->resultSet($this->tablename, array('*'), $id, $param);
     }
 
     /**
@@ -146,7 +243,7 @@ class AppTable {
      * @return bool
      */
     public function update(array $data, array $id) {
-        return $this->db->updatecontent($this->tablename,  $this->parsenewdata(get_class_vars(get_called_class()), $data), $id);
+        return $this->db->update($this->tablename,  $this->parsenewdata(get_class_vars(get_called_class()), $data), $id);
     }
 
     /**
@@ -164,7 +261,7 @@ class AppTable {
      * @return mixed
      */
     public function add(array $post) {
-        return $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()), $post));
+        return $this->db->insert($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()), $post));
     }
 
     /**
@@ -173,7 +270,16 @@ class AppTable {
      * @return array
      */
     public function get(array $id) {
-        return $this->db->select($this->tablename, array('*'), $id);
+        return $this->db->single($this->tablename, array('*'), $id);
+    }
+
+    /**
+     * Get id of last inserted row
+     * @return int
+     */
+    public function getLastID() {
+        $data = $this->db->send_query("SELECT max(id) from {$this->tablename}");
+        return (int)$data->fetch_row()[0];
     }
 
     /**
@@ -221,7 +327,7 @@ class AppTable {
      */
     public function is_exist(array $id, $tablename=null) {
         $table_name = (is_null($tablename)) ? $this->tablename : $tablename;
-        return !empty($this->db->select($table_name, array('*'), $id));
+        return !empty($this->db->single($table_name, array('*'), $id));
     }
 
     /**

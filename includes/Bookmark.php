@@ -6,15 +6,7 @@
  * Date: 23/02/2017
  * Time: 08:19
  */
-class Bookmark extends AppTable {
-
-    protected $table_data = array(
-        "id" => array("INT NOT NULL AUTO_INCREMENT", false),
-        "ref_id" => array("BIGINT(15)", false),
-        "ref_obj" => array("CHAR(55)", false),
-        "username" => array("CHAR(255) NOT NULL"),
-        "primary" => "id"
-    );
+class Bookmark extends BaseModel {
 
     public $id;
     public $ref_id;
@@ -25,36 +17,56 @@ class Bookmark extends AppTable {
      * Constructor
      */
     public function __construct(){
-        parent::__construct(__CLASS__, $this->table_data);
+        parent::__construct();
     }
 
     /**
      * Add vote to db if it does not already exist
      * @param array $post
-     * @return bool
+     * @return mixed
      */
     public function add(array $post) {
-        if (User::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
+        if (Auth::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
             $post['username'] = $_SESSION['username'];
-            return $this->db->addcontent($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
-                $post));
+            $result['status'] = $this->db->insert($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
+                $post)) !== false;
+            if ($result['status']) {
+                $info = $this->get_summary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
+                $result['state'] = $info['status'];
+            }
         } else {
-            return false;
+            $result['status'] = false;
         }
+        return $result;
     }
 
     /**
      * delete vote from db
      * @param array $post
-     * @return bool
+     * @return mixed
      */
     public function delete(array $post) {
-        if (User::is_logged()) {
-            return $this->db->delete($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
-                $post));
+        $result = array();
+        if (Auth::is_logged()) {
+            $result['status'] = $this->db->delete($this->tablename, array('id'=>$post['id']));
         } else {
-            return false;
+            $result['status'] = false;
         }
+        $result['state'] = $this->is_exist(array('id'=>$post['id']));
+        return $result;
+    }
+
+    /**
+     * Get summary information
+     * @param $id: reference id
+     * @param $ref_obj: reference class
+     * @param $username: username
+     * @return array: array('count'=>int, 'status'=>boolean)
+     */
+    public function get_summary($id, $ref_obj, $username) {
+        return array(
+            'status' => $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
+        );
     }
 
     /**
@@ -64,10 +76,11 @@ class Bookmark extends AppTable {
      * @param $username
      * @return string
      */
-    public static function getIcon($id, $ref_obj, $username) {
-        $self = new self();
-        $status = $self->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
-        return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj), $status);
+    public function getIcon($id, $ref_obj, $username) {
+        return self::show(
+            array('ref_id'=>$id, 'ref_obj'=>$ref_obj),
+            $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
+        );
     }
 
     /**
@@ -77,13 +90,16 @@ class Bookmark extends AppTable {
     public function getList($username) {
         $content = null;
         foreach ($this->all(array('username'=>$username)) as $key=>$item) {
+
             /**
-             * @var $Controller AppTable
+             * @var $Controller BaseModel
              */
             $Controller = new $item['ref_obj']();
             $data = $Controller->get(array('id_pres'=>$item['ref_id']));
             if (!empty($data)) {
-                $content .= self::inList($item, $data[0]);
+                $content .= self::inList($item, $data);
+            } else {
+                $this->delete(array('id'=>$item['id']));
             }
         }
 
@@ -118,18 +134,18 @@ class Bookmark extends AppTable {
      * @return string
      */
     public static function inList(array $bookmark, array $data) {
-        $url = AppConfig::getInstance()->getAppUrl() . "index.php?page=". strtolower($bookmark['ref_obj']). "&id={$bookmark['ref_id']}";
+        $url = App::getAppUrl() . "index.php?page=". strtolower($bookmark['ref_obj']). "&id={$bookmark['ref_id']}";
         return "
             <div class='bookmark_list_container'>
                 <div class='bookmark_title'>
-                   <a href='$url' class='leanModal' data-controller='Suggestion' data-action='show_details' 
+                   <a href='$url' class='leanModal' data-controller='{$bookmark['ref_obj']}' data-action='show_details' 
                    data-section='suggestion' data-params='{$bookmark['ref_id']},modal' data-id='{$bookmark['ref_id']}'>
                     {$data['title']}</a>
                 </div>
                 <div class='bookmark_action'>
                     <div class='pub_btn icon_btn'><a href='#' data-id='{$bookmark['id']}' 
                             data-controller='Bookmark' class='delete'>
-                <img src='".AppConfig::$site_url."images/trash.png'></a></div>
+                <img src='" . App::getAppUrl() . "images/trash.png'></a></div>
                 </div>              
             </div>
         ";
