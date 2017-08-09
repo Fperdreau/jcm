@@ -1242,6 +1242,14 @@ footer {
     background-size: 50px;
 }
 
+.modalContainer .loadingDiv {
+    background: rgba( 255, 255, 255, 1)
+    url('../images/spinner.gif')
+    50% 50%
+    no-repeat;
+    background-size: 50px;
+}
+
 .blankDiv {
     position:   absolute;
     z-index:    90;
@@ -1452,7 +1460,7 @@ h3 {
     height: 20px;
     line-height: 20px;
     text-align: left;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 /* *********************************************************************/
@@ -1691,7 +1699,7 @@ h3 {
 }
 
 .pres_container {
-    margin: 0;
+    margin-bottom: 5px;
     font-size: 0.9em;
     font-weight: 300;
     overflow: hidden;
@@ -1714,7 +1722,7 @@ h3 {
 }
 
 .pres_info {
-    width: 200px;
+    width: 250px;
 }
 
 .pres_btn {
@@ -3032,7 +3040,7 @@ div.loadBtn {
     border: 0;
     border-bottom: 3px solid rgb(207, 81, 81);
     margin: 5px auto 10px auto;
-    font-weight: 100;
+    font-weight: 400;
 }
 
 #sessionlist {
@@ -3107,7 +3115,7 @@ div.loadBtn {
 .session_type {
     color: #777;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 16px !important;
 }
 
 .session_info {
@@ -3221,8 +3229,8 @@ div.loadBtn {
     z-index:100;
     top: 0;
     left: 0;
-    height:100%;
-    width:100%;
+    height: 100%;
+    width: 100%;
     background: #000;
     display: none;
 }
@@ -3250,7 +3258,6 @@ div.loadBtn {
 
 .popupBody {
     width: 100%;
-    max-height: 100%;
     padding: 0;
     margin: 0;
     background: #FFF;
@@ -3305,8 +3312,14 @@ div.loadBtn {
 }
 
 .modal_buttons_container {
-    padding: 0 10px;
+    padding: 10px;
     box-sizing: border-box;
+}
+
+.modal_buttons_container::after {
+    clear: both;
+    content: "";
+    display: block;
 }
 
 .modal_close {
@@ -3360,8 +3373,6 @@ input.dateinput {
 }
 
 .pub_date {
-    width: 20%;
-    display: inline-block;
     margin-top: 5px;
 }
 
@@ -3386,8 +3397,18 @@ input.dateinput {
 .pub_authors {
     font-style: italic;
     color: #555;
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 400;
+    margin: -2px 0 10px 0;
+}
+
+.pub_header_table {
+    display: table;
+    width: 100%;
+}
+
+.pub_header_table > div {
+    display: table-cell;
 }
 
 .pub_label {
@@ -3398,8 +3419,6 @@ input.dateinput {
 .pub_orator {
     margin-right: 5px;
     text-align: right;
-    width: 50%;
-    display: inline;
 }
 
 .pub_abstract {
