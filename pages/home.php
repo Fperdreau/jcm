@@ -24,7 +24,7 @@ $last_news = new Posts();
 $sessions = new Session();
 $suggestions = new Suggestion();
 
-$submitMenu = User::is_logged() ? Presentation::submitMenu('modal') : null;
+$submitMenu = Auth::is_logged() ? Presentation::submitMenu('modal') : null;
 
 $result = "
 

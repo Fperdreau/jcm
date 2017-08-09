@@ -21,10 +21,10 @@
  */
 
 // Declare classes
-$user = new User($_SESSION['username']);
+$user = new Users($_SESSION['username']);
 
 // Plugins
-$plugins = new AppPlugins();
+$plugins = new Plugins();
 $plugin_list = $plugins->show();
 $result = "
     <div class='page_header'>

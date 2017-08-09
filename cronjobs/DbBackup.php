@@ -24,14 +24,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class DbBackup
  *
  * Scheduled task that creates backup of the database and store them in backup/mysql.
  */
-class DbBackup extends AppCron {
+class DbBackup extends Task {
 
     public $name = 'DbBackup';
     

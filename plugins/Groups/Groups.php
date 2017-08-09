@@ -28,7 +28,7 @@
  * Plugin that assign users to different groups according to the number of presentations in a session. Display the
  * user's group on his/her profile page
  */
-class Groups extends AppPlugins {
+class Groups extends Plugins {
 
     protected $table_data = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT", false),
@@ -96,7 +96,7 @@ class Groups extends AppPlugins {
      */
     public function install() {
         // Create corresponding table
-        $table = new AppTable("Groups", $this->table_data, 'groups');
+        $table = new BaseModel("Groups", $this->table_data, 'groups');
         $table->setup();
 
         // Register the plugin in the db
@@ -222,7 +222,7 @@ class Groups extends AppPlugins {
 
             // Add to the table
             foreach ($group as $mbr) {
-                if(!$this->db->addcontent($this->tablename, array(
+                if(!$this->db->insert($this->tablename, array(
                     'groups' => $i,
                     'username' => $mbr['member'],
                     'role' => $mbr['role'],
@@ -305,11 +305,11 @@ class Groups extends AppPlugins {
 
     /**
      * Renders Email notification
-     * @param User $user
+     * @param Users $user
      * @param array $data
      * @return mixed
      */
-    public static function renderMail($data, User $user) {
+    public static function renderMail($data, Users $user) {
         $result['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello <span style='font-weight: 600;'>{$user->firstname}/span>,</p>
@@ -382,7 +382,7 @@ class Groups extends AppPlugins {
             foreach($group['members'] as $grpmember=>$info) {
                 if ($grpmember == 'TBA') continue; // We do not send emails to fake users
                 $role = $info['role'];
-                $grpuser = new User($this->db,$grpmember);
+                $grpuser = new Users($this->db,$grpmember);
                 $fullname = ucfirst(strtolower($grpuser->firstname))." ".ucfirst(strtolower($grpuser->lastname));
                 $color = ($u % 2 == 0) ? 'rgba(220,220,220,.7)':'rgba(220,220,220,.2)';
                 if ($grpuser->username == $username) {
@@ -423,7 +423,7 @@ class Groups extends AppPlugins {
             $ids = array();
             foreach($data['members'] as $grpmember=>$info) {
                 if ($grpmember == 'TBA') continue; // We do not send emails to fake users
-                $member = new User($this->db, $grpmember);
+                $member = new Users($this->db, $grpmember);
                 $ids[] = $member->id;
             }
             $ids = implode(',', $ids);

@@ -24,14 +24,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class Notification
  *
  * Scheduled tasks that send a notification email including the last submissions
  */
-class Notification extends AppCron {
+class Notification extends Task {
 
     public $name = 'Notification';
     public $status = 'Off';
@@ -61,7 +59,7 @@ class Notification extends AppCron {
      */
     public function run() {
         $MailManager = new MailManager();
-        $AppMail = new AppMail();
+        $AppMail = new Mail();
 
         // Number of users
         $mailing_list = $AppMail->get_mailinglist("notification");

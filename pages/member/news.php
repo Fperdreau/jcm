@@ -21,7 +21,7 @@
  */
 
 // Show an empty form
-$user = new User($_SESSION['username']);
+$user = new Users($_SESSION['username']);
 $post = new Posts();
 
 $options = $post->get_selection_list($user);

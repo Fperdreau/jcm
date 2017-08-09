@@ -24,14 +24,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class Reminder
  *
  * Scheduled tasks that send reminders to the users regarding the upcomming session
  */
-class Reminder extends AppCron {
+class Reminder extends Task {
 
     public $name = 'Reminder';
     public $status = 'Off';

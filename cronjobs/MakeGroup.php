@@ -24,7 +24,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
 require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
 
 /**
@@ -33,7 +32,7 @@ require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
  * Scheduled task that creates users groups according to the number of presentations for a particular session
  * (1 group/presentation)
  */
-class MakeGroup extends AppCron {
+class MakeGroup extends Task {
 
     public $name='MakeGroup';
     public $status='Off';
@@ -78,7 +77,7 @@ class MakeGroup extends AppCron {
     public function notify() {
         $MailManager = new MailManager();
         $Group = new Groups();
-        $AppMail = new AppMail();
+        $AppMail = new Mail();
 
         // Count number of users
         $users = $AppMail->get_mailinglist("notification");

@@ -24,15 +24,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class Mailing
  *
  * Scheduled task that send email notifications (digests) to the users with information about the next sessions and
  * recent news.
  */
-class Mailing extends AppCron {
+class Mailing extends Task {
 
     public $name='Mailing';
     public $status='Off';
@@ -65,7 +63,7 @@ class Mailing extends AppCron {
     public function run() {
         $MailManager = new MailManager();
         $DigestMaker = new DigestMaker();
-        $AppMail = new AppMail();
+        $AppMail = new Mail();
 
         // Count number of users
         $users = $AppMail->get_mailinglist("notification");

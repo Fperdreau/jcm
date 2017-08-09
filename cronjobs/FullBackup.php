@@ -24,15 +24,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class FullBackup
  *
  * Scheduled task that creates full backups of the web-site (files & database) and store the corresponding archives
  * in backup/complete.
  */
-class FullBackup extends AppCron {
+class FullBackup extends Task {
     /**
      * Assign chairmen for the next n sessions
      * @return bool

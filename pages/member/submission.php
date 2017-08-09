@@ -21,13 +21,13 @@
  */
 
 // Declare classes
-if (!User::is_logged()) {
-    echo json_encode(AppPage::login_required());
+if (!Auth::is_logged()) {
+    echo json_encode(Page::login_required());
     exit();
 }
 
-$username = (isset($_POST['user'])) ? $_POST['user']:$_SESSION['username'];
-$user = new User($username);
+$username = (isset($_POST['Users'])) ? $_POST['Users']:$_SESSION['username'];
+$user = new Users($username);
 
 // Get options
 $result = null;

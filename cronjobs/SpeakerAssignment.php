@@ -24,15 +24,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class SpeakerAssignment
  * 
  * Scheduled task that automatically assigns speakers for the next presentations. Every assigned user will be notified
  * by email.
  */
-class SpeakerAssignment extends AppCron {
+class SpeakerAssignment extends Task {
 
     /**
      * Assign Speakers for the next n sessions
@@ -102,11 +100,11 @@ class SpeakerAssignment extends AppCron {
         $dueDate = date('Y-m-d', strtotime($today . " + {$this->options['Days']['value']} day"));
         $session = new Session($dueDate);
 
-        if ($session->is_available(array('date'=>$dueDate))) {
+        if (!$session->is_available(array('date'=>$dueDate))) {
             $n = 0;
             foreach ($session->presids as $presid) {
                 $Presentation = new Presentation($presid);
-                $speaker = new User($Presentation->username);
+                $speaker = new Users($Presentation->username);
                 $content = $this->reminderEmail($speaker, array('date'=>$session->date, 'type'=>$session->type));
                 if ($MailManager->send($content, array($speaker->email))) {
                     $result['status'] = true;
@@ -123,11 +121,11 @@ class SpeakerAssignment extends AppCron {
 
     /**
      * Make reminder notification email (including only information about the upcoming session)
-     * @param User $user
+     * @param Users $user
      * @param array $info
      * @return mixed
      */
-    public function makeMail(User $user, array $info) {
+    public function makeMail(Users $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
@@ -145,11 +143,11 @@ class SpeakerAssignment extends AppCron {
     }
 
     /** Notify user about session update
-     * @param User $user
+     * @param Users $user
      * @param array $info
      * @return mixed
      */
-    public function sessionUpdatedN(User $user, array $info) {
+    public function sessionUpdatedN(Users $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
@@ -168,11 +166,11 @@ class SpeakerAssignment extends AppCron {
 
     /**
      * Reminder email sent to user about his/her upcoming presentation
-     * @param User $user
+     * @param Users $user
      * @param array $info
      * @return mixed
      */
-    public function reminderEmail(User $user, array $info) {
+    public function reminderEmail(Users $user, array $info) {
         $sessionType = $info['type'];
         $date = $info['date'];
         $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));

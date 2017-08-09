@@ -2,8 +2,8 @@
     <div class="section_content">
         <h1>Journal Club Manager</h1>
         <div class="subTitle">Organize your journal club efficiently</div>
-        <div class="version">Version <?php echo AppConfig::version; ?></div>
-        <div class="">Sources:  <a href="<?php echo AppConfig::repository?>" target='_blank'><?php echo AppConfig::repository; ?></a>
+        <div class="version">Version <?php echo App::version; ?></div>
+        <div class="">Sources:  <a href="<?php echo App::repository?>" target='_blank'><?php echo App::repository; ?></a>
         <div>
             <div class="title_lvl2">Support</div>
             To report bugs or request new features, please go to: <a href="https://github.com/Fperdreau/jcm/issues" target="_blank">https://github.com/Fperdreau/jcm/issues</a>.

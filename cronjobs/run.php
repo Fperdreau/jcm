@@ -24,15 +24,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require('../includes/boot.php');
-
 /**
  * Run scheduled tasks and send a notification to the admins
  * @return array
  */
 global $db, $AppConfig;
 
-$AppCron = new AppCron();
+$AppCron = new Task();
 $logs = $AppCron->execute_all();
 
 // Send logs to admins

@@ -24,14 +24,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class SessionMaker
  *
  * Automatically repeatAll and create sessions based on user defined rules
  */
-class SessionMaker extends AppCron {
+class SessionMaker extends Task {
 
     public $name = 'SessionMaker';
     public $status = 'Off';

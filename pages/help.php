@@ -77,28 +77,28 @@
             </div>
             <div class="help_section_content">
                 <div class="help_section_content_first">
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is a web-application designed to
+                    <p><span class="appName"><?php echo App::app_name; ?></span> is a web-application designed to
                         help labs in managing their journal clubs and presentations.
                         Members can easily create an account and from there submit, edit and delete their presentations,
                         or suggest papers for future sessions.</p>
 
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> comes with a complete
+                    <p><span class="appName"><?php echo App::app_name; ?></span> comes with a complete
                         administration interface allowing admins and organisers to manage the sessions
                         (their date, type, time, number of presentations, etc.), to post news, send emails to the other
                         members, create group of members and a lot more!</p>
 
-                    <p>Finally, <span class="appName"><?php echo AppConfig::app_name; ?></span> relies on several
+                    <p>Finally, <span class="appName"><?php echo App::app_name; ?></span> relies on several
                         automated features that make the organization of journal clubs an easy and effortless task.</p>
                     <ul>
                         <li><span class="help_bullet_bold">Mailing system</span>: <span class="appName">
-                                <?php echo AppConfig::app_name; ?></span> includes a mailing system to notify members
+                                <?php echo App::app_name; ?></span> includes a mailing system to notify members
                             about upcoming journal club sessions, recent news or the last wishes added by the other
                             users.</li>
                         <li><span class="help_bullet_bold">Automatic assignment</span>: <span class="appName">
-                                <?php echo AppConfig::app_name; ?></span> can automatically assign members as speaker
+                                <?php echo App::app_name; ?></span> can automatically assign members as speaker
                             for the future sessions</li>
                         <li><span class="help_bullet_bold">Automatic backup</span>: <span class="appName">
-                                <?php echo AppConfig::app_name; ?></span> can automatically update databases and
+                                <?php echo App::app_name; ?></span> can automatically update databases and
                             application files</li>
                     </ul>
 
@@ -118,20 +118,20 @@
             <div class="help_section_content">
                 <div class="help_section_full">
                     <p>Copyright © 2014 Florian Perdreau</p>
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is free software: you can
+                    <p><span class="appName"><?php echo App::app_name; ?></span> is free software: you can
                         redistribute it and/or modify it under the terms of the GNU Affero General Public License as
                         published by the Free Software Foundation, either version 3 of the License, or (at your option)
                         any later version.</p>
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> is distributed in the hope that
+                    <p><span class="appName"><?php echo App::app_name; ?></span> is distributed in the hope that
                         it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
                         MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License
                         for more details.</p>
                     <p>You should have received a copy of the GNU Affero General Public License along with
-                        <span class="appName"><?php echo AppConfig::app_name; ?></span> . If not, see <
+                        <span class="appName"><?php echo App::app_name; ?></span> . If not, see <
                         <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>></p>
                     <h2 id="external-sources"><a href="#external-sources" name="external-sources">External sources</a>
                     </h2>
-                    <p><span class="appName"><?php echo AppConfig::app_name; ?></span> also depends on external
+                    <p><span class="appName"><?php echo App::app_name; ?></span> also depends on external
                         open-sources dependencies:</p>
                     <ul>
                         <li>
@@ -185,7 +185,7 @@
                             0. Upgrading from version 1.2.1 or earlier</a></h2>
                 </div>
                 <div class="help_section_content">
-                    <p>The <span class="appName"><?php echo AppConfig::app_name; ?></span> has sensibly changed since
+                    <p>The <span class="appName"><?php echo App::app_name; ?></span> has sensibly changed since
                         its very first versions. If you are running with one of these versions,
                         you can upgrade to the newest version of the JCM but you will need to follow a specific
                         procedure:
@@ -217,7 +217,7 @@
                             <h3 id="using-git"><a href="#using-git" name="using-git">Using GIT</a></h3>
                         </div>
                         <div class="help_section_content">
-                            <p>Simply clone the <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                            <p>Simply clone the <span class="appName"><?php echo App::app_name; ?></span>
                                 repository (<a href="https://github.com/Fperdreau/jcm.git">
                                     https://github.com/Fperdreau/jcm.git</a>) at the root of your web-server.</p>
                         </div>
@@ -277,7 +277,7 @@
                             </div>
                             <div class="help_section_content_last">
                                 <p>The installer will automatically check for the presence of previous installations of
-                                    the <span class="appName"><?php echo AppConfig::app_name; ?></span>.</p>
+                                    the <span class="appName"><?php echo App::app_name; ?></span>.</p>
                                 <p>If no previous installation is found, then you will only have the option to start a
                                     new installation. This will create all the required SQL tables, folders and files.
                                 </p>
@@ -330,7 +330,7 @@
                                 </a>
                             </div>
                             <div class="help_section_content_last">
-                                <p>Many features of <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                                <p>Many features of <span class="appName"><?php echo App::app_name; ?></span>
                                     requires the ability to send emails (notifications, reminders or assignments to
                                     users)</p>
                                 <p>To use these features, you need to set the mailing system and particularly the SMTP
@@ -550,7 +550,7 @@
                 </div>
                 <div class="help_section_content">
                     <div class="help_section_content_full">
-                        <p><span class="appName"><?php echo AppConfig::app_name; ?></span> includes a blog-like section
+                        <p><span class="appName"><?php echo App::app_name; ?></span> includes a blog-like section
                             ("News", accessible from the main menu) where members can post announcements or news that
                             might be interesting to the other members of visitors. The latest news are also displayed on
                             the application home page and can be included in the weekly digest email. News can be posted
@@ -624,16 +624,16 @@
                     <div class="help_section_content">
                         <div class="help_section_content_first">
                             <p>Here, you can edit your contact information and the way you want to interact with
-                                <span class="appName"><?php echo AppConfig::app_name; ?></span>.</p>
+                                <span class="appName"><?php echo App::app_name; ?></span>.</p>
                             <ul>
                                 <li><strong>Email</strong>: Your email address</li>
                                 <li><strong>Email notifications</strong>: If set to "Yes", then you will receive
-                                    notifications from <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                                    notifications from <span class="appName"><?php echo App::app_name; ?></span>
                                     by email (e.g. new submissions, etc.)</li>
                                 <li><strong>Reminders</strong>: if set to "Yes", then you will receive reminders about
                                     upcoming journal club sessions and about your own presentations</li>
                                 <li><strong>Assignment</strong>: if set to "Yes", then you allow
-                                    <span class="appName"><?php echo AppConfig::app_name; ?></span> to automatically
+                                    <span class="appName"><?php echo App::app_name; ?></span> to automatically
                                     assign you to future sessions as speaker</li>
                             </ul>
                         </div>
@@ -659,7 +659,7 @@
                             </a>
                         </div>
                         <div class="help_section_content_last">
-                            <p>Here you can inform <span class="appName"><?php echo AppConfig::app_name; ?></span> about
+                            <p>Here you can inform <span class="appName"><?php echo App::app_name; ?></span> about
                                 the dates on which you are not available for presenting.</p>
                             <p>To do so, simply click on a date of your choice.</p>
                         </div>
@@ -898,7 +898,7 @@
                                             integrate the map”, then “Integrate the map”.
                                         </li>
                                         <li>*without the HTML tags) to the Google Map’s URL field of the <span
-                                                    class="appName"><?php echo AppConfig::app_name; ?></span>.Choose
+                                                    class="appName"><?php echo App::app_name; ?></span>.Choose
                                             the “Small size” and copy the address (as shown below). Then only paste the
                                             actual url starting with <a href="https://www.google.com/maps">
                                                 https://www.google.com/maps</a>.... (</li>
@@ -934,7 +934,7 @@
                     </div>
                     <div class="help_section_content">
                         <div class="help_section_content_full">
-                            <p><span class="appName"><?php echo AppConfig::app_name; ?></span>'s plugins and their
+                            <p><span class="appName"><?php echo App::app_name; ?></span>'s plugins and their
                                 settings are accessible from <span class="menu_path">Admin>plugins</span>.</p>
                         </div>
                         <div class="help_section_content_first">
@@ -990,7 +990,7 @@
                     </div>
                     <div class="help_section_content">
                         <div class="help_section_content_full">
-                            <p><span class="appName"><?php echo AppConfig::app_name; ?></span> relies on scheduled tasks
+                            <p><span class="appName"><?php echo App::app_name; ?></span> relies on scheduled tasks
                                 in
                                 order to automatically send notifications, reminders or assignments by email,
                                 or simply to backup files and database.</p>
@@ -1010,7 +1010,7 @@
                                 </li>
                             </ul>
                             <p>Once done, scheduled tasks can be managed from the <span class="appName">
-                                    <?php echo AppConfig::app_name; ?></span>
+                                    <?php echo App::app_name; ?></span>
                                 (<span class="menu_path">Admin&gt;Scheduled Tasks</span>).</p>
                         </div>
                         <div class="help_section_content_first">
@@ -1134,7 +1134,7 @@
                     </div>
                     <div class="help_section_content">
                         <div class="help_section_first">
-                            <p>This is the home page of your <span class="appName"><?php echo AppConfig::app_name; ?>
+                            <p>This is the home page of your <span class="appName"><?php echo App::app_name; ?>
                                 </span>.
                             Here, you can find the last posted news, information about the upcoming sessions and the
                             wish list.</p>
@@ -1170,7 +1170,7 @@
                     </div>
                     <div class="help_section_content">
                         <div class="help_section_full">
-                            <p>All news posted on your <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                            <p>All news posted on your <span class="appName"><?php echo App::app_name; ?></span>
                                 will be accessible from this page.<p>
                         </div>
                         <div class="help_section_content_last img_container">
@@ -1190,7 +1190,7 @@
             <div class="help_section_content">
                 <div class="help_section_full">
                     <ol>
-                        <li>First, go to your <span class="appName"><?php echo AppConfig::app_name; ?></span> page.</li>
+                        <li>First, go to your <span class="appName"><?php echo App::app_name; ?></span> page.</li>
                         <li>Click on the sign up icon (top-right of the page)</li>
                         <li>You will be prompted with a form. Simply fill it in with your information (all fields are
                             required)</li>
@@ -1198,7 +1198,7 @@
                     </ol>
                     <p>You will receive a confirmation email as soon as your account has been activated by the admins or
                         organizers.</p>
-                    <p>Once done, you can login to your <span class="appName"><?php echo AppConfig::app_name; ?></span>
+                    <p>Once done, you can login to your <span class="appName"><?php echo App::app_name; ?></span>
                         by clicking on the login button (top-right of the page) and provide your login information.</p>
                 </div>
             </div>

@@ -30,7 +30,7 @@
  * 
  * Plugins that handles speaker assignment routines
  */
-class autoAssignment extends AppPlugins {
+class autoAssignment extends Plugins {
 
     /**
      * @var string
@@ -165,14 +165,15 @@ class autoAssignment extends AppPlugins {
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         // Get future sessions dates
-        $jc_days = $this->getSession()->getJcDates(intval($nb_session));
+        $jc_day = $this->getSession()->getSettings('jc_day');
+        $jc_days = $this->getSession()->getJcDates($jc_day, intval($nb_session));
 
         $created = 0;
         $updated = 0;
         $assignedSpeakers = array();
 
         // Check if there is enough users
-        $User = new User($this->db);
+        $User = new Users($this->db);
         $usersList = $User->all_but_admin();
         if (empty($usersList)) {
             $result['msg'] = 'There is not enough assignable members';
@@ -217,7 +218,7 @@ class autoAssignment extends AppPlugins {
                 }
 
                 // Get speaker information
-                $speaker = new User($this->db, $Newspeaker);
+                $speaker = new Users($this->db, $Newspeaker);
 
                 // Create/Update presentation
                 if ($new) {

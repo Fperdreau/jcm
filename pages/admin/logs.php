@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-$manager = AppLogger::manager(APP_NAME);
+$manager = Logger::manager(APP_NAME);
 
 $result = "
     <div class='page_header'>

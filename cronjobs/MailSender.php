@@ -24,12 +24,10 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/includes/boot.php');
-
 /**
  * Class MailSender
  */
-class MailSender extends AppCron {
+class MailSender extends Task {
 
     /**
      * @var string: Task name
@@ -46,7 +44,7 @@ class MailSender extends AppCron {
     );
 
     /**
-     * @var AppMail
+     * @var Mail
      */
     private static $AppMail;
 
@@ -71,11 +69,11 @@ class MailSender extends AppCron {
 
     /**
      * Factory
-     * @return AppMail
+     * @return Mail
      */
     private function getMailer() {
         if (is_null(self::$AppMail)) {
-            self::$AppMail = new AppMail();
+            self::$AppMail = new Mail();
         }
         return self::$AppMail;
     }
@@ -116,7 +114,7 @@ class MailSender extends AppCron {
             sleep(2); // Add some time interval before processing the next email
         }
         $msg = "{$sent}/{$to_be_sent} emails have been sent.";
-        AppCron::get_logger()->log($msg);
+        Task::get_logger()->log($msg);
         return $msg;
     }
 
@@ -139,7 +137,7 @@ class MailSender extends AppCron {
         $count = 0;
         foreach ($data as $key=>$email) {
             if (!$this->db->delete($this->Manager->tablename, array('mail_id'=>$email['mail_id']))) {
-                AppCron::get_logger()->log("Could not delete email '{$email['mail_id']}'");
+                Task::get_logger()->log("Could not delete email '{$email['mail_id']}'");
                 return false;
             } else {
                 $count += 1;
@@ -147,7 +145,7 @@ class MailSender extends AppCron {
         }
 
         $msg = "{$count}/{$to_delete} emails have been deleted.";
-        AppCron::get_logger()->log($msg);
+        Task::get_logger()->log($msg);
         return true;
     }
 }

@@ -22,8 +22,9 @@
 
 // Declare classes
 $Session = new Session();
-$session_types = Session::session_type();
-$presentation_types = Session::presentation_type();
+$Presentation = new Presentation();
+$session_types = Session::renderTypes($Session->getSettings('types'), $Session->getSettings('default_type'));
+$presentation_types = Presentation::renderTypes($Presentation->getSettings('types'), $Presentation->getSettings('default_type'));
 
 $result = "
 <div class='page_header'>
@@ -31,33 +32,48 @@ $result = "
 </div>
 <div class='section_container'>
     <div class='section_left'>
-        " . Session::default_settings_form() . "
+        " . Session::default_settings_form($Session->getSettings()) . "
     
         <section>
             <h2>Session/Presentation</h2>
             <div class='section_content'>
-                <h3>Sessions</h3>
-                <div id='session_type' style='position: relative; margin-bottom: 20px;'>
-                    <div class='form-group'>
-                        <select name='default_type' class='session_type_default'>
-                            {$session_types['options']}
-                        </select>
-                        <label>Default session type</label>
+                
+                <div id='session_types_options'>
+                    <h3>Sessions</h3>
+                    <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
+                        <div class='form-group'>
+                            <select name='default_type' class='type_default' id='session'>
+                                {$session_types['options']}
+                            </select>
+                            <label>Default session type</label>
+                        </div>
                     </div>
+                    <div style='font-size: 0;'>
+                        <button class='type_add addBtn' data-class='session' value='+'/>
+                        <input id='new_session_type' type='text' placeholder='New Category'/>
+                    </div>
+                    <div class='feedback' id='feedback_session'></div>
+                    <div class='type_list' id='session'>{$session_types['types']}</div>
                 </div>
-                <div style='font-size: 0;'>
-                    <button class='type_add addBtn' data-class='session' value='+'/>
-                    <input id='new_session_type' type='text' placeholder='New Category'/>
+               
+               <div id='presentation_types_options'>
+                    <h3>Presentations</h3>
+                    <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
+                        <div class='form-group'>
+                            <select name='default_type' class='type_default' id='presentation'>
+                                {$presentation_types['options']}
+                            </select>
+                            <label>Default presentation type</label>
+                        </div>
+                    </div>
+                    <div  style='font-size: 0;'>
+                        <button class='type_add addBtn' data-class='presentation' value='+'/>
+                        <input id='new_presentation_type' type='text' placeholder='New Category'/>
+                    </div>
+                    <div class='feedback' id='feedback_pres'></div>
+                    <div class='type_list' id='presentation'>{$presentation_types['types']}</div>
                 </div>
-                <div class='feedback' id='feedback_session'></div>
-                <div class='type_list' id='session'>{$session_types['types']}</div>
-                <h3>Presentations</h3>
-                <div  style='font-size: 0;'>
-                    <button class='type_add addBtn' data-class='pres' value='+'/>
-                    <input id='new_pres_type' type='text' placeholder='New Category'/>
-                </div>
-                <div class='feedback' id='feedback_pres'></div>
-                <div class='type_list' id='pres'>{$presentation_types['types']}</div>
+                
             </div>
         </section>
     </div>

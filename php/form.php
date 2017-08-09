@@ -20,9 +20,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Includes required files (classes)
-require('../includes/boot.php');
+/**
+ * BOOTING PART
+ */
+include('../includes/App.php');
+App::boot(true);
 
+// Sanitize GET and POST data
 if (!empty($_GET)) {
     // Sanitize $_POST data
     foreach ($_POST as $key=>$value) {
@@ -35,29 +39,20 @@ if (!empty($_GET)) {
     }
 }
 
-if (!empty($_POST['get_app_status'])) {
-    echo json_encode(AppConfig::getInstance()->status);
-    exit;
-}
-
-if (!empty($_POST['isLogged'])) {
-    $result = User::is_logged();
-    echo json_encode($result);
-    exit;
-}
-
-if (!empty($_POST['load_content'])) {
-    $url = htmlspecialchars($_POST['load_content']);
-}
-
-if (!empty($_POST['delete_item'])) {
-    $params = explode('/', htmlspecialchars($_POST['params']));
-    $class_name = $params[0];
-    $action = $params[1];
-    $id = $params[2];
-    $obj = new $class_name();
-    $result['status'] = $obj->$action($id);
-    echo json_encode($result);
+if (!empty($_POST['router'])) {
+    $controllerName = $_POST['controller'];
+    $action = $_POST['action'];
+    if (class_exists($controllerName, true)) {
+        $Controller = new $controllerName();
+        if (method_exists($controllerName, $action)) {
+            try {
+                echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
+            } catch (Exception $e) {
+                Logger::get_instance(APP_NAME)->error($e);
+                echo json_encode(array('status'=>false));
+            }
+        }
+    }
     exit;
 }
 
@@ -68,7 +63,7 @@ if (!empty($_POST['delete'])) {
     $id = htmlspecialchars($_POST['id']);
 
     /**
-     * @var AppTable $Controller
+     * @var BaseModel $Controller
      */
     $result = $Controller->delete(array('id'=>$id));
     echo json_encode($result);
@@ -83,7 +78,7 @@ if (!empty($_POST['installDep'])) {
     $name = $_POST['installDep'];
     $op = $_POST['op'];
     $type = $_POST['type'];
-    $App = ($type == 'plugin') ? new AppPlugins() : new AppCron();
+    $App = ($type == 'Plugins') ? new Plugins() : new Task();
     $thisApp = $App->instantiate($name);
     if ($op == 'install') {
         if ($thisApp->install()) {
@@ -112,7 +107,7 @@ if (!empty($_POST['activateDep'])) {
     $name = $_POST['activateDep'];
     $op = $_POST['op'];
     $type = $_POST['type'];
-    $App = ($type === 'plugin') ? new AppPlugins() : new AppCron();
+    $App = ($type === 'Plugins') ? new Plugins() : new Task();
     $thisApp = $App->instantiate($name);
 
     $result['status'] = $thisApp->update(array('status'=>$op), array('name'=>$name));
@@ -127,7 +122,7 @@ if (!empty($_POST['activateDep'])) {
 if (!empty($_POST['getOpt'])) {
     $name = htmlspecialchars($_POST['getOpt']);
     $op = htmlspecialchars($_POST['op']);
-    $App = ($op == 'plugin') ? new AppPlugins() : new AppCron();
+    $App = ($op == 'Plugins') ? new Plugins() : new Task();
     $thisApp = $App->instantiate($name);
     $thisApp->getInfo();
     $result = $thisApp->displayOpt();
@@ -140,7 +135,7 @@ if (!empty($_POST['modOpt'])) {
     $name = htmlspecialchars($_POST['modOpt']);
     $op = htmlspecialchars($_POST['op']);
     $data = $_POST['data'];
-    $App = ($op == 'plugin') ? new AppPlugins() : new AppCron();
+    $App = ($op == 'Plugins') ? new Plugins() : new Task();
     $thisApp = $App->instantiate($name);
     $thisApp->getInfo();
     foreach ($data as $key=>$settings) {
@@ -158,7 +153,7 @@ if (!empty($_POST['modOpt'])) {
 
 if (!empty($_POST['modCron'])) {
     $name = htmlspecialchars($_POST['modCron']);
-    $App = new AppCron();
+    $App = new Task();
     $thisApp = $App->instantiate($name);
 
     if ($thisApp->isInstalled()) {
@@ -184,7 +179,7 @@ if (!empty($_POST['modStatus'])) {
     $name = htmlspecialchars($_POST['modStatus']);
     $status = htmlspecialchars($_POST['status']);
     $op = htmlspecialchars($_POST['op']);
-    $App = ($op == 'plugin') ? new AppPlugins(): new AppCron();
+    $App = ($op == 'Plugins') ? new Plugins(): new Task();
     $thisApp = $App->instantiate($name);
     $thisApp->getInfo();
     $thisApp->status = $status;
@@ -200,12 +195,12 @@ if (!empty($_POST['modSettings'])) {
     $value = htmlspecialchars($_POST['value']);
     $op = htmlspecialchars($_POST['op']);
 
-    $App = ($op == 'plugin') ? new AppPlugins(): new AppCron();
+    $App = ($op == 'Plugins') ? new Plugins(): new Task();
     $thisApp = $App->instantiate($name);
     if ($thisApp->isInstalled()) {
         $thisApp->getInfo();
         $thisApp->$option = $value;
-        if ($op == 'plugin') {
+        if ($op == 'Plugins') {
             $result = $thisApp->update(array($option=>$value), array('name'=>$name));
         } else {
             $thisApp->time = $App::parseTime($thisApp->time, explode(',', $thisApp->frequency));
@@ -225,7 +220,7 @@ if (!empty($_POST['modSettings'])) {
 // Get scheduled task's logs
 if (!empty($_POST['showLog'])) {
     $name = htmlspecialchars($_POST['showLog']);
-    $result = AppCron::showLog($name);
+    $result = Task::showLog($name);
     if (is_null($result)) $result = 'Nothing to display';
     echo json_encode($result);
     exit;
@@ -234,7 +229,7 @@ if (!empty($_POST['showLog'])) {
 // Delete scheduled task's logs
 if (!empty($_POST['deleteLog'])) {
     $name = htmlspecialchars($_POST['deleteLog']);
-    $result['status'] = AppCron::deleteLog($name);
+    $result['status'] = Task::deleteLog($name);
     echo json_encode($result);
     exit;
 }
@@ -243,7 +238,7 @@ if (!empty($_POST['deleteLog'])) {
 if (!empty($_POST['show_log'])) {
     $name = (isset($_POST['name'])) ? htmlspecialchars($_POST['name']) : htmlspecialchars($_POST['show_log']);
     $search = (isset($_POST['search'])) ? htmlspecialchars($_POST['search']) : null;
-    $result = AppLogger::show($name, $search);
+    $result = Logger::show($name, $search);
     if (is_null($result)) $result = 'Nothing to display';
     echo json_encode($result);
     exit;
@@ -253,8 +248,8 @@ if (!empty($_POST['show_log'])) {
 if (!empty($_POST['delete_log'])) {
     $name = htmlspecialchars($_POST['delete_log']);
     $file = htmlspecialchars($_POST['file']);
-    $result['status'] = AppLogger::delete($file);
-    $result['content'] = AppLogger::manager($name);
+    $result['status'] = Logger::delete($file);
+    $result['content'] = Logger::manager($name);
     echo json_encode($result);
     exit;
 }
@@ -263,7 +258,7 @@ if (!empty($_POST['delete_log'])) {
 if (!empty($_POST['show_log_manager'])) {
     $name = htmlspecialchars($_POST['class']);
     $search = htmlspecialchars($_POST['search']);
-    $result = AppLogger::manager($name, $search);
+    $result = Logger::manager($name, $search);
     echo json_encode($result);
     exit;
 }
@@ -304,7 +299,7 @@ if (!empty($_POST['preview'])) {
         $DigestMaker = new ReminderMaker();
         $result = $DigestMaker->makeDigest($_SESSION['username']);
     }
-    $AppMail = new AppMail();
+    $AppMail = new MailManager();
     $result['body'] = $AppMail->formatmail($result['body']);
     echo json_encode($result);
     exit;
@@ -318,12 +313,12 @@ if (!empty($_POST['mod_cron'])) {
     $cronName = $_POST['cron'];
     $option = $_POST['option'];
     $value = $_POST['value'];
-    $CronJobs = new AppCron();
+    $CronJobs = new Task();
     $cron = $CronJobs->instantiate($cronName);
     if ($cron->isInstalled()) {
         $cron->getInfo();
         $cron->$option = $value;
-        $cron->time = AppCron::parseTime($cron->time, explode(',', $cron->frequency));
+        $cron->time = Task::parseTime($cron->time, explode(',', $cron->frequency));
         if ($cron->update(array($option=>$value, 'time'=>$cron->time), array('name'=>$cronName))) {
             $result = $cron->time;
         } else {
@@ -340,7 +335,7 @@ if (!empty($_POST['mod_cron'])) {
 // Run cron job
 if (!empty($_POST['run_cron'])) {
     $cronName = $_POST['cron'];
-    $CronJobs = new AppCron();
+    $CronJobs = new Task();
     $result['msg'] = $CronJobs->execute($cronName);
     $result['status'] = true;
     echo json_encode($result);
@@ -350,7 +345,7 @@ if (!empty($_POST['run_cron'])) {
 // Run cron job
 if (!empty($_POST['stop_cron'])) {
     $cronName = $_POST['cron'];
-    $CronJobs = new AppCron($cronName);
+    $CronJobs = new Task($cronName);
     $CronJobs->unlock();
     $result['status'] = $CronJobs->unlock();
     echo json_encode($result);
@@ -362,17 +357,17 @@ Plugins
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['get_plugins'])) {
     $page = $_POST['page'];
-    $Plugins = new AppPlugins();
+    $Plugins = new Plugins();
     $plugins = $Plugins->getPlugins($page);
     echo json_encode($plugins);
     exit;
 }
 
 if (!empty($_POST['mod_plugins'])) {
-    $plugin = $_POST['plugin'];
+    $plugin = $_POST['Plugins'];
     $option = $_POST['option'];
     $value = $_POST['value'];
-    $Plugins = new AppPlugins();
+    $Plugins = new Plugins();
     $plugin = $Plugins->instantiate($plugin);
     if ($plugin->installed) {
         $plugin->getInfo();
@@ -402,8 +397,8 @@ if (!empty($_POST['getPage'])) {
     $page_id = end($split);
 
     $page_name = implode('\\\\', $split);
-    $Page = new AppPage($page_name);
-    $Plugins = new AppPlugins();
+    $Page = new Page($page_name);
+    $Plugins = new Plugins();
 
     $content = array();
     $content['plugins'] = $Plugins->getPlugins($page_id);
@@ -413,22 +408,22 @@ if (!empty($_POST['getPage'])) {
     $content['keywords'] = $Page->meta_keywords;
     $content['description'] = $Page->meta_description;
     $content['content'] = null;
-    $content['AppStatus'] = AppConfig::getInstance()->status;
+    $content['AppStatus'] = App::getInstance()->getSetting('status');
     $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk_40x40.png')) ? $content['pageName']: $content['parent'];
     $status = $Page->check_login();
-    if ($content['AppStatus'] == 'On' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
+    if ($content['AppStatus'] == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
         if ($status['status'] == false) {
             $result = $status['msg'];
         } else {
-            if (!AppPage::exist($page)) {
-                $result = AppPage::notFound();
+            if (!Page::exist($page)) {
+                $result = Page::notFound();
             } else {
-                $result['content'] = AppPage::render($page);
-                $result['header'] = AppPage::header($page_id, $content['icon']);
+                $result['content'] = Page::render($page);
+                $result['header'] = Page::header($page_id, $content['icon']);
             }
         }
     } else {
-        $result = AppPage::maintenance();
+        $result = Page::maintenance();
     }
 
     // Update content
@@ -443,7 +438,7 @@ if (!empty($_POST['getPage'])) {
 // Modify page settings
 if (!empty($_POST['modPage'])) {
     $name = htmlspecialchars($_POST['name']);
-    $Page = new AppPage($name);
+    $Page = new Page($name);
     if ($Page->update($_POST, array('name'=>$name))) {
         $result['status'] = true;
         $result['msg'] = "The modification has been made!";
@@ -485,11 +480,11 @@ if (!empty($_POST['get_calendar_param'])) {
     }
 
     // Get user's availability and assignments
-    if (User::is_logged()) {
+    if (Auth::is_logged()) {
         $username = $_SESSION['username'];
         $Availability = new Availability();
         $availabilities = array();
-        foreach ($Availability->get(array('username'=>$username)) as $info) {
+        foreach ($Availability->all(array('username'=>$username)) as $info) {
             // Format date
             $fdate = explode("-", $info['date']);
             $day = $fdate[2];
@@ -518,14 +513,14 @@ if (!empty($_POST['get_calendar_param'])) {
     $result = array(
         "Assignments"=>$assignments,
         "Availability"=>$availabilities,
-        "max_nb_session"=>AppConfig::getInstance()->max_nb_session,
-        "jc_day"=>AppConfig::getInstance()->jc_day,
+        "max_nb_session"=>$Sessions->getSettings('max_nb_session'),
+        "jc_day"=>$Sessions->getSettings('jc_day'),
         "today"=>date('d-m-Y'),
         "booked"=>$formatdate,
         "nb"=>$nb_pres,
         "status"=>$status,
         "slots"=>$slots,
-        "session_type"=>$type,
+        "renderTypes"=>$type,
         "force_select"=>$force_select,
         "session_id"=>$session_ids
     );
@@ -546,7 +541,7 @@ if (!empty($_POST['update_user_availability'])) {
         // this presentation has been canceled
         $data = $Presentation->get(array('date'=>$date, 'orator'=>$username));
         if (!empty($data)) {
-            $speaker = new User($username);
+            $speaker = new Users($username);
             $Assignment = new Assignment();
             $session = new Session($date);
             $Presentation = new Presentation($data['id_pres']);
@@ -570,14 +565,14 @@ Login/Sign up
 // Logout
 if (!empty($_POST['logout'])) {
     if (SessionInstance::destroy()) {
-        echo json_encode(AppConfig::$site_url);
+        echo json_encode(App::getAppUrl());
     }
     exit;
 }
 
 // Check login status
 if (!empty($_POST['check_login'])) {
-    if (User::is_logged()) {
+    if (Auth::is_logged()) {
         $result = array(
             "start"=>$_SESSION['login_start'],
             "expire"=>$_SESSION['login_expire'],
@@ -587,35 +582,11 @@ if (!empty($_POST['check_login'])) {
     } else {
         echo json_encode(false);
     }
-}
-
-// Extend session duration
-if (!empty($_POST['extend_login'])) {
-    if (User::is_logged()) {
-        $_SESSION['login_expire'] = time() + SessionInstance::timeout;
-        $result = array(
-            "start"=>$_SESSION['login_start'],
-            "expire"=>$_SESSION['login_expire'],
-            "warning"=>$_SESSION['login_warning']
-        );
-        echo json_encode($result);
-    } else {
-        echo json_encode(false);
-    }
-}
-
-// Check login
-if (!empty($_POST['login'])) {
-    $username = htmlspecialchars($_POST['username']);
-    $user = new User($username);
-    $result = $user->login($_POST);
-    echo json_encode($result);
-    exit;
 }
 
 // Registration
 if (!empty($_POST['register'])) {
-    $user = new User();
+    $user = new Users();
     $result = $user->make($_POST);
     echo json_encode($result);
     exit;
@@ -624,9 +595,8 @@ if (!empty($_POST['register'])) {
 // Delete user
 if (!empty($_POST['delete_user'])) {
     $username = htmlspecialchars($_POST['username']);
-    $password = htmlspecialchars($_POST['password']);
-    $user = new User($username);
-    $login_ok = $user->login($_POST, false);
+    $Auth = new Auth();
+    $login_ok = $Auth->login(false);
     if ($login_ok['status'] == true) {
         $result = $user->delete_user($username, $_SESSION['username']);
         if ($result['status']) {
@@ -641,26 +611,26 @@ if (!empty($_POST['delete_user'])) {
 }
 
 if (!empty($_POST['get_delete_account_form'])) {
-    echo json_encode(User::delete_account_form_modal());
+    echo json_encode(Users::delete_account_form_modal());
 }
 
 // Send password change request if email exists in database
 if (!empty($_POST['request_password_change'])) {
-    $user = new User();
+    $user = new Users();
     echo json_encode($user->request_password_change( htmlspecialchars($_POST['email'])));
     exit;
 }
 
 // Change user password after confirmation
 if (!empty($_POST['password_change'])) {
-    $user = new User();
+    $user = new Users();
     echo json_encode($user->password_change(htmlspecialchars($_POST['username']), htmlspecialchars($_POST['password'])));
     exit;
 }
 
 // Process user modifications
 if (!empty($_POST['user_modify'])) {
-    $user = new User();
+    $user = new Users();
     $result = $user->update($_POST, array('username'=>$_POST['username']));
     echo json_encode($result);
     exit;
@@ -738,7 +708,7 @@ if (!empty($_POST['process_submission'])) {
             try {
                 echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
             } catch (Exception $e) {
-                AppLogger::get_instance(APP_NAME)->error($e);
+                Logger::get_instance(APP_NAME)->error($e);
                 echo json_encode(array('status'=>false));
             }
         }
@@ -781,7 +751,7 @@ if (!empty($_POST['getFormContent'])) {
 // Display modification form
 if (!empty($_POST['mod_pub'])) {
     $id_Presentation = $_POST['mod_pub'];
-    $user = new User($_SESSION['username']);
+    $user = new Users($_SESSION['username']);
     $pub = new Presentation($id_Presentation);
     echo json_encode(Presentation::form($user, $pub, 'update'));
     exit;
@@ -789,7 +759,7 @@ if (!empty($_POST['mod_pub'])) {
 
 if (!empty($_POST['getform'])) {
     $pub = new Presentation();
-    $user = new User($_SESSION['username']);
+    $user = new Users($_SESSION['username']);
     echo json_encode(Presentation::form($user, $pub, 'submit'));
     exit;
 }
@@ -813,19 +783,19 @@ if (!empty($_POST['select_year'])) {
 Contact form
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 if (!empty($_POST['contact_send'])) {
-    $AppMail = new AppMail();
+    $AppMail = new MailManager();
     $sel_admin_mail = htmlspecialchars($_POST['admin_mail']);
     $usr_msg = htmlspecialchars($_POST["message"]);
     $usr_mail = htmlspecialchars($_POST["email"]);
     $usr_name = htmlspecialchars($_POST["name"]);
-    $content = "Message sent by $usr_name ($usr_mail):<br><p>$usr_msg</p>";
+    $content = "Message sent by {$usr_name} ($usr_mail):<br><p>$usr_msg</p>";
     $body = $AppMail->formatmail($content, null, false);
     $subject = "Contact from $usr_name";
 
     $settings['mail_from'] = $usr_mail;
     $settings['mail_from_name'] = $usr_mail;
 
-    if ($AppMail->send_mail($sel_admin_mail, $subject, $body, null, true, $settings)) {
+    if ($AppMail->send(array('body'=>$body, 'subject'=>$subject), array($sel_admin_mail),true, $settings)) {
         $result['status'] = true;
         $result['msg'] = "Your message has been sent!";
     } else {
@@ -837,11 +807,11 @@ if (!empty($_POST['contact_send'])) {
 
 // Test email settings
 if (!empty($_POST['test_email_settings'])) {
-    $AppMail = new AppMail();
     $settings = array();
     foreach ($_POST as $setting=>$value) {
         $settings[$setting] = htmlspecialchars($value);
     }
+    $AppMail = new MailManager();
     $to = (isset($_POST['test_email'])) ? htmlspecialchars($_POST['test_email']) : null;
     $result = $AppMail->send_test_email($settings, $to);
     echo json_encode($result);
@@ -857,7 +827,7 @@ if (!empty($_POST['user_select'])) {
 	if ($filter == "") {
 		$filter = null;
 	}
-    $Users = new User();
+    $Users = new Users();
     $userlist = $Users->generateuserslist($filter);
     echo json_encode($userlist);
     exit;
@@ -865,10 +835,10 @@ if (!empty($_POST['user_select'])) {
 
 // Change user status
 if (!empty($_POST['modify_status'])) {
-    $Users = new User();
+    $Users = new Users();
     $username = htmlspecialchars($_POST['username']);
     $newStatus = htmlspecialchars($_POST['option']);
-    $user = new User($username);
+    $user = new Users($username);
     $result = $user->setStatus($newStatus);
     $result['content'] = $Users->generateuserslist();
     echo json_encode($result);
@@ -892,7 +862,7 @@ if (!empty($_POST['mailing_send'])) {
     $content['attachments'] = $_POST['attachments']; // Attached files
     $disclose = htmlspecialchars($_POST['undisclosed']) == 'yes'; // Do we show recipients list?
     $make_news = htmlspecialchars($_POST['make_news']) == 'yes'; // Do we show recipients list?
-    $user = new User();
+    $user = new Users();
     $MailManager = new MailManager();
 
     // Get emails from the provided list of IDs
@@ -922,7 +892,7 @@ if (!empty($_POST['mailing_send'])) {
 if (!empty($_POST['add_emails'])) {
     $id = htmlspecialchars($_POST['add_emails']);
     $icon = "images/close.png";
-    $user = new User();
+    $user = new Users();
     if (strtolower($id) === 'all') {
         $users = $user->all_but_admin();
         $content = "";
@@ -948,13 +918,12 @@ Application settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Update application settings
 if (!empty($_POST['config_modify'])) {
-    if (AppConfig::getInstance()->update_all($_POST)) {
-        $result['msg'] = "Modifications have been made!";
-        $result['status'] = true;
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
+    $controller_name = $_POST['controller'];
+    /**
+     * @var $controller BaseModel
+     */
+    $controller = new $controller_name();
+    echo json_encode($controller->updateSettings($_POST));
     exit;
 }
 
@@ -965,7 +934,7 @@ POSTS
 if (!empty($_POST['post_show'])) {
     $postid = ($_POST['postid'] === "false") ? null : $_POST['postid'];
     $username = htmlspecialchars($_SESSION['username']);
-    $user = new User($username);
+    $user = new Users($username);
     $Post = new Posts($postid);
     $result = Posts::form($user, $Post);
     echo json_encode($result);
@@ -993,18 +962,21 @@ Session Management tools
 if (!empty($_POST['add_type'])) {
     $class = $_POST['add_type'];
     $typename = $_POST['typename'];
-    $varname = $class."_type";
-    $div_id = $class.'_'.$typename;
-    if ($class == "session") {
-        AppConfig::getInstance()->session_type[] = $typename;
-        $types = AppConfig::getInstance()->session_type;
-    } else {
-        AppConfig::getInstance()->pres_type[] = $typename;
-        $types = AppConfig::getInstance()->pres_type;
-    }
-    if (AppConfig::getInstance()->update_all()) {
+    $var_name = "types";
+    $div_id = $class . '_' . $typename;
+    $controller_name = ucfirst($class);
+
+    /**
+     * @var $controller Presentation|Session
+     */
+    $controller = new $controller_name();
+    $types = $controller->getSettings($var_name);
+    $types[] = $typename;
+
+    $result = $controller->updateSettings(array($var_name=>$types));
+    if ($result['status']) {
         //Get session types
-        $session_types = Session::session_type();
+        $session_types = $controller::renderTypes($controller->getSettings("types"), $controller->getSettings("default_type"));
         $result = $session_types['types'];
     } else {
         $result = false;
@@ -1015,38 +987,36 @@ if (!empty($_POST['add_type'])) {
 
 // Delete a session/presentation type
 if (!empty($_POST['del_type'])) {
-    $class = $_POST['del_type'];
+    $class = ucfirst($_POST['del_type']);
     $typename = $_POST['typename'];
-    $varname = $class."_type";
-    $divid = $class.'_'.$typename;
+    $var_name = "types";
+    $defaults = 'defaults';
+    $div_id = strtolower($class) . '_' . str_replace(' ', '_', strtolower($typename));
     $result['status'] = true;
-    if ($class == "session") {
-        if (in_array($typename, AppConfig::$session_type_default)) {
-            $result['status'] = false;
-            $result['msg'] = "Default types cannot be deleted";
-        } else {
-            if(($key = array_search($typename, AppConfig::getInstance()->session_type)) !== false) {
-                unset(AppConfig::getInstance()->session_type[$key]);
-            }
-        }
+    $controller_name = ucfirst($class);
 
+    /**
+     * @var $controller Presentation|Session
+     */
+    $controller = new $controller_name();
+    $types = $controller->getSettings($var_name);
+
+    if (in_array($typename, $controller->getSettings($defaults))) {
+        $result['status'] = false;
+        $result['msg'] = "Default types cannot be deleted";
     } else {
-        if (in_array($typename, AppConfig::$pres_type_default)) {
-            $result['status'] = false;
-            $result['msg'] = "Default types cannot be deleted";
-        } else {
-            if(($key = array_search($typename, AppConfig::getInstance()->pres_type)) !== false) {
-                unset(AppConfig::getInstance()->pres_type[$key]);
-            }
+        if(($key = array_search($typename, $types)) !== false) {
+            unset($types[$key]);
+        }
+        $new_types = array_values(array_diff($types, array($typename)));
+        $updated = $controller->updateSettings(array($var_name=>$new_types));
+        if ($result['status'] && $updated['status']) {
+            //Get session types
+            $session_types = $controller::renderTypes($new_types, $controller->getSettings("default_type"));
+            $result = $session_types['types'];
         }
     }
-    $types = AppConfig::getInstance()->$varname;
 
-    if ($result['status'] && AppConfig::getInstance()->update_all()) {
-        //Get session types
-        $session_types = Session::session_type();
-        $result = $session_types['types'];
-    }
     echo json_encode($result);
     exit;
 }
@@ -1073,18 +1043,66 @@ if (!empty($_POST['add_session'])) {
     exit;
 }
 
+// Check if event is recurrent
+if (!empty($_POST['is_recurrent'])) {
+    $session = new Session();
+    $result = $session->is_recurrent($_POST['is_recurrent']);
+    echo json_encode($result);
+    exit;
+}
+
 // Modify a session
 if (!empty($_POST['modSession'])) {
-    $sessionid = htmlspecialchars($_POST['session']);
-    $prop = htmlspecialchars($_POST['prop']);
-    $value = htmlspecialchars($_POST['value']);
+    $session_id = htmlspecialchars($_POST['id']);
     $session = new Session();
-    $post = array($prop=>$value);
-    if ($result['status'] = $session->update($post, array('id'=>$sessionid))) {
-        if ($result['status']) $result['msg'] = "Session has been modified";
+
+    $operation = htmlspecialchars($_POST['operation']);
+
+    $result = array('status'=>false, 'msg'=>null);
+
+    if ($operation === 'present') {
+        // Only update the current event
+        $result['status'] = $session->update($_POST, array('id'=>$session_id));
+    } elseif ($operation === 'future') {
+        // Update all future occurences
+        $result['status'] = $session->updateAllEvents($_POST, $session_id, 'future');
+    } elseif ($operation === 'all') {
+        // Update all (past/future) occurences
+        $result['status'] = $session->updateAllEvents($_POST, $session_id, 'all');
     } else {
-        $result['status'] = false;
+        throw new Exception("'{$operation}' is an unknown update operation");
     }
+
+    $result['msg'] = $result['status'] ? "Session has been modified" : 'Something went wrong';
+
+    echo json_encode($result);
+    exit;
+}
+
+// Delete a session
+if (!empty($_POST['delSession'])) {
+    $session_id = htmlspecialchars($_POST['id']);
+    $session = new Session();
+
+    $operation = htmlspecialchars($_POST['operation']);
+
+    $result = array('status'=>false, 'msg'=>null);
+
+    if ($operation === 'present') {
+        // Only update the current event
+        $result['status'] = $session->delete(array('id'=>$session_id));
+    } elseif ($operation === 'future') {
+        // Update all future occurrences
+        $result['status'] = $session->deleteAllEvents($session_id, 'future');
+    } elseif ($operation === 'all') {
+        // Update all (past/future) occurrences
+        $result['status'] = $session->deleteAllEvents($session_id, 'all');
+    } else {
+        throw new Exception("'{$operation}' is an unknown update operation");
+    }
+
+    $result['msg'] = $result['status'] ? "Session has been deleted" : 'Something went wrong';
+
     echo json_encode($result);
     exit;
 }
@@ -1115,8 +1133,8 @@ if (!empty($_POST['modSpeaker'])) {
     $speaker = $_POST['modSpeaker'];
     $presid = $_POST['presid'];
     $session_id = $_POST['session_id'];
-    $previous = new User($_POST['previous']);
-    $speaker = new User($speaker);
+    $previous = new Users($_POST['previous']);
+    $speaker = new Users($speaker);
     $Presentation = new Presentation();
     $Assignment = new Assignment();
     $session = new Session($session_id);
@@ -1165,9 +1183,16 @@ if (!empty($_POST['modSpeaker'])) {
 }
 
 // Modify default session type
-if (!empty($_POST['session_type_default'])) {
-    $result['status'] = AppConfig::getInstance()->update(array(
-        'default_type'=>htmlspecialchars($_POST['session_type_default'])), array('variable'=>'default_type'));
+if (!empty($_POST['type_default'])) {
+    $controller_name = htmlspecialchars(ucfirst($_POST['class_name']));
+
+    /**
+     * @var $controller Presentation|Session
+     */
+    $controller = new $controller_name();
+    $result = $controller->updateSettings(
+        array('default_type'=>htmlspecialchars($_POST['type_default']))
+    );
     echo json_encode($result);
     exit;
 }
@@ -1210,8 +1235,14 @@ if (!empty($_POST['set_modal'])) {
     exit;
 }
 
-if (!empty($_POST['get_confirmation_box'])) {
-    $result = Modal::confirmation_box($_POST);
-    echo json_encode($result);
-    exit;
+// Get dialog box
+if (!empty($_POST['get_box'])) {
+    $action = htmlspecialchars($_POST['action']) . '_box';
+    if (method_exists("Modal", $action)) {
+        $result = Modal::$action($_POST);
+        echo json_encode($result);
+        exit;
+    } else {
+        throw new Exception("'{$action}' method does not exist for class Modal'");
+    }
 }

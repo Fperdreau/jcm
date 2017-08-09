@@ -21,7 +21,7 @@
  */
 
 // Declare classes
-$user = new User($_SESSION['username']);
+$user = new Users($_SESSION['username']);
 $Presentation = new Presentation();
 $publication_list = $user->getPublicationList();
 $assignments = $user->getAssignments();
