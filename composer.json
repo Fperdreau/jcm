@@ -1,6 +1,7 @@
 {
   "require": {
     "phpmailer/phpmailer": "~5.2",
-    "soundasleep/html2text": "~0.2"
+    "soundasleep/html2text": "~0.2",
+    "ckeditor/ckeditor": "4.*"
   }
 }
