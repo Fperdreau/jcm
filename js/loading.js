@@ -39,7 +39,7 @@ var tinymcesetup = function (selector) {
             "searchreplace wordcount visualblocks visualchars code fullscreen",
             "save contextmenu directionality template paste textcolor"
         ],
-        content_css: "js/tinymce/skins/lightgray/content.min.css",
+        content_css: "vendor/tinymce/tinymce/skins/lightgray/content.min.css",
         toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | " +
         "bullist numlist outdent indent | l      ink image | print preview media fullpage " +
         "| forecolor backcolor emoticons"
@@ -157,6 +157,25 @@ function getPage(page, urlparam) {
     });
 }
 
+var Editor = "CKEditor";
+
+/**
+ * Load WYSIWYG editor
+ */
+function loadWYSIWYGEditor () {
+    var areas = $(document).find('textarea.wygiwym');
+    $.each(areas, function (i, area) {
+        if (CKEDITOR.instances[$(area).attr('id')]) {
+            CKEDITOR.instances[$(area).attr('id')].destroy();
+        }
+        CKEDITOR.replace(area);
+    });
+
+    /*tinyMCE.remove();
+    window.tinymce.dom.Event.domLoaded = true;
+    tinymcesetup();*/
+}
+
 /**
  * Load page content by clicking on a menu section
  *
@@ -171,8 +190,8 @@ var displayPage = function (page, data) {
     // Display Plugins
     showPlugins(page, plugins);
 
-    // Load TinyMCE
-    tinymcesetup();
+    // Load WYSIWYG editor
+    loadWYSIWYGEditor();
 
     // Load JCM calendar
     loadCalendarSessions();

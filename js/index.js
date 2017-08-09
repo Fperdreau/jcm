@@ -43,10 +43,8 @@ var get_submission_form = function (data) {
             .html(result)
             .fadeIn(200)
             .find('textarea').html(result.content);
-        tinyMCE.remove();
-        window.tinymce.dom.Event.domLoaded = true;
-        tinymcesetup();
 
+        loadWYSIWYGEditor();
     };
     processAjax(el, data, callback, "php/form.php");
 
@@ -69,9 +67,8 @@ function loadContent(el) {
             .css('visibility', 'visible')
             .fadeIn(200)
             .find('textarea').html(result.content);
-        tinyMCE.remove();
-        window.tinymce.dom.Event.domLoaded = true;
-        tinymcesetup();
+
+        loadWYSIWYGEditor();
     };
     processAjax(destination, data, callback, "php/form.php");
 
@@ -87,7 +84,7 @@ var showpostform = function (postid) {
     var el = $('.postcontent');
     var data = {post_show: true, postid: postid};
     var callback = function (result) {
-        var txtarea = "<textarea name='content' id='post_content' class='tinymce'>" + result.content + "</textarea>";
+        var txtarea = "<textarea name='content' id='post_content' class='wygiwgm'>" + result.content + "</textarea>";
         $('.postcontent')
             .empty()
             .html(result.form)
@@ -95,9 +92,8 @@ var showpostform = function (postid) {
         $('.post_txtarea')
             .html(txtarea)
             .show();
-        tinyMCE.remove();
-        window.tinymce.dom.Event.domLoaded = true;
-        tinymcesetup();
+
+        loadWYSIWYGEditor();
     };
     processAjax(el, data, callback, "php/form.php");
 };
@@ -124,17 +120,24 @@ function confirmation_box(el, txt, txt_btn, callback) {
         'type': 'post',
         'url': 'php/form.php',
         'data': {
-            get_confirmation_box: true,
+            get_box: true,
+            action: "confirmation",
             button_txt: txt_btn,
             text: txt
         },
+        async: true,
         success: function(json) {
             var result = jQuery.parseJSON(json);
 
             container.find('.popupBody').append(result);
 
             // Show  section
-            show_section('confirmation_box');
+            el.modalTrigger('showOverlay');
+
+            var modal = el.modalTrigger('getWindow');
+
+            modal.modalWindow('show_section', 'confirmation_box');
+
             var section = $('.modal_section#confirmation_box');
 
             // User has confirmed
@@ -144,12 +147,69 @@ function confirmation_box(el, txt, txt_btn, callback) {
 
             // User cancelled
             section.find("input[name='cancel']").click(function() {
-                close_modal();
+                modal.modalWindow('close');
             });
         }
     });
+}
 
+/**
+ * Render a confirmation box
+ * @param el: clicked element
+ * @param txt: message to display in dialog box
+ * @param title: dialog title
+ * @param callback: callback function (optional)
+ */
+function dialog_box(el, txt, title, callback) {
+    trigger_modal(el, false);
 
+    if (title === undefined) {
+        title = '';
+    }
+
+    var container = $('.modalContainer');
+
+    // Remove confirmation section if it already exist
+    if (container.find('.modal_section#confirmation_box').length > 0) {
+        container.find('.modal_section#confirmation_box').remove();
+    }
+
+    // Render section
+    jQuery.ajax({
+        'type': 'post',
+        'url': 'php/form.php',
+        'data': {
+            get_box: true,
+            action: 'dialog',
+            text: txt,
+            title: title,
+        },
+        async: true,
+        success: function(json) {
+            var result = jQuery.parseJSON(json);
+
+            container.find('.popupBody').append(result);
+
+            // Show  section
+            el.modalTrigger('showOverlay');
+
+            var modal = el.modalTrigger('getWindow');
+
+            modal.modalWindow('show_section', 'confirmation_box');
+
+            var section = $('.modal_section#confirmation_box');
+
+            // User has confirmed
+            section.find(".callback_trigger").click(function() {
+                callback($(this));
+            });
+
+            // User cancelled
+            section.find("input[name='cancel']").click(function() {
+                modal.modalWindow('close');
+            });
+        }
+    });
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,6 +279,7 @@ var initAvailabilityCalendar = function (data_availability) {
             jQuery.ajax({
                 url: "php/form.php",
                 type: "post",
+                async: true,
                 data: {
                     update_user_availability: true,
                     date: dateText
@@ -261,7 +322,7 @@ function renderCalendarCallback(date, data, force_select) {
         css = [];
         planned_sessions[$.datepicker.formatDate('yy-mm-dd', date)] = data.session_id[booked];
         var rem = data.slots[booked] - data.nb[booked]; // Number of presentations available that day
-        var type = data.session_type[booked];
+        var type = data.renderTypes[booked];
         text = type + ": (" + rem + " slot(s) available)";
         clickable = rem > 0 || force_select;
         if (data.nb[booked] === 0) {
@@ -396,8 +457,7 @@ function check_login() {
 function extend_session() {
     // Check login status
     jQuery.ajax({
-        url: 'php/form.php',
-        data: {extend_login: true},
+        url: 'php/router.php?controller=Auth&action=extend_login',
         type: "post",
         async: true,
         success: function(data) {
@@ -416,9 +476,58 @@ function extend_session() {
  * Show login dialog box
  */
 function popLogin() {
-    $('#login_button').leanModal().click();
+    $('#login_button').click();
 }
 
+/**
+ *
+ * @returns {boolean}
+ */
+function process_email() {
+    var form = $(this).length > 0 ? $($(this)[0].form) : $();
+    var el = $('.mailing_container');
+
+    // Check if recipients have been added
+    var div = $('.select_emails_container').find('.select_emails_list');
+    div.find('.mailing_recipients_empty').remove();
+    if (!$.trim( div.html() ).length) {
+        div.html('<p class="mailing_recipients_empty sys_msg warning leanmodal" id="warning">You must select ' +
+            'recipients before sending your email!</p>');
+        return true;
+    }
+
+    // Check if form has been filled in properly
+    if (!checkform(form)) {return false;}
+
+    var callback = function() {
+        // Get data
+        var data = form.serializeArray();
+        var content = tinyMCE.get('spec_msg').getContent();
+        var attachments = [];
+        form.find('input.upl_link').each(function() {
+            attachments.push($(this).val());
+        });
+        attachments = attachments.join(',');
+        data = modArray(data, 'body', content);
+        data = modArray(data, 'attachments', attachments);
+
+        // Process data
+        processAjax(el, data, null, "php/form.php");
+    };
+
+    // Shall we publish this email content as news (in case the email is sent to everyone).
+    var id = $('.select_emails_selector').val();
+    if ($('#make_news').val() === 'yes') {
+        trigger_modal($(this));
+        var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
+            'published as a news.' + ' Do you want to continue?';
+        confirmation_box($(this), msg, 'Continue', callback);
+    } else {
+        callback();
+        close_modal();
+    }
+    return true;
+}
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Modal windows
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -514,19 +623,25 @@ function process_vote(el) {
     var parent = el.parent('.vote_container');
     var data = parent.data();
     data['process_vote'] = true;
-    var operation = data['operation'];
     jQuery.ajax({
         url: 'php/form.php',
         data: data,
         type: 'post',
-        success: function(data) {
-            var result = jQuery.parseJSON(data);
-            if (result.status === true) {
-                if (operation == 'delete') {
-                    el.parent('.vote_container').html(result.msg);
-                } else if (operation == 'add') {
-                    el.parent('.vote_container').html(result.msg);
+        async: true,
+        success: function(json) {
+
+            var result = jQuery.parseJSON(json);
+            if (result.status !== false) {
+                if (!result.state) {
+                    el.toggleClass('vote_liked vote_default');
+                    parent.data('operation', 'add');
+                    parent.attr('data-operation', 'add');
+                } else {
+                    el.toggleClass('vote_default vote_liked');
+                    parent.data('operation', 'delete');
+                    parent.attr('data-operation', 'delete');
                 }
+                el.next().html(result.count);
             }
         }
     });
@@ -545,13 +660,16 @@ function process_bookmark(el) {
         async: true,
         success: function(json) {
             var result = jQuery.parseJSON(json);
-            if (result === true) {
-                if (data['operation'] === 'delete') {
+            if (result.status === true) {
+                if (!result.state) {
                     el.toggleClass('bookmark_on bookmark_off');
                     el.attr('data-operation', 'add');
-                } else if (data['operation'] === 'add') {
+                    el.data('operation', 'add');
+
+                } else {
                     el.toggleClass('bookmark_off bookmark_on');
                     el.attr('data-operation', 'delete');
+                    el.data('operation', 'delete');
                 }
             }
         }
@@ -610,7 +728,7 @@ function process_post(el, e) {
     };
 
     // Find tinyMCE textarea and gets their content
-    var tinyMCE_el = form.find('.tinymce');
+    var tinyMCE_el = form.find('.wygiwgm');
     if (is_editor_active(tinyMCE_el) && tinyMCE.get(tinyMCE_el.attr('id')).getContent().length > 0) {
         tinyMCE_el.each(function() {
             var content = tinyMCE.get($(this).attr('id')).getContent();
@@ -631,6 +749,7 @@ function process_post(el, e) {
  */
 function process_submission(el, e) {
     e.preventDefault();
+    
     var form = el.length > 0 ? $(el[0].form) : $();
 
     // Check if the form has been fully completed
@@ -663,7 +782,9 @@ function process_submission(el, e) {
     }
 
     // Form data
-    var data = form.serializeArray();
+    var data = getData(form);
+
+    // Get controller name
     var controller = form.find('input[name="controller"]').val();
 
     // Callback function
@@ -675,7 +796,7 @@ function process_submission(el, e) {
             && form.find('input[name="id_pres"]').length > 0 ? form.find('input[name="id_pres"]').val() : undefined;
             var operation = id_pres !== undefined ? 'edit' : 'new';
             if (in_modal(el)) {
-                close_modal();
+                el.find('.modalContainer').modalWindow('close');
                 location.reload();
             } else {
                 get_submission_form({
@@ -691,17 +812,9 @@ function process_submission(el, e) {
         }
     };
 
-    // Find tinyMCE textarea and gets their content
-    var tinyMCE_el = form.find('.tinymce');
-    if (is_editor_active(tinyMCE_el) && tinyMCE.get(tinyMCE_el.attr('id')).getContent().length > 0) {
-        tinyMCE_el.each(function() {
-            var content = tinyMCE.get($(this).attr('id')).getContent();
-            data = modArray(data, $(this).attr('name'), content);
-        })
-    }
-
     // AJAX call
     processAjax(el.closest('.form_container'), data, callback, "php/form.php");
+
     e.stopImmediatePropagation();
 }
 
@@ -714,7 +827,7 @@ $(document).ready(function () {
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Main body
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-    $('body')
+    $(document)
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Header menu/Sub-menu
@@ -804,9 +917,16 @@ $(document).ready(function () {
         .on('click',".change_pwd",function (e) {
             e.preventDefault();
             var form = $(this).closest('form');
+
             var email = $(this).attr("id");
-            var data = {change_pw: true, email: email};
-            processAjax(form, data, null , "php/form.php");
+            var data = {request_password_change: true, email: email};
+
+            var callback = function(json) {
+                var result = jQuery.parseJSON(json);
+                trigger_modal($(this), false);
+                dialog_box($(this), result, 'Modify event');
+            };
+            processAjax(form, data, callback , "php/form.php");
         })
 
 		// Password change form (email + new password)
@@ -1004,7 +1124,7 @@ $(document).ready(function () {
                 confirmation_box($(this), msg, 'Continue', callback);
             } else {
                 callback();
-                close_modal();
+                $(this).modalTrigger('close');
             }
             return true;
         })
@@ -1188,11 +1308,11 @@ $(document).ready(function () {
         .on('click','.type_add',function (e) {
             e.preventDefault();
             var classname = $(this).attr('data-class');
-            var typename = $('input#new_'+classname+'_type').val();
+            var typename = $('input#new_' + classname + '_type').val();
             if ($(this).hasClass('wrongField')) {
                 $(this).removeClass('wrongField');
             }
-            if (typename.length == 0) {
+            if (typename.length === 0) {
                 $(this).siblings('input').addClass('wrongField');
                 return true;
             }
@@ -1217,7 +1337,7 @@ $(document).ready(function () {
                         $('.type_list#'+classname).html(result);
                         $('input#new_'+classname+'_type').empty();
                     } else {
-                        showfeedback("<span class='sys_msg warning'>We could not add this new category","feedback_"+classname);
+                        showfeedback("<span class='sys_msg warning'>We could not add this new category", "feedback_" + classname);
                     }
                 }
             });
@@ -1245,31 +1365,37 @@ $(document).ready(function () {
                 success: function (data) {
                     var result = jQuery.parseJSON(data);
                     if (result.status !== false) {
-                        $('.type_list#'+classname).html(result.msg);
+                        $('.type_list#' + classname).html(result);
                     } else {
-                        validsubmitform( $('.type_list#'+classname), data);
-                        //$('.type_list#'+classname).html(result.msg);
+                        validsubmitform( $('.type_list#' + classname), data);
                     }
                 }
             });
         })
 
         // Change default session type
-        .on('change','.session_type_default',function (e) {
+        .on('change','.type_default',function (e) {
             e.preventDefault();
-            var div = $('#session_type');
+            var class_name = $(this).attr('id');
+            var div = $('#' + class_name + '_types_options');
             var type = $(this).val();
-            var data = {session_type_default: type};
-            processAjax(div, data, null, "php/form.php");
+            var data = {type_default: type, class_name: class_name};
+            processAjax(div, data, false, "php/form.php");
         })
 
         .on('change', '.repeated_session', function(e) {
             var val = $(this).val();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
+
+            var hidden_fields = form.find('.settings_hidden');
             if (val == 1) {
-                form.find('.settings_hidden').fadeIn();
+                hidden_fields.each(function() {
+                    $(this).fadeIn();
+                });
             } else {
-                form.find('.settings_hidden').fadeOut();
+                hidden_fields.each(function() {
+                    $(this).fadeOut();
+                });
             }
         })
 
@@ -1278,7 +1404,7 @@ $(document).ready(function () {
             e.preventDefault();
             var nbsession = $(this).val();
             var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
-            var view = ($(this).data('view') == undefined) ? 'simple' : $(this).data('view');
+            var view = ($(this).data('view') === undefined) ? 'simple' : $(this).data('view');
             var data = {show_session: nbsession, status: status, view: view};
             var div = $('#sessionlist');
             var callback = function (result) {
@@ -1310,15 +1436,104 @@ $(document).ready(function () {
             processAjax($(this).closest('.session_div'), data, null, "php/form.php");
         })
 
-        // Modify session time
-        .on('change','.mod_session',function (e) {
+        .on('submit', 'form', function(e) {
+            if (!checkform($(this))) {
+                e.stopPropagation();
+            }
+        })
+
+        // Modify session
+        .on('click','.modify_session',function (e) {
             e.preventDefault();
-            var prop = $(this).attr('name');
-            var value = $(this).val();
-            var sessionDiv = $(this).closest('.session_div');
-            var sessionID = sessionDiv.data('id');
-            var data = {modSession: true, session: sessionID, prop: prop, value: value};
-            processAjax(sessionDiv, data, null, "php/form.php");
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
+            var session_id = form.find('input[name="id"]').val();
+            var input = $(this);
+
+            var process = function(operation) {
+                // Add/Update operation input
+                if (form.find('input[name="operation"]').length === 0) {
+                    form.append("<input type='hidden' name='operation' value='" + operation + "' />");
+                } else {
+                    form.find('input[name="operation"]').attr('value', operation);
+                }
+
+                // Get form data
+                var data = form.serializeArray();
+                data.push({name: 'modSession', value: true});
+
+                // Process data
+                processAjax(form, data, input.modalTrigger('close'), 'php/form.php');
+            };
+
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'post',
+                data: {'is_recurrent': session_id},
+                async: true,
+                success: function(data) {
+
+                    if (jQuery.parseJSON(data) === true) {
+                        trigger_modal(input, false);
+                        var msg = "<p>This event is recurrent</p>. " +
+                            "<input type='submit' value='Modify this occurrence only' class='callback_trigger' data-operation='present'/>" +
+                            "<input type='submit' value='Modify all future occurrences' class='callback_trigger' data-operation='future'/>" +
+                            "<input type='submit' value='Modify all occurrences' class='callback_trigger' data-operation='all'/>";
+                        dialog_box(input, msg, 'Modify event', function(el) {
+                            process(el.data('operation'));
+                        });
+                    } else {
+                        process('present');
+                    }
+                }
+            });
+        })
+
+        // Delete session
+        .on('click','.delete_session',function (e) {
+            e.preventDefault();
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
+            var session_id = form.find('input[name="id"]').val();
+            var input = $(this);
+
+            var process = function(operation) {
+                // Add/Update operation input
+                if (form.find('input[name="operation"]').length === 0) {
+                    form.append("<input type='hidden' name='operation' value='" + operation + "' />");
+                } else {
+                    form.find('input[name="operation"]').attr('value', operation);
+                }
+
+                // Get form data
+                var data = form.serializeArray();
+                data.push({name: 'delSession', value: true});
+
+                // Process data
+                processAjax(form, data, close_modal, 'php/form.php');
+            };
+
+            jQuery.ajax({
+                url: 'php/form.php',
+                type: 'post',
+                data: {'is_recurrent': session_id},
+                async: true,
+                success: function(data) {
+
+                    if (jQuery.parseJSON(data) === true) {
+                        trigger_modal(input, false);
+                        var msg = "<p>This event is recurrent</p>. " +
+                            "<input type='submit' value='Delete this occurrence only' class='callback_trigger' data-operation='present'/>" +
+                            "<input type='submit' value='Delete all future occurrences' class='callback_trigger' data-operation='future'/>" +
+                            "<input type='submit' value='Delete all occurrences' class='callback_trigger' data-operation='all'/>";
+                        dialog_box(input, msg, 'Delete event', function(el) {
+                            process(el.data('operation'));
+                        });
+                    } else {
+                        confirmation_box(input, 'Are you sure you want to delete this session?', 'Delete', function () {
+                            process('present');
+                        });
+                    }
+                }
+            });
         })
 
         // Modify session type
@@ -1467,10 +1682,10 @@ $(document).ready(function () {
      Modal Window
      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Bind leanModal to triggers
-        .on('click', ".leanModal", function(e) {
+        .on('mouseover', ".leanModal", function(e) {
             e.preventDefault();
             var callback = function() {
-                tinymcesetup();
+                loadWYSIWYGEditor();
 
                 // Load JCM calendar
                 loadCalendarSubmission();
@@ -1480,26 +1695,47 @@ $(document).ready(function () {
 
         .on('click', '.go_to_section', function(e) {
             e.preventDefault();
-            go_to_section($(this).data());
+            $(this).closest('.modalContainer').modalWindow('go_to_section', ($(this).data()));
+        })
+
+        // Dialog change password
+        .on('click',".modal_trigger_changepw",function (e) {
+            e.preventDefault();
+            $(this).modalTrigger('show_section', 'user_changepw');
+        })
+
+        // Going back to Login Forms
+        .on('click',".back_btn",function (e) {
+            e.preventDefault();
+            $(this).closest('.modalContainer').modalWindow('go_to_previous', ($(this).data('prev')));
+            return false;
+        })
+
+        .on('click', '.show_section', function(e) {
+            e.preventDefault();
+            $(this).modalTrigger('load_section', $(this).data());
         })
 
         .on('click', '.delete', function(e) {
             e.preventDefault();
             var el = $(this);
-            el.data('action', 'delete');
             confirmation_box(el, 'Are you sure you want to delete this item?', 'Delete', function () {
-                var data = el.data();
-                data['delete'] = true;
                 jQuery.ajax({
                     url: 'php/form.php',
                     type: 'post',
-                    data: data,
+                    data: {
+                        'controller': el.data('controller'),
+                        'action': 'delete',
+                        'id': el.data('id'),
+                        'delete': true
+                    },
+                    async: true,
                     success: function(ajax) {
                         var result = jQuery.parseJSON(ajax);
-                        if (result === true) {
+                        if (result === true || (result.hasOwnProperty('status') && result.status === true)) {
                             showfeedback("<div class='sys_msg success'>Item deleted</div>", '.confirmation_text');
                             setTimeout(function() {
-                                close_modal();
+                                el.modalTrigger('close');
                                 location.reload();
                             }, 2000);
                         } else {
@@ -1546,30 +1782,6 @@ $(document).ready(function () {
 
         })
 
-        // Dialog change password
-        .on('click',".modal_trigger_changepw",function (e) {
-            e.preventDefault();
-            show_section('user_changepw');
-        })
-
-        // Going back to Login Forms
-        .on('click',".back_btn",function (e) {
-            e.preventDefault();
-            go_to_previous($(this).data('prev'));
-            return false;
-        })
-
-        .on('click', '.show_section', function(e) {
-            e.preventDefault();
-            load_section($(this).data());
-        })
-
-        // Go to sign up form
-        .on('click','.gotoregister',function (e) {
-            e.preventDefault();
-            load_section($(this).data());
-        })
-
         // Delete user account confirmation form
         .on('click',".confirmdeleteuser",function (e) {
             e.preventDefault();
@@ -1594,7 +1806,7 @@ $(document).ready(function () {
                     location.reload();
                 }
             };
-            processForm(form, callback);
+            processForm(form, callback, 'reload');
             e.stopImmediatePropagation();
         })
 

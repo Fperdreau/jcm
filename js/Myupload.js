@@ -61,6 +61,7 @@ var processUpl = function (data) {
         processData:false,
         beforeSend: animBack.start(),
         complete: animBack.stop(),
+        async: true,
         success: function(response){
             var result = jQuery.parseJSON(response);
             el.find('.upl_errors').hide();
@@ -123,7 +124,7 @@ function AnimateBack(el) {
      * Animate background
      */
     this.anim = function(){
-        if(this.interval == 20) {
+        if(this.interval === 20) {
             this.interval = 0;
             this.gradient_percent = 0;
         }
@@ -168,7 +169,7 @@ function AnimateBack(el) {
 $(document).ready(function() {
 
     var dragcounter = 0;
-    $('.mainbody')
+    $(document)
 
         .on('dragenter','.upl_container', function(e) {
             e.stopPropagation();
