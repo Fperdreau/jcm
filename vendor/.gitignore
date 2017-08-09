@@ -1,0 +1,6 @@
+# Ignore everything
+*
+
+# except .gitignore and autoload.php
+!.gitignore
+!autoload.php
