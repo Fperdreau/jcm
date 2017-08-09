@@ -136,20 +136,30 @@ class BaseModel {
     }
 
     /**
+     * Set settings
+     * @param array $data
+     * @return bool
+     */
+    private function setSettings(array $data) {
+        if (!is_null($this->settings)) {
+            foreach ($data as $key => $value) {
+                if (key_exists($key, $this->settings)) {
+                    $this->settings[$key] = $value;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Update controller settings
      * @param array|null $data
      * @return array
      */
     public function updateSettings(array $data=null) {
-        if (!is_null($this->settings)) {
-            if (!is_null($data)) {
-                foreach ($data as $key=>$value) {
-                    if (key_exists($key, $this->settings)) {
-                        $this->settings[$key] = $value;
-                    }
-                }
-            }
-
+        if ($this->setSettings($data)) {
             if ($this->Settings->update($this->settings, array('object'=>__CLASS__))) {
                 return array('status'=>true, 'msg'=>'Ok');
             } else {
