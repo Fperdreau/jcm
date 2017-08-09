@@ -43,30 +43,29 @@ class Lab extends BaseModel {
                         <div class='submit_btns'>
                             <input type='submit' name='modify' value='Modify' class='processform'>
                         </div>
-                        <input type='hidden' name='config_modify' value='true'/>
                         <div class='form-group'>
-                            <input type='text' name='lab_name' placeholder='Name of your Lab' value='{$settings['name']}'>
-                            <label for='lab_name'>Name</label>
+                            <input type='text' name='name' placeholder='Name of your Lab' value='{$settings['name']}'>
+                            <label for='name'>Name</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='lab_street' placeholder='Street of your Lab' value='{$settings['street']}'>
-                            <label for='lab_street'>Street</label>
+                            <input type='text' name='street' placeholder='Street of your Lab' value='{$settings['street']}'>
+                            <label for='street'>Street</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='lab_postcode' placeholder='Postcode of your lab' value='{$settings['postcode']}'>
-                            <label for='lab_postcode'>Post Code</label>
+                            <input type='text' name='postcode' placeholder='Postcode of your lab' value='{$settings['postcode']}'>
+                            <label for='postcode'>Post Code</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='lab_city' placeholder='Your city' value='{$settings['city']}'>
-                            <label for='lab_city'>City</label>
+                            <input type='text' name='city' placeholder='Your city' value='{$settings['city']}'>
+                            <label for='city'>City</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='lab_country' placeholder='Your country' value='{$settings['country']}'>
-                            <label for='lab_country'>Country</label>
+                            <input type='text' name='country' placeholder='Your country' value='{$settings['country']}'>
+                            <label for='country'>Country</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='lab_mapurl' placeholder='URL to the Google map' value='{$settings['url']}'>
-                            <label for='lab_mapurl'>Google Map's URL</label>
+                            <input type='text' name='url' placeholder='URL to the Google map' value='{$settings['url']}'>
+                            <label for='url'>Google Map's URL</label>
                         </div>
                         <div class='feedback' id='feedback_lab'></div>
                     </form>
