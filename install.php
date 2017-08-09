@@ -25,84 +25,20 @@
  * BOOTING PART
  */
 
-/**
- * Define timezone
- *
- */
-date_default_timezone_set('Europe/Paris');
-if (!ini_get('display_errors')) {
-    error_reporting(E_ALL | E_STRICT);
-    ini_set('display_errors', true);
-}
-
-/**
- * Define paths
- */
-if(!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
-if(!defined('APP_NAME')) define('APP_NAME', basename(__DIR__));
-if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(__FILE__ . DS));
-if(!defined('PATH_TO_IMG')) define('PATH_TO_IMG', PATH_TO_APP. DS . 'images' . DS);
-if(!defined('PATH_TO_INCLUDES')) define('PATH_TO_INCLUDES', PATH_TO_APP . DS . 'includes' . DS);
-if(!defined('PATH_TO_PHP')) define('PATH_TO_PHP', PATH_TO_APP . DS . 'php' . DS);
-if(!defined('PATH_TO_PAGES')) define('PATH_TO_PAGES', PATH_TO_APP . DS .'pages' . DS);
-if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP . DS . 'config' . DS);
-if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP . DS . 'libs' . DS);
-
-
-/**
- * Includes required files (classes)
- */
-include_once(PATH_TO_INCLUDES.'AppDb.php');
-include_once(PATH_TO_INCLUDES.'AppTable.php');
-$includeList = scandir(PATH_TO_INCLUDES);
-foreach ($includeList as $includeFile) {
-    if (!in_array($includeFile,array('.','..','boot.php'))) {
-        require_once(PATH_TO_INCLUDES.$includeFile);
-    }
-}
-
-/**
- * Start session
- *
- */
-SessionInstance::initsession();
+include('includes' . DIRECTORY_SEPARATOR . 'App.php');
+App::boot(true);
 
 /**
  * Declare classes
  *
  */
-$db = AppDb::getInstance();
-$AppConfig = new AppConfig(false);
-if(!defined('URL_TO_APP')) define('URL_TO_APP', $AppConfig::getAppUrl());
-
-/**
- * Browse release content and returns associative array with folders name as keys
- * @param $dir
- * @param array $foldertoexclude
- * @param array $filestoexclude
- * @return mixed
- */
-function browsecontent($dir,$foldertoexclude=array(),$filestoexclude=array()) {
-    $content[$dir] = array();
-    if ($handle = opendir($dir)) {
-        while (false !== ($file = readdir($handle))) {
-            $filename = $dir."/".$file;
-            if ($file != "." && $file != ".." && is_file($filename) && !in_array($filename,$filestoexclude)) {
-                $content[$dir][] = $filename;
-            } else if ($file != "." && $file != ".." && is_dir($dir.$file) && !in_array($dir.$file, $foldertoexclude) ) {
-                $content[$dir] = browsecontent($dir.$file,$foldertoexclude,$filestoexclude);
-            }
-        }
-        closedir($handle);
-    }
-    return $content;
-}
+$db = Db::getInstance();
 
 /**
  * Patching database tables for version older than 1.2.
  */
 function patching() {
-    $db = AppDb::getInstance();
+    $db = Db::getInstance();
     $version = (float)$_SESSION['installed_version'];
     if ($version <= 1.2) {
 
@@ -123,7 +59,7 @@ function patching() {
             }
 
             if (empty($row['username']) || $row['username'] == "") {
-                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='{$row['orator']}' OR fullname LIKE '%{$row['orator']}%'";
+                $sql = "SELECT username FROM " . $db->tablesname['Users'] . " WHERE username='{$row['orator']}' OR fullname LIKE '%{$row['orator']}%'";
                 $userreq = $db->send_query($sql);
                 $user_data = mysqli_fetch_assoc($userreq);
                 if (!empty($data)) {
@@ -144,7 +80,7 @@ function patching() {
             if (empty($row['postid']) || $row['postid'] == "NULL") {
                 // Get uploader username
                 $userid = $row['username'];
-                $sql = "SELECT username FROM " . $db->tablesname['User'] . " WHERE username='$userid' OR fullname='$userid'";
+                $sql = "SELECT username FROM " . $db->tablesname['Users'] . " WHERE username='$userid' OR fullname='$userid'";
                 $userreq = $db->send_query($sql);
                 $data = mysqli_fetch_assoc($userreq);
 
@@ -158,7 +94,7 @@ function patching() {
         // Patch MEDIA table
         // Write previous uploads to this new table
         $columns = $db->getColumns($db->tablesname['Presentation']);
-        $filenames = $db->select($db->tablesname['Media'], array('filename'));
+        $filenames = $db->resultSet($db->tablesname['Media'], array('filename'));
         if (in_array('link', $columns)) {
             $sql = "SELECT up_date,id_pres,link FROM " . $db->tablesname['Presentation'];
             $req = $db->send_query($sql);
@@ -181,7 +117,7 @@ function patching() {
                                     'presid' => $row['id_pres'],
                                     'type' => $type
                                 );
-                                $db->addcontent($db->tablesname['Media'], $content);
+                                $db->insert($db->tablesname['Media'], $content);
                             }
                         }
                     }
@@ -198,287 +134,144 @@ function patching() {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process Installation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
-if (!empty($_POST['operation'])) {
-    $operation = $_POST['operation'];
-    set_time_limit(60);
-
-    switch ($operation) {
-        case "db_info":
-            // STEP 1: Check database credentials provided by the user
-            $result = AppDb::testdb($_POST);
-            break;
-        case "do_conf":
-            // STEP 2: Write database credentials to config.php file
-            $result = AppConfig::createConfig($_POST);
-            break;
-        case "backup":
-            // STEP 3: Do Backups before making any modifications to the db
-            include('cronjobs/DbBackup.php');
-            $status = \Backup\Backup::backupDb(10);
-            $result['status'] = $status !== false;
-            $result['msg'] = $status !== false ? "Backup is complete!" : "Something went wrong!";
-            AppLogger::get_instance(APP_NAME)->info($result['msg']);
-            break;
-        case "install_db":
-            // STEP 4: Configure database
-            $db::get_config();
-
-            $op = htmlspecialchars($_POST['op']);
-            $op = $op == "new";
-
-            // Tables to create
-            $tables_to_create = $db->tablesname;
-
-            // Get default application settings
-            $AppConfig = new AppConfig(false);
-            $version = $AppConfig::version; // New version number
-            if ($op === true) {
-                $AppConfig->getAll();
-            }
-            $_POST['version'] = $version;
-            $_POST{"site_url"} = URL_TO_APP;
-
-            // Install all tables
-            $includeList = scandir(PATH_TO_INCLUDES);
-            foreach ($includeList as $includeFile) {
-                if (!in_array($includeFile, array('.', '..', 'AppTable.php'))) {
-                    $class_name = explode('.', $includeFile);
-                    if (method_exists($class_name[0], 'setup')) {
-                        /**
-                         * @var $obj AppTable
-                         */
-                        $obj = new $class_name[0]();
-                        $obj->setup($op);
-                    }
-                }
-            }
-
-            // Apply patch if required
-            if ($op == false) {
-                patching();
-                Suggestion::patch();
-                Presentation::patch_uploads();
-                Presentation::patch_session_id();
-                Session::patch_time();
-                Posts::patch_table();
-            }
-
-            $result['msg'] = "Database installation complete!";
-            $result['status'] = true;
-            AppLogger::get_instance(APP_NAME, 'Install')->info($result['msg']);
-            break;
-
-        case "checkDb":
-            // STEP 5:Check consistency between presentations and sessions table
-            $result = Session::checkDb();
-            break;
-
-        case "settings":
-            $AppConfig = new AppConfig();
-            $result['status'] = $AppConfig->update_all($_POST);
-            break;
-        case "admin_creation":
-            // Final step: create admin account (for new installation only)
-            $user = new User();
-            $result = $user->make($_POST);
-            break;
-        default:
-            $result = false;
-            break;
-    }
-    echo json_encode($result);
-    exit;
-}
-
 /**
  * Get page content
  *
  */
-$result = null;
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    $result = null;
 
-if (!empty($_POST['getpagecontent'])) {
-    $step = htmlspecialchars($_POST['getpagecontent']);
-    $_SESSION['step'] = $step;
-    $op = htmlspecialchars($_POST['op']);
-    $new_version = AppConfig::version;
-    $operation = null;
-    $title = null;
-
-    /**
-     * Get configuration from previous installation
-     * @var  $config
-     *
-     */
-    $config = $db->get_config();
-    $version = ($config['version'] !== false) ? $config['version']: false;
-    $_SESSION['installed_version'] = $version;
-
-    if ($step == 1) {
-        $title = "Welcome!";
-        if ($version == false) {
-            $operation = "
-                <p>Hello</p>
-                <p>It seems that <span class='appname'>" . AppConfig::app_name . "</span>  has never been installed here before.</p>
-                <p>We are going to start from scratch... but do not worry, it is all automatic. We will guide you through the installation steps and you will only be required to provide us with some information regarding the hosting environment.</p>
-                <p>Click on the 'next' button once you are ready to start.</p>
-                <p>Thank you for your interest in <span class='appname'>" . AppConfig::app_name . "</span> 
-                <p style='text-align: center'><input type='button' value='Start' class='start' data-op='new'></p>";
-        } else {
-            $operation = "
-                <p>Hello</p>
-                <p>The current version of <span class='appname'>" . AppConfig::app_name . "</span>  installed here is <span style='font-weight: 500'>{$version}</span>. You are about to install the version <span style='font-weight: 500'>{$new_version}</span>.</p>
-                <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
-                <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <span class='appname'>" . AppConfig::app_name . "</span>  database!!</p>
-                <p style='text-align: center'>
-                <input type='button' value='New installation'  class='start' data-op='new'>
-                <input type='button' value='Update' class='start' data-op='update'>
-                </p>";
-        }
-    } elseif ($step == 2) {
-        $config = $db->get_config();
-        $db_prefix = str_replace('_', '', $config['dbprefix']);
-
-        $title = "Step 1: Database configuration";
-        $operation = "
-			<form action='install.php' method='post'>
-                <input type='hidden' name='version' value='" . AppConfig::version. "'>
-                <input type='hidden' name='op' value='{$op}'/>
-                <input type='hidden' name='operation' value='db_info'/>
-                <div class='form-group'>
-    				<input name='host' type='text' value='{$config['host']}' required autocomplete='on'>
-                    <label for='host'>Host Name</label>
-                </div>
-                <div class='form-group'>
-    				<input name='username' type='text' value='{$config['username']}' required autocomplete='on'>
-                    <label for='username'>Username</label>
-                </div>
-                <div class='form-group'>
-				    <input name='passw' type='password' value='{$config['passw']}'>
-                    <label for='passw'>Password</label>
-                </div>
-                <div class='form-group'>
-				    <input name='dbname' type='text' value='{$config['dbname']}' required autocomplete='on'>
-                    <label for='dbname'>DB Name</label>
-                </div>
-                <div class='form-group'>
-				    <input name='dbprefix' type='text' value='{$db_prefix}' required autocomplete='on'>
-                    <label for='dbprefix'>DB Prefix</label>
-                </div>
-                <div class='submit_btns'>
-                    <input type='submit' value='Next' class='proceed'>
-                </div>
-			</form>
-			<div class='feedback'></div>
-		";
-    } elseif ($step == 3) {
-        if ($op == "update") $AppConfig = new AppConfig();
-        $AppConfig->getAppUrl();
-
-        $title = "Step 2: Application configuration";
-        $operation = "
-            <form action='install.php' method='post'>
-                <input type='hidden' name='version' value='" . AppConfig::version. "'>
-                <input type='hidden' name='op' value='{$op}'/>
-                <input type='hidden' name='operation' value='settings'/>
-                <input type='hidden' name='site_url' value='{$AppConfig::$site_url}'/>
-
-                <h3>Mailing service</h3>
-                <div class='form-group'>
-                    <input name='mail_from' type='email' value='{$AppConfig->mail_from}'>
-                    <label for='mail_from'>Sender Email address</label>
-                </div>
-                <div class='form-group'>
-                    <input name='mail_from_name' type='text' value='{$AppConfig->mail_from_name}'>
-                    <label for='mail_from_name'>Sender name</label>
-                </div>
-                <div class='form-group'>
-                    <input name='mail_host' type='text' value='{$AppConfig->mail_host}'>
-                    <label for='mail_host'>Email host</label>
-                </div>
-                <div class='form-group'>
-                    <select name='SMTP_secure'>
-                        <option value='{$AppConfig->SMTP_secure}' selected='selected'>{$AppConfig->SMTP_secure}</option>
-                        <option value='ssl'>ssl</option>
-                        <option value='tls'>tls</option>
-                        <option value='none'>none</option>
-                     </select>
-                     <label for='SMTP_secure'>SMTP access</label>
-                 </div>
-                <div class='form-group'>
-                    <input name='mail_port' type='text' value='{$AppConfig->mail_port}'>
-                    <label for='mail_port'>Email port</label>
-                </div>
-                <div class='form-group'>
-                    <input name='mail_username' type='text' value='{$AppConfig->mail_username}'>
-                    <label for='mail_username'>Email username</label>
-                </div>
-                <div class='form-group'>
-                    <input name='mail_password' type='password' value='{$AppConfig->mail_password}'>
-                    <label for='mail_password'>Email password</label>
-                </div>
-                <div class='form-group'>
-                    <input name='test_email' type='email' value=''>
-                    <label for='test_email'>Your email (for testing only)</label>
-                </div>
-
-                <div class='submit_btns'>
-                    <input type='submit' value='Test settings' class='test_email_settings'> 
-                    <input type='submit' value='Next' class='process_form'>
-                </div>
-            </form>
-            <div class='feedback'></div>
-        ";
-    } elseif ($step == 4) {
-        $title = "Step 3: Admin account creation";
-        $operation = "
-            <div class='feedback'></div>
-			<form action='install.php' method='post'>
-                <input type='hidden' name='op' value='{$op}'/>
-                <input type='hidden' name='operation' value='admin_creation'/>
-                <input type='hidden' name='status' value='admin'/>
-
-			    <div class='form-group'>
-				    <input type='text' name='username' required autocomplete='on'>
-                    <label for='username'>UserName</label>
-                </div>
-                <div class='form-group'>
-				    <input type='password' name='password' class='passwordChecker' required>
-                    <label for='password'>Password</label>
-                </div>
-                <div class='form-group'>
-				    <input type='password' name='conf_password' required>
-                    <label for='conf_password'>Confirm password</label>
-                </div>
-                <div class='form-group'>
-				    <input type='email' name='email' required autocomplete='on'>
-                    <label for='admin_email'>Email</label>
-                </div>
-                <input type='hidden' name='status' value='admin'>
-                <div class='submit_btns'>
-                    <input type='submit' value='Next' class='process_form'>
-                </div>
-			</form>
-		";
-    } elseif ($step == 5) {
-        $title = "Installation complete!";
-        $operation = "
-		<p class='sys_msg success'>Congratulations!</p>
-		<p class='sys_msg warning'> Now you can delete the 'install.php' file from the root folder of the application</p>
-		<p style='text-align: right'><input type='button' value='Finish' class='finish'></p>";
+    if ((empty($_POST['get_page_content']) || empty($_SESSION['step']))) {
+        $_POST['get_page_content'] = 1;
+    } elseif (empty($_POST['get_page_content']) && !empty($_SESSION['step'])) {
+        $_POST['get_page_content'] = $_SESSION['step'];
     }
 
-    $result['title'] = $title;
-    $result['content'] = "
-		<section>
-			<div class='section_content' id='operation'>{$operation}</div>
-		</section>
-	";
-    $result['step'] = $step;
-    $result['op'] = $op;
-}
+    if (!empty($_POST['get_page_content'])) {
+        $step = !empty($_POST['get_page_content']) ? htmlspecialchars($_POST['get_page_content']) : 1;
+        $_SESSION['step'] = $step;
+        $next_step = $step + 1;
 
-if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        $new_version = App::version;
+        $operation = null;
+        $title = null;
+        $result = array();
+
+        if ($step == 1) {
+            unset($_SESSION['op']);
+        }
+
+        if ($step == 2) {
+            $_SESSION['op'] = htmlspecialchars($_POST['op']);
+        }
+
+        if (!isset($_SESSION['op'])) {
+            $op = false;
+        } else {
+            $op = $_SESSION['op'];
+        }
+
+        // Get configuration from previous installation
+        $config = Config::getInstance();
+        $version = ($config->get('version') !== false) ? $config->get('version') : false;
+        $_SESSION['installed_version'] = $version;
+
+        if ($step == 1) {
+            $title = "Welcome!";
+            if ($version == false) {
+                $operation = "
+                    <p>Hello</p>
+                    <p>It seems that <span class='appname'>" . App::app_name . "</span>  has never been installed here before.</p>
+                    <p>We are going to start from scratch... but do not worry, it is all automatic. We will guide you through the installation steps and you will only be required to provide us with some information regarding the hosting environment.</p>
+                    <p>Click on the 'next' button once you are ready to start.</p>
+                    <p>Thank you for your interest in <span class='appname'>" . App::app_name . "</span> 
+                    <p style='text-align: center'><input type='button' value='Start' class='start' data-op='new'></p>";
+            } else {
+                $operation = "
+                    <p>Hello</p>
+                    <p>The current version of <span class='appname'>" . App::app_name . "</span>  installed here is <span style='font-weight: 500'>{$version}</span>. You are about to install the version <span style='font-weight: 500'>{$new_version}</span>.</p>
+                    <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
+                    <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <span class='appname'>" . App::app_name . "</span>  database!!</p>
+                    <p style='text-align: center'>
+                    <input type='button' value='New installation'  class='start' data-op='new'>
+                    <input type='button' value='Update' class='start' data-op='update'>
+                    </p>";
+            }
+            $next_step = 2;
+        } elseif ($step == 2) {
+            $config = $db->get_config();
+            $db_prefix = str_replace('_', '', $config['dbprefix']);
+
+            $title = "Step 1: Database configuration";
+            $operation = "
+                <form action='install.php' method='post'>
+                    <input type='hidden' name='version' value='" . App::version. "'>
+                    <input type='hidden' name='op' value='{$op}'/>
+                    <input type='hidden' name='operation' value='db_info'/>
+                    <div class='form-group'>
+                        <input name='host' type='text' value='{$config['host']}' required autocomplete='on'>
+                        <label for='host'>Host Name</label>
+                    </div>
+                    <div class='form-group'>
+                        <input name='username' type='text' value='{$config['username']}' required autocomplete='on'>
+                        <label for='username'>Username</label>
+                    </div>
+                    <div class='form-group'>
+                        <input name='passw' type='password' value='{$config['passw']}'>
+                        <label for='passw'>Password</label>
+                    </div>
+                    <div class='form-group'>
+                        <input name='dbname' type='text' value='{$config['dbname']}' required autocomplete='on'>
+                        <label for='dbname'>DB Name</label>
+                    </div>
+                    <div class='form-group'>
+                        <input name='dbprefix' type='text' value='{$db_prefix}' required autocomplete='on'>
+                        <label for='dbprefix'>DB Prefix</label>
+                    </div>
+                    <div class='submit_btns'>
+                        <input type='submit' value='Next' class='proceed'>
+                    </div>
+                </form>
+                <div class='feedback'></div>
+            ";
+            $next_step = 3;
+        } elseif ($step == 3) {
+            $title = "Step 2: Application configuration";
+            $MailManager = new MailManager();
+            $operation = Template::section($MailManager::settingsForm($MailManager->getSettings()));
+
+            if ($op === 'new') {
+                $next_step = 4;
+            } else {
+                $next_step = 5;
+            }
+
+        } elseif ($step == 4) {
+            $title = "Step 3: Admin account creation";
+            $operation = Users::admin_creation_form();
+            $next_step = 5;
+
+        } elseif ($step == 5) {
+            $title = "Installation complete!";
+            $operation = "
+            <p class='sys_msg success'>Congratulations!</p>
+            <p class='sys_msg warning'> Now you can delete the 'install.php' file from the root folder of the application</p>
+            <p style='text-align: right'><input type='button' value='Finish' class='finish'></p>";
+            $next_step = 5;
+        }
+
+        $action = $op === false ? 'false' : $op;
+        $result['title'] = $title;
+        $result['content'] = "
+            <section>
+                <div class='section_content' id='operation' data-action={$action} data-step={$step} data-next={$next_step}>{$operation}</div>
+            </section>
+        ";
+        $result['step'] = $step;
+        $result['op'] = $op;
+        $result['next_step'] = $next_step;
+    }
+
     echo json_encode($result);
     exit;
 }
@@ -741,13 +534,16 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             return params;
         }
 
+        var step = 0;
+        var next_step = 1;
+
         /**
          * Get view
          * @param step_to_load: view to load
          * @param op: update or make new installation
          */
         function getpagecontent(step_to_load, op) {
-            step = step_to_load;
+            var step = step_to_load;
             var stateObj = { page: 'install' };
             var div = $('main');
 
@@ -755,7 +551,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 history.pushState(stateObj, 'install', "install.php?step=" + result.step + "&op=" + result.op);
                 pageTransition(result);
             };
-            var data = {getpagecontent: step, op: op};
+            var data = {get_page_content: step, op: op};
             processAjax(div,data,callback,'install.php');
         }
 
@@ -763,7 +559,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             var container = $('#hidden_container');
             var current_content = container.find('#current_content');
 
-            if (container.find('#next_content').length == 0) {
+            if (container.find('#next_content').length === 0) {
                 container.append('<div id="next_content"></div>');
                 renderSection(current_content, content);
                 return true;
@@ -819,7 +615,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             el.find(".progress_layer").remove();
             el.append('<div class="progress_layer"></div>');
             var layer = el.find('.progress_layer');
-            if (layer.find('.progressText_container').length == 0) {
+            if (layer.find('.progressText_container').length === 0) {
                 layer.append('<div class="progressText_container">' +
                     '<div class="text"></div>' +
                     '<div class="progressBar_container"><div class="progressBar"></div>' +
@@ -844,7 +640,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             var i;
             // Find and replace `content` if there
             for (i = 0; i < data.length; ++i) {
-                if (data[i].name == "operation") {
+                if (data[i].name === "operation") {
                     data[i].value = operation;
                     break;
                 }
@@ -856,7 +652,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
          * Go to next installation step
          **/
         function gonext() {
-            step = parseInt(step) + 1;
+            var op = $('.section_content#operation').data('action');
+            var step = $('.section_content#operation').data('next');
+            console.log(op, step);
             getpagecontent(step, op);
             return true;
         }
@@ -869,19 +667,19 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         function process(input) {
             var form = input.length > 0 ? $(input[0].form) : $();
             var operation = form.find('input[name="operation"]').val();
-            op = form.find('input[name="op"]').val();
+            var op = form.find('input[name="op"]').val();
             var data = form.serializeArray();
             var operationDiv = $('#operation');
-            var url = form.attr('action');
+
             // Check form validity
             if (!checkform(form)) return false;
 
             var queue = [
-                {url: url, operation: 'db_info', data: data, text: 'Connecting to database'},
-                {url: url, operation: 'do_conf', data: data, text: 'Creating configuration file'},
-                {url: url, operation: 'backup', data: data, text: 'Backup files and database'},
-                {url: url, operation: 'install_db', data: data, text: 'Installing application'},
-                {url: url, operation: 'checkDb', data: data, text: 'Checking database integrity'}
+                {url: 'php/router.php?controller=Db&action=testdb', operation: 'db_info', data: data, text: 'Connecting to database'},
+                {url: 'php/router.php?controller=Config&action=createConfig', operation: 'do_conf', data: data, text: 'Creating configuration file'},
+                {url: 'php/router.php?controller=Backup&action=backupDb', operation: 'backup', data: data, text: 'Backup files and database'},
+                {url: 'php/router.php?controller=App&action=install', operation: 'install_db', data: data, text: 'Installing application'},
+                {url: 'php/router.php?controller=Session&action=checkDb', operation: 'checkDb', data: data, text: 'Checking database integrity'}
             ];
 
             var lastAction = function() {
@@ -949,29 +747,38 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             }
         }
 
-        var step = 1;
-        var op = 'new';
+        // Has the page been loaded already
+        var loaded = false;
 
-        $(document).ready(function () {
+        /**
+         * Get action and step values from URL for the first load
+         * @return void
+         */
+        function first_load() {
+            if (!loaded) {
+                var params = getParams();
+                getpagecontent(params.step, params.op);
+                loaded = true;
+            }
+        }
+
+
+        $(function () {
+
+            // Get page content for the first load only
+            first_load();
 
             $('body')
-                .ready(function() {
-                    // Get step
-                    var params = getParams();
-                    var step = (params.step == undefined) ? 1:params.step;
-                    var op = (params.op == undefined) ? false:params.op;
-                    getpagecontent(step, op);
-                })
 
                 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                  Installation/Update
                  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
                 // Go to next installation step
                 .on('click', '.start', function(e) {
                     e.preventDefault();
                     var op = $(this).attr('data-op');
-                    getpagecontent(2,op);
+                    $('.section_content#operation').data('action', op);
+                    gonext(op);
                 })
 
                 // Go to next installation step
@@ -983,7 +790,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 .on('click', "input[type='submit']", function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!$(this).hasClass('process_form')) {
+                    if (!$(this).hasClass('process_form') && !$(this).hasClass('test_email_settings')) {
                         process($(this));
                     } else {
                         return false;
@@ -998,14 +805,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     var url = form.attr('action');
                     if (!checkform(form)) {return false;}
                     var callback = function(result) {
-                        if (result.status == true) {
-                            if (step == 3 && op === 'new') {
-                                getpagecontent(4, op);
-                            } else if (step == 3 && op !== 'new') {
-                                getpagecontent(5, op);
-                            } else {
-                                gonext();
-                            }
+                        if (result.status === true) {
+                            console.log(step, op);
+                            gonext();
                         }
                     };
                     processForm(form,callback,url);
@@ -1028,7 +830,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     var op = form.find('input[name="op"]').val();
                     if (!checkform(form)) {return false;}
                     var callback = function(result) {
-                        if (result.status == true) {
+                        if (result.status === true) {
                             getpagecontent(5,op);
                         }
                     };
@@ -1036,7 +838,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 });
         });
     </script>
-    <title><?php echo AppConfig::app_name; ?>  - Installation</title>
+    <title><?php echo App::app_name; ?>  - Installation</title>
 </head>
 
 <body>
@@ -1044,8 +846,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     <!-- Header section -->
     <header>
         <div class="box" id="page_title">
-            <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
-            <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
+            <div id="appTitle"><?php echo App::app_name; ?></div>
+            <div id="appVersion">Version <?php echo App::version; ?></div>
         </div>
     </header>
 
@@ -1055,8 +857,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             <div id="hidden_container">
                 <div id="current_content">
                     <div class="box">
-                        <div id="section_title"><?php echo $result['title']; ?></div>
-                        <div id="section_content"><?php echo $result['content']; ?></div>
+                        <div id="section_title"></div>
+                        <div id="section_content"></div>
                     </div>
                 </div>
             </div>
@@ -1064,10 +866,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     </main>
 
     <footer>
-        <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
-        <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
+        <div id="appTitle"><?php echo App::app_name; ?></div>
+        <div id="appVersion">Version <?php echo App::version; ?></div>
         <div id="sign">
-            <a href="<?php echo AppConfig::repository?>" target='_blank'><?php echo AppConfig::copyright; ?></a>
+            <a href="<?php echo App::repository?>" target='_blank'><?php echo App::copyright; ?></a>
         </div>
     </footer>
 
