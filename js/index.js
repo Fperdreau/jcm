@@ -981,6 +981,21 @@ $(document).ready(function () {
             processAjax(div, data, callback, "php/form.php");
         })
 
+        // User Management tool: Modify user status
+        .on('change','.user_actions',function (e) {
+            e.preventDefault();
+            var div = $('#user_list');
+            var username = $(this).attr("data-user");
+            var option = $(this).val();
+            var data = {username: username,option: option};
+            var callback = function (result) {
+                setTimeout(function () {
+                    $('#user_list').html(result.content);
+                },2000);
+            };
+            processAjax(div, data, callback, "php/router.php?controller=Users&action=");
+        })
+
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin - Mailing
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -1817,7 +1832,7 @@ $(document).ready(function () {
             var form = input.length > 0 ? $(input[0].form) : $();
             var callback = function (result) {
                 if (result.status === true) {
-                    close_modal('.modalContainer');
+                    input.modalTrigger('close');
                 }
             };
             processForm(form, callback);
