@@ -164,10 +164,11 @@ class Mail {
             };
 
             // Mail content
-            $mail->Subject = $subject;
             $mail->isHTML(true);
+            $mail->Subject = $subject;
             $mail->Body = $body;
-            $mail->AltBody = @convert_html_to_text($body); // Convert to plain text for email viewers non-compatible with HTML content
+            // Convert to plain text for email viewers non-compatible with HTML content
+            $mail->AltBody = Html2Text\Html2Text::convert($body, true);
 
             // Add recipients
             $mail->addReplyTo($mail->From, $mail->FromName);
