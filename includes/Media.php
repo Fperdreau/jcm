@@ -380,11 +380,10 @@ class Media extends BaseModel{
         return array(
             'title'=>'Media settings',
             'body'=>"
-                    <form method='post' action='php/form.php'>
+                    <form method='post' action='php/router.php?controller=Media&action=updateSettings'>
                         <div class='submit_btns'>
                             <input type='submit' name='modify' value='Modify' class='processform'>
                         </div>
-                        <input type='hidden' name='config_modify' value='true'/>
                         <div class='form-group'>
                             <input type='text' name='upl_types' value='{$settings['upl_types']}'>
                             <label>Allowed file types (upload)</label>
@@ -393,7 +392,6 @@ class Media extends BaseModel{
                             <input type='text' name='upl_maxsize' value='{$settings['upl_maxsize']}'>
                             <label>Maximum file size (in Kb)</label>
                         </div>
-                        <div class='feedback' id='feedback_site'></div>
                     </form>
         ");
     }
