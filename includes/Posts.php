@@ -436,7 +436,7 @@ class Posts extends BaseModel {
                     <label>Title (255 c. max)</label>
                 </div>
                 <div class='form-group'>
-                    <textarea name='content' class='wygiwym' style='display: block; text-align: right;'>
+                    <textarea name='content' id='content' class='wygiwym' style='display: block; text-align: right;'>
                     {$Post->content}
                     </textarea>
                     <label>Message</label>

@@ -602,7 +602,7 @@ class Suggestion extends BaseModel {
                         
                         <div class='form-group'>
                             <label>Abstract</label>
-                            <textarea name='summary' class='wygiwym' placeholder='Abstract (5000 characters maximum)' 
+                            <textarea name='summary' id='summary' class='wygiwym' placeholder='Abstract (5000 characters maximum)' 
                             style='width: 90%;' required>$Suggestion->summary</textarea>
                         </div>
                     </div>
