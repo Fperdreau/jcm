@@ -91,7 +91,6 @@ class Db {
      */
     public static function getInstance() {
         if (is_null(self::$instance)) {
-            Logger::get_instance(APP_NAME, __CLASS__)->debug('Creating new instance of DB');
             self::$instance = new self();
         }
         return self::$instance;
@@ -146,8 +145,6 @@ class Db {
             }
 
             $this->connected = true;
-            Logger::get_instance(APP_NAME)->debug('Connected to DB');
-
         }
 
         return $this->bdd;
