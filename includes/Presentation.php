@@ -1015,7 +1015,7 @@ class Presentation extends BaseModel {
                         </div>
                         <div class='form-group'>
                             <label>Abstract</label>
-                            <textarea name='summary' class='tinymce' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                            <textarea name='summary' class='wygiwym' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
                         </div>
                     </div>
                     <div class='submit_btns'>

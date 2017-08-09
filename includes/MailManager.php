@@ -538,7 +538,7 @@ class MailManager extends BaseModel {
                         <label>Subject</label>
                     </div>
                     <div class='form-group'>
-                        <textarea name='body' id='spec_msg' class='tinymce' required></textarea>
+                        <textarea name='body' id='spec_msg' class='wygiwym' required></textarea>
                     </div>
                 </div>
                 
