@@ -64,9 +64,11 @@ function getData(el) {
     }
 
     el.find('textarea.wygiwym').each(function() {
-        var txt_data = CKEDITOR.instances[$(this).attr('id')].getData();
-        var field_name = $(this).attr('name');
-        data = modArray(data, field_name, txt_data);
+        if (CKEDITOR.instances[$(this).attr('id')]) {
+            var txt_data = CKEDITOR.instances[$(this).attr('id')].getData();
+            var field_name = $(this).attr('name');
+            data = modArray(data, field_name, txt_data);
+        }
     });
 
     return data;
