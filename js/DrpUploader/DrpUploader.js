@@ -83,10 +83,6 @@ function AnimateBack(el) {
 (function($){
     $.widget( "nmk.DrpUploader", {
 
-        option: {
-            callback: null // Not used for the moment
-        },
-
         // Counter for Drag events
         _drag_counter: 0,
 
@@ -368,21 +364,6 @@ function AnimateBack(el) {
             };
 
             this._callAjax(self.element, data, callback);
-        },
-
-        /**
-         *  _setOptions is called with a hash of all options that are changing
-         */
-        _setOptions: function () {
-            // _super and _superApply handle keeping the right this-context
-            this._superApply(arguments);
-        },
-
-        /**
-         * _setOption is called for each individual option that is changing
-         */
-        _setOption: function (key, value) {
-            this._super(key, value);
         }
 
     });
