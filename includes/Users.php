@@ -409,7 +409,7 @@ class Users extends BaseModel {
      */
     public function setStatus($newStatus) {
         $result['status'] = false; // Set default status as false
-        if ($newStatus == 'delete') {
+        if ($newStatus === 'delete') {
             if ($this->delete_user($this->username)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully deleted";
@@ -421,7 +421,7 @@ class Users extends BaseModel {
         } else {
             if ($this -> change_user_status($newStatus))  {
                 $result['status'] = true;
-                $result['msg'] = "User status is now $newStatus!";
+                $result['msg'] = "{$this->username} status is now $newStatus!";
             }
         }
         Logger::get_instance(APP_NAME, get_class($this))->log($result);
@@ -544,9 +544,10 @@ class Users extends BaseModel {
                 <div class='user_select user_firstname' data-filter='firstname'>First Name</div>
                 <div class='user_select user_lastname' data-filter='lastname'>Last Name</div>
                 <div class='user_select user_email' data-filter='email'>Email</div>
-                <div class='user_select user_email' data-filter='email'>Position</div>
+                <div class='user_select user_position' data-filter='position'>Position</div>
                 <div class='user_select user_small' data-filter='active'>Activated</div>
-                <div class='user_select user_op' data-filter='status'>Status</div>
+                <div class='user_select user_status' data-filter='status'>Status</div>
+                <div class='user_select user_op' data-filter='action'>Action</div>
             </div>
             {$content}
         ";
@@ -559,7 +560,7 @@ class Users extends BaseModel {
      */
     private static function user_in_list(array $item) {
         // Compute age
-        if ($item['active'] === 1) {
+        if ($item['active'] == 1) {
             $to   = new DateTime(date('Y-m-d'));
             $from = new DateTime(date("Y-m-d",strtotime($item['date'])));
             $diff = $to->diff($from);
@@ -579,6 +580,14 @@ class Users extends BaseModel {
             $option_active = "<option value='activate'>Activate</option>";
         }
 
+        // Render status option list
+        $status_options = '';
+        $status = ['member', 'admin', 'organizer'];
+        foreach ($status as $value) {
+            $selected = $value == $item['status'] ? 'selected' : null;
+            $status_options .= "<option value='{$value}' {$selected}> ". ucfirst($value). "</option>";
+        }
+
         return "
             <div class='list-container' id='section_{$item['username']}->username'>
                 <div class='user_firstname'>{$item['firstname']}</div>
@@ -586,12 +595,14 @@ class Users extends BaseModel {
                 <div class='user_email'>{$item['email']}</div>
                 <div class='user_position'>{$item['position']}</div>
                 <div class='user_small'>$cur_trage</div>
-                <div class='user_op'>
-                    <select name='status' class='user_status modify_status' data-user='{$item['username']}' style='max-width: 75%;'>
-                        <option value='{$item['status']}' selected='selected'>{$item['status']}</option>
-                        <option value='member'>Member</option>
-                        <option value='admin'>Admin</option>
-                        <option value='organizer'>Organizer</option>
+                <div class='user_status'>
+                    <select name='status' class='modify_status' data-user='{$item['username']}' style='max-width: 75%;'>
+                        {$status_options}
+                    </select>
+                </div>
+                <div class='user_action'>
+                    <select name='action' class='user_action' data-user='{$item['username']}' style='max-width: 75%;'>
+                        <option selected disabled>Select an action</option>
                         $option_active
                         <option value='delete' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
                     </select>
