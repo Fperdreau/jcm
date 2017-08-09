@@ -90,7 +90,10 @@ class App {
      * @return mixed
      */
     public function updateSettings(array $post) {
-        return array('status' => self::getSettings()->update($post, array()));
+        $result = array();
+        $result['status'] = self::getSettings()->update($post, array());
+        $result['msg'] = $result['status'] ? 'Ok' : 'Oops, something went wrong';
+        return $result;
     }
 
     /**
