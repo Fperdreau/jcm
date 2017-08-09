@@ -87,10 +87,10 @@ class App {
     /**
      * Update app settings
      * @param array $post
-     * @return bool
+     * @return mixed
      */
     public function updateSettings(array $post) {
-        return self::getSettings()->update($post, array());
+        return array('status' => self::getSettings()->update($post, array()));
     }
 
     /**
@@ -361,7 +361,6 @@ class App {
     }
 
     // VIEWS
-
     /**
      * Render settings form
      * @param array $settings
@@ -371,7 +370,7 @@ class App {
         return array(
             'title'=>'JCM settings',
             'body'=>"
-                    <form method='post' action='php/form.php' class='form' id='config_form_site'>
+                    <form method='post' action='php/router.php?controller=App&action=updateSettings'>
                         <div class='submit_btns'>
                             <input type='submit' name='modify' value='Modify' class='processform'>
                         </div>
