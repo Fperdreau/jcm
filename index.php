@@ -20,16 +20,22 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Includes required files (classes)
-require_once('includes/boot.php');
-$menu = AppPage::menu();
+
+/**
+ * BOOTING PART
+ */
+include('includes/App.php');
+App::boot(true);
+
+// Menu
+$menu = Page::menu();
 ?>
 
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <META NAME="viewport" CONTENT="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, user-scalable=yes">
+        <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0, user-scalable=yes">
         <META NAME="description" CONTENT="Journal Club Manager - an efficient way of organizing journal clubs">
         <META NAME="keywords" CONTENT="Journal Club, application, science, tools, research, lab, management">
 
@@ -38,10 +44,6 @@ $menu = AppPage::menu();
         <link type='text/css' rel='stylesheet' href="css/uploader.min.css"/>
         <link  type='text/css' rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-        <!-- JQuery -->
-        <script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
-        <script type="text/javascript" src="js/loading.min.js"></script>
-        <script type="text/javascript" src="js/jquery-ui.js"></script>
         <title>Journal Club Manager - Organize your journal club efficiently</title>
     </head>
 
@@ -69,10 +71,10 @@ $menu = AppPage::menu();
          Login box-->
             <div id='login_box'>
                 <?php
-                if (!User::is_logged()) {
+                if (!Auth::is_logged()) {
                     $showlogin = "
-                <div class='leanModal' data-controller='User' data-action='get_view' data-params='login_form,modal' data-section='login_form'><img src='images/login_bk.png' alt='login'></div>
-                <div class='leanModal' data-controller='User' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='images/signup_bk.png' alt='signup'></div>
+                <div class='leanModal' data-controller='Users' data-action='get_view' data-params='login_form,modal' data-section='login_form'><img src='images/login_bk.png' alt='login'></div>
+                <div class='leanModal' data-controller='Users' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='images/signup_bk.png' alt='signup'></div>
                  ";
                 } else {
                     $showlogin = "
@@ -102,23 +104,33 @@ $menu = AppPage::menu();
         <!-- Footer section -->
         <footer id="footer">
             <div id="colBar"></div>
-            <div id="appTitle"><?php echo AppConfig::app_name; ?></div>
-            <div id="appVersion">Version <?php echo AppConfig::version; ?></div>
+            <div id="appTitle"><?php echo App::app_name; ?></div>
+            <div id="appVersion">Version <?php echo App::version; ?></div>
             <div id="sign">
-                <a href="<?php echo AppConfig::repository?>" target='_blank'><?php echo AppConfig::copyright; ?></a>
+                <a href="<?php echo App::repository?>" target='_blank'><?php echo App::copyright; ?></a>
             </div>
         </footer>
 
-        <!-- Bunch of jQuery functions -->
-        <script type="text/javascript" src="js/index.js"></script>
-        <script type="text/javascript" src="js/form.js"></script>
-        <script type="text/javascript" src="js/plugins.min.js"></script>
-        <script type="text/javascript" src="js/Myupload.min.js"></script>
-        <script type="text/javascript" src="js/jquery.leanModal.js"></script>
-        <script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js"></script>
-        <link type='text/css' rel='stylesheet' href='js/passwordchecker/css/style.min.css' />
 
-        <!-- TinyMce (Rich-text textarea) -->
-        <script type="text/javascript" src="js/tinymce/tinymce.min.js"></script>
     </body>
 </html>
+
+<!-- JQuery -->
+<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+
+<script type="text/javascript" src="js/loading.js" defer ></script>
+
+<!-- Bunch of jQuery functions -->
+<script type="text/javascript" src="js/index.js" defer ></script>
+<script type="text/javascript" src="js/form.js" defer ></script>
+<script type="text/javascript" src="js/plugins.min.js" defer ></script>
+
+<script type="text/javascript" src="js/DrpUploader/DrpUploader.js" defer ></script>
+<script type="text/javascript" src="js/jquery.leanModal.js" defer ></script>
+
+<script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js" defer ></script>
+<link type='text/css' rel='stylesheet' href='js/passwordchecker/css/style.min.css'/>
+
+<!-- CKeditor (Rich-text textarea) -->
+<script type="text/javascript" src="vendor/ckeditor/ckeditor/ckeditor.js" defer ></script>
