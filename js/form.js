@@ -34,7 +34,22 @@
  * @param timing: duration of feedback message
  */
 var processForm = function(el,callback,url,timing) {
+
     if (!checkform(el)) { return false;}
+
+    // Get form data
+    var data = getData(el);
+
+    url = el.attr('action');
+    processAjax(el,data,callback,url,timing);
+};
+
+/**
+ * Get form data
+ * @param el: DOM node
+ * @return {*}
+ */
+function getData(el) {
     var data = el.serializeArray();
 
     // Find tinyMCE textarea and gets their content
@@ -47,9 +62,16 @@ var processForm = function(el,callback,url,timing) {
             data = modArray(data, input_name, content);
         })
     }
-    url = el.attr('action');
-    processAjax(el,data,callback,url,timing);
-};
+
+    el.find('textarea.wygiwym').each(function() {
+        var txt_data = CKEDITOR.instances[$(this).attr('id')].getData();
+        var field_name = $(this).attr('name');
+        data = modArray(data, field_name, txt_data);
+    });
+
+    return data;
+
+}
 
 /**
  * Add loading animation to submit button
@@ -70,19 +92,19 @@ function resetButton(el) {
  * @param el
  */
 function removeLoadingButton(el) {
-    el.removeClass('processform_working');
+    el.removeClass('processform_working processform_success processform_failure');
 }
 
 /**
  * Process Ajax requests
- * @param formid
+ * @param formEl: form selector
  * @param data
  * @param callback: callback function
  * @param url: path to the php file
  * @param timing: duration of feedback message
  */
-var processAjax = function(formid, data, callback, url, timing) {
-    var btn = formid.find('input[type="submit"], .processform');
+var processAjax = function(formEl, data, callback, url, timing) {
+    var btn = formEl.find('input[type="submit"], .processform');
     jQuery.ajax({
         url: url,
         type: 'POST',
@@ -92,25 +114,25 @@ var processAjax = function(formid, data, callback, url, timing) {
             if (btn.length > 0) {
                 loadingButton(btn);
             } else {
-                loadingDiv(formid);
+                loadingDiv(formEl);
             }
         },
         complete: function () {
             if (btn.length > 0) {
                 removeLoadingButton(btn);
             } else {
-                removeLoading(formid);
+                removeLoading(formEl);
             }
         },
         success: function (data) {
             callback = (callback === undefined) ? false: callback;
-            validsubmitform(formid, data, callback, timing, btn);
+            validsubmitform(formEl, data, callback, timing, btn);
         },
         error: function() {
             if (btn.length > 0) {
                 removeLoadingButton(btn);
             } else {
-                removeLoading(formid);
+                removeLoading(formEl);
             }
         }
     });
@@ -126,13 +148,14 @@ var processAjax = function(formid, data, callback, url, timing) {
  * @param btn
  */
 var validsubmitform = function (el, data, callback, timing, btn) {
+
     el = (el === undefined) ? $('body') : el;
     var result = jQuery.parseJSON(data);
     callback = (callback === undefined) ? false : callback;
     timing = (timing === undefined) ? 2000 : timing;
     if (btn !== undefined && btn.length > 0) {
         removeLoadingButton(btn);
-        if ( (typeof(result) === "boolean" && result)|| result.status) {
+        if ( (typeof(result) === "boolean" && result === true) || result.status === true) {
             btn.addClass('processform_success');
         } else {
             btn.addClass('processform_failure');
@@ -413,14 +436,20 @@ var showfeedback = function (message, selector, close) {
  * @param value: new value
  * @returns {*}: new serialized array
  */
-function modArray(data,prop,value) {
+function modArray(data, prop, value) {
     var i;
     for (i = 0; i < data.length; ++i) {
         if (data[i].name === prop) {
             data[i].value = value;
-            break;
+            return data;
         }
     }
+
+    // Add object to array if we could not find it
+    var temp = {};
+    temp[prop] = value;
+    data.push(temp);
+
     return data;
 }
 
@@ -430,7 +459,17 @@ $(document).ready(function () {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            processForm(form);
+            var url = form.attr('action');
+            if (input.hasClass('reload')) {
+                var callback = function (result) {
+                    if (result.status === true) {
+                        location.reload();
+                    }
+                };
+            } else {
+                callback = false;
+            }
+            processForm(form, callback, url);
         })
 
         .on('blur', 'input, select, textarea', function(e) {
