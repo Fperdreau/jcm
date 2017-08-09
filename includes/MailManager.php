@@ -234,6 +234,7 @@ class MailManager extends BaseModel {
             Logger::get_instance(APP_NAME, get_class($this))->error($result['msg']);
             $result['msg'] = 'Oops, something went wrong!';
         }
+
         return $result;
     }
 
@@ -322,7 +323,7 @@ class MailManager extends BaseModel {
      * @param $username
      * @return bool
      */
-    public function send_verification_mail($hash,$user_mail,$username) {
+    public function send_verification_mail($hash, $user_mail, $username) {
         $Users = new Users();
         $admins = $Users->getadmin('admin');
         $to = array();
@@ -330,9 +331,9 @@ class MailManager extends BaseModel {
             $to[] = $admin['email'];
         }
 
-        $content['subject'] = 'Signup | Verification'; // Give the email a subject
-        $authorize_url = URL_TO_APP."index.php?page=verify&email=$user_mail&hash=$hash&result=true";
-        $deny_url = URL_TO_APP."index.php?page=verify&email=$user_mail&hash=$hash&result=false";
+        $content['subject'] = 'Sign up | Verification';
+        $authorize_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=true";
+        $deny_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=false";
 
         $content['body'] = "
         Hello,<br><br>
