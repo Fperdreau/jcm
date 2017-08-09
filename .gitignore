@@ -15,4 +15,8 @@
 #ignore development folder
 /dev/
 
+#Ignore log files
 /logs/
+
+# Ignore vendors
+/vendor/
