@@ -25,8 +25,7 @@ class Vote extends BaseModel {
                 'username'=>$_SESSION['username']))) {
             $post['date'] = date('Y-m-d');
             $post['username'] = $_SESSION['username'];
-            $result['status'] = $this->db->insert($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
-                $post)) !== false;
+            $result['status'] = $this->db->insert($this->tablename, $this->parseData($post)) !== false;
             if ($result['status']) {
                 $info = $this->get_summary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
                 $result['count'] = $info['count'];

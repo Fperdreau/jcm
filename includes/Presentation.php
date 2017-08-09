@@ -143,10 +143,8 @@ class Presentation extends BaseModel {
                     $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Presentation');
                 }
 
-                $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
-
                 // Add publication to the database
-                if ($this->db->insert($this->tablename,$content)) {
+                if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
                     return $this->id_pres;
                 } else {
                     return false;
@@ -173,8 +171,7 @@ class Presentation extends BaseModel {
                 return false;
             }
         }
-        $content = $this->parsenewdata(get_class_vars(get_called_class()), $data, array("link","chair"));
-        return $this->db->update($this->tablename, $content, $id);
+        return $this->db->update($this->tablename, $this->parseData($data, array("link","chair")), $id);
     }
 
     /**
@@ -338,9 +335,11 @@ class Presentation extends BaseModel {
         $this->type = (array_key_exists("type", $post)) ? $post['type']:$this->type;
 
         // Update table
-        $class_vars = get_class_vars("Presentation");
-        $content = $this->parsenewdata($class_vars,$post,array('link','chair'));
-        if ($this->db->update($this->tablename,$content,array('id_pres'=>$this->id_pres))) {
+        if ($this->db->update(
+            $this->tablename,
+            $this->parseData($post, array('link','chair')),
+            array('id_pres'=>$this->id_pres))) {
+
             Logger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
             return true;
         } else {

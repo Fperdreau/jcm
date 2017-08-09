@@ -80,11 +80,9 @@ class MailManager extends BaseModel {
      */
     public function add(array $post=null) {
         $post = (is_null($post)) ? $_POST:$post;
-        //$post['mail_id'] = (!isset($post['mail_id'])) ? $this->generateID() : $post['mail_id'];
         $post['date'] = date('Y-m-d h:i:s'); // Date of creation
-        $class_vars = get_class_vars("MailManager");
 
-        $content = $this->parsenewdata($class_vars, $post);
+        $content = $this->parseData($post);
         return $this->db->insert($this->tablename, $content);
     }
 

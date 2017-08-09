@@ -75,9 +75,8 @@ class Suggestion extends BaseModel {
                 $media->add_upload(explode(',', $post['link']), $post['id_pres'], __CLASS__);
             }
 
-            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
             // Add publication to the database
-            if ($this->db->insert($this->tablename, $content)) {
+            if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
                 return $post['id_pres'];
             } else {
                 return false;
@@ -130,8 +129,7 @@ class Suggestion extends BaseModel {
                 return false;
             }
         }
-        $content = $this->parsenewdata(get_class_vars(get_called_class()), $data, array("link"));
-        return $this->db->update($this->tablename, $content, $id);
+        return $this->db->update($this->tablename, $this->parseData($data, array("link")), $id);
     }
 
     /**

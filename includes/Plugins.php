@@ -99,9 +99,8 @@ class Plugins extends BaseModel {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $class_vars = get_class_vars('Plugins');
-        $content = $this->parsenewdata($class_vars,$post, array('installed', 'description'));
-        return $this->db->insert($this->db->tablesname['Plugins'],$content);
+        $content = $this->parseData($post, array('installed', 'description'));
+        return $this->db->insert($this->db->tablesname['Plugins'], $content);
     }
 
     /**

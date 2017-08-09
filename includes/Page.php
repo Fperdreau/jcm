@@ -70,9 +70,7 @@ class Page extends BaseModel {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $class_vars = get_class_vars('Page');
-        $content = $this->parsenewdata($class_vars,$post, array('levels'));
-        return $this->db->insert($this->tablename,$content);
+        return $this->db->insert($this->tablename, $this->parseData($post, array('levels')));
     }
 
     /**

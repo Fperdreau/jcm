@@ -79,9 +79,8 @@ class Posts extends BaseModel {
                 $media->add_upload(explode(',', $post['link']), $post['postid'], __CLASS__);
             }
 
-            $content = $this->parsenewdata(get_class_vars(get_called_class()), $post, array("link"));
             // Add publication to the database
-            if ($this->db->insert($this->tablename, $content)) {
+            if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
                 return $post['postid'];
             } else {
                 return false;

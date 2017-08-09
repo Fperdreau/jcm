@@ -520,8 +520,7 @@ class Session extends BaseModel {
         $post['end_date'] = (!empty($post['to_repeat']) && $post['to_repeat'] == 1) ? $post['end_date'] : $post['date'];
 
         if ($this->is_available($post)) {
-            $class_vars = get_class_vars("Session");
-            $content = $this->parsenewdata($class_vars, $post, array('presids','speakers', 'max_nb_session', 'default'));
+            $content = $this->parseData($post, array('presids','speakers', 'max_nb_session', 'default'));
 
             // Add session to the database
             if ($id = $this->db->insert($this->tablename, $content)) {

@@ -170,8 +170,7 @@ class Media extends BaseModel{
         );
 
         // Third: add to the Media table
-        $content = $this->parsenewdata(get_class_vars(get_called_class()), $data,
-            array('directory','maxsize','allowed_types'));
+        $content = $this->parseData($data, array('directory','maxsize','allowed_types'));
         if (!$this->db->insert($this->tablename,$content)) {
             $result['error'] = 'SQL: Could not add the file to the media table';
             Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);

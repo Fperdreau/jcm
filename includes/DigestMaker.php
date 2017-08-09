@@ -98,16 +98,6 @@ class DigestMaker extends BaseModel {
 
     // MODEL
     /**
-     * @param array $post
-     * @return bool|mysqli_result
-     */
-    public function add(array $post) {
-        $class_vars = get_class_vars(get_class());
-        $content = $this->parsenewdata($class_vars,$post);
-        return $this->db->insert($this->tablename,$content);
-    }
-
-    /**
      * @param $name
      * @return bool|$this
      */

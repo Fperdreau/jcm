@@ -81,12 +81,12 @@ class BaseModel {
 
     /**
      * Parse new date
-     * @param $class_vars
      * @param array $post
      * @param array $exclude
      * @return array
      */
-    protected function parsenewdata($class_vars, $post=array(), $exclude=array()) {
+    protected function parseData($post=array(), $exclude=array()) {
+        $class_vars = get_class_vars(get_called_class());
         $post_keys = array_keys($post);
         $content = array();
         foreach ($post as $name=>$value) {
@@ -253,7 +253,7 @@ class BaseModel {
      * @return bool
      */
     public function update(array $data, array $id) {
-        return $this->db->update($this->tablename,  $this->parsenewdata(get_class_vars(get_called_class()), $data), $id);
+        return $this->db->update($this->tablename,  $this->parseData($data), $id);
     }
 
     /**
@@ -271,7 +271,7 @@ class BaseModel {
      * @return mixed
      */
     public function add(array $post) {
-        return $this->db->insert($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()), $post));
+        return $this->db->insert($this->tablename, $this->parseData($post));
     }
 
     /**

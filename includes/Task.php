@@ -284,8 +284,7 @@ class Task extends BaseModel {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $class_vars = get_class_vars('Task');
-        $content = $this->parsenewdata($class_vars,$post,array('installed', 'daysNames', 'daysNbs', 'hours', 'description'));
+        $content = $this->parseData($post, array('installed', 'daysNames', 'daysNbs', 'hours', 'description'));
         return $this->db->insert($this->tablename,$content);
     }
 

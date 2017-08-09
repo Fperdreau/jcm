@@ -110,7 +110,8 @@ class Users extends BaseModel {
      * @param array $post
      * @return bool|string
      */
-    public function make($post=array()) {
+    public function make(array $post=null) {
+        if (is_null($post)) $post = $_POST;
         $post = self::sanitize($post); // Escape $_POST content
 
         $post['date'] = date("Y-m-d H:i:s"); // Date of creation (today)
@@ -127,10 +128,11 @@ class Users extends BaseModel {
         $post['active'] = ($post['status'] == "admin") ? 1 : 0; // Automatically activate the account if the user has an
         // admin level
 
-        $class_vars = get_class_vars("Users");
+        var_dump($this->is_exist(array('username'=>$post['username'], 'active'=>1)));
+        var_dump($this->is_exist(array('email'=>$post['email'])));
+
         if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1)) && !$this->is_exist(array('email'=>$post['email']))) {
-            $content = $this->parsenewdata($class_vars,$post); // Parse variables and values to store in the table
-            $this->db->insert($this->tablename,$content); // Add to user table
+            $this->db->insert($this->tablename, $this->parseData($post)); // Add to user table
 
             if ($this->status !=  "admin") {
                 // Send verification email to admins/organizer
@@ -661,7 +663,7 @@ class Users extends BaseModel {
      */
     public static function registration_form_body() {
         return  "
-            <form id='register_form' method='post' action='" . URL_TO_APP . 'php/form.php' . "'>
+            <form method='post' action='" . URL_TO_APP . 'php/router.php?controller=Users&action=make' . "'>
                 <input type='hidden' name='register' value='true'>
                 <input type='hidden' name='status' value='member'>
                 <div class='form-group' style='width: 100%;'>
@@ -701,7 +703,7 @@ class Users extends BaseModel {
                 <div class='action_btns'>
                     <div class='first_half'><input type='button' class='go_to_section' data-controller='Users' data-action='get_view' 
                         data-params='login_form,modal' data-section='login_form' value='Log in'></div>
-                    <div class='last_half'><input type='submit' class='register processform' value='Sign up'></div>
+                    <div class='last_half'><input type='submit' class='processform' value='Sign up'></div>
                 </div>
             </form>
         ";

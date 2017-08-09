@@ -28,8 +28,7 @@ class Bookmark extends BaseModel {
     public function add(array $post) {
         if (Auth::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
             $post['username'] = $_SESSION['username'];
-            $result['status'] = $this->db->insert($this->tablename, $this->parsenewdata(get_class_vars(get_called_class()),
-                $post)) !== false;
+            $result['status'] = $this->db->insert($this->tablename, $this->parseData($post)) !== false;
             if ($result['status']) {
                 $info = $this->get_summary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
                 $result['state'] = $info['status'];

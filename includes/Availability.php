@@ -30,8 +30,7 @@ class Availability extends BaseModel {
      * @return bool|mysqli_result
      */
     public function add(array $post) {
-        $class_vars = get_class_vars(get_class());
-        return $this->db->insert($this->tablename, $this->parsenewdata($class_vars, $post, array('session')));
+        return $this->db->insert($this->tablename, $this->parseData($post, array('session')));
     }
 
     /**
