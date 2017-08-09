@@ -128,36 +128,39 @@ class Users extends BaseModel {
         $post['active'] = ($post['status'] == "admin") ? 1 : 0; // Automatically activate the account if the user has an
         // admin level
 
-        var_dump($this->is_exist(array('username'=>$post['username'], 'active'=>1)));
-        var_dump($this->is_exist(array('email'=>$post['email'])));
-
         if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1)) && !$this->is_exist(array('email'=>$post['email']))) {
-            $this->db->insert($this->tablename, $this->parseData($post)); // Add to user table
 
-            if ($this->status !=  "admin") {
-                // Send verification email to admins/organizer
-                $mail = new MailManager();
-                if ($mail->send_verification_mail($this->hash,$this->email,$this->fullname)) {
-                    $result['status'] = true;
-                    $result['msg'] = "Your account has been created. You will receive an email after
+            // Add user information to Db
+            if ($this->db->insert($this->tablename, $this->parseData($post))) {
+                if ($this->status !=  "admin") {
+                    // Send verification email to admins/organizer
+                    $mail = new MailManager();
+                    if ($mail->send_verification_mail($this->hash, $this->email, $this->fullname)) {
+                        $result['status'] = true;
+                        $result['msg'] = "Your account has been created. You will receive an email after
                         its validation by our admins.";
-                } else {
-                    self::delete_user($this->username);
-                    $result['status'] = false;
-                    $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                    } else {
+                        self::delete_user($this->username);
+                        $result['status'] = false;
+                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
                         Your registration cannot be validated for the moment. Please try again later.";
+                    }
+                } else {
+                    // Send confirmation email to the user directly
+                    if ($this->send_confirmation_mail()) {
+                        $result['status'] = true;
+                        $result['msg'] = "Your account has been successfully created!";
+                    } else {
+                        $result['status'] = true;
+                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                        Your registration cannot be validated for the moment. Please try again later.";;
+                    }
                 }
             } else {
-                // Send confirmation email to the user directly
-                if ($this->send_confirmation_mail()) {
-                    $result['status'] = true;
-                    $result['msg'] = "Your account has been successfully created!";
-                } else {
-                    $result['status'] = true;
-                    $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
-                        Your registration cannot be validated for the moment. Please try again later.";;
-                }
+                $result['status'] = false;
+                $result['msg'] = "Oops, something went wrong";;
             }
+
             Logger::get_instance(APP_NAME, get_class($this))->log($result);
         } else {
             $result['status'] = false;
