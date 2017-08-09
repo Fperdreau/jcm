@@ -207,7 +207,7 @@ class Users extends BaseModel {
     public function getAll($assign = false) {
         $search = array('active'=>1, 'status !='=>'admin');
         if ($assign) $search['assign'] = 1;
-        return $this->get($search);
+        return $this->all($search);
     }
 
     /**
