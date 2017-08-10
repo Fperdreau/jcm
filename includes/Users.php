@@ -260,6 +260,10 @@ class Users extends BaseModel {
         // Get user data from DB
         $data = $this->get(array('email'=>$email));
 
+        if (is_null($data)) {
+            return array('status'=>false, 'msg'=>"Sorry, this account does not exist");
+        }
+
         // Activate or delete account based on admin decision
         if ($activate === "true") {
             if ($data['active'] == 0) {
@@ -274,8 +278,7 @@ class Users extends BaseModel {
                 $result['msg'] = "This account has already been activated.";
             }
         } else {
-            $this->delete_user($data['username']);
-            $result['status'] = false;
+            $result = $this->delete_user($data['username']);
             $result['msg'] = "Permission denied by the admin. Account successfully deleted.";
         }
         Logger::get_instance(APP_NAME, get_class($this))->log($result);
@@ -493,6 +496,7 @@ class Users extends BaseModel {
 
         $is_authorized = !is_null($current_user) && !empty($this->get(
             array('username'=>$current_user, 'status !='=>'member')));
+
         if (!is_null($current_user) && ($current_user === $username || $is_authorized)) {
             if ($is_admin and count($admins) === 1) {
                 return array(
