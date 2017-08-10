@@ -127,10 +127,10 @@ class MailManager extends BaseModel {
      */
     public function show($mail_id) {
         $data = $this->get(array('mail_id'=>$mail_id));
-        if (is_null($data)) {
+        if (empty($data)) {
             return null;
         }
-        $attachments = (!empty($data['attachments'])) ? explode(',', $data['attachments']):array();
+        $attachments = (!empty($data['attachments'])) ? explode(',', $data['attachments']) : array();
         return self::showEmail($data, $attachments);
     }
 
