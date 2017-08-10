@@ -917,17 +917,6 @@ if (!empty($_POST['config_modify'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 POSTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Show selected post
-if (!empty($_POST['post_show'])) {
-    $postid = ($_POST['postid'] === "false") ? null : $_POST['postid'];
-    $username = htmlspecialchars($_SESSION['username']);
-    $user = new Users($username);
-    $Post = new Posts($postid);
-    $result = Posts::form($user, $Post);
-    echo json_encode($result);
-    exit;
-}
-
 // Delete a post
 if (!empty($_POST['post_del'])) {
     $postid = htmlspecialchars($_POST['postid']);

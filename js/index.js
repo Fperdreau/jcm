@@ -45,11 +45,12 @@ var get_submission_form = function (data) {
             .find('textarea').html(result.content);
 
         loadWYSIWYGEditor();
-    };
-    processAjax(el, data, callback, "php/form.php");
 
-    // Load JCM calendar
-    loadCalendarSubmission();
+        // Load JCM calendar
+        loadCalendarSubmission();
+    };
+
+    processAjax(el, data, callback, "php/form.php");
 };
 
 /**
@@ -60,20 +61,22 @@ function loadContent(el) {
     var data = el.data();
     data['loadContent'] = true;
     var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
+
     // First we remove any existing submission form
     var callback = function (result) {
+        var html = result.content === undefined ? result : result.content;
         destination
-            .html(result)
+            .html(html)
             .css('visibility', 'visible')
-            .fadeIn(200)
-            .find('textarea').html(result.content);
+            .fadeIn(200);
 
         loadWYSIWYGEditor();
-    };
-    processAjax(destination, data, callback, "php/form.php");
 
-    // Load JCM calendar
-    loadCalendarSubmission();
+        // Load JCM calendar
+        loadCalendarSubmission();
+    };
+
+    processAjax(destination, data, callback, "php/form.php");
 }
 
 /**
@@ -81,21 +84,21 @@ function loadContent(el) {
  * @param postid
  */
 var showpostform = function (postid) {
-    var el = $('.postcontent');
+    var el = $('.post_edit_container');
     var data = {post_show: true, postid: postid};
     var callback = function (result) {
-        var txtarea = "<textarea name='content' id='post_content' class='wygiwgm'>" + result.content + "</textarea>";
-        $('.postcontent')
+        var text_area = "<textarea name='content' id='post_edit_container' class='wygiwgm'>" + result.content + "</textarea>";
+        el
             .empty()
-            .html(result.form)
+            .html(result.content)
             .fadeIn(200);
         $('.post_txtarea')
-            .html(txtarea)
+            .html(text_area)
             .show();
 
         loadWYSIWYGEditor();
     };
-    processAjax(el, data, callback, "php/form.php");
+    processAjax(el, data, callback, "php/router.php?controller=Posts&action=editor");
 };
 
 /**
@@ -686,7 +689,7 @@ function process_post(el, e) {
     e.preventDefault();
     var form = el.length > 0 ? $(el[0].form) : $();
 
-    // Check if the form has been fully completed
+    // Check if the form has been fully completedf
     if (!checkform(form)) { return false;}
 
     // Check if files have been uploaded and attach them to this presentation
@@ -702,7 +705,8 @@ function process_post(el, e) {
     }
 
     // Form data
-    var data = form.serializeArray();
+    var data = getData(form);
+
     var controller = form.find('input[name="controller"]').val();
 
     // Callback function

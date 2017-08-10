@@ -36,9 +36,9 @@ $result = "
         <h2>Add/Edit News</h2>
         <div class='section_content'>
             <div class='action_btns'>
-                <input type='button' id='submit' class='post_new' value='Add a news'/>
+                <input type='button' id='submit' class='loadContent' data-controller='Posts' data-action='editor' data-destination='.post_edit_container' value='Add a news'/>
             </div>
-            <div class='postcontent'></div>
+            <div class='post_edit_container'></div>
             <div class='feedback'></div>
             {$options}
         </div>

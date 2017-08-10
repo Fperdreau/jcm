@@ -3728,12 +3728,25 @@ input.dateinput {
     width: 100%;
     display: block;
     visibility: hidden;
+    border: 2px solid #bbbbbb;
+    background: #eeeeee;
+    padding: 5px 10px;
+    box-sizing: border-box;
 }
 
 .post_edit_container > div {
     width: 100%;
     display: table-cell;
 }
+
+.blog_more {
+    font-weight: 600;
+}
+
+.blog_more:before {
+    content: '\A';
+}
+
 /* Help */
 .appName {
     font-style: italic;

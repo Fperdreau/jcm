@@ -31,7 +31,7 @@
  */
 class Posts extends BaseModel {
 
-    public $postid = "";
+    public $id = "";
     public $title = "";
     public $content = "";
     public $date = "";
@@ -68,20 +68,20 @@ class Posts extends BaseModel {
     public function add(array $post){
         if ($this->is_exist(array('title'=>$post['title'])) === false) {
 
-            $post['postid'] = $this->generateID('postid');
+            //$post['postid'] = $this->generateID('postid');
             $post['date'] = date('Y-m-d H:i:s');
-            $post['day'] = date('Y-m-d',strtotime($this->date));
-            $post['time'] = date('H:i',strtotime($this->date));
-
-            // Associates this presentation to an uploaded file if there is one
-            if (!empty($post['link'])) {
-                $media = new Media();
-                $media->add_upload(explode(',', $post['link']), $post['postid'], __CLASS__);
-            }
 
             // Add publication to the database
             if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
-                return $post['postid'];
+                $id = $this->db->getLastId();
+
+                // Associates this presentation to an uploaded file if there is one
+                if (!empty($post['link'])) {
+                    $media = new Media();
+                    $media->add_upload(explode(',', $post['link']), $post['id'], __CLASS__);
+                }
+
+                return $id;
             } else {
                 return false;
             }
@@ -97,10 +97,9 @@ class Posts extends BaseModel {
      */
     public function edit(array $data) {
         // check entries
-        $post_id = htmlspecialchars($data['postid']);
-
-        if ($post_id !== "false") {
-            $created = $this->update($data, array('postid'=>$post_id));
+        $id = htmlspecialchars($data['id']);
+        if (!empty($id) && $id !== "false") {
+            $created = $this->update($data, array('id'=>$id));
         } else {
             $created = $this->add($data);
         }
@@ -119,11 +118,11 @@ class Posts extends BaseModel {
 
     /**
      * Get post information
-     * @param $id
+     * @param $id: post id
      * @return array|bool
      */
     public function getInfo($id) {
-        $data = $this->get(array('postid'=>$id));
+        $data = $this->get(array('id'=>$id));
         if (!empty($data)) {
             $this->map($data);
             $this->day = date('Y-m-d',strtotime($this->date));
@@ -140,7 +139,7 @@ class Posts extends BaseModel {
      */
     private function get_uploads() {
         $upload = new Media();
-        $link = $upload->get_uploads($this->postid, __CLASS__);
+        $link = $upload->get_uploads($this->id, __CLASS__);
         return $link;
     }
 
@@ -150,11 +149,11 @@ class Posts extends BaseModel {
      * @return array|bool
      */
     public function getlastnews($limit=3) {
-        $sql = "SELECT postid from {$this->tablename} ORDER BY date DESC LIMIT 0, {$limit}";
+        $sql = "SELECT id from {$this->tablename} ORDER BY date DESC LIMIT 0, {$limit}";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
-            $data[] = $row['postid'];
+            $data[] = $row['id'];
         }
         return $data;
     }
@@ -169,13 +168,13 @@ class Posts extends BaseModel {
      */
     public function getLimited($category, $order='date ASC', $page, $pp) {
         $sql = "
-            SELECT postid
+            SELECT id
             FROM {$this->tablename}
             ORDER BY {$order} LIMIT $page, $pp";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
-            $data[] = $row{'postid'};
+            $data[] = $row{'id'};
         }
         return $data;
     }
@@ -269,7 +268,7 @@ class Posts extends BaseModel {
      */
     public static function display(Posts $post, $user_name, $limit=true) {
         $char_limit = 1000;
-        $url = URL_TO_APP . 'index.php?page=news&show=' . $post->postid;
+        $url = URL_TO_APP . 'index.php?page=news&show=' . $post->id;
         $day = date('d M y',strtotime($post->date));
         $txt_content = htmlspecialchars_decode($post->content);
         $content = ($limit && strlen($txt_content) > $char_limit) ? substr($txt_content, 0, $char_limit) . "..." : $txt_content;
@@ -316,7 +315,7 @@ class Posts extends BaseModel {
         $options = "";
         foreach ($data as $key=>$item) {
             $day = date('d M y',strtotime($item['date']));
-            $options .= "<option value='{$item['postid']}'><b><strong>{$day}</strong> |</b> {$item['title']}</option>";
+            $options .= "<option value='{$item['id']}'><b><strong>{$day}</strong> |</b> {$item['title']}</option>";
         }
         return "
             <select class='select_post'>
@@ -354,7 +353,7 @@ class Posts extends BaseModel {
         $id = isset($post['id']) ? $post['id'] : false;
         $user = new Users($_SESSION['username']);
         $data = $this->getInfo($id);
-        return self::form($user, (object)$data[0]);
+        return self::form($user, $data ? (object)$data : null);
     }
 
     /**
@@ -378,18 +377,30 @@ class Posts extends BaseModel {
             $day = date('d M y', strtotime($item['date']));
             $content .= "
                 <div class='table_container'>
-                    <div class='list-container-row news-details el_to_del' id='{$item['postid']}'>
+                    <div class='list-container-row news-details el_to_del' id='{$item['id']}'>
                         <div>{$day}</div>
                         <div>{$item['username']}</div>
                         <div>{$item['title']}</div>
                         <div class='action_cell'>
-                            <div class='action_icon'><a href='' class='loadContent' data-destination='.post_edit_container#{$item['postid']}' data-controller='Posts' data-action='get_form' data-id='{$item['postid']}'><img src='" . URL_TO_IMG . 'edit.png' . "' /></a></div>
-                            <div class='action_icon'><a href='' class='delete' id='{$item['postid']}' 
-                            data-params='Posts/delete/{$item['postid']}'><img src='" . URL_TO_IMG . 'trash.png' . "' /></a></div>
+                        
+                            <!-- Edit button -->
+                            <div class='action_icon'>
+                                <a href='' class='loadContent' data-destination='.post_edit_container#post_{$item['id']}' 
+                                data-controller='Posts' data-action='editor' data-id='{$item['id']}'>
+                                    <img src='" . URL_TO_IMG . 'edit.png' . "' />
+                                </a>
+                            </div>
+                            
+                            <!-- Delete button -->
+                            <div class='action_icon'>
+                                <a href='' class='delete' data-controller='" . __CLASS__ . "' data-id='{$item['id']}'>
+                                    <img src='" . URL_TO_IMG . 'trash.png' . "' />
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class='list-container-row post_edit_container' id='{$item['postid']}'></div>
+                <div class='list-container-row post_edit_container' id='post_{$item['id']}'></div>
                 ";
         }
         return "<div class='table_container'>
@@ -415,20 +426,17 @@ class Posts extends BaseModel {
             $Post = new self();
             $del_btn = "";
         } else {
-            $del_btn = "<input type='button' class='post_del' id='submit' data-id='$Post->postid' value='Delete'/>";
+            $del_btn = "<input type='button' class='delete' data-controller='Posts' id='submit' data-id='$Post->id' value='Delete'/>";
         }
 
         $result['content'] = "
-            <form method='post' action='php/form.php' id='post_form'>
+            <form method='post' action='php/router.php?controller=Posts&action=edit'>
                 <div class='submit_btns'>
                     $del_btn
-                    <input type='submit' class='process_post'/>
+                    <input type='submit' class='processform'/>
                 </div>
-                <input type='hidden' name='controller' value='Posts'>
-                <input type='hidden' name='operation' value='edit'/>
-                <input type='hidden' name='postid' value='$Post->postid'>
+                <input type='hidden' name='id' value='$Post->id'>
                 <input type='hidden' name='username' value='$user->username'/>
-                <input type='hidden' name='process_submission' value='true'/>
 
                 <div class='form-group'>
                     <input type='text' name='title' value='$Post->title' required>
@@ -488,8 +496,8 @@ class Posts extends BaseModel {
         while ($row = mysqli_fetch_assoc($req)) {
             $data = $user->get(array('fullname'=>$row['username']));
             if (!empty($data)) {
-                $cur_post = new self($row['postid']);
-                $cur_post->update(array('username'=>$data['username']), array('postid'=>$row['postid']));
+                $cur_post = new self($row['id']);
+                $cur_post->update(array('username'=>$data['username']), array('id'=>$row['id']));
             }
         }
     }
