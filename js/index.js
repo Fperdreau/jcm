@@ -986,14 +986,14 @@ $(document).ready(function () {
             e.preventDefault();
             var div = $('#user_list');
             var username = $(this).attr("data-user");
-            var option = $(this).val();
-            var data = {username: username,option: option};
+            var action = $(this).val();
+            var data = {username: username};
             var callback = function (result) {
                 setTimeout(function () {
                     $('#user_list').html(result.content);
                 },2000);
             };
-            processAjax(div, data, callback, "php/router.php?controller=Users&action=");
+            processAjax(div, data, callback, "php/router.php?controller=Users&action=" + action);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

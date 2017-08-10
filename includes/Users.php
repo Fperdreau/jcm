@@ -147,7 +147,7 @@ class Users extends BaseModel {
                     }
                 } else {
                     // Send confirmation email to the user directly
-                    if ($this->send_confirmation_mail()) {
+                    if ($this->send_confirmation_mail($post)) {
                         $result['status'] = true;
                         $result['msg'] = "Your account has been successfully created!";
                     } else {
@@ -284,12 +284,13 @@ class Users extends BaseModel {
 
     /**
      * Activate account and notify user of the activation
-     * @param array $user: user information
+     * @param array $data: array('username'=>string)
      * @return mixed
      */
-    public function activate(array $user) {
-        if ($this->db->update($this->tablename,array('active'=>1),array("email"=>$user['email']))) {
-            if ($this->send_confirmation_mail()) {
+    public function activate(array $data) {
+        $data = $this->get(array('username'=>$data['username']));
+        if ($this->db->update($this->tablename, array('active'=>1), array("username"=>$data['username']))) {
+            if ($this->send_confirmation_mail($data)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully activated. An email has been sent to the user!";
             } else {
@@ -301,17 +302,21 @@ class Users extends BaseModel {
             $result['status'] = false;
             $result['msg'] = "Oops, something went wrong";
         }
+
+        Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
+
         return $result;
     }
 
     /**
      * Activate account and notify user of the activation
-     * @param array $user: user information
+     * @param array $data: array('username'=>string)
      * @return mixed
      */
-    public function deactivate(array $user) {
-        if ($this->db->update($this->tablename,array('active'=>0),array("username"=>$user['username']))) {
-            if ($this->send_activation_mail()) {
+    public function deactivate(array $data) {
+        $data = $this->get(array('username'=>$data['username']));
+        if ($this->db->update($this->tablename, array('active'=>0), array("username"=>$data['username']))) {
+            if ($this->send_activation_mail($data)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully deactivated. An email has been sent to the user!";
             } else {
@@ -323,6 +328,9 @@ class Users extends BaseModel {
             $result['status'] = false;
             $result['msg'] = "Oops, something went wrong";
         }
+
+        Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
+
         return $result;
     }
 
@@ -351,28 +359,30 @@ class Users extends BaseModel {
 
     /**
      * Send a confirmation email to the new user once his/her registration has been validated by an organizer
+     * @param array $data: user data
      * @return bool
      */
-    public function send_confirmation_mail() {
+    public function send_confirmation_mail(array $data) {
         $MailManager = new MailManager();
-        $body = $MailManager->formatmail(self::confirmation_mail($this->fullname, $this->username));
+        $body = self::confirmation_mail($data['fullname'], $data['username']);
         return $MailManager->send(array(
             'body'=>$body,
             'subject'=>'Sign up | Confirmation'
-        ), array($this->email));
+        ), array($data['email']));
     }
 
     /**
      * Send an email to the user if his/her account has been deactivated due to too many login attempts.
+     * @param array $data: user data
      * @return bool
      */
-    public function send_activation_mail() {
+    public function send_activation_mail(array $data) {
         $MailManager = new MailManager();
-        $body = $MailManager->formatmail(self::activation_email($this->fullname, $this->email, $this->hash));
+        $body = self::activation_email($data['fullname'], $data['email'], $data['hash']);
         return $MailManager->send(array(
             'body'=>$body,
             'subject'=>'Your account has been deactivated'
-        ), array($this->email));
+        ), array($data['email']));
     }
 
     /**
@@ -597,7 +607,7 @@ class Users extends BaseModel {
                     $cur_trage = "$cur_age years ago";
                 }
             }
-            $option_active = "<option value='desactivate'>Deactivate</option>";
+            $option_active = "<option value='deactivate'>Deactivate</option>";
         } else {
             $cur_trage = "No";
             $option_active = "<option value='activate'>Activate</option>";
@@ -627,7 +637,7 @@ class Users extends BaseModel {
                     <select name='action' class='account_action' data-user='{$item['username']}' style='max-width: 75%;'>
                         <option selected disabled>Select an action</option>
                         $option_active
-                        <option value='delete' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
+                        <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
                     </select>
                 </div>
             </div>

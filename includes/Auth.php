@@ -149,6 +149,9 @@ class Auth extends BaseModel {
         // Get attempt information
         $auth_inf = $this->get(array('username'=>$data['username']));
 
+        // Get user information
+        $user = $this->Users->get(array('username'=>$data['username']));
+
         // Get last login timestamp and amount of previous login attempts
         if (empty($auth_inf)) {
             $last_login = new DateTime();
@@ -169,7 +172,7 @@ class Auth extends BaseModel {
         // If amount of attempts exceeds authorized limit, then deactivate user account and notify by email
         if ($data['attempt'] >= $this->settings['max_nb_attempt']) {
             $this->Users->deactivate($data); // We deactivate the user's account
-            $this->Users->send_activation_mail();
+            $this->Users->send_activation_mail($user);
             return false;
         }
         $data['last_login'] = date('Y-m-d H:i:s');
