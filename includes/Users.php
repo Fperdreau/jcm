@@ -253,34 +253,28 @@ class Users extends BaseModel {
      *
      * @param $hash
      * @param $email
-     * @param $activ
+     * @param $activate
      * @return array
      */
-    public function check_account_activation($hash, $email, $activ) {
-        $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
-        $this->getUser($username['username']);
-        if ($activ === "true") {
-            if ($this->active == 0) {
-                if ($this->hash === $hash) {
-                    $this->db->update($this->tablename,array('active'=>1,'attempt'=>0),array("email"=>$this->email));
-                    if ($this->send_confirmation_mail()) {
-                        $result['status'] = true;
-                        $result['msg'] = "Account successfully activated. An email has been sent to the user!";
-                    } else {
-                        $result['status'] = false;
-                        $result['msg'] = "Account successfully activated, but we could not send a confirmation email to
-                        the user.";
-                    }
+    public function validate_account($hash, $email, $activate) {
+        // Get user data from DB
+        $data = $this->get(array('email'=>$email));
+
+        // Activate or delete account based on admin decision
+        if ($activate === "true") {
+            if ($data['active'] == 0) {
+                if ($data['hash'] === $hash) {
+                    $result = $this->activate($data);
                 } else {
                     $result['status'] = false;
-                    $result['msg'] = "Unexistent hash code for user.";
+                    $result['msg'] = "Wrong hash code for user.";
                 }
             } else {
                 $result['status'] = false;
                 $result['msg'] = "This account has already been activated.";
             }
         } else {
-            self::delete_user($this->username);
+            $this->delete_user($data['username']);
             $result['status'] = false;
             $result['msg'] = "Permission denied by the admin. Account successfully deleted.";
         }
@@ -289,24 +283,67 @@ class Users extends BaseModel {
     }
 
     /**
-     * Activate or deactivate the user's account
-     *
-     * @param string $hash: user hash
-     * @param string $email: user email address
-     * @param bool $option: activate (true) or deactivate account (false)
-     * @return array
+     * Activate account and notify user of the activation
+     * @param array $user: user information
+     * @return mixed
      */
-    public function activation($hash, $email, $option) {
-        if ($option === true){
-            $result = $this->check_account_activation($hash, $email,true);
-        } else {
-            if ($this->db->update($this->tablename, array('active'=>0), array("email"=>$email))) {
+    public function activate(array $user) {
+        if ($this->db->update($this->tablename,array('active'=>1),array("email"=>$user['email']))) {
+            if ($this->send_confirmation_mail()) {
                 $result['status'] = true;
-                $result['msg'] = "Account successfully deactivated";
+                $result['msg'] = "Account successfully activated. An email has been sent to the user!";
             } else {
                 $result['status'] = false;
-                $result['msg'] = "We could not deactivate this account";
+                $result['msg'] = "Account successfully activated, but we could not send a confirmation email to
+                        the user.";
             }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "Oops, something went wrong";
+        }
+        return $result;
+    }
+
+    /**
+     * Activate account and notify user of the activation
+     * @param array $user: user information
+     * @return mixed
+     */
+    public function deactivate(array $user) {
+        if ($this->db->update($this->tablename,array('active'=>0),array("username"=>$user['username']))) {
+            if ($this->send_activation_mail()) {
+                $result['status'] = true;
+                $result['msg'] = "Account successfully deactivated. An email has been sent to the user!";
+            } else {
+                $result['status'] = false;
+                $result['msg'] = "Account successfully deactivated, but we could not send a notification email to
+                        the user.";
+            }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "Oops, something went wrong";
+        }
+        return $result;
+    }
+
+    /**
+     * Activate or deactivate the user's account
+     *
+     * @param null $username
+     * @param bool $option : activate (true) or deactivate account (false)
+     * @return array
+     */
+    public function activation($username=null, $option=true) {
+        if (is_null($username)) {
+            $username = $_POST['username'];
+            $option = $_POST['option'];
+        }
+
+        $data = $this->get(array('username'=>$username));
+        if ($option === true){
+            $result = $this->activate($data);
+        } else {
+            $result = $this->deactivate($data);
         }
         Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
         return $result;
@@ -408,32 +445,6 @@ class Users extends BaseModel {
     }
 
     /**
-     * Set User's status (delete/activate/deactivate/permission level)
-     * @param $newStatus
-     * @return mixed
-     */
-    public function setStatus($newStatus) {
-        $result['status'] = false; // Set default status as false
-        if ($newStatus === 'delete') {
-            if ($this->delete_user($this->username)) {
-                $result['status'] = true;
-                $result['msg'] = "Account successfully deleted";
-            }
-        } elseif ($newStatus == "activate") {
-            $result = $this->activation($this->hash, $this->email, true);
-        } elseif ($newStatus == "desactivate") {
-            $result = $this->activation($this->hash, $this->email, false);
-        } else {
-            if ($this -> change_user_status($newStatus))  {
-                $result['status'] = true;
-                $result['msg'] = "{$this->username} status is now $newStatus!";
-            }
-        }
-        Logger::get_instance(APP_NAME, get_class($this))->log($result);
-        return $result;
-    }
-
-    /**
      * Delete user's account
      *
      * @param $current_user: logged user
@@ -467,10 +478,17 @@ class Users extends BaseModel {
      * Change the user's status (admin/organizer/member)
      *
      * @param $newStatus
-     * @return bool
+     * @return array
      */
-    public function change_user_status($newStatus) {
-        return $this->db->update($this->tablename,array('status'=>$newStatus),array("username"=>$this->username));
+    public function setStatus($newStatus) {
+        $result['status'] = $this->db->update($this->tablename,array('status'=>$newStatus),array("username"=>$this->username));
+        if ($result['status']) {
+            $result['msg'] = "{$this->username} status is now $newStatus!";
+        } else {
+            $result['msg'] = "Oops, something went wrong";
+        }
+        Logger::get_instance(APP_NAME, get_class($this))->log($result);
+        return $result;
     }
 
     /**
@@ -606,7 +624,7 @@ class Users extends BaseModel {
                     </select>
                 </div>
                 <div class='user_action'>
-                    <select name='action' class='user_action' data-user='{$item['username']}' style='max-width: 75%;'>
+                    <select name='action' class='account_action' data-user='{$item['username']}' style='max-width: 75%;'>
                         <option selected disabled>Select an action</option>
                         $option_active
                         <option value='delete' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>

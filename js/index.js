@@ -982,7 +982,7 @@ $(document).ready(function () {
         })
 
         // User Management tool: Modify user status
-        .on('change','.user_actions',function (e) {
+        .on('change','.account_action',function (e) {
             e.preventDefault();
             var div = $('#user_list');
             var username = $(this).attr("data-user");
