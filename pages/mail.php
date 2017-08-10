@@ -20,6 +20,10 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Bootstrap
+include('../includes/App.php');
+App::boot(true);
+
 if (!empty($_GET['mail_id'])) {
     $MailManager = new MailManager();
     $content = $MailManager->show(htmlspecialchars($_GET['mail_id']));
@@ -29,11 +33,11 @@ if (!empty($_GET['mail_id'])) {
 
 ?>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <META http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <META NAME="viewport" CONTENT="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, user-scalable=yes">
+    <META NAME="viewport" CONTENT="width=device-width, initial-scale=1.0, user-scalable=yes">
     <META NAME="description" CONTENT="Journal Club Manager - an efficient way of organizing journal clubs">
     <META NAME="keywords" CONTENT="Journal Club, application">
 
