@@ -105,7 +105,7 @@
                 </div>
                 <div class="help_section_content_last">
                     <a href="<?php echo URL_TO_IMG; ?>help/home.png">
-                        <img class="help_img" src="<?php echo URL_TO_APP; ?>/images/help/home.png">
+                        <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/home.png">
                     </a>
                 </div>
             </div>

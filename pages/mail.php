@@ -43,7 +43,7 @@ if (!empty($_GET['mail_id'])) {
 
     <!-- Stylesheets -->
     <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-    <link type='text/css' rel='stylesheet' href="../css/stylesheet.min.css"/>
+    <link type='text/css' rel='stylesheet' href="../styles/stylesheet.min.css"/>
 
     <title>Journal Club Manager - Organize your journal club efficiently</title>
 </head>

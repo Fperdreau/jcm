@@ -772,11 +772,11 @@ class Presentation extends BaseModel {
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Presentation' data-operation='edit'>
-                <img src='" . App::getAppUrl() . "images/trash.png'></a></div>";
+                <img src='" . URL_TO_IMG . "trash.png'></a></div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}'
                 data-controller='Presentation' data-section='presentation' data-action='get_form' data-params='{$view}' 
                 data-id='{$data['id_pres']}' data-operation='edit' data-date='{$data['date']}' data-destination='{$destination}'>
-                <img src='".App::getAppUrl()."images/edit.png'></a></div>";
+                <img src='" . URL_TO_IMG . "edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
             $modify_button = "<div style='width: 100px'></div>";
@@ -1164,7 +1164,7 @@ class Presentation extends BaseModel {
                         class='{$modal}' data-controller='Presentation' data-action='get_form'
                         data-destination='.submission_container' data-params='{$destination}' data-operation='edit'>
                            <div class='icon_container'>
-                                <div class='icon'><img src='" . App::getAppUrl().'images/add_paper.png'. "'></div>
+                                <div class='icon'><img src='" . URL_TO_IMG . 'add_paper.png' . "'></div>
                                 <div class='text'>Submit</div>
                             </div>
                        </a>
@@ -1174,7 +1174,7 @@ class Presentation extends BaseModel {
                         class='{$modal}' data-controller='Suggestion' data-action='get_form' data-params='{$destination}'
                         data-destination='.submission_container' data-operation='edit'>
                            <div class='icon_container'>
-                                <div class='icon'><img src='" . App::getAppUrl().'images/wish_paper.png'. "'></div>
+                                <div class='icon'><img src='" . URL_TO_IMG . 'wish_paper.png' . "'></div>
                                 <div class='text'>Add a wish</div>
                             </div>
                         </a>
@@ -1184,7 +1184,7 @@ class Presentation extends BaseModel {
                         class='{$modal}' data-controller='Suggestion' data-action='get_suggestion_list' 
                         data-destination='.submission_container' data-params='{$destination}'>
                             <div class='icon_container'>
-                                <div class='icon'><img src='" . App::getAppUrl().'images/select_paper.png'. "'></div>
+                                <div class='icon'><img src='" . URL_TO_IMG . 'select_paper.png'. "'></div>
                                 <div class='text'>Select a wish</div>
                             </div>
                         </a>

@@ -285,8 +285,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     <META NAME="description" CONTENT="Journal Club Manager. The easiest way to manage your lab's journal club.">
     <META NAME="keywords" CONTENT="Journal Club Manager">
     <link href='https://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-    <link type='text/css' rel='stylesheet' href="css/stylesheet.min.css"/>
-    <link type="text/css" rel="stylesheet" href="js/passwordchecker/css/style.min.css"/>
+    <link type='text/css' rel='stylesheet' href="styles/stylesheet.min.css"/>
+    <link type="text/css" rel="stylesheet" href="scripts/lib/passwordchecker/css/style.min.css"/>
 
     <style type="text/css">
         body {
@@ -509,9 +509,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     </style>
 
     <!-- JQuery -->
-    <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
-    <script type="text/javascript" src="js/form.js"></script>
-    <script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js"></script>
+    <script type="text/javascript" src="scripts/lib/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="scripts/app/form.js"></script>
+    <script type="text/javascript" src="scripts/lib/passwordchecker/passwordchecker.min.js"></script>
 
     <!-- Bunch of jQuery functions -->
     <script type="text/javascript">

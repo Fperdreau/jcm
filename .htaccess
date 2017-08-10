@@ -6,7 +6,7 @@
 </IfModule>
 
 #
-# associate .js with "text/javascript" type (if not present in mime.conf)
+# associate .scripts with "text/javascript" type (if not present in mime.conf)
 #
 AddType text/javascript .js
 

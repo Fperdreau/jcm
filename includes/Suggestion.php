@@ -684,12 +684,12 @@ class Suggestion extends BaseModel {
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Suggestion' data-action='delete'>
-                <img src='".App::getAppUrl()."images/trash.png'></a>
+                <img src='" . URL_TO_IMG . "trash.png'></a>
                 </div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}' data-controller='Suggestion' 
                 data-action='get_form' data-section='suggestion' data-params='{$view}' data-id='{$data['id_pres']}' 
                 data-operation='edit' data-destination='{$destination}'>
-                <img src='".App::getAppUrl()."images/edit.png'></a>
+                <img src='" . URL_TO_IMG . "edit.png'></a>
                 </div>";
         } else {
             $delete_button = "<div style='width:100px'></div>";

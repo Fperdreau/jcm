@@ -40,8 +40,8 @@ $menu = Page::menu();
         <META NAME="keywords" CONTENT="Journal Club, application, science, tools, research, lab, management">
 
         <!-- Stylesheets -->
-        <link type='text/css' rel='stylesheet' href="css/stylesheet.css"/>
-        <link type='text/css' rel='stylesheet' href="css/uploader.min.css"/>
+        <link type='text/css' rel='stylesheet' href="assets/styles/stylesheet.css"/>
+        <link type='text/css' rel='stylesheet' href="assets/styles/uploader.min.css"/>
         <link  type='text/css' rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
         <title>Journal Club Manager - Organize your journal club efficiently</title>
@@ -57,7 +57,7 @@ $menu = Page::menu();
         <!-- Header section -->
         <header class="header">
 
-            <div id="float_menu"><img src='images/menu.png' alt='login'></div><!--
+            <div id="float_menu"><img src='assets/images/menu.png' alt='login'></div><!--
          --><div id="sitetitle">
                 <span style="font-size: 30px; font-weight: 400;">JCM</span>
                 <span style="font-size: 25px; color: rgba(200,200,200,.8);">anager</span>
@@ -73,13 +73,13 @@ $menu = Page::menu();
                 <?php
                 if (!Auth::is_logged()) {
                     $showlogin = "
-                <div class='leanModal' data-controller='Users' data-action='get_view' data-params='login_form,modal' data-section='login_form'><img src='images/login_bk.png' alt='login'></div>
-                <div class='leanModal' data-controller='Users' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='images/signup_bk.png' alt='signup'></div>
+                <div class='leanModal' data-controller='Users' data-action='get_view' data-params='login_form,modal' data-section='login_form'><img src='assets/images/login_bk.png' alt='login'></div>
+                <div class='leanModal' data-controller='Users' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='assets/images/signup_bk.png' alt='signup'></div>
                  ";
                 } else {
                     $showlogin = "
-                <div class='menu-section'><a href='index.php?page=member/profile' id='profile'><img src='images/profile_bk_25x25.png' alt='profile'></a></div>
-                <div class='menu-section'><a href='#' class='menu-section' id='logout'><img src='images/logout_bk.png' alt='logout'></a></div>";
+                <div class='menu-section'><a href='index.php?page=member/profile' id='profile'><img src='assets/images/profile_bk_25x25.png' alt='profile'></a></div>
+                <div class='menu-section'><a href='#' class='menu-section' id='logout'><img src='assets/images/logout_bk.png' alt='logout'></a></div>";
                 }
                 echo $showlogin;
                 ?>
@@ -116,21 +116,20 @@ $menu = Page::menu();
 </html>
 
 <!-- JQuery -->
-<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
-<script type="text/javascript" src="js/jquery-ui.min.js"></script>
-
-<script type="text/javascript" src="js/loading.js" defer ></script>
+<script type="text/javascript" src="assets/scripts/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="assets/scripts/lib/jquery-ui.min.js"></script>
+<script type="text/javascript" src="assets/scripts/index.js"></script>
+<script type="text/javascript" src="assets/scripts/app/loading.js"></script>
 
 <!-- Bunch of jQuery functions -->
-<script type="text/javascript" src="js/index.js" defer ></script>
-<script type="text/javascript" src="js/form.js" defer ></script>
-<script type="text/javascript" src="js/plugins.min.js" defer ></script>
+<script type="text/javascript" src="assets/scripts/app/form.js" defer ></script>
+<script type="text/javascript" src="assets/scripts/app/plugins.min.js" defer ></script>
 
-<script type="text/javascript" src="js/DrpUploader/DrpUploader.js" defer ></script>
-<script type="text/javascript" src="js/jquery.leanModal.js" defer ></script>
+<script type="text/javascript" src="assets/scripts/lib/DrpUploader/DrpUploader.js" defer ></script>
+<script type="text/javascript" src="assets/scripts/lib/leanModal/jquery.leanModal.js" defer ></script>
 
-<script type="text/javascript" src="js/passwordchecker/passwordchecker.min.js" defer ></script>
-<link type='text/css' rel='stylesheet' href='js/passwordchecker/css/style.min.css'/>
+<script type="text/javascript" src="assets/scripts/lib/passwordchecker/passwordchecker.min.js" defer ></script>
+<link type='text/css' rel='stylesheet' href='assets/scripts/lib/passwordchecker/css/style.min.css'/>
 
 <!-- CKeditor (Rich-text textarea) -->
 <script type="text/javascript" src="vendor/ckeditor/ckeditor/ckeditor.js" defer ></script>

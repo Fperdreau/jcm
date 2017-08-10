@@ -173,7 +173,7 @@ class App {
         if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'plugins' . DS);
 
         if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
-        if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "/images/");
+        if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");
 
     }
 

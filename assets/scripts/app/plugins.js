@@ -69,7 +69,7 @@ function showPlugins(page, result) {
 
 $(document).ready(function() {
     $("<style>")
-        .prop("type", "text/css")
+        .prop("type", "text/styles")
         .html("\
             .valid_input {\
                 background: rgba(0, 200, 0, .5);\

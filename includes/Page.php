@@ -173,7 +173,7 @@ class Page extends BaseModel {
             $icon = $title;
         }
 
-        return "<div id='page_icon'><img src='images/{$icon}_bk_40x40.png'></div><div><h1>{$title}</h1></div>";
+        return "<div id='page_icon'><img src='assets/images/{$icon}_bk_40x40.png'></div><div><h1>{$title}</h1></div>";
     }
 
     /**

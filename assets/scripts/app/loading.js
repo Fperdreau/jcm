@@ -114,7 +114,6 @@ var loadCalendarAvailability = function() {
             }
         });
     }
-
 };
 
 /**

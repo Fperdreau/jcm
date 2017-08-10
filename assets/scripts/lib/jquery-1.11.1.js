@@ -18,7 +18,7 @@
 		// For CommonJS and CommonJS-like environments where a proper window is present,
 		// execute the factory and get jQuery
 		// For environments that do not inherently posses a window with a document
-		// (such as Node.js), expose a jQuery-making factory as module.exports
+		// (such as Node.scripts), expose a jQuery-making factory as module.exports
 		// This accentuates the need for the creation of a real window
 		// e.g. var jQuery = require("jquery")(window);
 		// See ticket #14549 for more info
@@ -249,7 +249,7 @@ jQuery.extend({
 
 	noop: function() {},
 
-	// See test/unit/core.js for details concerning isFunction.
+	// See test/unit/core.scripts for details concerning isFunction.
 	// Since version 1.3, DOM methods and functions like alert
 	// aren't supported. They return false on IE (#2968).
 	isFunction: function( obj ) {
@@ -340,7 +340,7 @@ jQuery.extend({
 		}
 	},
 
-	// Convert dashed to camelCase; used by the css and data modules
+	// Convert dashed to camelCase; used by the styles and data modules
 	// Microsoft forgot to hump their vendor prefix (#9572)
 	camelCase: function( string ) {
 		return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
@@ -6124,7 +6124,7 @@ if ( window.getComputedStyle ) {
 
 		computed = computed || getStyles( elem );
 
-		// getPropertyValue is only needed for .css('filter') in IE9, see #12537
+		// getPropertyValue is only needed for .styles('filter') in IE9, see #12537
 		ret = computed ? computed.getPropertyValue( name ) || computed[ name ] : undefined;
 
 		if ( computed ) {
@@ -6184,7 +6184,7 @@ if ( window.getComputedStyle ) {
 
 		// If we're not dealing with a regular pixel number
 		// but a number that has a weird ending, we need to convert it to pixels
-		// but not position css attributes, as those are proportional to the parent element instead
+		// but not position styles attributes, as those are proportional to the parent element instead
 		// and we can't measure the parent instead because it might trigger a "stacking dolls" problem
 		if ( rnumnonpx.test( ret ) && !rposition.test( name ) ) {
 
@@ -6429,7 +6429,7 @@ var
 	cssPrefixes = [ "Webkit", "O", "Moz", "ms" ];
 
 
-// return a css property mapped to a potentially vendor prefixed property
+// return a styles property mapped to a potentially vendor prefixed property
 function vendorPropName( style, name ) {
 
 	// shortcut for names that are not vendor prefixed
@@ -6562,7 +6562,7 @@ function getWidthOrHeight( elem, name, extra ) {
 	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
 	// MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
 	if ( val <= 0 || val == null ) {
-		// Fall back to computed then uncomputed css if necessary
+		// Fall back to computed then uncomputed styles if necessary
 		val = curCSS( elem, name, styles );
 		if ( val < 0 || val == null ) {
 			val = elem.style[ name ];
@@ -6627,7 +6627,7 @@ jQuery.extend({
 	// Add in properties whose names you wish to fix before
 	// setting or getting the value
 	cssProps: {
-		// normalize float css property
+		// normalize float styles property
 		"float": support.cssFloat ? "cssFloat" : "styleFloat"
 	},
 
@@ -6791,7 +6791,7 @@ if ( !support.opacity ) {
 				// style.removeAttribute is IE Only, but so apparently is this code path...
 				style.removeAttribute( "filter" );
 
-				// if there is no filter style applied in a css rule or unset inline opacity, we are done
+				// if there is no filter style applied in a styles rule or unset inline opacity, we are done
 				if ( value === "" || currentStyle && !currentStyle.filter ) {
 					return;
 				}
@@ -6950,7 +6950,7 @@ Tween.propHooks = {
 				return tween.elem[ tween.prop ];
 			}
 
-			// passing an empty string as a 3rd parameter to .css will automatically
+			// passing an empty string as a 3rd parameter to .styles will automatically
 			// attempt a parseFloat and fallback to a string if the parse fails
 			// so, simple values such as "10px" are parsed to Float.
 			// complex values such as "rotate(1rad)" are returned as is.
@@ -7020,7 +7020,7 @@ var
 				maxIterations = 20;
 
 			if ( start && start[ 3 ] !== unit ) {
-				// Trust units reported by jQuery.css
+				// Trust units reported by jQuery.styles
 				unit = unit || start[ 3 ];
 
 				// Make sure we update the tween properties later on
@@ -8134,7 +8134,7 @@ if ( !support.style ) {
 	jQuery.attrHooks.style = {
 		get: function( elem ) {
 			// Return undefined in the case of empty string
-			// Note: IE uppercases css property names, but if we were to .toLowerCase()
+			// Note: IE uppercases styles property names, but if we were to .toLowerCase()
 			// .cssText, that would destroy case senstitivity in URL's, like in "background"
 			return elem.style.cssText || undefined;
 		},
@@ -8557,7 +8557,7 @@ var
 	rurl = /^([\w.+-]+:)(?:\/\/(?:[^\/?#]*@|)([^\/?#:]*)(?::(\d+)|)|)/,
 
 	/* Prefilters
-	 * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
+	 * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.scripts for an example)
 	 * 2) These are called:
 	 *    - BEFORE asking for a transport
 	 *    - AFTER param serialization (s.data is a string if s.processData is true)
@@ -10183,7 +10183,7 @@ jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( 
 // Add the top/left cssHooks using jQuery.fn.position
 // Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
 // getComputedStyle returns percent when specified for top/left/bottom/right
-// rather than make the css module depend on the offset module, we just check for it here
+// rather than make the styles module depend on the offset module, we just check for it here
 jQuery.each( [ "top", "left" ], function( i, prop ) {
 	jQuery.cssHooks[ prop ] = addGetHookIf( support.pixelPosition,
 		function( elem, computed ) {
