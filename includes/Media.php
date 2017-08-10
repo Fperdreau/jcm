@@ -412,12 +412,12 @@ class Media extends BaseModel{
 
     /**
      * Renders upload form
+     * @param string $controller: controller name
      * @param array $links
      * @param string $id : uploader id (must be identical to the corresponding submission form)
-     * @param null $controller
      * @return string
      */
-    public static function uploader(array $links=array(), $id='uploader', $controller=null) {
+    public static function uploader($controller, array $links=array(), $id='uploader') {
         // Get files associated to this publication
         $filesList = "";
         if (!empty($links)) {
