@@ -569,7 +569,7 @@ class Suggestion extends BaseModel {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader($links, 'suggestion_form', __CLASS__) . "
+                    " . Media::uploader(__CLASS__, $links, 'suggestion_form') . "
                 </div>
                 
                 <form method='post' action='php/form.php' enctype='multipart/form-data' id='suggestion_form'>
