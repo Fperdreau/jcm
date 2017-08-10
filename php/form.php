@@ -397,6 +397,7 @@ if (!empty($_POST['getPage'])) {
     $page_id = end($split);
 
     $page_name = implode('\\\\', $split);
+
     $Page = new Page($page_name);
     $Plugins = new Plugins();
 
@@ -432,20 +433,6 @@ if (!empty($_POST['getPage'])) {
     }
 
     echo json_encode($content);
-    exit;
-}
-
-// Modify page settings
-if (!empty($_POST['modPage'])) {
-    $name = htmlspecialchars($_POST['name']);
-    $Page = new Page($name);
-    if ($Page->update($_POST, array('name'=>$name))) {
-        $result['status'] = true;
-        $result['msg'] = "The modification has been made!";
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
     exit;
 }
 
