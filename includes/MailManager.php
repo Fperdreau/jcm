@@ -131,7 +131,16 @@ class MailManager extends BaseModel {
             return null;
         }
         $attachments = (!empty($data['attachments'])) ? explode(',', $data['attachments']) : array();
-        return self::showEmail($data, $attachments);
+        $Media = new Media();
+        $files = array();
+        foreach ($attachments as $file_name) {
+            // Get file information
+            $file_data = $Media->get(array('fileid'=>$file_name));
+            if (!is_null($file_data)) {
+                $files[] = array('name'=>$file_data['name'] . '.' . $file_data['type'], "path"=>URL_TO_APP . 'uploads/' . $file_data['filename']);
+            }
+        }
+        return self::showEmail($data, $files);
     }
 
     /**
@@ -142,8 +151,8 @@ class MailManager extends BaseModel {
      */
     public static function showEmail(array $email, array $attachements=array()) {
         $file_list = "";
-        foreach ($attachements as $file_name) {
-            $file_list .= "<div class='email_file'><a href='" . URL_TO_APP . 'uploads/' . $file_name . "'>{$file_name}</a></div>";
+        foreach ($attachements as $key=>$file) {
+            $file_list .= "<div class='email_file'><a href='{$file['path']}'>{$file['name']}</a></div>";
         }
         $content = htmlspecialchars_decode($email['content']);
         return "
@@ -199,8 +208,14 @@ class MailManager extends BaseModel {
         // Add attachments
         if (!is_null($data['attachments'])) {
             $attachments = array();
+            $Media = new Media();
             foreach (explode(',', $data['attachments']) as $file_name) {
-                $attachments[] = PATH_TO_APP . '/uploads/' . $file_name;
+
+                // Get file information
+                $file_data = $Media->get(array('fileid'=>$file_name));
+                if (!is_null($file_data)) {
+                    $attachments[] = PATH_TO_APP . 'uploads' . DS . $file_data['filename'];
+                }
             }
         } else {
             $attachments = null;
@@ -312,7 +327,7 @@ class MailManager extends BaseModel {
         $sender = array('mail_from'=>$sender_obj->email, 'mail_from_name'=>$sender_obj->fullname);
 
         // Upload
-        $uploader = Media::uploader();
+        $uploader = Media::uploader(__CLASS__, array(), 'email_form');
         return self::contactForm($uploader, $mailing_list, $recipients_list, $sender);
     }
 
@@ -488,7 +503,7 @@ class MailManager extends BaseModel {
                 {$uploader}
             </div>
                     
-            <form method='post' action='php/form.php' id='submit_form'>
+            <form method='post' action='php/form.php' id='email_form'>
                      
                 <!-- Recipients list -->
                 <div class='mailing_block select_emails_container'>

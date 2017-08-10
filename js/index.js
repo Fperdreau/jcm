@@ -1031,6 +1031,7 @@ $(document).ready(function () {
                 data: {
                     add_emails: id
                 },
+                async: true,
                 success: function (data) {
                     var json = jQuery.parseJSON(data);
                     if (json.status) {
@@ -1120,18 +1121,18 @@ $(document).ready(function () {
 
             var callback = function() {
                 // Get data
-                var data = form.serializeArray();
-                var content = tinyMCE.get('spec_msg').getContent();
+                var data = getData(form);
                 var attachments = [];
+
                 form.find('input.upl_link').each(function() {
                     attachments.push($(this).val());
                 });
                 attachments = attachments.join(',');
-                data = modArray(data, 'body', content);
                 data = modArray(data, 'attachments', attachments);
 
                 // Process data
-                processAjax(el, data, null, "php/form.php");
+                processAjax(el, data, false, "php/form.php");
+
             };
 
             // Shall we publish this email content as news (in case the email is sent to everyone).
@@ -1143,7 +1144,6 @@ $(document).ready(function () {
                 confirmation_box($(this), msg, 'Continue', callback);
             } else {
                 callback();
-                $(this).modalTrigger('close');
             }
             return true;
         })
