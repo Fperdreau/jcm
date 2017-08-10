@@ -455,13 +455,32 @@ class Users extends BaseModel {
     }
 
     /**
+     * Test is user has admin status
+     * @param string $username: user's name
+     * @return bool
+     */
+    public function is_admin($username) {
+        $admins = $this->all(array('status'=>'admin'));
+        foreach ($admins as $key=>$admin) {
+            if ($admin['username'] == $username) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Delete user's account
      *
      * @param $current_user: logged user
      * @param null $username: provided username
      * @return array
      */
-    public function delete_user($username, $current_user=null) {
+    public function delete_user($username=null, $current_user=null) {
+        if (isset($_SESSION['username'])) $current_user = $_SESSION['username'];
+        if (isset($_POST['username'])) $username = $_POST['username'];
+
         // check if user has admin status and if there will be remaining admins after we delete this account.
         $is_admin = false;
         $admins = $this->all(array('status'=>'admin'));
@@ -471,14 +490,20 @@ class Users extends BaseModel {
                 break;
             }
         }
-        if (is_null($current_user) || (!is_null($current_user) && $current_user === $username)) {
+
+        $is_authorized = !is_null($current_user) && !empty($this->get(
+            array('username'=>$current_user, 'status !='=>'member')));
+        if (!is_null($current_user) && ($current_user === $username || $is_authorized)) {
             if ($is_admin and count($admins) === 1) {
                 return array(
                     'status'=>false,
                     'msg'=>'This account has an admin status and there must be at least one admin account registered'
                 );
+            } else {
+                $result['status'] = $this->delete(array("username"=>$username));
+                $result['msg'] = $result['status'] ? 'Account successfully deleted' : 'Oops, something went wrong';
+                return $result;
             }
-            return array('status'=>$this->delete(array("username"=>$username)));
         } else {
             return array('status'=>false, 'msg'=>"You cannot delete another user's account");
         }
