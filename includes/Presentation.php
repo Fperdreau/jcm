@@ -986,7 +986,7 @@ class Presentation extends BaseModel {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader($links, 'presentation_form', 'Presentation') . "
+                    " . Media::uploader(__CLASS__, $links, 'presentation_form') . "
                 </div>
                 
                 <form method='post' action='php/form.php' enctype='multipart/form-data' id='presentation_form'>
