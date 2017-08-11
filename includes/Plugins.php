@@ -29,69 +29,11 @@
  *
  * Handle plugins settings and routines (installation, running, ect.)
  */
-class Plugins extends BaseModel {
+class PluginsManager extends BaseModel {
 
-    /**
-     * @var string $tablename: Table name
-     */
-    protected $tablename;
+    private $instances = array();
 
-    /**
-     * @var string $name: plugin name
-     */
-    public $name;
 
-    /**
-     * @var string $version: plugin version
-     */
-    public $version;
-
-    /**
-     * @var string $page: page on which the plugin is displayed
-     */
-    public $page;
-
-    /**
-     * @var string $status: plugin status ('On' or 'Off')
-     */
-    public $status = 'Off';
-
-    /**
-     * @var bool $installed: is the plugin registered into the database?
-     */
-    public $installed = False;
-
-    /**
-     * Plugin's settings
-     * Must be formatted as follows:
-     *     $options = array(
-     *                       'setting_name'=>array(
-     *                     'options'=>array(),
-     *                     'value'=>0)
-     *                );
-     *     'options': if not an empty array, then the settings will be displayed as select input. In this case, options
-     * must be an associative array: e.g. array('Yes'=>1, 'No'=>0). If it is empty, then it will be displayed as a text
-     * input.
-     * @var array $options
-     */
-    public $options=array();
-
-    /**
-     * @var string $description: plugins description
-     */
-    public static $description;
-
-    /**
-     * Constructor
-     * @param bool $name
-     */
-    public function __construct($name=False) {
-        parent::__construct();
-        if ($name !== False) {
-            $this->name = $name;
-            $this->getInfo();
-        }
-    }
 
     /**
      * Add plugin to the Plugin table
@@ -99,31 +41,7 @@ class Plugins extends BaseModel {
      * @return bool|mysqli_result
      */
     public function make($post=array()) {
-        $content = $this->parseData($post, array('installed', 'description'));
-        return $this->db->insert($this->db->tablesname['Plugins'], $content);
-    }
-
-    /**
-     * Get plugin info from the Plugin table
-     */
-    public function getInfo() {
-        $sql = "SELECT * FROM ".$this->db->tablesname['Plugins']." WHERE name='$this->name'";
-        $req = $this->db->send_query($sql);
-        $data = mysqli_fetch_assoc($req);
-        if (!empty($data)) {
-            foreach ($data as $prop=>$value) {
-                // Check if property exists and is static
-                if (property_exists(get_class($this), $prop)) {
-                    $property = new ReflectionProperty(get_class($this), $prop);
-                    $new_value = ($prop == 'options') ? json_decode($value,true) : $value;
-                    if ($property->isStatic()) {
-                        $this::$$prop = $new_value;
-                    } else {
-                        $this->$prop = $new_value;
-                    }
-                }
-            }
-        }
+        return $this->add($post);
     }
 
     /**
@@ -132,7 +50,7 @@ class Plugins extends BaseModel {
      * @return bool|mysqli_result
      */
     public function delete(array $id) {
-        $this->db->delete($this->db->tablesname['Plugins'], $id);
+        $this->db->delete($this->db->tablesname['PluginsManager'], $id);
         if ($this->db->tableExists($this->tablename)) {
             return $this->db->deletetable($this->tablename);
         } else {
@@ -142,21 +60,41 @@ class Plugins extends BaseModel {
 
     /**
      * Check if the plugin is registered to the Plugin table
+     * @param string $name: plugin name
      * @return bool
      */
-    public function isInstalled() {
-        return $this->is_exist(array('name'=>$this->name));
+    public function isInstalled($name) {
+        return $this->is_exist(array('name'=>$name));
     }
 
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return Plugins
+     * @return Plugin
      */
-    public function instantiate($pluginName) {
-        $folder = PATH_TO_APP.'/plugins/';
-        include_once($folder . $pluginName .'/'. $pluginName .'.php');
-        return new $pluginName($this->db);
+    public function getInstance($pluginName) {
+        if (empty($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
+            include_once(PATH_TO_PLUGINS . $pluginName . DS . $pluginName . '.php');
+            $this->instances[$pluginName] = new $pluginName();
+        }
+        return $this->instances[$pluginName];
+    }
+
+    /**
+     * Get list of plugins (associated with the current page)
+     * @param $page
+     * @return array
+     */
+    private function getPluginsList($page) {
+        if ($page == False) {
+            $pluginList = array_diff(scandir(PATH_TO_PLUGINS), array('.', '..'));
+        } else {
+            $pluginList = array();
+            foreach ($this->all(array("page"=>$page)) as $key=>$item) {
+                $pluginList[] = $item['name'];
+            }
+        }
+        return $pluginList;
     }
 
     /**
@@ -165,40 +103,31 @@ class Plugins extends BaseModel {
      * @return array
      */
     public function getPlugins($page=False) {
-        $folder = PATH_TO_APP.'/plugins/';
-        if ($page == False) {
-            $pluginList = array_diff(scandir($folder), array('.', '..'));
-        } else {
-            $sql = "SELECT * FROM $this->tablename WHERE page='$page'";
-            $req = $this->db->send_query($sql);
-            $pluginList = array();
-            while ($item = $req->fetch_assoc()) {
-                $pluginList[] = $item['name'];
-            }
-        }
 
         $plugins = array();
-        foreach ($pluginList as $key=>$pluginfile) {
-            if (!empty($pluginfile) && !in_array($pluginfile,array('.','..'))) {
-                /**
-                 * @var Plugins $thisPlugin
-                 */
+        foreach ($this->getPluginsList($page) as $key=>$plugin_name) {
+            if (!empty($plugin_name) && !in_array($plugin_name,array('.','..'))) {
 
-                $thisPlugin = $this->instantiate($pluginfile);
+                // Instantiate plugin
+                $thisPlugin = $this->getInstance($plugin_name);
 
-                if ($thisPlugin->isInstalled()) {
-                    $thisPlugin->getInfo();
+                // Get plugin info if installed
+                $installed = $this->isInstalled($plugin_name);
+
+                if ($installed) {
+                    $this->getInstance($plugin_name)->setInfo($this->get(array('name'=>$plugin_name)));
                 }
-                $plugins[$pluginfile] = array(
-                    'installed' => $thisPlugin->installed,
+
+                $plugins[$plugin_name] = array(
+                    'installed' => $installed,
                     'status' => $thisPlugin->status,
                     'page'=>$thisPlugin->page,
                     'options'=>$thisPlugin->options,
-                    'version'=>$thisPlugin->version,
-                    'description'=>$thisPlugin::$description
+                    'version'=>$thisPlugin::version,
+                    'description'=>$thisPlugin::description
                 );
 
-                $plugins[$pluginfile]['display'] = ($thisPlugin->isInstalled() && $page !== false) ? $thisPlugin->show():'';
+                $plugins[$plugin_name]['display'] = ($installed && $page !== false) ? $thisPlugin::show():'';
             }
         }
         return $plugins;
@@ -246,10 +175,10 @@ class Plugins extends BaseModel {
 
     /**
      * Show plugins list
+     * @param array $pluginsList
      * @return string
      */
-    public function show() {
-        $pluginsList = $this->getPlugins();
+    public function show(array $pluginsList) {
         $plugin_list = "";
         foreach ($pluginsList as $pluginName => $info) {
             $installed = $info['installed'];
@@ -297,17 +226,4 @@ class Plugins extends BaseModel {
         return $plugin_list;
     }
 
-    /**
-     * Registers plugin into the database
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Create corresponding table
-        $table = new BaseModel(strtolower($this->name), $this->table_data);
-        $table->setup();
-
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
 }
