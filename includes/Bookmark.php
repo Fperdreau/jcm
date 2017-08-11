@@ -144,7 +144,7 @@ class Bookmark extends BaseModel {
                 <div class='bookmark_action'>
                     <div class='pub_btn icon_btn'><a href='#' data-id='{$bookmark['id']}' 
                             data-controller='Bookmark' class='delete'>
-                <img src='" . App::getAppUrl() . "images/trash.png'></a></div>
+                <img src='" . URL_TO_IMG . "trash.png'></a></div>
                 </div>              
             </div>
         ";
