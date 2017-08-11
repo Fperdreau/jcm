@@ -32,7 +32,7 @@ require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
  * Scheduled task that creates users groups according to the number of presentations for a particular session
  * (1 group/presentation)
  */
-class MakeGroup extends Task {
+class MakeGroup extends Tasks {
 
     public $name='MakeGroup';
     public $status='Off';

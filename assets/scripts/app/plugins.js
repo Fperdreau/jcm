@@ -57,14 +57,181 @@ function showPlugins(page, result) {
     var page_id = page.split('/');
 
     for (key in result) {
-        var plugin = result[key];
-        if (plugin.page == page_id[page_id.length-1]) {
-            $(".plugins")
-                .fadeOut(200)
-                .append("<section>"+plugin.display+"</section>")
-                .fadeIn(200);
+        if (result.hasOwnProperty(key)) {
+            var plugin = result[key];
+            if (plugin.page === page_id[page_id.length-1]) {
+                $(".plugins")
+                    .fadeOut(200)
+                    .append("<section>"+plugin.display+"</section>")
+                    .fadeIn(200);
+            }
         }
     }
+}
+
+
+/**
+ * Install dependency
+ * @param el
+ */
+function install(el) {
+    var name = $(this).attr('data-name');
+    var controller = $(this).attr('data-controller');
+    var action = $(this).attr('data-action');
+    var div = $(this).closest('.plugDiv');
+
+    jQuery.ajax({
+        url: 'php/router.php?controller=' + controller + '&action=' + action,
+        type: 'POST',
+        data: {
+            name: name
+        },
+        async: true,
+        beforeSend: function() {
+            if (action === 'install') {
+                $(el).removeClass('installBtn');
+            } else {
+                $(el).removeClass('uninstallBtn');
+            }
+            $(el).addClass('loadBtn');
+        },
+        success: function(data) {
+            validsubmitform(div, data, function (result) {
+                if (result.status === true) {
+                    var newClass = (action === 'install') ? 'uninstallBtn' : 'installBtn';
+                    var newAttr = (action === 'install') ? 'uninstall' : 'install';
+                    $(el)
+                        .attr('data-op', newAttr)
+                        .removeClass('loadBtn')
+                        .addClass(newClass);
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Execute action via AJAX call
+ * @param el: node
+ * @param states
+ */
+function execute(el, states) {
+    var name = el.data('name');
+    var controller = el.data('controller');
+    var action = el.data('action');
+    var div = el.closest('.plugDiv');
+    var curClass = action + 'Btn';
+    var newAttr = (action === states[0]) ? states[1] : states[0];
+    var newClass = newAttr + 'Btn';
+
+    jQuery.ajax({
+        url: 'php/router.php?controller=' + controller + '&action=' + action,
+        type: 'POST',
+        data: {
+            name: name
+        },
+        async: true,
+        beforeSend: function() {
+            $(el).removeClass(curClass);
+            $(el).addClass('loadBtn');
+        },
+        success: function(data) {
+            validsubmitform(div, data,  function(result) {
+                if (result.status === true) {
+                    $(el)
+                        .attr('data-action', action)
+                        .removeClass('loadBtn')
+                        .addClass(newClass);
+                }
+            });
+        }
+
+    });
+}
+
+/**
+ * Show logs associated with scheduled task
+ * @param el: DOM element
+ */
+function showLogs(el) {
+    var name = el.attr('id');
+    var div = $('.plugLog#' + name);
+    if (!div.is(':visible')) {
+        jQuery.ajax({
+            type: 'post',
+            url: 'php/form.php',
+            data: {showLog: name},
+            success: function(data) {
+                var json = jQuery.parseJSON(data);
+                $('.plugLog#' + name).html(json).toggle();
+            }
+        });
+    } else {
+        div.toggle();
+    }
+}
+
+function deleteLogs(el) {
+    var name = el.attr('id');
+    var div = el.closest('.plugDiv');
+    jQuery.ajax({
+        type: 'post',
+        url: 'php/form.php',
+        data: {
+            deleteLog: name
+        },
+        async: true,
+        success: function(data) {
+            validsubmitform(div,data);
+        }
+    });
+}
+
+function runTask(el) {
+    var cron = el.attr('data-cron');
+    var div = el.closest('.plugDiv');
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        data: {
+            run_cron: true,
+            cron: cron
+        },
+        async: true,
+        beforeSend: function() {
+            $(el).toggleClass('runBtn loadBtn');
+        },
+        complete: function() {
+            $(el).toggleClass('loadBtn runBtn');
+        },
+        success: function(data) {
+            validsubmitform(div,data);
+        }
+    });
+}
+
+function stopTask(el) {
+    var cron = el.attr('data-cron');
+    var div = el.closest('.plugDiv');
+
+    jQuery.ajax({
+        url: 'php/form.php',
+        type: 'POST',
+        data: {
+            stop_cron: true,
+            cron: cron
+        },
+        async: true,
+        beforeSend: function() {
+            $(el).toggleClass('runBtn loadBtn');
+        },
+        complete: function() {
+            $(el).toggleClass('loadBtn runBtn');
+        },
+        success: function() {
+            div.find('.task_running_icon').toggleClass('running not_running');
+        }
+    });
 }
 
 $(document).ready(function() {
@@ -79,7 +246,7 @@ $(document).ready(function() {
             }")
         .appendTo("head");
 
-    $('.mainbody')
+    $(document)
 
     /**
      * Modify plugin/scheduled task settings
@@ -127,140 +294,31 @@ $(document).ready(function() {
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
             var name = form.find('input[name="modCron"]').val();
+
             var callback = function(json) {
                 var result = jQuery.parseJSON(json);
                 if (result.status) {
                     $('#cron_time_'+name).html(json).fadeIn(200);
                 }
             };
+
             processForm(form, callback);
         })
 
-    /**
-     * Launch installation of plugin/scheduled task
-     */
+        /**
+         * Install plugin/scheduled task
+         */
         .on('click','.installDep',function(e) {
             e.preventDefault();
-            var el = $(this);
-            var name = $(this).attr('data-name');
-            var op = $(this).attr('data-op');
-            var type = $(this).attr('data-type');
-            var div = $(this).closest('.plugDiv');
-            var callback = function(result) {
-                if (result.status === true) {
-                    var newClass = (op=='install') ? 'uninstallBtn':'installBtn';
-                    var newattr = (op=='install') ? 'uninstall':'install';
-                    $(el)
-                        .attr('data-op',newattr)
-                        .removeClass('loadBtn')
-                        .addClass(newClass);
-                }
-            };
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                data: {
-                    installDep: name,
-                    type: type,
-                    op: op
-                },
-                beforeSend: function() {
-                    if (op == 'install') {
-                        $(el).removeClass('installBtn');
-                    } else {
-                        $(el).removeClass('uninstallBtn');
-                    }
-                    $(el).addClass('loadBtn');
-                },
-                success: function(data) {
-                    validsubmitform(div,data,callback);
-                }
-
-            });
+            execute($(this), ['install', 'uninstall']);
         })
-
 
         /**
          * Activate/Deactivate plugin/scheduled task
          */
-        .on('click','.activateDep',function(e) {
+        .on('click','.activateDep', function(e) {
             e.preventDefault();
-            var el = $(this);
-            var name = $(this).attr('data-name');
-            var op = $(this).attr('data-op');
-            var type = $(this).attr('data-type');
-            var div = $(this).closest('.plugDiv');
-            var callback = function(result) {
-                if (result.status === true) {
-                    var newClass = (op === 'On') ? 'deactivateBtn':'activateBtn';
-                    var newattr = (op === 'On') ? 'Off':'On';
-                    $(el)
-                        .attr('data-op',newattr)
-                        .removeClass('loadBtn')
-                        .addClass(newClass);
-                }
-            };
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                data: {
-                    activateDep: name,
-                    type: type,
-                    op: op
-                },
-                async: true,
-                beforeSend: function() {
-                    if (op == 'on') {
-                        $(el).removeClass('activateBtn');
-                    } else {
-                        $(el).removeClass('deactivateBtn');
-                    }
-                    $(el).addClass('loadBtn');
-                },
-                success: function(data) {
-                    validsubmitform(div,data,callback);
-                }
-
-            });
-        })
-
-    /**
-     * Display plugin/scheduled task options
-     */
-        .on('click','.optShow',function(e) {
-            e.preventDefault();
-            var name = $(this).attr('data-name');
-            var op = $(this).attr('data-op');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                data: {
-                    getOpt: name,
-                    op: op
-                },
-                async: true,
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    $(".plugOpt#"+name)
-                        .html(json)
-                        .toggle();
-                }
-            });
-        })
-
-    /**
-     * Modify plugin/scheduled task options
-     */
-        .on('click','.modOpt',function(e) {
-            e.preventDefault();
-            var name = $(this).closest('.plugOpt').attr('id');
-            var op = $(this).attr('data-op');
-            var div = $(this).closest('.plugDiv');
-            var form = $(this).length > 0 ? $($(this)[0].form) : $();
-            var option = form.serializeArray();
-            var data = {modOpt: name, op: op, data:option};
-            var url = form.attr('action');
-            processAjax(div, data, null, url);
+            execute($(this), ['activate', 'deactivate']);
         })
 
         /**
@@ -268,93 +326,27 @@ $(document).ready(function() {
          */
         .on('click', '.showLog', function(e) {
             e.preventDefault();
-            var name = $(this).attr('id');
-            var div = $('.plugLog#' + name);
-            if (!div.is(':visible')) {
-                jQuery.ajax({
-                    type: 'post',
-                    url: 'php/form.php',
-                    data: {showLog: name},
-                    success: function(data) {
-                        var json = jQuery.parseJSON(data);
-                        $('.plugLog#' + name).html(json).toggle();
-                    }
-                });
-            } else {
-                div.toggle();
-            }
+            showLogs($(this));
         })
 
         .on('click', '.deleteLog', function(e) {
             e.preventDefault();
-            var name = $(this).attr('id');
-            var div = $(this).closest('.plugDiv');
-            jQuery.ajax({
-                type: 'post',
-                url: 'php/form.php',
-                data: {
-                    deleteLog: name
-                },
-                success: function(data) {
-                    validsubmitform(div,data);
-                }
-            });
+            deleteLogs($(this));
         })
 
-    /**
-     * Run a scheduled task manually
-     */
+        /**
+         * Run a scheduled task manually
+         */
         .on('click','.run_cron',function(e) {
             e.preventDefault();
-            var el = $(this);
-            var cron = $(this).attr('data-cron');
-            var div = $(this).closest('.plugDiv');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                data: {
-                    run_cron: true,
-                    cron: cron
-                },
-                async: true,
-                beforeSend: function() {
-                    $(el).toggleClass('runBtn loadBtn');
-                },
-                complete: function() {
-                    $(el).toggleClass('loadBtn runBtn');
-                },
-                success: function(data) {
-                    validsubmitform(div,data);
-                }
-            });
+            runTask($(this));
         })
 
-    /**
-     * Stop a scheduled task manually
-     */
-    .on('click','.stop_cron',function(e) {
-        e.preventDefault();
-        var el = $(this);
-        var cron = $(this).attr('data-cron');
-        var div = $(this).closest('.plugDiv');
-
-        jQuery.ajax({
-            url: 'php/form.php',
-            type: 'POST',
-            data: {
-                stop_cron: true,
-                cron: cron
-            },
-            async: true,
-            beforeSend: function() {
-                $(el).toggleClass('runBtn loadBtn');
-            },
-            complete: function() {
-                $(el).toggleClass('loadBtn runBtn');
-            },
-            success: function(data) {
-                div.find('.task_running_icon').toggleClass('running not_running');
-            }
+        /**
+         * Stop a scheduled task manually
+         */
+        .on('click','.stop_cron',function(e) {
+            e.preventDefault();
+            stopTask($(this));
         });
-    });
 });

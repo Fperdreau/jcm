@@ -29,11 +29,23 @@
  *
  * Handle plugins settings and routines (installation, running, ect.)
  */
-class PluginsManager extends BaseModel {
+class Plugins extends BaseModel {
 
+    /**
+     * Container for plugins instance
+     * @var array $instances
+     */
     private $instances = array();
 
+    /**
+     * @var array $plugins
+     */
+    private $plugins;
 
+    public function __construct($plugin = False) {
+        parent::__construct($plugin);
+        $this->loadAll();
+    }
 
     /**
      * Add plugin to the Plugin table
@@ -44,18 +56,39 @@ class PluginsManager extends BaseModel {
         return $this->add($post);
     }
 
-    /**
-     * Uninstall plugin: delete entry from the Plugin table and delete corresponding tables
-     * @param array $id
-     * @return bool|mysqli_result
-     */
-    public function delete(array $id) {
-        $this->db->delete($this->db->tablesname['PluginsManager'], $id);
-        if ($this->db->tableExists($this->tablename)) {
-            return $this->db->deletetable($this->tablename);
-        } else {
-            return true;
+    public function install($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = false;
+        $data = $this->getPlugin($name)->getInfo();
+        if ($this->add($data)) {
+            $result = $this->getPlugin($name)->install();
         }
+        $result['msg'] = $result['status'] ? $name . " has been installed" : "Oops, something went wrong";
+        return $result;
+    }
+
+    public function uninstall($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = false;
+        if ($this->delete(array('name'=>$name))) {
+            $result = $this->getPlugin($name)->uninstall();
+        }
+        $result['msg'] = $result['status'] ? $name . " has been uninstalled" : "Oops, something went wrong";
+        return $result;
+    }
+
+    public function activate($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
+        $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
+        return $result;
+    }
+
+    public function deactivate($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] =  $this->update(array('status'=>0), array('name'=>$name));
+        $result['msg'] = $result['status'] ? $name . " has been deactivated" : "Oops, something went wrong";
+        return $result;
     }
 
     /**
@@ -72,7 +105,7 @@ class PluginsManager extends BaseModel {
      * @param: class name (must be the same as the file name)
      * @return Plugin
      */
-    public function getInstance($pluginName) {
+    public function getPlugin($pluginName) {
         if (empty($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
             include_once(PATH_TO_PLUGINS . $pluginName . DS . $pluginName . '.php');
             $this->instances[$pluginName] = new $pluginName();
@@ -98,71 +131,98 @@ class PluginsManager extends BaseModel {
     }
 
     /**
+     * Returns Plugin's options form
+     * @param string $name: plugin name
+     * @return string: form
+     */
+    public function getOptions($name=null) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        return $this->displayOpt($name, $this->getPlugin($name)->options);
+    }
+
+    /**
      * Get list of plugins, their settings and status
-     * @param bool $page
+     * @param null|string $page
      * @return array
      */
-    public function getPlugins($page=False) {
-
+    public function loadAll($page=null) {
         $plugins = array();
         foreach ($this->getPluginsList($page) as $key=>$plugin_name) {
             if (!empty($plugin_name) && !in_array($plugin_name,array('.','..'))) {
-
-                // Instantiate plugin
-                $thisPlugin = $this->getInstance($plugin_name);
-
-                // Get plugin info if installed
-                $installed = $this->isInstalled($plugin_name);
-
-                if ($installed) {
-                    $this->getInstance($plugin_name)->setInfo($this->get(array('name'=>$plugin_name)));
-                }
-
-                $plugins[$plugin_name] = array(
-                    'installed' => $installed,
-                    'status' => $thisPlugin->status,
-                    'page'=>$thisPlugin->page,
-                    'options'=>$thisPlugin->options,
-                    'version'=>$thisPlugin::version,
-                    'description'=>$thisPlugin::description
-                );
-
-                $plugins[$plugin_name]['display'] = ($installed && $page !== false) ? $thisPlugin::show():'';
+                $plugins[$plugin_name] = $this->load($plugin_name, $page);
             }
         }
         return $plugins;
     }
 
     /**
+     * Load plugin
+     * @param string $name
+     * @param null $page
+     * @return array
+     */
+    public function load($name, $page=null) {
+
+        // Get plugin info if installed
+        $installed = $this->isInstalled($name);
+
+        if ($installed) {
+            $this->getPlugin($name)->setInfo($this->get(array('name'=>$name)));
+        }
+
+        // Instantiate plugin
+        $thisPlugin = $this->getPlugin($name);
+
+        return array(
+            'installed'=>$installed,
+            'status'=>intval($thisPlugin->status),
+            'page'=>$thisPlugin->page,
+            'options'=>$thisPlugin->options,
+            'version'=>$thisPlugin->version,
+            'description'=>$thisPlugin->description,
+            'display'=>($installed && !is_null($page)) ? $thisPlugin->show() : null
+        );
+    }
+
+    /**
+     * Update plugin's options
+     * @return mixed
+     */
+    public function updateOptions() {
+        $name = htmlspecialchars($_POST['name']);
+        if ($this->isInstalled($name)) {
+            foreach ($_POST as $key=>$setting) {
+                $this->getPlugin($name)->setOption($key, $setting);
+            }
+
+            if ($this->update($this->getPlugin($name)->getInfo(), array('name'=>$name))) {
+                $result['status'] = true;
+                $result['msg'] = "$name's settings successfully updated!";
+            } else {
+                $result['status'] = false;
+            }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "You must install this plugin before modifying its settings";
+        }
+
+        return $result;
+    }
+
+    /**
      * Display Plugin's settings
+     * @param string $name: plugin name
+     * @param array $options
      * @return string
      */
-    public function displayOpt() {
+    public function displayOpt($name, array $options) {
         $content = "<h4 style='font-weight: 600;'>Options</h4>";
-        if (!empty($this->options)) {
-            $opt = '';
-            foreach ($this->options as $optName=>$settings) {
-                if (isset($settings['options']) && !empty($settings['options'])) {
-                    $options = "";
-                    foreach ($settings['options'] as $prop=>$value) {
-                        $options .= "<option value='{$value}'>{$prop}</option>";
-                    }
-                    $optProp = "<select name='{$optName}'>{$options}</select>";
-                } else {
-                    $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
-                }
-                $opt .= "
-                    <div class='form-group inline_field field_auto'>
-                        {$optProp}
-                        <label for='{$optName}'>{$optName}</label>
-                    </div>
-                ";
-            }
+        if (!empty($options)) {
             $content .= "
-                <form method='post' action='php/form.php'>
-                    {$opt}
+                <form method='post' action='php/router.php?controller=". __CLASS__ . "&action=updateOptions&name={$name}'>
+                    " . self::renderOptions($options) . "
                     <div class='submit_btns'>
-                        <input type='submit' class='modOpt' data-op='plugin' value='Modify'>
+                        <input type='submit' class='processform' value='Modify'>
                     </div>
                 </form>
                 
@@ -175,36 +235,87 @@ class PluginsManager extends BaseModel {
 
     /**
      * Show plugins list
+     * @return string
+     */
+    public function show() {
+        return self::showAll($this->loadAll());
+    }
+
+    /* VIEWS */
+
+    private static function renderOptions(array $options) {
+        $opt = '';
+        foreach ($options as $optName=>$settings) {
+            if (isset($settings['options']) && !empty($settings['options'])) {
+                $options = "";
+                foreach ($settings['options'] as $prop=>$value) {
+                    $options .= "<option value='{$value}'>{$prop}</option>";
+                }
+                $optProp = "<select name='{$optName}'>{$options}</select>";
+            } else {
+                $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
+            }
+            $opt .= "
+                    <div class='form-group inline_field field_auto'>
+                        {$optProp}
+                        <label for='{$optName}'>{$optName}</label>
+                    </div>
+                ";
+        }
+        return $opt;
+    }
+
+    /**
+     * Render install/uninstall button
+     * @param $pluginName
+     * @param $installed
+     * @return string
+     */
+    private static function install_button($pluginName, $installed) {
+        if ($installed) {
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' data-action='uninstall' data-name='$pluginName'></div>";
+        } else {
+            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' data-action='install' data-name='$pluginName'></div>";
+        }
+    }
+
+    /**
+     * Render activate/deactivate button
+     * @param $pluginName
+     * @param $status
+     * @return string
+     */
+    private static function activate_button($pluginName, $status) {
+        if ($status === 1) {
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='$pluginName'></div>";
+        } else {
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ . "' data-action='activate' data-name='$pluginName'></div>";
+        }
+    }
+
+    /**
+     * Show list of plugins
      * @param array $pluginsList
      * @return string
      */
-    public function show(array $pluginsList) {
+    private static function showAll(array $pluginsList) {
         $plugin_list = "";
         foreach ($pluginsList as $pluginName => $info) {
-            $installed = $info['installed'];
-            $pluginDescription = (!empty($info['description'])) ? $info['description']:null;
-            if ($installed) {
-                $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='plugin' data-op='uninstall' data-name='$pluginName'></div>";
-            } else {
-                $install_btn = "<div class='installDep workBtn installBtn' data-type='plugin' data-op='install' data-name='$pluginName'></div>";
-            }
 
-            if ($info['status'] === 'On') {
-                $activate_btn = "<div class='activateDep workBtn deactivateBtn' data-type='plugin' data-op='Off' data-name='$pluginName'></div>";
-            } else {
-                $activate_btn = "<div class='activateDep workBtn activateBtn' data-type='plugin' data-op='On' data-name='$pluginName'></div>";
-            }
+            $pluginDescription = (!empty($info['description'])) ? $info['description'] : null;
+            $install_btn = self::install_button($pluginName, $info['installed']);
+            $activate_btn = self::activate_button($pluginName, $info['status']);
 
             $plugin_list .= "
-            <div class='plugDiv' id='plugin_$pluginName'>
+            <div class='plugDiv' id='plugin_{$pluginName}'>
                 <div class='plugHeader'>
                     <div class='plug_header_panel'>
-                        <div class='plugName'>$pluginName</div>
+                        <div class='plugName'>{$pluginName}</div>
                     </div>
                     <div class='optBar'>
-                        <div class='optShow workBtn settingsBtn' data-op='plugin' data-name='$pluginName'></div>
-                        $install_btn
-                        $activate_btn
+                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' data-action='getOptions' data-destination='.plugOpt#{$pluginName}' data-name='{$pluginName}'></div>
+                        {$install_btn}
+                        {$activate_btn}
                     </div>
                 </div>
 
@@ -215,7 +326,7 @@ class PluginsManager extends BaseModel {
                     </div>
                     
                     <div>                        
-                        <div class='plugOpt' id='$pluginName'></div>
+                        <div class='plugOpt' id='{$pluginName}'></div>
                     </div>
 
                 </div>
@@ -225,5 +336,4 @@ class PluginsManager extends BaseModel {
         }
         return $plugin_list;
     }
-
 }

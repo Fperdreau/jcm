@@ -33,7 +33,7 @@
  * - run
  *
  */
-class Task extends BaseModel {
+class Tasks extends BaseModel {
 
     /**
      * Scheduled tasks settings
@@ -178,7 +178,7 @@ class Task extends BaseModel {
         self::get_logger();
         /**
          * Instantiate job object
-         * @var Task $thisJob
+         * @var Tasks $thisJob
          */
         $thisJob = $this->instantiate($task_name);
         $thisJob->getInfo();
@@ -322,7 +322,7 @@ class Task extends BaseModel {
     /**
      * Instantiate a class from class name
      * @param: class name (must be the same as the file name)
-     * @return Task
+     * @return Tasks
      */
     public function instantiate($pluginName) {
         $folder = PATH_TO_APP.'/cronjobs/';
@@ -396,7 +396,7 @@ class Task extends BaseModel {
                 $name = $name[0];
                 
                 /**
-                 * @var Task $thisPlugin
+                 * @var Tasks $thisPlugin
                  */
                 $thisPlugin = $this->instantiate($name);
                 

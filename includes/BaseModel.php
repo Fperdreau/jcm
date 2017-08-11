@@ -248,12 +248,12 @@ class BaseModel {
 
     /**
      * Update table entry
-     * @param array $id
      * @param array $data
+     * @param array $id
      * @return bool
      */
     public function update(array $data, array $id) {
-        return $this->db->update($this->tablename,  $this->parseData($data), $id);
+        return $this->db->update($this->tablename,  $data, $id);
     }
 
     /**
@@ -271,7 +271,7 @@ class BaseModel {
      * @return mixed
      */
     public function add(array $post) {
-        return $this->db->insert($this->tablename, $this->parseData($post));
+        return $this->db->insert($this->tablename, $post);
     }
 
     /**

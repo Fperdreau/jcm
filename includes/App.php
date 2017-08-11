@@ -170,7 +170,7 @@ class App {
         if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP . DS . 'config' . DS);
         if(!defined('PATH_TO_LIBS')) define('PATH_TO_LIBS', PATH_TO_APP . DS . 'libs' . DS);
         if(!defined('PATH_TO_TASKS')) define('PATH_TO_TASKS', PATH_TO_APP . DS . 'cronjobs' . DS);
-        if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'plugins' . DS);
+        if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'Plugins' . DS);
 
         if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
         if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");

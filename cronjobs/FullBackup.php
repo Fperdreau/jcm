@@ -30,7 +30,7 @@
  * Scheduled task that creates full backups of the web-site (files & database) and store the corresponding archives
  * in backup/complete.
  */
-class FullBackup extends Task {
+class FullBackup extends Tasks {
     /**
      * Assign chairmen for the next n sessions
      * @return bool

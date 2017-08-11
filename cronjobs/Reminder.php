@@ -29,7 +29,7 @@
  *
  * Scheduled tasks that send reminders to the users regarding the upcomming session
  */
-class Reminder extends Task {
+class Reminder extends Tasks {
 
     public $name = 'Reminder';
     public $status = 'Off';

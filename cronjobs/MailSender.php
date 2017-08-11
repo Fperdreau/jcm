@@ -27,7 +27,7 @@
 /**
  * Class MailSender
  */
-class MailSender extends Task {
+class MailSender extends Tasks {
 
     /**
      * @var string: Task name
@@ -114,7 +114,7 @@ class MailSender extends Task {
             sleep(2); // Add some time interval before processing the next email
         }
         $msg = "{$sent}/{$to_be_sent} emails have been sent.";
-        Task::get_logger()->log($msg);
+        Tasks::get_logger()->log($msg);
         return $msg;
     }
 
@@ -137,7 +137,7 @@ class MailSender extends Task {
         $count = 0;
         foreach ($data as $key=>$email) {
             if (!$this->db->delete($this->Manager->tablename, array('mail_id'=>$email['mail_id']))) {
-                Task::get_logger()->log("Could not delete email '{$email['mail_id']}'");
+                Tasks::get_logger()->log("Could not delete email '{$email['mail_id']}'");
                 return false;
             } else {
                 $count += 1;
@@ -145,7 +145,7 @@ class MailSender extends Task {
         }
 
         $msg = "{$count}/{$to_delete} emails have been deleted.";
-        Task::get_logger()->log($msg);
+        Tasks::get_logger()->log($msg);
         return true;
     }
 }

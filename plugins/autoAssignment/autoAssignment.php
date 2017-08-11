@@ -26,11 +26,11 @@
 
 
 /**
- * Class Assignment
+ * Class autoAssignment
  * 
  * Plugins that handles speaker assignment routines
  */
-class autoAssignment extends Plugins {
+class autoAssignment extends Plugin {
 
     /**
      * @var string
@@ -41,6 +41,13 @@ class autoAssignment extends Plugins {
      * @var string
      */
     public $version = "1.1.1";
+
+    /**
+     * Plugin's description
+     */
+    public $description = "Automatically assigns members of the JCM (who agreed upon being assigned by settings 
+    the corresponding option on their profile page) as speakers to the future sessions. 
+    The number of sessions to plan in advance can be set in the plugin's settings.";
     
     /**
      * @var array
@@ -52,18 +59,15 @@ class autoAssignment extends Plugins {
     );
 
     /**
-     * @var Session
+     * @var Session $session
      */
     private static $session;
 
     /**
-     * @var Assignment
+     * @var Assignment $Assignment
      */
     private static $Assignment;
 
-    public static $description = "Automatically assigns members of the JCM (who agreed upon being assigned by settings 
-    the corresponding option on their profile page) as speakers to the future sessions. 
-    The number of sessions to plan in advance can be set in the plugin's settings.";
 
     /**
      * Constructor
@@ -71,22 +75,16 @@ class autoAssignment extends Plugins {
     public function __construct() {
         parent::__construct();
 
-        $this->installed = $this->isInstalled();
-        $this->tablename = $this->db->config['dbprefix'] . '_' . strtolower($this->name);
-
-        if ($this->installed) {
-            $this->getInfo();
-            $this->getSession();
-            $this->getAssignement();
-        }
+        self::getSession();
+        self::getAssignement();
     }
 
     /**
      * Get session instance
      */
-    public function getSession() {
+    public static function getSession() {
         if (is_null(self::$session)) {
-            self::$session = new Session($this->db);
+            self::$session = new Session();
         }
         return self::$session;
     }
@@ -95,9 +93,9 @@ class autoAssignment extends Plugins {
      * Get assignment instance
      * @return Assignment
      */
-    private function getAssignement() {
+    private static function getAssignement() {
         if (is_null(self::$Assignment)) {
-            self::$Assignment = new Assignment($this->db);
+            self::$Assignment = new Assignment();
         }
         return self::$Assignment;
     }
@@ -161,7 +159,6 @@ class autoAssignment extends Plugins {
      * @return mixed
      */
     public function assign($nb_session=null) {
-        $this->getInfo();
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         // Get future sessions dates
@@ -173,7 +170,7 @@ class autoAssignment extends Plugins {
         $assignedSpeakers = array();
 
         // Check if there is enough users
-        $User = new Users($this->db);
+        $User = new Users();
         $usersList = $User->all_but_admin();
         if (empty($usersList)) {
             $result['msg'] = 'There is not enough assignable members';
@@ -188,7 +185,7 @@ class autoAssignment extends Plugins {
         foreach ($jc_days as $day) {
 
             // If session does not exist yet, we create a new one
-            $session = new Session($this->db, $day);
+            $session = new Session($day);
 
             // Do nothing if nothing is planned on that day
             if ($session->type === "none") continue;
@@ -199,11 +196,11 @@ class autoAssignment extends Plugins {
                 // If there is already a presentation planned for this day, check if the speaker is a real member, otherwise
                 // we will assign a new one
                 if (isset($session->presids[$p])) {
-                    $Presentation = new Presentation($this->db, $session->presids[$p]);
+                    $Presentation = new Presentation($session->presids[$p]);
                     $doAssign = $Presentation->orator === 'TBA';
                     $new = false;
                 } else {
-                    $Presentation = new Presentation($this->db);
+                    $Presentation = new Presentation();
                     $doAssign = true;
                     $new = true;
                 }
@@ -218,7 +215,7 @@ class autoAssignment extends Plugins {
                 }
 
                 // Get speaker information
-                $speaker = new Users($this->db, $Newspeaker);
+                $speaker = new Users($Newspeaker);
 
                 // Create/Update presentation
                 if ($new) {

@@ -30,7 +30,7 @@
  * Scheduled task that send email notifications (digests) to the users with information about the next sessions and
  * recent news.
  */
-class Mailing extends Task {
+class Mailing extends Tasks {
 
     public $name='Mailing';
     public $status='Off';

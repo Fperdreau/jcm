@@ -22,7 +22,7 @@
 
 // Declare classes
 $user = new Users($_SESSION['username']);
-$AppCron = new Task();
+$AppCron = new Tasks();
 
 $cronOpt = $AppCron->show();
 $AppConfig = AppConfig::getInstance();

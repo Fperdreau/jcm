@@ -28,9 +28,9 @@
  * Plugin that assign users to different groups according to the number of presentations in a session. Display the
  * user's group on his/her profile page
  */
-class Groups extends Plugins {
+class Groups extends Plugin {
 
-    protected $table_data = array(
+    protected $schema = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT", false),
         "groups"=>array("INT(2)", false),
         "username"=>array("CHAR(15)", false),
@@ -43,35 +43,27 @@ class Groups extends Plugins {
 
     public $name = "Groups";
     public $version = "1.1.0";
+    public $description = "Automatically creates groups of users based on the number of presentations scheduled 
+    for the upcoming session. Users will be notified by email about their group's information. If the different groups are
+    meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
+
+
     public $page = 'profile';
-    public $status = 'Off';
-    public $installed = False;
-    
     public $options = array(
         'room'=>array(
             'options'=>array(),
             'value'=>'')
     );
-    public static $description = "Automatically creates groups of users based on the number of presentations scheduled 
-    for the upcoming session. Users will be notified by email about their group's information. If the different groups are
-    meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
 
     /**
      * Constructor
      */
     public function __construct() {
         parent::__construct();
-        $this->installed = $this->isInstalled();
-        $this->tablename = $this->db->config['dbprefix'] . '_groups';
+
         $this->registerDigest();
         $this->registerReminder();
-        if ($this->installed) {
-            if ($this->db->tableExists($this->tablename)) {
-                $this->getInfo();
-            } else {
-                $this->delete(array('name'=>$this->name));
-            }
-        }
+
     }
 
     /**
@@ -90,19 +82,6 @@ class Groups extends Plugins {
         $reminder->register($this->name);
     }
 
-    /**
-     * Check whether this cron job is registered to the database
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Create corresponding table
-        $table = new BaseModel("Groups", $this->table_data, 'groups');
-        $table->setup();
-
-        // Register the plugin in the db
-        $class_vars = get_class_vars('Groups');
-        return $this->make($class_vars);
-    }
 
     /**
      * Run scheduled task: Assign users to groups and send them an email with their assigned group and presentation
@@ -176,12 +155,12 @@ class Groups extends Plugins {
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max(AppConfig::getInstance()->max_nb_session, count($session->presids));
+        $ngroups = max($session->getSettings('max_nb_session'), count($session->presids));
 
         // Get users list
         $Users = new Users($this->db);
         $users = array();
-        foreach ($Users->getUsers(true) as $key=>$user) {
+        foreach ($Users->all() as $key=>$user) {
             $users[] = $user['username'];
         }
 
@@ -336,24 +315,15 @@ class Groups extends Plugins {
      * @return bool|array
      */
     public function getGroup($username) {
-        if (!$this->isInstalled()) {
-            return false;
-        }
-        $sql = "SELECT * FROM $this->tablename WHERE username='$username'";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->get(array('username'=>$username));
+
         $groupusrs['members'] = array();
         $groupusrs['room'] = $data['room'];
         $groupusrs['date'] = $data['date'];
         $groupusrs['presid'] = $data['presid'];
+
         if (!empty($data)) {
-            $sql = "SELECT * FROM $this->tablename WHERE groups='".$data['groups']."'";
-            $req = $this->db->send_query($sql);
-            $rows = array();
-            while ($row = $req->fetch_assoc()) {
-                $rows[] = $row;
-            }
-            
-            foreach ($rows as $key=>$row) {
+            foreach ($this->get(array('groups'=>$data['group'])) as $key=>$row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
             return $groupusrs;
@@ -382,7 +352,7 @@ class Groups extends Plugins {
             foreach($group['members'] as $grpmember=>$info) {
                 if ($grpmember == 'TBA') continue; // We do not send emails to fake users
                 $role = $info['role'];
-                $grpuser = new Users($this->db,$grpmember);
+                $grpuser = new Users($grpmember);
                 $fullname = ucfirst(strtolower($grpuser->firstname))." ".ucfirst(strtolower($grpuser->lastname));
                 $color = ($u % 2 == 0) ? 'rgba(220,220,220,.7)':'rgba(220,220,220,.2)';
                 if ($grpuser->username == $username) {
@@ -409,13 +379,10 @@ class Groups extends Plugins {
 
     /**
      * Display user's group (profile page or in email)
-     * @param bool $username
      * @return string
      */
-    public function show($username=False) {
-        if ($username === False) {
-            $username = $_SESSION['username'];
-        }
+    public function show() {
+        $username = $_SESSION['username'];
         $data = $this->getGroup($username);
         $content = $this->showList($username);
         
@@ -423,12 +390,12 @@ class Groups extends Plugins {
             $ids = array();
             foreach($data['members'] as $grpmember=>$info) {
                 if ($grpmember == 'TBA') continue; // We do not send emails to fake users
-                $member = new Users($this->db, $grpmember);
+                $member = new Users($grpmember);
                 $ids[] = $member->id;
             }
             $ids = implode(',', $ids);
             $groupContact = "
-                <div class='div_button'><a href='" . AppConfig::$site_url . 'index.php?page=member/email&recipients_list=' . $ids . "'>Contact my group</a></div>";
+                <div class='div_button'><a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>Contact my group</a></div>";
             $groupContent = "
                 <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
                 <div>{$content}</div>
@@ -446,6 +413,7 @@ class Groups extends Plugins {
                 </div>
             ";
     }
+
 }
 
 

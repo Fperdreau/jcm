@@ -29,7 +29,7 @@
  *
  * Scheduled tasks that send a notification email including the last submissions
  */
-class Notification extends Task {
+class Notification extends Tasks {
 
     public $name = 'Notification';
     public $status = 'Off';

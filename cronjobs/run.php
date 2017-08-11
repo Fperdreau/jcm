@@ -30,7 +30,7 @@
  */
 global $db, $AppConfig;
 
-$AppCron = new Task();
+$AppCron = new Tasks();
 $logs = $AppCron->execute_all();
 
 // Send logs to admins

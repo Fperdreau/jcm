@@ -29,7 +29,7 @@
  *
  * Scheduled task that creates backup of the database and store them in backup/mysql.
  */
-class DbBackup extends Task {
+class DbBackup extends Tasks {
 
     public $name = 'DbBackup';
     

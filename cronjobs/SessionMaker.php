@@ -29,7 +29,7 @@
  *
  * Automatically repeatAll and create sessions based on user defined rules
  */
-class SessionMaker extends Task {
+class SessionMaker extends Tasks {
 
     public $name = 'SessionMaker';
     public $status = 'Off';

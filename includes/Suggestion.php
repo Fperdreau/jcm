@@ -121,7 +121,7 @@ class Suggestion extends BaseModel {
      * @param array $id
      * @return bool
      */
-    public function update(array $data, array $id) {
+    public function update(array $data, array $id, $filter=true) {
         // Associates this presentation to an uploaded file if there is one
         if (!empty($data['link'])) {
             $media = new Media();

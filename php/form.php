@@ -78,7 +78,7 @@ if (!empty($_POST['installDep'])) {
     $name = $_POST['installDep'];
     $op = $_POST['op'];
     $type = $_POST['type'];
-    $App = ($type == 'Plugins') ? new Plugins() : new Task();
+    $App = ($type == 'Plugins') ? new Plugins() : new Tasks();
     $thisApp = $App->instantiate($name);
     if ($op == 'install') {
         if ($thisApp->install()) {
@@ -107,7 +107,7 @@ if (!empty($_POST['activateDep'])) {
     $name = $_POST['activateDep'];
     $op = $_POST['op'];
     $type = $_POST['type'];
-    $App = ($type === 'Plugins') ? new Plugins() : new Task();
+    $App = ($type === 'Plugins') ? new Plugins() : new Tasks();
     $thisApp = $App->instantiate($name);
 
     $result['status'] = $thisApp->update(array('status'=>$op), array('name'=>$name));
@@ -118,42 +118,9 @@ if (!empty($_POST['activateDep'])) {
     exit;
 }
 
-// Get settings
-if (!empty($_POST['getOpt'])) {
-    $name = htmlspecialchars($_POST['getOpt']);
-    $op = htmlspecialchars($_POST['op']);
-    $App = ($op == 'Plugins') ? new Plugins() : new Task();
-    $thisApp = $App->instantiate($name);
-    $thisApp->getInfo();
-    $result = $thisApp->displayOpt();
-    echo json_encode($result);
-    exit;
-}
-
-// Modify settings
-if (!empty($_POST['modOpt'])) {
-    $name = htmlspecialchars($_POST['modOpt']);
-    $op = htmlspecialchars($_POST['op']);
-    $data = $_POST['data'];
-    $App = ($op == 'Plugins') ? new Plugins() : new Task();
-    $thisApp = $App->instantiate($name);
-    $thisApp->getInfo();
-    foreach ($data as $key=>$settings) {
-        $thisApp->options[$settings['name']]['value'] = $settings['value'];
-    }
-    if ($thisApp->update(array('options'=>$thisApp->options), array('name'=>$name))) {
-        $result['status'] = true;
-        $result['msg'] = "$name's settings successfully updated!";
-    } else {
-        $result['status'] = true;
-    }
-    echo json_encode($result);
-    exit;
-}
-
 if (!empty($_POST['modCron'])) {
     $name = htmlspecialchars($_POST['modCron']);
-    $App = new Task();
+    $App = new Tasks();
     $thisApp = $App->instantiate($name);
 
     if ($thisApp->isInstalled()) {
@@ -179,7 +146,7 @@ if (!empty($_POST['modStatus'])) {
     $name = htmlspecialchars($_POST['modStatus']);
     $status = htmlspecialchars($_POST['status']);
     $op = htmlspecialchars($_POST['op']);
-    $App = ($op == 'Plugins') ? new Plugins(): new Task();
+    $App = ($op == 'Plugins') ? new Plugins(): new Tasks();
     $thisApp = $App->instantiate($name);
     $thisApp->getInfo();
     $thisApp->status = $status;
@@ -195,7 +162,7 @@ if (!empty($_POST['modSettings'])) {
     $value = htmlspecialchars($_POST['value']);
     $op = htmlspecialchars($_POST['op']);
 
-    $App = ($op == 'Plugins') ? new Plugins(): new Task();
+    $App = ($op == 'Plugins') ? new Plugins(): new Tasks();
     $thisApp = $App->instantiate($name);
     if ($thisApp->isInstalled()) {
         $thisApp->getInfo();
@@ -220,7 +187,7 @@ if (!empty($_POST['modSettings'])) {
 // Get scheduled task's logs
 if (!empty($_POST['showLog'])) {
     $name = htmlspecialchars($_POST['showLog']);
-    $result = Task::showLog($name);
+    $result = Tasks::showLog($name);
     if (is_null($result)) $result = 'Nothing to display';
     echo json_encode($result);
     exit;
@@ -229,7 +196,7 @@ if (!empty($_POST['showLog'])) {
 // Delete scheduled task's logs
 if (!empty($_POST['deleteLog'])) {
     $name = htmlspecialchars($_POST['deleteLog']);
-    $result['status'] = Task::deleteLog($name);
+    $result['status'] = Tasks::deleteLog($name);
     echo json_encode($result);
     exit;
 }
@@ -313,12 +280,12 @@ if (!empty($_POST['mod_cron'])) {
     $cronName = $_POST['cron'];
     $option = $_POST['option'];
     $value = $_POST['value'];
-    $CronJobs = new Task();
+    $CronJobs = new Tasks();
     $cron = $CronJobs->instantiate($cronName);
     if ($cron->isInstalled()) {
         $cron->getInfo();
         $cron->$option = $value;
-        $cron->time = Task::parseTime($cron->time, explode(',', $cron->frequency));
+        $cron->time = Tasks::parseTime($cron->time, explode(',', $cron->frequency));
         if ($cron->update(array($option=>$value, 'time'=>$cron->time), array('name'=>$cronName))) {
             $result = $cron->time;
         } else {
@@ -335,7 +302,7 @@ if (!empty($_POST['mod_cron'])) {
 // Run cron job
 if (!empty($_POST['run_cron'])) {
     $cronName = $_POST['cron'];
-    $CronJobs = new Task();
+    $CronJobs = new Tasks();
     $result['msg'] = $CronJobs->execute($cronName);
     $result['status'] = true;
     echo json_encode($result);
@@ -345,7 +312,7 @@ if (!empty($_POST['run_cron'])) {
 // Run cron job
 if (!empty($_POST['stop_cron'])) {
     $cronName = $_POST['cron'];
-    $CronJobs = new Task($cronName);
+    $CronJobs = new Tasks($cronName);
     $CronJobs->unlock();
     $result['status'] = $CronJobs->unlock();
     echo json_encode($result);
@@ -358,7 +325,7 @@ Plugins
 if (!empty($_POST['get_plugins'])) {
     $page = $_POST['page'];
     $Plugins = new Plugins();
-    $plugins = $Plugins->getPlugins($page);
+    $plugins = $Plugins->loadAll($page);
     echo json_encode($plugins);
     exit;
 }
@@ -402,7 +369,7 @@ if (!empty($_POST['getPage'])) {
     $Plugins = new Plugins();
 
     $content = array();
-    $content['plugins'] = $Plugins->getPlugins($page_id);
+    $content['Plugins'] = $Plugins->loadAll($page_id);
     $content['pageName'] = $page_id;
     $content['parent'] = $split[0];
     $content['title'] = (!empty($Page->meta_title)) ? $Page->meta_title : $page_id;

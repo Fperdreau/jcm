@@ -30,7 +30,7 @@
  * Scheduled task that automatically assigns speakers for the next presentations. Every assigned user will be notified
  * by email.
  */
-class SpeakerAssignment extends Task {
+class SpeakerAssignment extends Tasks {
 
     /**
      * Assign Speakers for the next n sessions
