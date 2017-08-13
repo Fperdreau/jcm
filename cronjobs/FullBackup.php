@@ -30,7 +30,7 @@
  * Scheduled task that creates full backups of the web-site (files & database) and store the corresponding archives
  * in backup/complete.
  */
-class FullBackup extends Tasks {
+class FullBackup extends Task {
     /**
      * Assign chairmen for the next n sessions
      * @return bool
@@ -44,43 +44,23 @@ class FullBackup extends Tasks {
             'options'=>array(),
             'value'=>10)
     );
-    public static $description = "Makes a backup of the whole application (files and database), saves it into the 
+    public $description = "Makes a backup of the whole application (files and database), saves it into the 
     backup/complete folder and automatically cleans older backups. The number of versions that has to be stored can be 
     defined in the task's settings";
 
     /**
-     * FullBackup constructor.
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * Install scheduled task
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
-
-    /**
      * Execute schedule task: make a full back up of the application (files and Db) and send copy by email to admin
-     * @return string
+     * @return mixed
      */
     public function run() {
         // db backup
-        $backupFile = \Backup\Backup::backupDb($this->options['nb_version']['value']); // backup database
-        \Backup\Backup::mail_backup($backupFile); // Send backup file to admins
+        $backupFile = Backup::backupDb($this->options['nb_version']['value']); // backup database
+        Backup::mail_backup($backupFile); // Send backup file to admins
 
         // file backup
-        $zipFile = \Backup\Backup::backupFiles(); // Backup site files (archive)
+        $zipFile = Backup::backupFiles(); // Backup site files (archive)
         $fileLink = json_encode($zipFile);
 
-        // Write log only if server request
-        $result = "Full Backup successfully done: $fileLink";
-        return $result;
+        return array('status'=>true, 'msg'=>"Full Backup successfully done: $fileLink");
     }
 }

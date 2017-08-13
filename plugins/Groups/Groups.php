@@ -60,6 +60,7 @@ class Groups extends Plugin {
      */
     public function __construct() {
         parent::__construct();
+        Logger::get_instance(APP_NAME, get_class($this))->log("Groups constructor");
 
         $this->registerDigest();
         $this->registerReminder();

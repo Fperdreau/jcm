@@ -106,6 +106,7 @@ class MailManager extends BaseModel {
     /**
      * Set custom settings
      * @param array $settings
+     * @return bool|void
      */
     private function setSettings(array $settings) {
         foreach ($settings as $key=>$value) {
@@ -141,25 +142,6 @@ class MailManager extends BaseModel {
             }
         }
         return self::showEmail($data, $files);
-    }
-
-    /**
-     * Display email
-     * @param array $email: email information
-     * @param array $attachements: list of files name attached to this email
-     * @return string
-     */
-    public static function showEmail(array $email, array $attachements=array()) {
-        $file_list = "";
-        foreach ($attachements as $key=>$file) {
-            $file_list .= "<div class='email_file'><a href='{$file['path']}'>{$file['name']}</a></div>";
-        }
-        $content = htmlspecialchars_decode($email['content']);
-        return "
-        <div class='email_files'><div class='email_header'>Files list:</div>{$file_list}</div>
-        <div class='email_title'><span class='email_header'>Subject:</span> {$email['subject']}</div>
-        <div class='email_content'>{$content}</div>
-        ";
     }
 
     /**
@@ -254,31 +236,18 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Send a test email to verify the email host settings
-     * @param array $data: email host settings
-     * @param null|string $to: recipient email
-     * @return mixed
+     * Format email (html)
+     * @param string $content
+     * @param null $email_id
+     * @param bool $auto: has this email been sent automatically
+     * @return string
      */
-    public function send_test_email(array $data, $to=null) {
-        if (is_null($to)) {
-            $Users = new Users();
-            $admins = $Users->getadmin('admin');
-            $to = array();
-            foreach ($admins as $key=>$admin) {
-                $to[] = $admin['email'];
-            }
-        } else {
-            $to = array($to);
-        }
+    public function formatmail($content, $email_id=null, $auto=True) {
+        $show_in_browser = (is_null($email_id)) ? null:
+            "<a href='" . URL_TO_APP . "pages/mail.php?mail_id={$email_id}"
+            . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
 
-        $content['subject'] = 'Test: email host settings'; // Give the email a subject
-        $content['body'] = "
-        Hello,<br><br>
-        <p>This is just a test email sent to verify your email host settings. If you can read this message, it means 
-        that everything went fine and that your settings are valid!</p>
-        ";
-
-        return $this->send($content, $to, true, $data);
+        return self::template($content, $this->Lab->getSettings('name'), $show_in_browser, $auto);
     }
 
     /**
@@ -332,6 +301,30 @@ class MailManager extends BaseModel {
     }
 
     /**
+     * Send a test email to verify the email host settings
+     * @param array $data: email host settings
+     * @param null|string $to: recipient email
+     * @return mixed
+     */
+    public function send_test_email(array $data, $to=null) {
+        if (is_null($to)) {
+            $Users = new Users();
+            $admins = $Users->getadmin('admin');
+            $to = array();
+            foreach ($admins as $key=>$admin) {
+                $to[] = $admin['email'];
+            }
+        } else {
+            $to = array($to);
+        }
+
+        $content['subject'] = 'Test: email host settings'; // Give the email a subject
+        $content['body'] = self::test_email();
+
+        return $this->send($content, $to, true, $data);
+    }
+
+    /**
      * Send a verification email to organizers when someone signed up to the application.
      * @param $hash
      * @param $user_mail
@@ -381,18 +374,19 @@ class MailManager extends BaseModel {
         }
     }
 
+    /* VIEWS */
+
     /**
-     * Format email (html)
-     * @param string $content
-     * @param null $email_id
-     * @param bool $auto: has this email been sent automatically
+     * Email template
+     * @param string $content: email content
+     * @param string $lab_name: Lab name
+     * @param string $show_in_browser: link to show email in web browser
+     * @param boolean $auto: was this email sent by the system or by an user
      * @return string
      */
-    public function formatmail($content, $email_id=null, $auto=True) {
-        $show_in_browser = (is_null($email_id)) ? null:
-            "<a href='" . URL_TO_APP . "pages/mail.php?mail_id={$email_id}"
-            . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
-        $profile_url = URL_TO_APP.'index.php?page=member/profile';
+    private static function template($content, $lab_name, $show_in_browser, $auto) {
+        $profile_url = URL_TO_APP . 'index.php?page=member/profile';
+
         $css_title = "
                 color: rgba(255,255,255,1);
                 text-align: left;
@@ -402,8 +396,8 @@ class MailManager extends BaseModel {
                 padding: 0;
                 position: relative;
         ";
-        $footer = self::footer_template($show_in_browser, $profile_url, $auto);
-        $body = "
+
+        return "
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
                     <div style='padding: 10px 20px;  margin: 2% auto; width: 100%; background-color: rgba(68, 68, 68, 1);
@@ -411,7 +405,7 @@ class MailManager extends BaseModel {
                         <div style='{$css_title}'>
                             <span style='font-size: 30px; font-weight: 400;'>JCM</span>
                             <span style='font-size: 25px; color: rgba(200,200,200,.8);'>anager</span>
-                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>" . $this->Lab->getSettings('name') . "</div>
+                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>" . $lab_name . "</div>
                         </div>
                     </div>
 
@@ -419,10 +413,28 @@ class MailManager extends BaseModel {
                         {$content}
                     </div>
 
-                    {$footer}
+                    " . self::footer_template($show_in_browser, $profile_url, $auto) . "
                 </div>
             </div>";
-        return $body;
+    }
+
+    /**
+     * Display email
+     * @param array $email: email information
+     * @param array $attachements: list of files name attached to this email
+     * @return string
+     */
+    public static function showEmail(array $email, array $attachements=array()) {
+        $file_list = "";
+        foreach ($attachements as $key=>$file) {
+            $file_list .= "<div class='email_file'><a href='{$file['path']}'>{$file['name']}</a></div>";
+        }
+        $content = htmlspecialchars_decode($email['content']);
+        return "
+        <div class='email_files'><div class='email_header'>Files list:</div>{$file_list}</div>
+        <div class='email_title'><span class='email_header'>Subject:</span> {$email['subject']}</div>
+        <div class='email_content'>{$content}</div>
+        ";
     }
 
     /**
@@ -432,7 +444,7 @@ class MailManager extends BaseModel {
      * @param bool $auto: has this email been sent automatically
      * @return string
      */
-    static function footer_template($url_browser, $profile_url, $auto=True) {
+    public static function footer_template($url_browser, $profile_url, $auto=True) {
         $auto_msg = ($auto) ? "
             <div style='border-top: 1px solid #e0e0e0;'>This email has been sent automatically. You can choose to no longer receive email 
                 notifications by going to your
@@ -463,16 +475,11 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Renders contact form
-     * @param $uploader
-     * @param $mailing_list
+     * Generate recipients list and input field containing recipients id
      * @param array|null $recipients
-     * @param null|array $sender: sender information (full name and email address).
-     *      $sender = array('mail_from'=>"email@me.com", 'mail_from_name'=>"John Doe")
-     * @return string
+     * @return array: array('recipients'=>string, 'input'=>string)
      */
-    public static function contactForm($uploader, $mailing_list, array $recipients=null, $sender=null) {
-
+    private static function makeRecipientsList(array $recipients=null) {
         $recipients_list = "";
         $emails_input = null;
         if (!is_null($recipients)) {
@@ -484,6 +491,25 @@ class MailManager extends BaseModel {
             $ids = implode(',', $ids);
             $emails_input = "<input name='emails' type='hidden' value='{$ids}'/>";
         }
+
+        return array(
+            'recipients'=>$recipients_list,
+            'input'=>$emails_input
+        );
+    }
+
+    /**
+     * Renders contact form
+     * @param $uploader
+     * @param $mailing_list
+     * @param array|null $recipients
+     * @param null|array $sender: sender information (full name and email address).
+     *      $sender = array('mail_from'=>"email@me.com", 'mail_from_name'=>"John Doe")
+     * @return string
+     */
+    public static function contactForm($uploader, $mailing_list, array $recipients=null, $sender=null) {
+
+        $recipients_div = self::makeRecipientsList($recipients);
 
         $sender_info = null;
         if (!is_null($sender)) {
@@ -517,7 +543,7 @@ class MailManager extends BaseModel {
                         <!--<button type='submit' class='add_email addBtn'></button>-->
                     </div>
                     <div class='select_emails_list'>
-                        {$recipients_list}
+                        {$recipients_div['recipients']}
                     </div>
                     <div>
                         <div class='form-group field_auto inline_field email_option'>
@@ -544,7 +570,7 @@ class MailManager extends BaseModel {
                         <input type='hidden' name='attachments' />
                         <input type='hidden' name='mailing_send' value='true' />
                         {$sender_info}
-                        {$emails_input}
+                        {$recipients_div['input']}
                         <input type='submit' name='send' value='Send' class='mailing_send' />
                     </div>
                     <div class='form-group'>
@@ -640,6 +666,18 @@ class MailManager extends BaseModel {
             </form>
             <div class='feedback'></div>
         ");
+    }
+
+    /**
+     * Render test email
+     * @return string
+     */
+    private static function test_email() {
+        return "
+        Hello,<br><br>
+        <p>This is just a test email sent to verify your email host settings. If you can read this message, it means 
+        that everything went fine and that your settings are valid!</p>
+        ";
     }
 
 }

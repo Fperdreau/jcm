@@ -186,7 +186,7 @@ class Page extends BaseModel {
         // Start buffering
         ob_start("ob_gzhandler");
 
-        require(PATH_TO_PAGES . $page . '.php');
+        include_once(PATH_TO_PAGES . $page . '.php');
 
         // End of buffering
         return ob_get_clean();

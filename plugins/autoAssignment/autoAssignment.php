@@ -161,6 +161,8 @@ class autoAssignment extends Plugin {
     public function assign($nb_session=null) {
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
+        $result = array('status'=>true, 'msg'=>null, 'content'=>null);
+
         // Get future sessions dates
         $jc_day = $this->getSession()->getSettings('jc_day');
         $jc_days = $this->getSession()->getJcDates($jc_day, intval($nb_session));
@@ -227,13 +229,15 @@ class autoAssignment extends Plugin {
                         'orator'=>$speaker->username);
                     if ($presid = $Presentation->make($post)) {
                         $created += 1;
+                    } else {
+                        $result['status'] = false;
                     }
                 } else {
                     $post = array(
                         'date'=>$day,
                         'username'=>$speaker->username,
                         'orator'=>$speaker->username);
-                    if ($Presentation->update($post, array('id_pres'=>$Presentation->id_pres))) {
+                    if ($result['status'] = $Presentation->update($post, array('id_pres'=>$Presentation->id_pres))) {
                         $updated += 1;
                     }
                 }

@@ -30,7 +30,7 @@
  * Scheduled task that automatically assigns speakers for the next presentations. Every assigned user will be notified
  * by email.
  */
-class SpeakerAssignment extends Tasks {
+class SpeakerAssignment extends Task {
 
     /**
      * Assign Speakers for the next n sessions
@@ -40,7 +40,7 @@ class SpeakerAssignment extends Tasks {
     public $name = 'SpeakerAssignment';
     public $status = 'Off';
     public $installed = False;
-    public static $description = "Automatically assigns speakers to the future sessions. Speaker are pseudo-randomly 
+    public $description = "Automatically assigns speakers to the future sessions. Speaker are pseudo-randomly 
     selected with priority given to members with the least number of presentations given so far. This task also sends 
     reminders to assigned speakers to remind them about their upcoming presentation. You can choose how many days before
      the session the reminder should be sent.";
@@ -51,29 +51,13 @@ class SpeakerAssignment extends Tasks {
     );
 
     /**
-     * Constructor
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * Register the plugin into the database
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
-    
-    /**
      * Run scheduled task: assign speaker to the next sessions
-     * @return string
+     * @return mixed
      */
     public function run() {
         $Assignment = new autoAssignment();
-        if (!$Assignment->installed) {
+        $Plugins = new Plugins();
+        if (!$Plugins->isInstalled('autoAssignment')) {
             return 'You must install the Assignment plugin first!';
         }
         // Assign speakers
@@ -81,8 +65,9 @@ class SpeakerAssignment extends Tasks {
         $log = $result['msg'];
         $result = $this->send_reminders();
         $log .= $result['msg'];
+        $result['logs'] = $log;
 
-        return $log;
+        return $result;
     }
 
     /**

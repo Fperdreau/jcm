@@ -29,44 +29,26 @@
  *
  * Scheduled tasks that send a notification email including the last submissions
  */
-class Notification extends Tasks {
+class Notification extends Task {
 
     public $name = 'Notification';
     public $status = 'Off';
     public $installed = False;
-    public static $description = "Sends a email notification to members with the list of the last submitted presentations";
-
-    /**
-     * Constructor
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * Register cron job to the db
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
+    public $description = "Sends a email notification to members with the list of the last submitted presentations";
 
     /**
      * Run scheduled task: send an email with the last submissions
-     * @return string
+     * @return mixed
      */
     public function run() {
         $MailManager = new MailManager();
-        $AppMail = new Mail();
 
         // Number of users
-        $mailing_list = $AppMail->get_mailinglist("notification");
+        $mailing_list = $MailManager->get_mailinglist("notification");
         $nusers = count($mailing_list);
 
         // Get presentation list
-        $presentation = new Presentations();
+        $presentation = new Presentation();
         $presentationList = $presentation->getLatest();
 
         if (!empty($presentationList)) {
@@ -87,10 +69,9 @@ class Notification extends Tasks {
                 }
             }
 
-            $result = $result ? "message sent successfully to $nusers users." : "ERROR message not sent.";
-            return $result;
+            return array('status'=>$result, 'msg'=>$result ? "message sent successfully to $nusers users." : "ERROR message not sent.");
         } else {
-            return "No new presentations";
+            return array('status'=>true, 'msg'=>"No new presentations");
         }
     }
 

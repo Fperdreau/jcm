@@ -71,119 +71,8 @@ if (!empty($_POST['delete'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Common to Plugins/Scheduled tasks
+Logs manager
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Install/uninstall cron jobs
-if (!empty($_POST['installDep'])) {
-    $name = $_POST['installDep'];
-    $op = $_POST['op'];
-    $type = $_POST['type'];
-    $App = ($type == 'Plugins') ? new Plugins() : new Tasks();
-    $thisApp = $App->instantiate($name);
-    if ($op == 'install') {
-        if ($thisApp->install()) {
-            $result['status'] = true;
-            $result['msg'] = "$name has been installed!";
-        } else {
-            $result['status'] = false;
-        }
-    } elseif ($op == 'uninstall') {
-        if ($thisApp->delete(array('name'=>$name))) {
-            $result['status'] = true;
-            $result['msg'] = "$name has been deleted!";
-        } else {
-            $result['status'] = false;
-        }
-    } else {
-        $result['msg'] = $thisApp->run();
-        $result['status'] = true;
-    }
-    echo json_encode($result);
-    exit;
-}
-
-// Install/uninstall cron jobs
-if (!empty($_POST['activateDep'])) {
-    $name = $_POST['activateDep'];
-    $op = $_POST['op'];
-    $type = $_POST['type'];
-    $App = ($type === 'Plugins') ? new Plugins() : new Tasks();
-    $thisApp = $App->instantiate($name);
-
-    $result['status'] = $thisApp->update(array('status'=>$op), array('name'=>$name));
-    if ($result['status']) {
-        $result['msg'] = ($op === 'On') ? "{$name} has been activated!":"{$name} has been deactivated";
-    }
-    echo json_encode($result);
-    exit;
-}
-
-if (!empty($_POST['modCron'])) {
-    $name = htmlspecialchars($_POST['modCron']);
-    $App = new Tasks();
-    $thisApp = $App->instantiate($name);
-
-    if ($thisApp->isInstalled()) {
-        $thisApp->getInfo();
-        $thisApp->time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
-        $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
-        $thisApp->frequency = implode(',', $frequency);
-        if ($thisApp->update(array('frequency'=>$thisApp->frequency, 'time'=>$thisApp->time), array('name'=>$name))) {
-            $result['status'] = true;
-            $result['msg'] = $thisApp->time;
-        } else {
-            $result['status'] = false;
-        }
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
-    exit;
-}
-
-// Modify status
-if (!empty($_POST['modStatus'])) {
-    $name = htmlspecialchars($_POST['modStatus']);
-    $status = htmlspecialchars($_POST['status']);
-    $op = htmlspecialchars($_POST['op']);
-    $App = ($op == 'Plugins') ? new Plugins(): new Tasks();
-    $thisApp = $App->instantiate($name);
-    $thisApp->getInfo();
-    $thisApp->status = $status;
-    $result = $thisApp->isInstalled() ? $thisApp->update(array('status'=>$status), array('name'=>$name)) : False;
-    echo json_encode($result);
-    exit;
-}
-
-// Update settings
-if (!empty($_POST['modSettings'])) {
-    $name = htmlspecialchars($_POST['modSettings']);
-    $option = htmlspecialchars($_POST['option']);
-    $value = htmlspecialchars($_POST['value']);
-    $op = htmlspecialchars($_POST['op']);
-
-    $App = ($op == 'Plugins') ? new Plugins(): new Tasks();
-    $thisApp = $App->instantiate($name);
-    if ($thisApp->isInstalled()) {
-        $thisApp->getInfo();
-        $thisApp->$option = $value;
-        if ($op == 'Plugins') {
-            $result = $thisApp->update(array($option=>$value), array('name'=>$name));
-        } else {
-            $thisApp->time = $App::parseTime($thisApp->time, explode(',', $thisApp->frequency));
-            if ($thisApp->update(array('time'=>$thisApp->time), array('name'=>$name))) {
-                $result = $thisApp->time;
-            } else {
-                $result = false;
-            }
-        }
-    } else {
-        $result = False;
-    }
-    echo json_encode($result);
-    exit;
-}
-
 // Get scheduled task's logs
 if (!empty($_POST['showLog'])) {
     $name = htmlspecialchars($_POST['showLog']);
@@ -275,30 +164,6 @@ if (!empty($_POST['preview'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Scheduled Tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Modify cron job
-if (!empty($_POST['mod_cron'])) {
-    $cronName = $_POST['cron'];
-    $option = $_POST['option'];
-    $value = $_POST['value'];
-    $CronJobs = new Tasks();
-    $cron = $CronJobs->instantiate($cronName);
-    if ($cron->isInstalled()) {
-        $cron->getInfo();
-        $cron->$option = $value;
-        $cron->time = Tasks::parseTime($cron->time, explode(',', $cron->frequency));
-        if ($cron->update(array($option=>$value, 'time'=>$cron->time), array('name'=>$cronName))) {
-            $result = $cron->time;
-        } else {
-            $result = false;
-        }
-    } else {
-        $result = False;
-    }
-
-    echo json_encode($result);
-    exit;
-}
-
 // Run cron job
 if (!empty($_POST['run_cron'])) {
     $cronName = $_POST['cron'];
@@ -312,9 +177,8 @@ if (!empty($_POST['run_cron'])) {
 // Run cron job
 if (!empty($_POST['stop_cron'])) {
     $cronName = $_POST['cron'];
-    $CronJobs = new Tasks($cronName);
-    $CronJobs->unlock();
-    $result['status'] = $CronJobs->unlock();
+    $Tasks = new Tasks();
+    $result['status'] = $Tasks->unlock($cronName);
     echo json_encode($result);
     exit;
 }

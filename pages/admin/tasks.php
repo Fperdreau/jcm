@@ -20,47 +20,5 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-$user = new Users($_SESSION['username']);
-$AppCron = new Tasks();
-
-$cronOpt = $AppCron->show();
-$AppConfig = AppConfig::getInstance();
-$result = "
-    <div class='page_header'>
-    <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
-    Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
-    either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
-    </div>    
-    
-    <section>
-        <h2>General settings</h2>
-        <div class='section_content'>
-            <p>You have the possibility to receive logs by email every time a task is executed.</p>
-            <form method='post' action='php/form.php' class='form' id='config_form_site'>
-                <input type='hidden' name='config_modify' value='true'/>
-                <div class='form-group' style='width: 300px;'>
-                    <select name='notify_admin_task'>
-                        <option value='{$AppConfig->notify_admin_task}' selected>{$AppConfig->notify_admin_task}</option>
-                        <option value='yes'>Yes</option>
-                        <option value='no'>No</option>
-                    </select>
-                    <label>Get notified by email</label>
-                </div>
-                <input type='submit' name='modify' value='Modify' class='processform'>
-                <div class='feedback' id='feedback_site'></div>
-            </form>
-        </div>
-    </section>
-    
-    <div class='feedback'></div>
-
-    <section>
-        <h2>Tasks list</h2>
-        <div class='section_content'>
-        {$cronOpt}
-        </div>
-    </section>
-";
-
-echo $result;
+$Tasks = new Tasks();
+echo $Tasks->index();

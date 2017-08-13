@@ -24,7 +24,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
 
 /**
  * Class MakeGroup
@@ -32,42 +31,40 @@ require_once(PATH_TO_APP . '/plugins/Groups/Groups.php');
  * Scheduled task that creates users groups according to the number of presentations for a particular session
  * (1 group/presentation)
  */
-class MakeGroup extends Tasks {
+class GroupMaker extends Task {
 
-    public $name='MakeGroup';
-    public $status='Off';
-    public $installed=False;
+    public $name= 'GroupMaker';
     public $options = array(
         'send'=>array(
             'options'=>array('Yes'=>1,'No'=>0),
             'value'=>0)
     );
-    public static $description = "Creates groups of members for the upcoming session with one group per presentation. 
-    This task is calling the Group plugin that must be installed. You can choose to notify users in MakeGroup's settings";
+    public $description = "Creates groups of members for the upcoming session with one group per presentation. 
+    This task is calling the Group plugin that must be installed. You can choose to notify users in GroupMaker's settings";
 
-    /**
-     * MakeGroup constructor.
-     */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
-        $this->path = basename(__FILE__);
+        Logger::get_instance(APP_NAME, get_class($this))->log("Instantiating " . get_class($this));
     }
-    
+
     /**
      * Run scheduled task
-     * @return array|string
+     * @return mixed
      */
     public function run() {
-        $groups = new Groups();
-        if (!$groups->installed) {
-            return 'You must install the Group plugin first!';
+        $Plugins = new Plugins();
+        $Plugins->isInstalled('Groups');
+        if (!$Plugins->isInstalled('Groups')) {
+            return array('status'=>false, 'msg'=>'You must install the Group plugin first!');
         }
 
+        $groups = new Groups();
         $result = $groups->run();
         if ($result['status'] && $this->options['send']['value'] == 1) {
-            $result .= $this->notify();
+            $result['msg'] .= $this->notify();
         }
-        return $result['msg'];
+        return $result;
     }
 
     /**
@@ -77,10 +74,9 @@ class MakeGroup extends Tasks {
     public function notify() {
         $MailManager = new MailManager();
         $Group = new Groups();
-        $AppMail = new Mail();
 
         // Count number of users
-        $users = $AppMail->get_mailinglist("notification");
+        $users = $MailManager->get_mailinglist("notification");
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username=>$user) {

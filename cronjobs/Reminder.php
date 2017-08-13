@@ -29,42 +29,24 @@
  *
  * Scheduled tasks that send reminders to the users regarding the upcomming session
  */
-class Reminder extends Tasks {
+class Reminder extends Task {
 
     public $name = 'Reminder';
     public $status = 'Off';
     public $installed = False;
-    public static $description = "Sends a reminder regarding the upcoming session to members who agreed upon receiving 
+    public $description = "Sends a reminder regarding the upcoming session to members who agreed upon receiving 
     email notifications and reminders (which can be set on their profile page).";
 
     /**
-     * Reminder constructor.
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
-
-    /**
      * Run scheduled task
-     * @return string
+     * @return mixed
      */
     public function run() {
-        global $AppMail;
         $MailManager = new MailManager();
         $ReminderMaker = new ReminderMaker();
 
         // Count number of users
-        $users = $AppMail->get_mailinglist("reminder");
+        $users = $MailManager->get_mailinglist("reminder");
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username=>$user) {
@@ -73,7 +55,7 @@ class Reminder extends Tasks {
                 $sent += 1;
             }
         }
-        return "message sent successfully to {$sent}/{$nusers} users.";
+        return array('status'=>true, 'msg'=>"message sent successfully to {$sent}/{$nusers} users.");
     }
 
     /**

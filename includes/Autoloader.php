@@ -49,6 +49,18 @@ class Autoloader {
             require_once $filename;
         }
 
+        // For Scheduled Tasks
+        $filename = PATH_TO_TASKS . $class_name . '.php';
+        if (is_file($filename)) {
+            require_once $filename;
+        }
+
+        // For Plugins
+        $filename = PATH_TO_PLUGINS . $class_name . DS . $class_name . '.php';
+        if (is_file($filename)) {
+            require_once $filename;
+        }
+
     }
 
 }

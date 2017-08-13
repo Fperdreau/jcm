@@ -29,7 +29,7 @@
  *
  * Automatically repeatAll and create sessions based on user defined rules
  */
-class SessionMaker extends Tasks {
+class SessionMaker extends Task {
 
     public $name = 'SessionMaker';
     public $status = 'Off';
@@ -39,36 +39,20 @@ class SessionMaker extends Tasks {
             'options'=>array(),
             'value'=>10)
     );
-    public static $description = "Automatically create sessions based on user defined rules.";
-
-    /**
-     * Mailing constructor.
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * Install schedule task
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
+    public $description = "Automatically create sessions based on user defined rules.";
 
     /**
      * Run scheduled task
      * @param null|string $max_date: date until which session should be repeated
-     * @return string
+     * @return mixed
      */
     public function run($max_date=null) {
         $logs = null;
         $Sessions = new Session();
 
-        $Sessions->repeatAll($max_date, $this->options['session_to_plan']['value']);
-        return $logs;
+        $result = $Sessions->repeatAll($max_date, $this->options['session_to_plan']['value']);
+        $result['logs'] = $logs;
+        return $result;
     }
 
 }

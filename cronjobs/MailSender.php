@@ -27,7 +27,7 @@
 /**
  * Class MailSender
  */
-class MailSender extends Tasks {
+class MailSender extends Task {
 
     /**
      * @var string: Task name
@@ -53,7 +53,7 @@ class MailSender extends Tasks {
      */
     private $Manager;
 
-    public static $description = "Checks that all emails have been sent and sends them otherwise. It also cleans the
+    public $description = "Checks that all emails have been sent and sends them otherwise. It also cleans the
     mailing database by deleting the oldest emails. The number of days of email storage can be defined in the task's 
     settings (default is 10 days).";
 
@@ -63,8 +63,6 @@ class MailSender extends Tasks {
     public function __construct() {
         parent::__construct();
         $this->Manager = new MailManager();
-
-        $this->path = basename(__FILE__);
     }
 
     /**
@@ -89,7 +87,7 @@ class MailSender extends Tasks {
         // Clean DB
         $this->clean();
 
-        return $result;
+        return array('status'=>true, 'msg'=> $result);
     }
 
     /**
@@ -126,18 +124,14 @@ class MailSender extends Tasks {
     public function clean($day=null) {
         $day = (is_null($day)) ? $this->options['nb_version']['value']: $day;
         $date_limit = date('Y-m-d',strtotime("now - $day day"));
-        $sql = "SELECT * FROM {$this->Manager->tablename} WHERE date<={$date_limit} and status=1";
-        $req = $this->db->send_query($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
+        $data = $this->Manager->all(array('date <='=>$date_limit, 'status'=>1));
 
         $to_delete = count($data);
         $count = 0;
         foreach ($data as $key=>$email) {
-            if (!$this->db->delete($this->Manager->tablename, array('mail_id'=>$email['mail_id']))) {
+            if (!$this->Manager->delete(array('mail_id'=>$email['mail_id']))) {
                 Tasks::get_logger()->log("Could not delete email '{$email['mail_id']}'");
+
                 return false;
             } else {
                 $count += 1;

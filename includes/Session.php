@@ -669,11 +669,14 @@ class Session extends BaseModel {
      * Repeat sessions to be repeated
      * @param null $max_date
      * @param int $session_to_plan
+     * @return mixed
      */
     public function repeatAll($max_date=null, $session_to_plan=1) {
+        $result = array('status'=>false, 'msg'=>null);
         foreach ($this->get_repeated() as $key=>$item) {
-            $this->repeat($item, $session_to_plan, $max_date);
+            $result = $this->repeat($item, $session_to_plan, $max_date);
         };
+        return $result;
     }
 
     /**
@@ -682,7 +685,7 @@ class Session extends BaseModel {
      * @param int $session_to_plan
      * @param null $max_date
      *
-     * @return void
+     * @return mixed
      */
     public function repeat(array $item, $session_to_plan=1, $max_date=null) {
         if (is_null($max_date) && $item['end_date'] === "never") {
@@ -690,7 +693,7 @@ class Session extends BaseModel {
         } else {
             $max_date = (is_null($max_date)) ? $item['end_date'] : $max_date;
         }
-        self::recursive_repeat($item, $max_date);
+        return self::recursive_repeat($item, $max_date);
     }
 
     /**
@@ -768,11 +771,11 @@ class Session extends BaseModel {
      * Recursively repeat All sessions
      * @param $item
      * @param $max_date
-     * @return bool
+     * @return mixed
      */
     private static function recursive_repeat($item, $max_date) {
         $data = $item;
-
+        $result = array('status'=>false, 'msg'=>null);
         // Get next date
         $data['date'] = date('Y-m-d', strtotime("{$item['date']} + {$item['frequency']} days"));
 
@@ -786,9 +789,9 @@ class Session extends BaseModel {
                 $item['repeated'] = 1;
                 $session->update($item, array('date'=>$item['date']));
             }
-            self::recursive_repeat($data, $max_date);
+            $result['status'] = self::recursive_repeat($data, $max_date);
         }
-        return true;
+        return $result;
     }
 
     /**

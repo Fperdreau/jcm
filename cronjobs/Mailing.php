@@ -30,43 +30,24 @@
  * Scheduled task that send email notifications (digests) to the users with information about the next sessions and
  * recent news.
  */
-class Mailing extends Tasks {
+class Mailing extends Task {
 
     public $name='Mailing';
     public $status='Off';
     public $installed=False;
     public $dayName='Monday';
-    public static $description = "Sends notifications (digests) to JCM members.";
-
-    /**
-     * Mailing constructor.
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * Install schedule task
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        // Register the plugin in the db
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
+    public $description = "Sends notifications (digests) to JCM members.";
 
     /**
      * Run scheduled task
-     * @return string
+     * @return mixed
      */
     public function run() {
         $MailManager = new MailManager();
         $DigestMaker = new DigestMaker();
-        $AppMail = new Mail();
 
         // Count number of users
-        $users = $AppMail->get_mailinglist("notification");
+        $users = $MailManager->get_mailinglist("notification");
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username=>$user) {
@@ -75,7 +56,7 @@ class Mailing extends Tasks {
                 $sent += 1;
             }
         }
-        return "message sent successfully to {$sent}/{$nusers} users.";
+        return array('status'=>true, 'msg'=> "message sent successfully to {$sent}/{$nusers} users.");
     }
     
 }

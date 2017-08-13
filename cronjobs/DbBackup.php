@@ -29,7 +29,7 @@
  *
  * Scheduled task that creates backup of the database and store them in backup/mysql.
  */
-class DbBackup extends Tasks {
+class DbBackup extends Task {
 
     public $name = 'DbBackup';
     
@@ -43,37 +43,20 @@ class DbBackup extends Tasks {
             'value'=>10)
     );    
     
-    public static $description = "Makes backup of the database, saves it into the backup/mysql folder that can be found
+    public $description = "Makes backup of the database, saves it into the backup/mysql folder that can be found
     at the root of the JCM application, and sends a copy by email to the admin. It also automatically delete older versions.
     The number of versions to store can be defined in the task's settings";
 
     /**
-     * Constructor
-     */
-    public function __construct() {
-        parent::__construct();
-        $this->path = basename(__FILE__);
-    }
-
-    /**
-     * Install cron job
-     * @return bool|mysqli_result
-     */
-    public function install() {
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
-    }
-
-    /**
      * Run scheduled task: backup the database
-     * @return string
+     * @return mixed
      */
     public function run() {
         // Run cron job
-        $backupFile = \Backup\Backup::backupDb($this->options['nb_version']['value']);
-        $fileLink = json_encode($backupFile);
-
-        $result = "Backup successfully done: $fileLink";
+        $result = Backup::backupDb($this->options['nb_version']['value']);
+        if ($result['status']) {
+            $result['msg'] = "Backup successfully done: {$result['filename']}";
+        }
         return $result;
     }
 }

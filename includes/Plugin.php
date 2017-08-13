@@ -39,13 +39,6 @@ class Plugin extends BaseModel {
         parent::__construct(get_class($this));
     }
 
-    protected function getModel() {
-        if (is_null(self::$model)) {
-            self::$model = new Plugins();
-        }
-        return self::$model;
-    }
-
     public function setInfo(array $data) {
         foreach ($data as $prop=>$value) {
             // Check if property exists and is static

@@ -100,12 +100,12 @@ class Backup {
             \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
             return array(
                 'status'=>false,
-                'msg'=>'Sorry, something went wrong'
+                'msg'=>'Sorry, something went wrong',
+                'filename'=>null
             );
         }
 
     }
-
 
     /**
      * Delete directories
@@ -217,15 +217,15 @@ class Backup {
      * @param $backup_file
      * @return bool
      */
-    public static function mail_backup($backup_file) {
+    public static function mail_backup($data) {
         $mail = new \MailManager();
         $user = new \Users();
 
-        foreach ($user->get(array('status'=>'admin')) as $key=>$item) {
+        foreach ($user->all(array('status'=>'admin')) as $key=>$item) {
             try {
                 // Send backup via email
                 $content = array(
-                    'attachment'=>$backup_file,
+                    'attachment'=>$data['filename'],
                     'body'=> "Hello {$item['fullname']}, <br>
                         <p>This message has been sent automatically by the server. You may find a backup of your 
                         database in attachment.</p>",

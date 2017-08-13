@@ -107,7 +107,6 @@ class Plugins extends BaseModel {
      */
     public function getPlugin($pluginName) {
         if (empty($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
-            include_once(PATH_TO_PLUGINS . $pluginName . DS . $pluginName . '.php');
             $this->instances[$pluginName] = new $pluginName();
         }
         return $this->instances[$pluginName];

@@ -48,63 +48,6 @@ class Tasks extends BaseModel {
      */
     public static $daysNames = array('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','All');
 
-    /**
-     * @var string $name: Task's name
-     */
-    public $name;
-
-    /**
-     * @var datetime $time: running time
-     */
-    public $time;
-
-    /**
-     * @var string $frequency: running frequency (format: 'month,days,hours,minutes')
-     */
-    public $frequency = '0,0,0,0';
-
-    /**
-     * @var string $path: path to script
-     */
-    public $path;
-
-    /**
-     * @var int $status: Task's status (0=>Off, 1=>On)
-     */
-    public $status = 0;
-
-    /**
-     * Is this task registered into the database?
-     * @var bool $installed
-     */
-    public $installed = 0;
-
-    /**
-     * Is this task currently running
-     * @var int
-     */
-    public $running = 0;
-
-    /**
-     * Task's settings
-     * Must be formatted as follows:
-     *     $options = array(
-*                       'setting_name'=>array(
-     *                     'options'=>array(),
-     *                     'value'=>0)
-     *                );
-     *     'options': if not an empty array, then the settings will be displayed as select input. In this case, options
-     * must be an associative array: e.g. array('Yes'=>1, 'No'=>0). If it is empty, then it will be displayed as a text
-     * input.
-     * @var array $options
-     */
-    public $options=array();
-
-    /**
-     * Task's description
-     * @var string $description
-     */
-    public static $description;
 
     /** Application logger
      * @var Logger
@@ -112,23 +55,21 @@ class Tasks extends BaseModel {
     public static $logger;
 
     /**
-     * Constructor
-     * @param null $name
+     * Path to tasks files
+     * @var string
      */
-    public function __construct($name=null) {
+    protected $path;
+
+    private $instances;
+
+    /**
+     * Constructor
+     */
+    public function __construct() {
         parent::__construct();
         $this->path = dirname(dirname(__FILE__).'/');
-
         self::get_logger();
-
-        // Get task's information
-        if (!is_null($name)) {
-            $this->name = $name;
-            $this->getInfo();
-        }
-
-        // If time is default, set time to now
-        $this->time = (is_null($this->time)) ? date('Y-m-d H:i:s', time()) : $this->time;
+        $this->loadAll();
     }
 
     /**
@@ -141,12 +82,78 @@ class Tasks extends BaseModel {
     }
 
     /**
-     * Register scheduled task into the database
-     * @return bool|mysqli_result
+     * Instantiate a class from class name
+     * @param: class name (must be the same as the file name)
+     * @return Task
      */
-    public function install() {
-        $class_vars = get_class_vars($this->name);
-        return $this->make($class_vars);
+    public function getTask($pluginName) {
+        if (is_null($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
+            $this->instances[$pluginName] = new $pluginName();
+        }
+        return $this->instances[$pluginName];
+    }
+
+    public function install($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = $this->add($this->getTask($name)->getInfo());
+        $result['status'] = $result['status'] !== false;
+        $result['msg'] = $result['status'] === true ? $name . " has been installed" : "Oops, something went wrong";
+        return $result;
+    }
+
+    public function uninstall($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = $this->delete(array('name'=>$name));
+        $result['msg'] = $result['status'] ? $name . " has been uninstalled" : "Oops, something went wrong";
+        return $result;
+    }
+
+    public function activate($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
+        $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
+        return $result;
+    }
+
+    public function deactivate($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] =  $this->update(array('status'=>0), array('name'=>$name));
+        $result['msg'] = $result['status'] ? $name . " has been deactivated" : "Oops, something went wrong";
+        return $result;
+    }
+
+    /**
+     * Check if the plugin is registered to the Plugin table
+     * @param string $name: plugin name
+     * @return bool
+     */
+    public function isInstalled($name) {
+        return $this->is_exist(array('name'=>$name));
+    }
+
+    /**
+     * Update plugin's options
+     * @return mixed
+     */
+    public function updateOptions() {
+        $name = htmlspecialchars($_POST['name']);
+        if ($this->isInstalled($name)) {
+            foreach ($_POST as $key=>$setting) {
+                $this->getTask($name)->setOption($key, $setting);
+            }
+
+            if ($this->update($this->getTask($name)->getInfo(), array('name'=>$name))) {
+                $result['status'] = true;
+                $result['msg'] = "$name's settings successfully updated!";
+            } else {
+                $result['status'] = false;
+            }
+        } else {
+            $result['status'] = false;
+            $result['msg'] = "You must install this plugin before modifying its settings";
+        }
+
+        return $result;
     }
 
     /**
@@ -161,7 +168,8 @@ class Tasks extends BaseModel {
         if ($nbJobs > 0) {
             $logs['msg'] = self::$logger->log("There are $nbJobs task(s) to run.");
             foreach ($runningCron as $job) {
-                $logs[$job] = $this->execute($job);
+                $result = $this->execute($job);
+                $logs[$job] = $result['logs'];
             }
             return $logs;
         } else {
@@ -171,69 +179,77 @@ class Tasks extends BaseModel {
 
     /**
      * Run scheduled tasks and send a notification to the admins
-     * @param string $task_name: task name
+     * @param string $name: task name
      * @return array|mixed
      */
-    public function execute($task_name) {
+    public function execute($name) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
         self::get_logger();
+
         /**
          * Instantiate job object
-         * @var Tasks $thisJob
+         * @var Task $thisJob
          */
-        $thisJob = $this->instantiate($task_name);
-        $thisJob->getInfo();
+        $thisJob = $this->getTask($name);
 
         $logs = array();
+        $result = false;
 
         if ($thisJob->running == 0) {
-            $thisJob->lock();
+            $this->lock($name);
 
-            $this::$logger->log("Task '{$task_name}' starts");
-            $result = null;
+            $this::$logger->log("Task '{$name}' starts");
 
             // Run job
             try {
                 $result = $thisJob->run();
-                $logs[] = $this::$logger->log("Task '$task_name' result: $result");
+                $logs[] = $this::$logger->log("Task '{$name}' result: {$result['msg']}");
             } catch (Exception $e) {
-                $thisJob->unlock();
-                $logs[] = $this::$logger->log("Execution of '$task_name' encountered an error: " . $e->getMessage());
+                $this->unlock($name);
+                $logs[] = $this::$logger->log("Execution of '{$name}' encountered an error: " . $e->getMessage());
             }
 
             // Update new running time
-            $newTime = $thisJob->updateTime();
+            $newTime = $this->updateTime($thisJob->name, $thisJob->time, $thisJob->frequency);
             if ($newTime['status']) {
-                $logs[] = $this::$logger->log("$task_name: Next running time: {$newTime['msg']}");
+                $logs[] = $this::$logger->log("{$name}: Next running time: {$newTime['msg']}");
             } else {
-                $logs[] = $this::$logger->log("$task_name: Could not update the next running time");
+                $logs[] = $this::$logger->log("{$name}: Could not update the next running time");
             }
 
-            $thisJob->unlock();
-            $logs[] = $this::$logger->log("Task '$task_name' completed");
+            $this->unlock($name);
+            $logs[] = $this::$logger->log("Task '{$name}' completed");
         } else {
-            $this::$logger->log("Task '{$task_name}' is already running");
-
+            $this::$logger->log("Task '{$name}' is already running");
         }
 
-        return $logs;
+        return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>end($logs));
+    }
+
+    public function stop($name=null) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        $result['status'] = $this->unlock($name);
+        return $result;
     }
 
     /**
      * Lock the task. A task will not be executed if currently running
+     * @param string $name: task name
      * @return bool
      */
-    public function lock() {
-        $this->running = 1;
-        return $this->update(array('running'=>1), array('name'=>$this->name));
+    public function lock($name) {
+        $this->getTask($name)->running = 1;
+        return $this->update(array('running'=>1), array('name'=>$name));
     }
 
     /**
      * Unlock the task. A task will not be executed if currently running
+     * @param string $name: task name
      * @return bool
      */
-    public function unlock() {
-        $this->running = 0;
-        return $this->update(array('running'=>0), array('name'=>$this->name));
+    public function unlock($name) {
+        $this->getTask($name)->running = 0;
+        return $this->update(array('running'=>0), array('name'=>$name));
     }
 
     /**
@@ -242,7 +258,7 @@ class Tasks extends BaseModel {
      * @return mixed
      */
     public function notify_admin(array $logs) {
-        $MailManager = new MailManager($this->db);
+        $MailManager = new MailManager();
 
         // Convert array to string
         $string = "<p>{$logs['msg']}</p>";
@@ -279,20 +295,12 @@ class Tasks extends BaseModel {
     }
 
     /**
-     * Register cronjobs to the table
-     * @param array $post
-     * @return bool|mysqli_result
-     */
-    public function make($post=array()) {
-        $content = $this->parseData($post, array('installed', 'daysNames', 'daysNbs', 'hours', 'description'));
-        return $this->db->insert($this->tablename,$content);
-    }
-
-    /**
      * Get info from the scheduled tasks table
+     * @param string $name: task name
+     * @return bool
      */
-    public function getInfo() {
-        $data = $this->get(array('name'=>$this->name));
+    public function getInfo($name) {
+        $data = $this->get(array('name'=>$name));
         if (empty($data)) return false;
 
         foreach ($data as $prop=>$value) {
@@ -303,54 +311,36 @@ class Tasks extends BaseModel {
     }
 
     /**
-     * Delete tasks from the task table
-     * @param array $id
-     * @return bool|mysqli_result
-     */
-    public function delete(array $id) {
-        $this->db->delete($this->db->tablesname['Crons'],array('name'=>$this->name));
-        return $this->db->deletetable($this->tablename);
-    }
-
-    /**
-     * Check if this plugin is registered to the db
-     */
-    public function isInstalled() {
-        return $this->is_exist(array('name'=>$this->name), $this->db->tablesname['Crons']);
-    }
-
-    /**
-     * Instantiate a class from class name
-     * @param: class name (must be the same as the file name)
-     * @return Tasks
-     */
-    public function instantiate($pluginName) {
-        $folder = PATH_TO_APP.'/cronjobs/';
-        include_once($folder . $pluginName .'.php');
-        return new $pluginName();
-    }
-
-    /**
      * Get next running time from day number, day name and hour
      * @param string $time
      * @param array $frequency
      * @return string: updated running time
      */
-    static function parseTime($time, array $frequency) {
-        $strtime = date('Y-m-d H:i:s', strtotime($time));
-        $date = new DateTime($strtime);
+    private static function parseTime($time, array $frequency) {
+        $str_time = date('Y-m-d H:i:s', strtotime($time));
+        $date = new DateTime($str_time);
         $date->add(new DateInterval("P{$frequency[0]}M{$frequency[1]}DT{$frequency[2]}H{$frequency[3]}M0S"));
         return $date->format('Y-m-d H:i:s');
     }
 
     /**
      * Update scheduled time
+     * @param $name
+     * @param $time
+     * @param $frequency
      * @return bool
      */
-    public function updateTime() {
+    public function updateTime($name=null, $time=null, $frequency=null) {
+        if (is_null($time)) {
+            $name = $_POST['name'];
+            $time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
+            $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
+            $frequency = implode(',', $frequency);
+        }
+
         try {
-            $newTime = self::parseTime($this->time, explode(',', $this->frequency));
-            if ($this->update(array('time'=>$newTime), array('name'=>$this->name))) {
+            $newTime = self::parseTime($time, explode(',', $frequency));
+            if ($this->update(array('frequency'=>$frequency, 'time'=>$newTime), array('name'=>$name))) {
                 $result['status'] = true;
                 $result['msg'] = $newTime;
             } else {
@@ -370,84 +360,87 @@ class Tasks extends BaseModel {
      */
     public function getRunningJobs() {
         $now = strtotime(date('Y-m-d H:i:s'));
-        $jobs = $this->getJobs();
-        $runnningjobs = array();
+        $jobs = $this->loadAll();
+        $running_jobs = array();
         foreach ($jobs as $thisJob=>$info) {
             $jobTime = strtotime($info['time']);
             if ($info['installed'] && $info['status'] == 'On' && $now >= $jobTime && $now<=($jobTime+(59*60))) {
-                $runnningjobs[] = $thisJob;
+                $running_jobs[] = $thisJob;
             }
         }
-        return $runnningjobs;
+        return $running_jobs;
+    }
+
+    /**
+     * Returns Plugin's options form
+     * @param string $name: plugin name
+     * @return string: form
+     */
+    public function getOptions($name=null) {
+        if (isset($_POST['name'])) $name = $_POST['name'];
+        return $this->displayOpt($name, $this->getTask($name)->options);
     }
 
     /**
      * Get list of scheduled tasks, their settings and status
      * @return array
-     * @internal param bool $page
      */
-    public function getJobs() {
-        $folder = PATH_TO_APP.'/cronjobs/';
-        $cronList = scandir($folder);
-        $jobs = array();
-        foreach ($cronList as $cronFile) {
-            if (!empty($cronFile) && !in_array($cronFile,array('.','..','run.php'))) {
-                $name = explode('.',$cronFile);
-                $name = $name[0];
-                
-                /**
-                 * @var Tasks $thisPlugin
-                 */
-                $thisPlugin = $this->instantiate($name);
-                
-                if ($thisPlugin->isInstalled()) {
-                    $thisPlugin->getInfo();
-                }
-                
-                $jobs[$name] = array(
-                    'installed' => $thisPlugin->isInstalled(),
-                    'status' => $thisPlugin->status,
-                    'path'=>$thisPlugin->path,
-                    'time'=>$thisPlugin->time,
-                    'frequency'=>$thisPlugin->frequency,
-                    'options'=>$thisPlugin->options,
-                    'description'=>$thisPlugin::$description,
-                    'running'=>$thisPlugin->running
-                );
+    public function loadAll() {
+        $cronList = scandir(PATH_TO_TASKS);
+        $tasks = array();
+        foreach ($cronList as $key=>$plugin_name) {
+            if (!empty($plugin_name) && !in_array($plugin_name, array('.', '..', 'run.php'))) {
+                $split = explode('.', $plugin_name);
+                $tasks[$split[0]] = $this->load($split[0]);
             }
         }
-        return $jobs;
+        return $tasks;
     }
 
     /**
-     * Display job's settings
+     * Load plugin
+     * @param string $name
+     * @return array
+     */
+    public function load($name) {
+
+        // Get plugin info if installed
+        $installed = $this->isInstalled($name);
+
+        if ($installed) {
+            $this->getTask($name)->setInfo($this->get(array('name'=>$name)));
+        }
+
+        // Instantiate plugin
+        $thisPlugin = $this->getTask($name);
+
+        return array(
+            'installed' => $installed,
+            'status' => $thisPlugin->status,
+            'path'=>$thisPlugin->path,
+            'time'=>$thisPlugin->time,
+            'frequency'=>$thisPlugin->frequency,
+            'options'=>$thisPlugin->options,
+            'description'=>$thisPlugin->description,
+            'running'=>$thisPlugin->running
+        );
+    }
+
+    /**
+     * Display Plugin's settings
+     * @param string $name: plugin name
+     * @param array $options
      * @return string
      */
-    public function displayOpt() {
-        $content = "<div style='font-weight: 600;'>Options</div>";
-        if (!empty($this->options)) {
-            $opt = '';
-            foreach ($this->options as $optName=>$settings) {
-                if (isset($settings['options']) && !empty($settings['options'])) {
-                    $options = "";
-                    foreach ($settings['options'] as $prop=>$value) {
-                        $options .= "<option value='{$value}'>{$prop}</option>";
-                    }
-                    $optProp = "<select name='{$optName}'>{$options}</select>";
-                } else {
-                    $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
-                }
-                $opt .= "
-                    <div class='form-group'>
-                        {$optProp}
-                        <label for='{$optName}'>{$optName}</label>
-                    </div>
-                ";
-            }
+    public function displayOpt($name, array $options) {
+        $content = "<h4 style='font-weight: 600;'>Options</h4>";
+        if (!empty($options)) {
             $content .= "
-                <form method='post' action='php/form.php'>
-                {$opt}
-                    <input type='submit' class='modOpt' data-op='cron' value='Modify'>
+                <form method='post' action='php/router.php?controller=". __CLASS__ . "&action=updateOptions&name={$name}'>
+                    " . self::renderOptions($options) . "
+                    <div class='submit_btns'>
+                        <input type='submit' class='processform' value='Modify'>
+                    </div>
                 </form>
                 
                 ";
@@ -502,30 +495,64 @@ class Tasks extends BaseModel {
         }
         return $result;
     }
+
+    /**
+     * Render Tasks page
+     * @return string
+     */
+    public function index() {
+        $notify = $this->settings['notify_admin_task'];
+
+        return "
+            <div class='page_header'>
+            <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
+            Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
+            either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
+            </div>    
+            
+            <section>
+                <h2>General settings</h2>
+                <div class='section_content'>
+                    <p>You have the possibility to receive logs by email every time a task is executed.</p>
+                    <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateOptions'>
+                        <input type='hidden' name='config_modify' value='true'/>
+                        <div class='form-group' style='width: 300px;'>
+                            <select name='notify_admin_task'>
+                                <option value='{$notify}' selected>{$notify}</option>
+                                <option value='yes'>Yes</option>
+                                <option value='no'>No</option>
+                            </select>
+                            <label>Get notified by email</label>
+                        </div>
+                        <input type='submit' name='modify' value='Modify' class='modCron'>
+                        <div class='feedback' id='feedback_site'></div>
+                    </form>
+                </div>
+            </section>
+            
+            <div class='feedback'></div>
+        
+            <section>
+                <h2>Tasks list</h2>
+                <div class='section_content'>
+                " . $this->show() . "
+                </div>
+            </section>
+        ";
+    }
     
     /**
      * Display jobs list
      * @return string
      */
     public function show() {
-        $jobsList = $this->getJobs();
 
         $cronList = "";
-        foreach ($jobsList as $cronName => $info) {
-            $installed = $info['installed'];
-            $pluginDescription = (!empty($info['description'])) ? $info['description']:null;
+        foreach ($this->loadAll() as $cronName => $info) {
 
-            if ($installed) {
-                $install_btn = "<div class='installDep workBtn uninstallBtn' data-type='cron' data-op='uninstall' data-name='$cronName'></div>";
-            } else {
-                $install_btn = "<div class='installDep workBtn installBtn' data-type='cron' data-op='install' data-name='$cronName'></div>";
-            }
-            
-            if ($info['status'] === 'On') {
-                $activate_btn = "<div class='activateDep workBtn deactivateBtn' data-type='cron' data-op='Off' data-name='$cronName'></div>";
-            } else {
-                $activate_btn = "<div class='activateDep workBtn activateBtn' data-type='cron' data-op='On' data-name='$cronName'></div>";
-            }
+            $pluginDescription = (!empty($info['description'])) ? $info['description'] : null;
+            $install_btn = self::install_button($cronName, $info['installed']);
+            $activate_btn = self::activate_button($cronName, $info['status']);
 
             // Icon showing if task is currently being executed
             $css_running = ($info['running'] == 1) ? 'is_running' : 'not_running';
@@ -548,7 +575,7 @@ class Tasks extends BaseModel {
                         <div class='plugTime' id='cron_time_$cronName'>$datetime</div>
                     </div>
                     <div class='optBar'>
-                        <div class='optShow workBtn settingsBtn' data-op='cron' data-name='$cronName'></div>
+                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' data-action='getOptions' data-destination='.plugOpt#{$cronName}' data-name='{$cronName}'></div>
                         {$install_btn}
                         {$activate_btn}
                         {$runBtn}
@@ -564,7 +591,7 @@ class Tasks extends BaseModel {
                     <div>
     
                         <div class='settings'>
-                            <form method='post' action='php/form.php'>
+                            <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateTime'>
                             
                                 <div class='plug_settings_panel'>
                                     <div>Date & Time</div>
@@ -599,7 +626,7 @@ class Tasks extends BaseModel {
                                     </div>
                                 </div>
                                 <div class='submit_btns'>
-                                    <input type='hidden' name='modCron' value='{$cronName}'/> 
+                                    <input type='hidden' name='name' value='{$cronName}'/> 
                                     <input type='submit' value='Update' class='modCron'/>
                                 </div>
                             </form>
@@ -631,5 +658,58 @@ class Tasks extends BaseModel {
      */
     public function run() {
         return "";
+    }
+
+    /* VIEWS */
+
+    private static function renderOptions(array $options) {
+        $opt = '';
+        foreach ($options as $optName=>$settings) {
+            if (isset($settings['options']) && !empty($settings['options'])) {
+                $options = "";
+                foreach ($settings['options'] as $prop=>$value) {
+                    $options .= "<option value='{$value}'>{$prop}</option>";
+                }
+                $optProp = "<select name='{$optName}'>{$options}</select>";
+            } else {
+                $optProp = "<input type='text' name='$optName' value='{$settings['value']}'/>";
+            }
+            $opt .= "
+                    <div class='form-group inline_field field_auto'>
+                        {$optProp}
+                        <label for='{$optName}'>{$optName}</label>
+                    </div>
+                ";
+        }
+        return $opt;
+    }
+
+
+    /**
+     * Render install/uninstall button
+     * @param $pluginName
+     * @param $installed
+     * @return string
+     */
+    private static function install_button($pluginName, $installed) {
+        if ($installed) {
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' data-action='uninstall' data-name='$pluginName'></div>";
+        } else {
+            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' data-action='install' data-name='$pluginName'></div>";
+        }
+    }
+
+    /**
+     * Render activate/deactivate button
+     * @param $pluginName
+     * @param $status
+     * @return string
+     */
+    private static function activate_button($pluginName, $status) {
+        if ($status === 1) {
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='$pluginName'></div>";
+        } else {
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ . "' data-action='activate' data-name='$pluginName'></div>";
+        }
     }
 }

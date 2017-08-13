@@ -191,11 +191,10 @@ function runTask(el) {
     var cron = el.attr('data-cron');
     var div = el.closest('.plugDiv');
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Tasks&action=execute&name=' + cron,
         type: 'POST',
         data: {
-            run_cron: true,
-            cron: cron
+            name: cron
         },
         async: true,
         beforeSend: function() {
@@ -215,11 +214,10 @@ function stopTask(el) {
     var div = el.closest('.plugDiv');
 
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Tasks&action=stop&name=' + cron,
         type: 'POST',
         data: {
-            stop_cron: true,
-            cron: cron
+            name: cron
         },
         async: true,
         beforeSend: function() {
@@ -228,8 +226,10 @@ function stopTask(el) {
         complete: function() {
             $(el).toggleClass('loadBtn runBtn');
         },
-        success: function() {
+        success: function(data) {
             div.find('.task_running_icon').toggleClass('running not_running');
+            validsubmitform(div, data);
+
         }
     });
 }
@@ -291,18 +291,12 @@ $(document).ready(function() {
         .on('click', '.modCron', function(e) {
             e.preventDefault();
             e.stopImmediatePropagation();
-            var input = $(this);
-            var form = input.length > 0 ? $(input[0].form) : $();
-            var name = form.find('input[name="modCron"]').val();
-
-            var callback = function(json) {
-                var result = jQuery.parseJSON(json);
-                if (result.status) {
-                    $('#cron_time_'+name).html(json).fadeIn(200);
+            var form = $(this).length > 0 ? $($(this)[0].form) : $();
+            processForm(form, function(json) {
+                if (json.status) {
+                    $('#cron_time_' + form.find('input[name="name"]').val()).html(json.msg).fadeIn(200);
                 }
-            };
-
-            processForm(form, callback);
+            });
         })
 
         /**
