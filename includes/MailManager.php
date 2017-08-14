@@ -149,10 +149,11 @@ class MailManager extends BaseModel {
      * @param array $content : email content
      * @param array $mailing_list : recipients list
      * @param bool $undisclosed : hide (true) or show(false) recipients list
-     * @param array $settings: email host settings (for testing)
+     * @param array $settings : email host settings (for testing)
+     * @param bool $add: add email to Db
      * @return mixed
      */
-    public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null) {
+    public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null, $add=true) {
         // Generate ID
         $data['mail_id'] = $this->generateID('mail_id');
 
@@ -211,26 +212,29 @@ class MailManager extends BaseModel {
         }
 
         // Add email to the MailManager table
-        if ($this->add($data)) {
+        $result = array('status'=>true, 'msg'=>null);
+        if ($add) {
+            if ($this->add($data)) {
 
-            // Set Email instance
-            $this->setMail($this->settings);
+                // Set Email instance
+                $this->setMail($this->settings);
 
-            // Send email
-            $result = $this->Mail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed);
+                // Send email
+                $result = $this->Mail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed);
 
-            if ($result['status'] === true) {
-                // Update MailManager table
-                $result['status'] = $this->update(array('status'=>1, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
+                if ($result['status'] === true) {
+                    // Update MailManager table
+                    $result['status'] = $this->update(array('status'=>1, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
+                } else {
+                    $this->update(array('status'=>0, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
+                    $result['msg'] = $result['logs'];
+                };
+
             } else {
-                $this->update(array('status'=>0, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
-                $result['msg'] = $result['logs'];
+                $result['status'] = false;
+                $result['msg'] = 'Could not add email to database';
             };
-
-        } else {
-            $result['status'] = false;
-            $result['msg'] = 'Could not add email to database';
-        };
+        }
 
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
