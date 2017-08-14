@@ -554,7 +554,7 @@ class Db {
      * @param $where
      * @return array
      */
-	private static function parse($fields, $where) {
+	public static function parse($fields, $where) {
         $cols = implode(',', $fields); // format columns name
 
         // Build query

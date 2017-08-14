@@ -56,6 +56,11 @@ class Groups extends Plugin {
     );
 
     /**
+     * @var Session $session
+     */
+    private static $session;
+
+    /**
      * Constructor
      */
     public function __construct() {
@@ -83,6 +88,17 @@ class Groups extends Plugin {
         $reminder->register($this->name);
     }
 
+    /**
+     * Session instance factory
+     * @return Session
+     */
+    private static function getSession() {
+        if (is_null(self::$session)) {
+            self::$session = new Session();
+        }
+        return self::$session;
+    }
+
 
     /**
      * Run scheduled task: Assign users to groups and send them an email with their assigned group and presentation
@@ -92,7 +108,7 @@ class Groups extends Plugin {
         $next_session = $this->get_next_session();
 
         // 1: Check if group has not been made yet for the next session
-        if ($next_session !== false && $next_session->type !== 'none' && !$this->group_exist($next_session->date)) {
+        if ($next_session !== false && $next_session[0]['type'] !== 'none' && !$this->group_exist($next_session[0]['date'])) {
             // 2: Clear the group table
             $this->clearTable();
 
@@ -128,9 +144,13 @@ class Groups extends Plugin {
      * @return array
      */
     private function get_next_session() {
-        $session = new Session();
-        $nextSession = $session->getNextDates(1);
-        return $nextSession[0];
+        $nextSession = self::getSession()->getUpcoming(1);
+        if ($nextSession !== false) {
+            reset($nextSession);
+            return $nextSession[key($nextSession)];
+        } else {
+            return array();
+        }
     }
 
     /**
@@ -143,23 +163,23 @@ class Groups extends Plugin {
 
     /**
      * Randomly assigns groups to users for the next session
-     * @param Session $session: next session
+     * @param array $session: next session
      * @return array|bool
      */
-    public function makegroups(Session $session) {
+    public function makegroups(array $session) {
 
         $rooms = explode(',', $this->options['room']['value']);
 
         // Do not make group if there is no session planned on the next journal club day
-        if ($session->type == 'none') {
+        if ($session[0]['type'] == 'none') {
             return false;
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max($session->getSettings('max_nb_session'), count($session->presids));
+        $ngroups = max(self::getSession()->getSettings('max_nb_session'), count($session));
 
         // Get users list
-        $Users = new Users($this->db);
+        $Users = new Users();
         $users = array();
         foreach ($Users->all() as $key=>$user) {
             $users[] = $user['username'];
@@ -167,7 +187,7 @@ class Groups extends Plugin {
 
         $nusers = count($users); // total nb of users
 
-        if ( ($nusers-$ngroups) < $ngroups || $session->type == "none") {
+        if ( ($nusers-$ngroups) < $ngroups || $session[0]['type'] == "none") {
             $result['status'] = false;
             $result['msg'] = "Not enough members to create groups";
             return $result;
@@ -176,7 +196,7 @@ class Groups extends Plugin {
         $excludedusers = array();
         $pregroups = array();
         for ($i=0;$i<$ngroups;$i++) {
-            $speaker = (isset($session->speakers[$i])) ? $session->speakers[$i]:'TBA';
+            $speaker = (isset($session->speakers[$i])) ? $session[$i]['speakers'] : 'TBA';
             $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
             $excludedusers[] = $speaker;
         }
@@ -193,7 +213,7 @@ class Groups extends Plugin {
         $assigned_groups = array();
         for ($i=0;$i<$ngroups;$i++) {
             $room = (!empty($rooms[$i])) ? $rooms[$i] : 'TBA';
-            $presid = (isset($session->presids[$i])) ? $session->presids[$i]:'TBA';
+            $presid = (isset($session->presids[$i])) ? $session[$i]['presids'] : 'TBA';
             $group = $pregroups[$i];
             foreach ($groups[$i] as $mbr) {
                 $group[] = array("member"=>$mbr,"role"=>false);
@@ -207,7 +227,7 @@ class Groups extends Plugin {
                     'username' => $mbr['member'],
                     'role' => $mbr['role'],
                     'presid' => $presid,
-                    'date' => $session->date,
+                    'date' => $session[0]['date'],
                     'room' => $room
                 ))) {
                     return false;

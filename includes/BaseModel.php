@@ -242,8 +242,9 @@ class BaseModel {
      */
     public function all(array $id=array(), array $filter=null) {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
-        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir:null;
-        return $this->db->resultSet($this->tablename, array('*'), $id, $param);
+        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir : null;
+        $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT `{$filter['limit']}` " : null;
+        return $this->db->resultSet($this->tablename, array('*'), $id, $param . $limit);
     }
 
     /**

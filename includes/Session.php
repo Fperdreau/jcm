@@ -853,14 +853,11 @@ class Session extends BaseModel {
      */
     public function all(array $id=null, array $filter=null) {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
-        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` " . $dir : "ORDER BY start_time ASC";
+        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY {$filter['order']} " . $dir : "ORDER BY start_time ASC";
+        $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT {$filter['limit']} " : null;
 
         if (!is_null($id)) {
-            $search = array();
-            foreach ($id as $field=>$value) {
-                $search[] = "{$field}='{$value}'";
-            }
-            $search = "WHERE " . implode('AND ', $search);
+            $search = $this->db->parse(array(), $id);
         } else {
             $search = null;
         }
@@ -868,12 +865,12 @@ class Session extends BaseModel {
         $sql = "SELECT *, id as session_id, type as renderTypes
                 FROM {$this->tablename} s
                  LEFT JOIN 
-                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id_pres, title, orator, username  FROM ". Db::getInstance()->getAppTables('Presentation').") p
+                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id_pres, title, orator, username  FROM ". $this->db->getAppTables('Presentation').") p
                         ON s.id=p.p_session_id
                  LEFT JOIN 
                     (SELECT username, fullname FROM " . $this->db->getAppTables('Users'). ") u
                         ON u.username=p.username
-                 {$search} {$param}";
+                 {$search['cond']} {$param} {$limit}";
 
         $req = $this->db->send_query($sql);
         $data = array();
@@ -940,6 +937,17 @@ class Session extends BaseModel {
         }
         if (empty($sessions)) {$sessions = false;}
         return $sessions;
+    }
+
+    /**
+     * Get upcoming sessions information
+     * @param null $limit
+     * @return array|bool|mixed
+     */
+    public function getUpcoming($limit=null) {
+        $today = date('Y-m-d');
+        $data = $this->all(array('date >'=>$today), array('order'=>'date', 'dir'=>'ASC', 'limit'=>$limit));
+        return (empty($data)) ? false : $data;
     }
 
     /**
