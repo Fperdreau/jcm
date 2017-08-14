@@ -214,7 +214,7 @@ class Db {
      * @return int
      */
     public function tableExists($table) {
-		return $this->send_query("SHOW TABLES LIKE '{$table}'")->num_rows > 0;
+		return $this->send_query("SHOW TABLES LIKE '%{$table}%'")->num_rows > 0;
 	}
 
     /**
@@ -450,7 +450,9 @@ class Db {
         $columndata = implode(',',$columns);
 
         // If overwrite, then we simply create a new table and drop the previous one
-        if ($overwrite || $this->tableExists($tablename) == false) {
+        Logger::get_instance(APP_NAME, get_class($this))->info("Checking table '{$tablename}'");
+
+        if ($overwrite || !$this->tableExists($tablename)) {
             Logger::get_instance(APP_NAME, get_called_class())->info("Creating table '{$tablename}'");
             $this->createtable($tablename,$columndata,$overwrite);
         } else {
