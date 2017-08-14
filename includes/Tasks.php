@@ -67,9 +67,12 @@ class Tasks extends BaseModel {
      */
     public function __construct() {
         parent::__construct();
-        $this->path = dirname(dirname(__FILE__).'/');
+        $this->path = dirname(dirname(__FILE__) . DS);
         self::get_logger();
-        $this->loadAll();
+
+        if ($this->db->tableExists($this->tablename)) {
+            $this->loadAll();
+        }
     }
 
     /**
@@ -223,9 +226,14 @@ class Tasks extends BaseModel {
             $this::$logger->log("Task '{$name}' is already running");
         }
 
-        return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>end($logs));
+        return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>$logs[0]);
     }
 
+    /**
+     * Stop task
+     * @param null|string $name: task name
+     * @return mixed
+     */
     public function stop($name=null) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] = $this->unlock($name);
@@ -514,7 +522,7 @@ class Tasks extends BaseModel {
                 <h2>General settings</h2>
                 <div class='section_content'>
                     <p>You have the possibility to receive logs by email every time a task is executed.</p>
-                    <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateOptions'>
+                    <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateSettings'>
                         <input type='hidden' name='config_modify' value='true'/>
                         <div class='form-group' style='width: 300px;'>
                             <select name='notify_admin_task'>
