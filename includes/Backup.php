@@ -214,10 +214,10 @@ class Backup {
 
     /**
      * Mail backup file to admins
-     * @param $backup_file
+     * @param array $data
      * @return bool
      */
-    public static function mail_backup($data) {
+    public static function mail_backup(array $data) {
         $mail = new \MailManager();
         $user = new \Users();
 
@@ -225,7 +225,7 @@ class Backup {
             try {
                 // Send backup via email
                 $content = array(
-                    'attachment'=>$data['filename'],
+                    'attachments'=> PATH_TO_APP . $data['filename'],
                     'body'=> "Hello {$item['fullname']}, <br>
                         <p>This message has been sent automatically by the server. You may find a backup of your 
                         database in attachment.</p>",

@@ -184,11 +184,12 @@ class Media extends BaseModel{
     }
 
     /**
-     * @param $fileid
+     * @param $file_id
      * @return bool
      */
-    public function getInfo($fileid) {
-        $data = $this->get(array('fileid'=>$fileid));
+    public function getInfo($file_id) {
+        $data = $this->get(array('fileid'=>$file_id));
+        $data['filename'] = PATH_TO_APP . 'uploads' . DS . $data['filename'];
         if (!empty($data)) {
             $this->map($data);
         } else {

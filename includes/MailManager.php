@@ -193,11 +193,18 @@ class MailManager extends BaseModel {
             $Media = new Media();
             foreach (explode(',', $data['attachments']) as $file_name) {
 
-                // Get file information
-                $file_data = $Media->get(array('fileid'=>$file_name));
-                if (!is_null($file_data)) {
-                    $attachments[] = PATH_TO_APP . 'uploads' . DS . $file_data['filename'];
+                if (is_file($file_name)) {
+                    $attachments[] = $file_name;
+                } else {
+                    // Get file information
+                    $file_data = $Media->get(array('fileid'=>$file_name));
+                    if (!empty($file_data)) {
+                        $attachments[] = $file_data['filename'];
+                    } else {
+                        Logger::get_instance(APP_NAME, __CLASS__)->warning("Could not file '{$file_name}' in attachment");
+                    }
                 }
+
             }
         } else {
             $attachments = null;
