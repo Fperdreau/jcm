@@ -83,11 +83,11 @@ class Notification extends Task {
      */
     public function makeMail($presentationList, $fullname) {
         // Get latest submitted presentation
-        $nbpres = count($presentationList);
+        $nb_pres = count($presentationList);
         $list = "";
-        foreach ($presentationList as $presid) {
-            $pres = new Presentation($presid);
-            $list .= $pres->mail_details(true);
+        foreach ($presentationList as $id) {
+            $Presentation = new Presentation();
+            $list .= $Presentation->mail_details($Presentation->getInfo($id), true);
         }
         $content['body'] = "
         <div style='width: 100%; margin: auto;'>
@@ -104,7 +104,7 @@ class Notification extends Task {
             </div>
         </div>
         ";
-        $content['subject'] = "$nbpres new presentations have been submitted!";
+        $content['subject'] = $nb_pres > 1 ? "{$nb_pres} new presentations have been submitted!" : "{$nb_pres} new presentation has been submitted!";;
         return $content;
     }
 }
