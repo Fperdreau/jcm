@@ -110,15 +110,6 @@ if (!empty($_POST['delete_log'])) {
     exit;
 }
 
-// Get log manager
-if (!empty($_POST['show_log_manager'])) {
-    $name = htmlspecialchars($_POST['class']);
-    $search = htmlspecialchars($_POST['search']);
-    $result = Logger::manager($name, $search);
-    echo json_encode($result);
-    exit;
-}
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DigestMaker/ReminderMaker
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -607,13 +598,12 @@ if (!empty($_POST['contact_send'])) {
     $usr_mail = htmlspecialchars($_POST["email"]);
     $usr_name = htmlspecialchars($_POST["name"]);
     $content = "Message sent by {$usr_name} ($usr_mail):<br><p>$usr_msg</p>";
-    $body = $AppMail->formatmail($content, null, false);
     $subject = "Contact from $usr_name";
 
     $settings['mail_from'] = $usr_mail;
     $settings['mail_from_name'] = $usr_mail;
 
-    if ($AppMail->send(array('body'=>$body, 'subject'=>$subject), array($sel_admin_mail),true, $settings)) {
+    if ($AppMail->send(array('body'=>$content, 'subject'=>$subject), array($sel_admin_mail),true, $settings)) {
         $result['status'] = true;
         $result['msg'] = "Your message has been sent!";
     } else {
