@@ -37,11 +37,34 @@ class Reminder extends Task {
     public $description = "Sends a reminder regarding the upcoming session to members who agreed upon receiving 
     email notifications and reminders (which can be set on their profile page).";
 
+    public $options = array(
+        'when'=>array(
+            'options'=>array(),
+            'value'=>10)
+    );
+
     /**
      * Run scheduled task
      * @return mixed
      */
     public function run() {
+        $Session = new Session();
+        $data = $Session->getNext(1);
+        if (!empty($data)) {
+            $now = strtotime(date('Y-m-d H:i:s'));
+            $dueTime = $data[0]['date'] . ' ' . $data[0]['start_time'];
+            if ($now >= $dueTime) {
+                return self::sendDigest();
+            }
+        }
+        return array('status'=>false, 'msg'=>'Nothing to send');
+    }
+
+    /**
+     * Send digest email to users
+     * @return array
+     */
+    private static function sendDigest() {
         $MailManager = new MailManager();
         $ReminderMaker = new ReminderMaker();
 
@@ -56,6 +79,25 @@ class Reminder extends Task {
             }
         }
         return array('status'=>true, 'msg'=>"message sent successfully to {$sent}/{$nusers} users.");
+    }
+
+    /**
+     * Check if a reminder is needed
+     * @param callable $callback
+     * @return mixed
+     */
+    private function check($callback) {
+        $Session = new Session();
+        $data = $Session->getNext(1);
+        if (!empty($data)) {
+            $now = strtotime(date('Y-m-d H:i:s'));
+            $dueTime = $data[0]['date'] . ' ' . $data[0]['start_time'];
+            if ($now >= $dueTime) {
+                return $callback();
+            }
+        }
+        return array('status'=>false, 'msg'=>'Nothing to send');
+
     }
 
     /**
