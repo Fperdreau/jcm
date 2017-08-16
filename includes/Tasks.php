@@ -80,7 +80,7 @@ class Tasks extends BaseModel {
      * @return Logger
      */
     public static function get_logger() {
-        self::$logger = Logger::get_instance(get_class());
+        self::$logger = Logger::getInstance(get_class());
         return self::$logger;
     }
 
@@ -343,7 +343,7 @@ class Tasks extends BaseModel {
             $name = $_POST['name'];
             $time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
         }
-        
+
         if (is_null($frequency)) {
             $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
             $frequency = implode(',', $frequency);
@@ -359,7 +359,7 @@ class Tasks extends BaseModel {
             }
             return $result;
         } catch (Exception $e) {
-            Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+            Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             $result['status'] = False;
             return $result;
         }
@@ -645,7 +645,7 @@ class Tasks extends BaseModel {
     
                         <div class='plugOpt' id='$cronName'></div>
                         <div>
-                            <a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=manager=true&class=AppCron&search={$cronName}' class='loadContent' data-controller='Logger' data-action='manager' data-params='Tasks,{$cronName}' data-destination='.log_target_container#{$cronName}' id='{$cronName}'>
+                            <a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=manager&log_name=Tasks&search={$cronName}' class='loadContent' data-controller='Logger' data-action='manager' data-params='Tasks,{$cronName}' data-destination='.log_target_container#{$cronName}' id='{$cronName}'>
                             <input type='submit' value='Show logs' id='{$cronName}' />
                             </a>
                         </div>

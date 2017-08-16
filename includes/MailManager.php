@@ -202,7 +202,7 @@ class MailManager extends BaseModel {
                     if (!empty($file_data)) {
                         $attachments[] = $file_data['filename'];
                     } else {
-                        Logger::get_instance(APP_NAME, __CLASS__)->warning("Could not file '{$file_name}' in attachment");
+                        Logger::getInstance(APP_NAME, __CLASS__)->warning("Could not file '{$file_name}' in attachment");
                     }
                 }
 
@@ -239,7 +239,7 @@ class MailManager extends BaseModel {
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
         } else {
-            Logger::get_instance(APP_NAME, get_class($this))->error($result['msg']);
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['msg']);
             $result['msg'] = 'Oops, something went wrong!';
         }
 

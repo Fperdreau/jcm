@@ -84,15 +84,15 @@ class Plugin extends BaseModel {
             if ($this->db->makeorupdate($this->tablename, $this->schema)) {
                 $result['status'] = True;
                 $result['msg'] = "'{$this->tablename}' table created";
-                Logger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
+                Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
                 $result['status'] = False;
                 $result['msg'] = "'{$this->tablename}' table not created";
-                Logger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
+                Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
             }
             return $result;
         } catch (Exception $e) {
-            Logger::get_instance(APP_NAME, get_class($this))->critical($e);
+            Logger::getInstance(APP_NAME, get_class($this))->critical($e);
             $result['status'] = false;
             $result['msg'] = $e;
             return $result;
@@ -108,15 +108,15 @@ class Plugin extends BaseModel {
             if ($this->db->deletetable($this->tablename)) {
                 $result['status'] = True;
                 $result['msg'] = "'{$this->tablename}' table deleted";
-                Logger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
+                Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
                 $result['status'] = False;
                 $result['msg'] = "'{$this->tablename}' table could not be deleted";
-                Logger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
+                Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
             }
             return $result;
         } catch (Exception $e) {
-            Logger::get_instance(APP_NAME, get_class($this))->critical($e);
+            Logger::getInstance(APP_NAME, get_class($this))->critical($e);
             $result['status'] = false;
             $result['msg'] = $e;
             return $result;

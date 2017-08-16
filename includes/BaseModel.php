@@ -155,11 +155,10 @@ class BaseModel {
 
     /**
      * Update controller settings
-     * @param array|null $data
      * @return array
      */
-    public function updateSettings(array $data=null) {
-        if ($this->setSettings($data)) {
+    public function updateSettings() {
+        if ($this->setSettings($_POST)) {
             if ($this->Settings->update($this->settings, array('object'=>__CLASS__))) {
                 return array('status'=>true, 'msg'=>'Ok');
             } else {
@@ -182,15 +181,15 @@ class BaseModel {
             if ($this->db->makeorupdate($this->getTableName(), $this->get_table_data(get_class($this)), $op)) {
                 $result['status'] = True;
                 $result['msg'] = "'{$this->tablename}' table created";
-                Logger::get_instance(APP_NAME, get_class($this))->info($result['msg']);
+                Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
                 $result['status'] = False;
                 $result['msg'] = "'{$this->tablename}' table not created";
-                Logger::get_instance(APP_NAME, get_class($this))->critical($result['msg']);
+                Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
             }
             return $result;
         } catch (Exception $e) {
-            Logger::get_instance(APP_NAME, get_class($this))->critical($e);
+            Logger::getInstance(APP_NAME, get_class($this))->critical($e);
             $result['status'] = false;
             $result['msg'] = $e;
             return $result;

@@ -130,7 +130,7 @@ class Media extends BaseModel{
                 $data = mysqli_fetch_assoc($req);
                 $file = new Media($data['fileid']);
                 if  (!$this->db->delete($this->tablename, array('fileid'=>$file->fileid))) {
-                    Logger::get_instance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
+                    Logger::getInstance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;
                 }
             }
@@ -149,14 +149,14 @@ class Media extends BaseModel{
         // First check the file
         $result['error'] = $this->checkupload($file);
         if ($result['error'] !== true) {
-            Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['error']);
             return $result;
         }
 
         // Second: Proceed to upload
         $result = $this->upload($file);
         if ($result['error'] !== true) {
-            Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['error']);
             return $result;
         }
 
@@ -173,7 +173,7 @@ class Media extends BaseModel{
         $content = $this->parseData($data, array('directory','maxsize','allowed_types'));
         if (!$this->db->insert($this->tablename,$content)) {
             $result['error'] = 'SQL: Could not add the file to the media table';
-            Logger::get_instance(APP_NAME, get_class($this))->error($result['error']);
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['error']);
         } else {
             $result['error'] = true;
         }
@@ -228,14 +228,14 @@ class Media extends BaseModel{
         $data = $this->get(array('fileid'=>$filename, 'obj'=>$obj_name));
         if (!empty($data)) {
             if ($this->db->update($this->tablename, array('presid'=>$presid), array('fileid'=>$filename, 'obj'=>$obj_name))) {
-                Logger::get_instance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$presid}) associated with file ({$filename})");
+                Logger::getInstance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$presid}) associated with file ({$filename})");
                 return true;
             } else {
-                Logger::get_instance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$presid}) to file ({$filename})");
+                Logger::getInstance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$presid}) to file ({$filename})");
                 return false;
             }
         } else {
-            Logger::get_instance(APP_NAME, get_class($this))->error(
+            Logger::getInstance(APP_NAME, get_class($this))->error(
                 "Could not associate id ({$obj_name}: {$presid}) to file ({$filename}) because this file does not exit in our database");
             return false;
         }
@@ -255,26 +255,26 @@ class Media extends BaseModel{
                     if ($this->db->delete($this->tablename, $id)) {
                         $result['status'] = true;
                         $result['msg'] = "File [name: {$data['filename']}] Deleted";
-                        Logger::get_instance(APP_NAME, __CLASS__)->info($result['msg']);
+                        Logger::getInstance(APP_NAME, __CLASS__)->info($result['msg']);
                     } else {
                         $result['status'] = false;
                         $result['msg'] = "Could not remove file entry from database [name: {$data['filename']}]";
-                        Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                        Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
                     }
                 } else {
                     $result['status'] = false;
                     $result['msg'] = "Could not delete file [name: {$data['filename']}]";
-                    Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                    Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
                 }
             } else {
                 $result['status'] = false;
                 $result['msg'] = "File does not exist [name: {$data['filename']}]";
-                Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+                Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
             }
         } else {
             $result['status'] = false;
             $result['msg'] = "Could not find media [id: {$id}] in our database";
-            Logger::get_instance(APP_NAME, __CLASS__)->error($result['msg']);
+            Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
         }
 
         return $result;

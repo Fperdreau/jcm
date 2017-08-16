@@ -242,7 +242,7 @@ class App {
 
         $result['msg'] = "Database installation complete!";
         $result['status'] = true;
-        Logger::get_instance(APP_NAME, 'Install')->info($result['msg']);
+        Logger::getInstance(APP_NAME, 'Install')->info($result['msg']);
 
         return $result;
     }
@@ -259,7 +259,7 @@ class App {
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..', 'App.php', 'BaseModel.php'))) {
                 $class_name = explode('.', $includeFile);
-                Logger::get_instance(APP_NAME)->debug("Calling {$class_name[0]}->install_db()");
+                Logger::getInstance(APP_NAME)->debug("Calling {$class_name[0]}->install_db()");
                 $result = self::call($class_name[0], 'install_db', $op);
                 if ($result['status'] === false) {
                     return $result;
@@ -281,7 +281,7 @@ class App {
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..', 'App.php', 'BaseModel.php'))) {
                 $class_name = explode('.', $includeFile);
-                Logger::get_instance(APP_NAME)->debug("Calling {$class_name[0]}->setup()");
+                Logger::getInstance(APP_NAME)->debug("Calling {$class_name[0]}->setup()");
                 $result = self::call($class_name[0], 'setup', $op);
                 if ($result['status'] === false) {
                     return $result;
@@ -326,7 +326,7 @@ class App {
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..', 'BaseModel.php'))) {
                 $class_name = explode('.', $includeFile);
-                Logger::get_instance(APP_NAME)->debug("Calling {$class_name[0]}->updateSettings()");
+                Logger::getInstance(APP_NAME)->debug("Calling {$class_name[0]}->updateSettings()");
 
                 $result = self::call($class_name[0], 'updateSettings', $op);
                 if ($result['status'] === false) {

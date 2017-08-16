@@ -340,10 +340,10 @@ class Presentation extends BaseModel {
             $this->parseData($post, array('link','chair')),
             array('id_pres'=>$this->id_pres))) {
 
-            Logger::get_instance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
+            Logger::getInstance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
             return true;
         } else {
-            Logger::get_instance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id_pres})");
+            Logger::getInstance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id_pres})");
             return false;
         }
     }
@@ -471,7 +471,7 @@ class Presentation extends BaseModel {
             if ($Session->is_exist(array('date'=>$item['date']))) {
                 $session_info = $Session->getInfo(array('date'=>$item['date']));
                 if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id_pres'=>$item['id_pres']))) {
-                    Logger::get_instance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
+                    Logger::getInstance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
                     return false;
                 }
             }

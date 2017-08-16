@@ -161,7 +161,7 @@ class Users extends BaseModel {
                 $result['msg'] = "Oops, something went wrong";;
             }
 
-            Logger::get_instance(APP_NAME, get_class($this))->log($result);
+            Logger::getInstance(APP_NAME, get_class($this))->log($result);
         } else {
             $result['status'] = false;
             $result['msg'] = "This username/email address already exist in our database";
@@ -281,7 +281,7 @@ class Users extends BaseModel {
             $result = $this->delete_user($data['username']);
             $result['msg'] = "Permission denied by the admin. Account successfully deleted.";
         }
-        Logger::get_instance(APP_NAME, get_class($this))->log($result);
+        Logger::getInstance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 
@@ -306,7 +306,7 @@ class Users extends BaseModel {
             $result['msg'] = "Oops, something went wrong";
         }
 
-        Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
+        Logger::getInstance(APP_NAME, get_class($this))->log($result['msg']);
 
         return $result;
     }
@@ -332,7 +332,7 @@ class Users extends BaseModel {
             $result['msg'] = "Oops, something went wrong";
         }
 
-        Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
+        Logger::getInstance(APP_NAME, get_class($this))->log($result['msg']);
 
         return $result;
     }
@@ -356,7 +356,7 @@ class Users extends BaseModel {
         } else {
             $result = $this->deactivate($data);
         }
-        Logger::get_instance(APP_NAME, get_class($this))->log($result['msg']);
+        Logger::getInstance(APP_NAME, get_class($this))->log($result['msg']);
         return $result;
     }
 
@@ -526,7 +526,7 @@ class Users extends BaseModel {
         } else {
             $result['msg'] = "Oops, something went wrong";
         }
-        Logger::get_instance(APP_NAME, get_class($this))->log($result);
+        Logger::getInstance(APP_NAME, get_class($this))->log($result);
         return $result;
     }
 

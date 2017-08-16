@@ -180,12 +180,12 @@ class Mail {
 
                 if ($undisclosed) {
                     if (!$mail->addBCC($to_add)) {
-                        Logger::get_instance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                        Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
                         return array('status' => false, 'logs' => $mail->ErrorInfo);
                     }
                 } else {
                     if (!$mail->addAddress($to_add)) {
-                        Logger::get_instance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                        Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
                         return array('status' => false, 'logs' => $mail->ErrorInfo);
                     }
                 }
@@ -198,7 +198,7 @@ class Mail {
                     $split = explode('/', $path);
                     $file_name = end($split);
                     if (!$mail->addAttachment($path, $file_name)) {
-                        Logger::get_instance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                        Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
                         return array('status' => false, 'logs' => $mail->ErrorInfo);
                     }
                 }
@@ -206,7 +206,7 @@ class Mail {
 
             // Send email
             if (!$mail->send()) {
-                Logger::get_instance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
                 return array('status' => false, 'logs' => $mail->ErrorInfo);
             } else {
                 $mail->clearAddresses();
@@ -215,7 +215,7 @@ class Mail {
             }
 
         } catch (Exception $e) {
-            Logger::get_instance('jcm')->error($e->getMessage()); //Catch error messages from PHPMailer
+            Logger::getInstance('jcm')->error($e->getMessage()); //Catch error messages from PHPMailer
             return array('status' => false, 'logs' => $e->getMessage());
         }
     }

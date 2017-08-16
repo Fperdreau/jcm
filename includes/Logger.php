@@ -93,7 +93,7 @@ class Logger {
 
     /**
      * Get log files
-     * @param $class_name
+     * @param string $class_name
      * @return array
      */
     public static function get_logs($class_name) {
@@ -119,7 +119,7 @@ class Logger {
      * @return string
      */
     public static function get_path() {
-        return PATH_TO_APP . "/logs/";
+        return PATH_TO_APP . DS . "logs" . DS;
     }
 
     /**
@@ -128,7 +128,9 @@ class Logger {
      * @param null|string $class_name
      * @return Logger
      */
-    public static function get_instance($log_name, $class_name=null) {
+    public static function getInstance($log_name=null, $class_name=null) {
+        if (is_null($log_name)) $log_name = APP_NAME;
+
         if (is_null(self::$instances) or !isset(self::$instances[$log_name]) ) {
             self::$instances[$log_name] = new self($log_name, $class_name);
         } else {
@@ -388,35 +390,35 @@ class Logger {
 
     /**
      * Render logs manager (view and search in logs)
-     * @param $class_name
-     * @param null $log_name
+     * @param string $class
+     * @param null|string $log_name
      * @return string
      */
-    public static function manager($class_name, $log_name=null) {
-        $name = self::get_logs($class_name);
-        if (!empty($name)) {
-            $name = $name[0];
-            $list = self::show_list(self::get_logs($class_name), $name, $log_name);
+    public static function manager($log_name, $search) {
+        $log_files = self::get_logs($log_name);
+        if (!empty($log_files)) {
+            $name = $log_files[0];
+            $list = self::show_list($log_files, $name, $log_name);
             $logs = self::show($name, $log_name);
             return "
-            <div class='log_container' id='{$class_name}'>
+            <div class='log_container' id='{$search}'>
                 <div class='log_search_bar'>
-                    <form method='post' action='" . URL_TO_APP . "/php/form.php?show_log=true'>
+                    <form method='post' action='" . URL_TO_APP . "php/router.php?controller=Router&action=show_log&class={$log_name}'>
                         <input type='search' name='search' value='' placeholder='Search...'/>
                         <input type='hidden' name='name' value='$name'/>
-                        <input type='button' class='search_log' id='{$class_name}' />
+                        <input type='button' class='search_log' id='{$log_name}' />
                     </form>
                 </div>
                 <div class='log_files_container'>
                     <div class='log_list_container'>{$list}</div>
-                    <div class='log_content_container' id='{$class_name}'>{$logs}</div>
+                    <div class='log_content_container' id='{$log_name}'>{$logs}</div>
                 </div>
 
             </div>
         ";
         } else {
             return "
-            <div class='log_container' id='{$class_name}'>
+            <div class='log_container' id='{$class}'>
                 Sorry, there is nothing to show.
             </div>
             ";

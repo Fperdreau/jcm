@@ -97,7 +97,7 @@ class Backup {
                 'filename'=>"$mysqlrelativedir/$fileNamePrefix.sql"
             );
         } catch (\Exception $e) {
-            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return array(
                 'status'=>false,
                 'msg'=>'Sorry, something went wrong',
@@ -135,7 +135,7 @@ class Backup {
 
             return rmdir($dir);
         } catch (\Exception $e) {
-            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return false;
         }
     }
@@ -207,7 +207,7 @@ class Backup {
             }
             return true;
         } catch (\Exception $e) {
-            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return false;
         }
     }
@@ -233,7 +233,7 @@ class Backup {
                 );
                 $mail->send($content, array($item['email']));
             } catch (\Exception $e) {
-                \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+                \Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             }
         }
         return true;
@@ -280,7 +280,7 @@ class Backup {
                 return "backup/complete/$fileNamePrefix.zip";
             }
         } catch (\Exception $e) {
-            \Logger::get_instance(APP_NAME, __CLASS__)->error($e);
+            \Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return false;
         }
     }

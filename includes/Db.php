@@ -128,19 +128,19 @@ class Db {
             } catch(Exception $e) {
                 $result['status'] = false;
                 $result['msg'] = $e->getMessage();
-                Logger::get_instance(APP_NAME)->critical($result['msg']);
+                Logger::getInstance(APP_NAME)->critical($result['msg']);
                 die($result['msg']);
             }
 
             if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
                 $result['msg'] = "Database '" . $this->config['dbname'] . "' cannot be selected<br/>".mysqli_error($this->bdd);
-                Logger::get_instance(APP_NAME)->critical($result['msg']);
+                Logger::getInstance(APP_NAME)->critical($result['msg']);
                 die(json_encode($result['msg']));
             }
 
             if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
                 $result['msg'] = "Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd);
-                Logger::get_instance(APP_NAME)->critical($result['msg']);
+                Logger::getInstance(APP_NAME)->critical($result['msg']);
                 die(json_encode($result['msg']));
             }
 
@@ -160,14 +160,14 @@ class Db {
         if (!$link) {
             $result['status'] = false;
             $result['msg'] = "Failed to connect to the database";
-            Logger::get_instance(APP_NAME)->critical($result['msg']);
+            Logger::getInstance(APP_NAME)->critical($result['msg']);
             return $result;
         }
 
         if (!@mysqli_select_db($link,$config['dbname'])) {
             $result['status'] = false;
             $result['msg'] = "Database '".$config['dbname']."' cannot be selected";
-            Logger::get_instance(APP_NAME)->critical($result['msg']);
+            Logger::getInstance(APP_NAME)->critical($result['msg']);
             return $result;
         }
         $result['status'] = true;
@@ -226,7 +226,7 @@ class Db {
         $req = $this->bdd->query($sql);
         if ($req === false) {
             $msg = "Database Error [{$this->bdd->errno}]: COMMAND [{$sql}]: {$this->bdd->error}";
-            Logger::get_instance(APP_NAME, get_called_class())->error($msg);
+            Logger::getInstance(APP_NAME, get_called_class())->error($msg);
         }
         return $req;
     }
@@ -450,13 +450,13 @@ class Db {
         $columndata = implode(',',$columns);
 
         // If overwrite, then we simply create a new table and drop the previous one
-        Logger::get_instance(APP_NAME, get_class($this))->info("Checking table '{$tablename}'");
+        Logger::getInstance(APP_NAME, get_class($this))->info("Checking table '{$tablename}'");
 
         if ($overwrite || !$this->tableExists($tablename)) {
-            Logger::get_instance(APP_NAME, get_called_class())->info("Creating table '{$tablename}'");
+            Logger::getInstance(APP_NAME, get_called_class())->info("Creating table '{$tablename}'");
             $this->createtable($tablename,$columndata,$overwrite);
         } else {
-            Logger::get_instance(APP_NAME, get_called_class())->info("Updating table schema '{$tablename}'");
+            Logger::getInstance(APP_NAME, get_called_class())->info("Updating table schema '{$tablename}'");
 
             // Get existent columns
             $keys = $this->getColumns($tablename);
@@ -622,7 +622,7 @@ class Db {
             }
             return $data;
         } else {
-            Logger::get_instance(APP_NAME, __CLASS__)->critical("Database error: COMMAND [{$sql}]");
+            Logger::getInstance(APP_NAME, __CLASS__)->critical("Database error: COMMAND [{$sql}]");
             throw new Exception("Database error: COMMAND [{$sql}]");
         }
 

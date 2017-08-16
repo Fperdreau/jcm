@@ -89,7 +89,7 @@ class Settings extends BaseModel {
                         try {
                             $result[$class_name[0]]= $class_name[0]::settings;
                         } catch (Exception $e) {
-                            Logger::get_instance(APP_NAME)->error("Calling {$class_name[0]}->install_db()");
+                            Logger::getInstance(APP_NAME)->error("Calling {$class_name[0]}->install_db()");
                             return null;
                         }
                     }
@@ -193,7 +193,7 @@ class Settings extends BaseModel {
                         try {
                             $result .= Template::section($class_name[0]::settingsForm($this->getByObject($class_name[0])));
                         } catch (Exception $e) {
-                            Logger::get_instance(APP_NAME)->error("Calling {$class_name[0]}->install_db()");
+                            Logger::getInstance(APP_NAME)->error("Calling {$class_name[0]}->install_db()");
                             return null;
                         }
                     }

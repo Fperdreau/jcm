@@ -118,9 +118,9 @@ class ReminderMaker extends BaseModel {
     public function register($name) {
         if (!$this->getInfo($name)) {
             if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
-                Logger::get_instance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into reminder table");
+                Logger::getInstance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into reminder table");
             } else {
-                Logger::get_instance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into reminder table");
+                Logger::getInstance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into reminder table");
             }
         }
     }

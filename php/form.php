@@ -48,7 +48,7 @@ if (!empty($_POST['router'])) {
             try {
                 echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
             } catch (Exception $e) {
-                Logger::get_instance(APP_NAME)->error($e);
+                Logger::getInstance(APP_NAME)->error($e);
                 echo json_encode(array('status'=>false));
             }
         }
@@ -517,7 +517,7 @@ if (!empty($_POST['process_submission'])) {
             try {
                 echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
             } catch (Exception $e) {
-                Logger::get_instance(APP_NAME)->error($e);
+                Logger::getInstance(APP_NAME)->error($e);
                 echo json_encode(array('status'=>false));
             }
         }

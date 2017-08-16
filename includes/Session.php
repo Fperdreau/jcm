@@ -524,7 +524,7 @@ class Session extends BaseModel {
 
             // Add session to the database
             if ($id = $this->db->insert($this->tablename, $content)) {
-                Logger::get_instance(APP_NAME, get_class($this))->info("New session created on {$this->date}");
+                Logger::getInstance(APP_NAME, get_class($this))->info("New session created on {$this->date}");
 
                 if ($initial) {
                     $this->update(array('event_id'=>$id), array('id'=>$id));
@@ -540,7 +540,7 @@ class Session extends BaseModel {
                 $result['msg'] = 'Session successfully created!';
 
             } else {
-                Logger::get_instance(APP_NAME, get_class($this))->error("Could not create session on {$this->date}");
+                Logger::getInstance(APP_NAME, get_class($this))->error("Could not create session on {$this->date}");
                 $result['status'] = false;
                 $result['msg'] = 'Sorry, something went wrong.';
             }
@@ -770,10 +770,10 @@ class Session extends BaseModel {
         if (!empty($all)) {
             foreach ($all as $key=>$item) {
                 if (!$this->delete(array('id'=>$item['id']))) {
-                    Logger::get_instance(APP_NAME, get_class($this))->error("Could not delete session {$item['id']}");
+                    Logger::getInstance(APP_NAME, get_class($this))->error("Could not delete session {$item['id']}");
                     return false;
                 } else {
-                    Logger::get_instance(APP_NAME, get_class($this))->info("Session {$item['id']} has been deleted");
+                    Logger::getInstance(APP_NAME, get_class($this))->info("Session {$item['id']} has been deleted");
                 }
             }
         } else {
@@ -824,7 +824,6 @@ class Session extends BaseModel {
             $this->update(array('repeated'=>$item['repeated']), array('date'=>$item['date'], 'event_id'=>$item['event_id']));
 
             // Continue with next occurrences
-            // Get next date
             $data = $item;
             $data['date'] = date('Y-m-d', strtotime("{$item['date']} + {$item['frequency']} days"));
             foreach($this->recursive_repeat($data, $max_date, $result) as $key=>$value) {
@@ -871,7 +870,7 @@ class Session extends BaseModel {
                     $new_data['start_date'] = $item['date'];
                     $new_data['end_date'] = $item['date'];
                     if (!$Session->update($new_data, array('id'=>$item['id']))) {
-                        Logger::get_instance(APP_NAME, __CLASS__)->info("Session {$item['id']} could not be updated");
+                        Logger::getInstance(APP_NAME, __CLASS__)->info("Session {$item['id']} could not be updated");
                         return false;
                     }
                 }

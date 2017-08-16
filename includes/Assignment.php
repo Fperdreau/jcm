@@ -413,10 +413,10 @@ class Assignment extends BaseModel {
             if ($notify) {
                 $session->notify_session_update($user, $info, $assign);
             }
-            Logger::get_instance(APP_NAME, get_class($this))->info("Assignments for {$user->username} have been updated");
+            Logger::getInstance(APP_NAME, get_class($this))->info("Assignments for {$user->username} have been updated");
             return true;
         } else {
-            Logger::get_instance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
+            Logger::getInstance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
             return false;
         }
     }
