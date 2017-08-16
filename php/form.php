@@ -234,7 +234,7 @@ if (!empty($_POST['getPage'])) {
     $content['AppStatus'] = App::getInstance()->getSetting('status');
     $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk_40x40.png')) ? $content['pageName']: $content['parent'];
     $status = $Page->check_login();
-    if ($content['AppStatus'] == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
+    if (strtolower($content['AppStatus']) == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
         if ($status['status'] == false) {
             $result = $status['msg'];
         } else {
