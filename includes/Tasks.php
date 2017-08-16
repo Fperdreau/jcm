@@ -335,13 +335,16 @@ class Tasks extends BaseModel {
      * Update scheduled time
      * @param $name
      * @param $time
-     * @param $frequency
+     * @param string $frequency: months,days,hours,minutes
      * @return bool
      */
     public function updateTime($name=null, $time=null, $frequency=null) {
         if (is_null($time)) {
             $name = $_POST['name'];
             $time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
+        }
+        
+        if (is_null($frequency)) {
             $frequency = array($_POST['months'], $_POST['days'], $_POST['hours'], $_POST['minutes']);
             $frequency = implode(',', $frequency);
         }
