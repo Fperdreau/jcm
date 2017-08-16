@@ -107,6 +107,30 @@ class Session extends BaseModel {
     }
 
     /**
+     *
+     * @param null $username
+     * @return mixed
+     */
+    public function makeMail($username=null) {
+        // Get future presentations
+        $content['body'] = $this->showNextSession(true);;
+        $content['title'] = 'Session Information';
+        return $content;
+    }
+
+    /**
+     *
+     * @param null $username
+     * @return mixed
+     */
+    public function makeReminder($username=null) {
+        // Get future presentations
+        $content['body'] = $this->showNextSession(true);;
+        $content['title'] = 'Session Information';
+        return $content;
+    }
+
+    /**
      * Get session types
      * @return array
      */
@@ -396,30 +420,6 @@ class Session extends BaseModel {
     }
 
     /**
-     *
-     * @param null $username
-     * @return mixed
-     */
-    public function makeMail($username=null) {
-        // Get future presentations
-        $content['body'] = $this->showNextSession(true);;
-        $content['title'] = 'Session Information';
-        return $content;
-    }
-
-    /**
-     *
-     * @param null $username
-     * @return mixed
-     */
-    public function makeReminder($username=null) {
-        // Get future presentations
-        $content['body'] = $this->showNextSession(true);;
-        $content['title'] = 'Session Information';
-        return $content;
-    }
-
-    /**
      * Cancel session (when session type is set to none)
      * @param Session $session
      * @return bool
@@ -511,7 +511,7 @@ class Session extends BaseModel {
     /**
      * Create session
      * @param array $post
-     * @param bool $initial: creation of initial occurence
+     * @param bool $initial: creation of initial occurrence
      * @return array
      */
     public function make($post=array(), $initial=true) {
@@ -548,6 +548,30 @@ class Session extends BaseModel {
             $result['status'] = false;
             $result['msg'] = 'Sorry, this time slot is not available.';
         }
+        return $result;
+    }
+
+    public function updateSession() {
+        $session_id = $_POST['id'];
+        $operation = $_POST['operation'];
+        unset($_POST['operation']);
+        unset($_POST['id']);
+        $result = array('status'=>false, 'msg'=>null);
+
+        if ($operation === 'present') {
+            // Only update the current event
+            $result['status'] = $this->update($_POST, array('id'=>$session_id));
+        } elseif ($operation === 'future') {
+            // Update all future occurences
+            $result['status'] = $this->updateAllEvents($_POST, $session_id, 'future');
+        } elseif ($operation === 'all') {
+            // Update all (past/future) occurences
+            $result['status'] = $this->updateAllEvents($_POST, $session_id, 'all');
+        } else {
+            throw new Exception("'{$operation}' is an unknown update operation");
+        }
+
+        $result['msg'] = $result['status'] ? "Session has been modified" : 'Something went wrong';
         return $result;
     }
 
@@ -672,7 +696,7 @@ class Session extends BaseModel {
      * @return mixed
      */
     public function repeatAll($max_date=null, $session_to_plan=1) {
-        $result = array('status'=>false, 'msg'=>null);
+        $result = array('status'=>true, 'msg'=>'Nothing to plan');
         foreach ($this->get_repeated() as $key=>$item) {
             $result = $this->repeat($item, $session_to_plan, $max_date);
         };
@@ -693,13 +717,15 @@ class Session extends BaseModel {
         } else {
             $max_date = (is_null($max_date)) ? $item['end_date'] : $max_date;
         }
-        return self::recursive_repeat($item, $max_date);
+        $result = $this->recursive_repeat($item, $max_date);
+        $result['msg'] = "{$result['counter']} sessions have been created";
+        return $result;
     }
 
     /**
      * Update all or only upcoming occurences of an event
      * @param array $post: Updated information
-     * @param $id: id of current occurence
+     * @param $id: id of current occurrence
      * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
      * @return bool
      */
@@ -771,25 +797,39 @@ class Session extends BaseModel {
      * Recursively repeat All sessions
      * @param $item
      * @param $max_date
+     * @param array|null $result
      * @return mixed
      */
-    private static function recursive_repeat($item, $max_date) {
-        $data = $item;
-        $result = array('status'=>false, 'msg'=>null);
-        // Get next date
-        $data['date'] = date('Y-m-d', strtotime("{$item['date']} + {$item['frequency']} days"));
+    private function recursive_repeat($item, $max_date, array $result=null) {
+        if (is_null($result)) $result = array('status'=>true, 'msg'=>null, 'counter'=>0);
 
-        if (new DateTime($data['date']) <= new DateTime($max_date)) {
-            $session = new Session();
+        if (new DateTime($item['date']) <= new DateTime($max_date)) {
 
-            // Create occurrence
-            $result = $session->make($data, false);
+            if (new DateTime($item['date']) == new DateTime($max_date) && new DateTime($item['date']) < new DateTime($item['end_date'])){
+                $item['repeated'] = 0;
+            } else {
+                $item['repeated'] = 1;
+            }
+
+            // Add new occurrence
+            foreach($this->make($item, false) as $key=>$value) {
+                $result[$key] = $value;
+            }
 
             if ($result['status']) {
-                $item['repeated'] = 1;
-                $session->update($item, array('date'=>$item['date']));
+                $result['counter']++;
             }
-            $result['status'] = self::recursive_repeat($data, $max_date);
+
+            // Update occurrence
+            $this->update(array('repeated'=>$item['repeated']), array('date'=>$item['date'], 'event_id'=>$item['event_id']));
+
+            // Continue with next occurrences
+            // Get next date
+            $data = $item;
+            $data['date'] = date('Y-m-d', strtotime("{$item['date']} + {$item['frequency']} days"));
+            foreach($this->recursive_repeat($data, $max_date, $result) as $key=>$value) {
+                $result[$key] = $value;
+            }
         }
         return $result;
     }
@@ -911,7 +951,7 @@ class Session extends BaseModel {
      */
     public function get_repeated() {
         $sql = "SELECT * FROM {$this->tablename}
-                  WHERE to_repeat=1 and repeated=0 and end_date>=CURDATE()";
+                  WHERE to_repeat=1 and repeated=0 and end_date>date";
         $req = $this->db->send_query($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
@@ -1142,7 +1182,7 @@ class Session extends BaseModel {
 
         return "
             <h3>Settings</h3>
-            <form action='php/form.php' method='post'>
+            <form action='php/router.php?controller=Session&action=updateSession' method='post'>
                 <div class='renderTypes'>
                     <div class='form-group field_small inline_field' style='width: 100%;'>
                         <select name='type'>

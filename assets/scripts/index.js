@@ -62,6 +62,7 @@ function loadContent(el) {
     data['loadContent'] = true;
     var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
 
+    var url = el.attr('href') !== undefined ? el.attr('href') : 'php/form.php';
     // First we remove any existing submission form
     var callback = function (result) {
         var html = result.content === undefined ? result : result.content;
@@ -76,7 +77,7 @@ function loadContent(el) {
         loadCalendarSubmission();
     };
 
-    processAjax(destination, data, callback, "php/form.php");
+    processAjax(destination, data, callback, url);
 }
 
 /**
@@ -1292,7 +1293,7 @@ $(document).ready(function () {
         })
 
         /**
-         * Delete  log file
+         * Show log file
          */
         .on('click', '.show_log_manager', function(e) {
             e.preventDefault();
@@ -1467,6 +1468,7 @@ $(document).ready(function () {
             var form = $(this).length > 0 ? $($(this)[0].form) : $();
             var session_id = form.find('input[name="id"]').val();
             var input = $(this);
+            var url = form.attr('action');
 
             var process = function(operation) {
                 // Add/Update operation input
@@ -1477,17 +1479,18 @@ $(document).ready(function () {
                 }
 
                 // Get form data
-                var data = form.serializeArray();
-                data.push({name: 'modSession', value: true});
+                var data = getData(form);
 
                 // Process data
-                processAjax(form, data, input.modalTrigger('close'), 'php/form.php');
+                processAjax(form, data, function() {
+                    input.modalTrigger('close');
+                }, url);
             };
 
             jQuery.ajax({
-                url: 'php/form.php',
+                url: 'php/router.php?controller=Session&action=is_recurrent',
                 type: 'post',
-                data: {'is_recurrent': session_id},
+                data: {'id': session_id},
                 async: true,
                 success: function(data) {
 

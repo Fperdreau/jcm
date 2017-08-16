@@ -135,11 +135,11 @@ class Tasks extends BaseModel {
     }
 
     /**
-     * Update plugin's options
+     * Update task's options
+     * @param $name: task name
      * @return mixed
      */
-    public function updateOptions() {
-        $name = htmlspecialchars($_POST['name']);
+    public function updateOptions($name) {
         if ($this->isInstalled($name)) {
             foreach ($_POST as $key=>$setting) {
                 $this->getTask($name)->setOption($key, $setting);
@@ -147,7 +147,7 @@ class Tasks extends BaseModel {
 
             if ($this->update($this->getTask($name)->getInfo(), array('name'=>$name))) {
                 $result['status'] = true;
-                $result['msg'] = "$name's settings successfully updated!";
+                $result['msg'] = "{$name}'s settings successfully updated!";
             } else {
                 $result['status'] = false;
             }
@@ -523,7 +523,6 @@ class Tasks extends BaseModel {
                 <div class='section_content'>
                     <p>You have the possibility to receive logs by email every time a task is executed.</p>
                     <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateSettings'>
-                        <input type='hidden' name='config_modify' value='true'/>
                         <div class='form-group' style='width: 300px;'>
                             <select name='notify_admin_task'>
                                 <option value='{$notify}' selected>{$notify}</option>
@@ -532,7 +531,7 @@ class Tasks extends BaseModel {
                             </select>
                             <label>Get notified by email</label>
                         </div>
-                        <input type='submit' name='modify' value='Modify' class='modCron'>
+                        <input type='submit' name='modify' value='Modify' class='processform'>
                         <div class='feedback' id='feedback_site'></div>
                     </form>
                 </div>
@@ -643,7 +642,7 @@ class Tasks extends BaseModel {
     
                         <div class='plugOpt' id='$cronName'></div>
                         <div>
-                            <a href='" . URL_TO_APP . "php/form.php?show_log_manager=true&class=AppCron&search={$cronName}' class='show_log_manager' id='{$cronName}'>
+                            <a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=manager=true&class=AppCron&search={$cronName}' class='loadContent' data-controller='Logger' data-action='manager' data-params='Tasks,{$cronName}' data-destination='.log_target_container#{$cronName}' id='{$cronName}'>
                             <input type='submit' value='Show logs' id='{$cronName}' />
                             </a>
                         </div>

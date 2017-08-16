@@ -26,6 +26,9 @@
 include('../includes/App.php');
 App::boot(true);
 
+Router::route();
+exit;
+
 if (!empty($_GET)) {
     // Sanitize $_POST data
     foreach ($_POST as $key=>$value) {
@@ -44,23 +47,36 @@ if (empty($_POST['controller'])) {
     $controllerName = $_POST['controller'];
     $action = !empty($_POST['action']) ? $_POST['action'] : 'index';
     if (class_exists($controllerName, true)) {
-        $MethodChecker = new ReflectionMethod($controllerName,$action);
-        if (!$MethodChecker->isStatic()) {
-
-        }
-        if (method_exists($controllerName, 'getInstance')) {
-            $Controller = $controllerName::getInstance();
-        } else {
-            $Controller = new $controllerName();
-        }
         if (method_exists($controllerName, $action)) {
-            try {
-                echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
-            } catch (Exception $e) {
-                Logger::get_instance(APP_NAME)->error($e);
-                echo json_encode(array('status'=>false));
+            $MethodChecker = new ReflectionMethod($controllerName, $action);
+            if ($MethodChecker->isStatic()) {
+                try {
+                    echo json_encode($controllerName::$action($_POST));
+                } catch (Exception $e) {
+                    Logger::get_instance(APP_NAME)->error($e);
+                    echo json_encode(array('status'=>false));
+                }
+            } else {
+                if (method_exists($controllerName, 'getInstance')) {
+                    $Controller = $controllerName::getInstance();
+                } else {
+                    $Controller = new $controllerName();
+                }
+                if (method_exists($controllerName, $action)) {
+                    try {
+                        echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
+                    } catch (Exception $e) {
+                        Logger::get_instance(APP_NAME)->error($e);
+                        echo json_encode(array('status'=>false));
+                    }
+                }
             }
+        } else {
+            Page::notFound();
         }
+
+    } else {
+        Page::notFound();
     }
     exit;
 }

@@ -42,12 +42,6 @@ class GroupMaker extends Task {
     public $description = "Creates groups of members for the upcoming session with one group per presentation. 
     This task is calling the Group plugin that must be installed. You can choose to notify users in GroupMaker's settings";
 
-    public function __construct()
-    {
-        parent::__construct();
-        Logger::get_instance(APP_NAME, get_class($this))->log("Instantiating " . get_class($this));
-    }
-
     /**
      * Run scheduled task
      * @return mixed
