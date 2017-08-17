@@ -402,7 +402,7 @@ class Logger {
                 $log_name,
                 $search,
                 self::show_list($log_files, $name, $search),
-                self::formatLog(self::getContent($name, $log_name))
+                self::formatLog(self::getContent($name, $search))
             );
         } else {
             return self::nothing($search);
@@ -439,7 +439,6 @@ class Logger {
     public static function showContent($log_name, $search=null) {
         return self::formatLog(self::getContent($log_name, $search));
     }
-
 
     /**
      * Get all log files for a particular instance
@@ -541,7 +540,7 @@ class Logger {
         return "
             <div class='log_list_item_container {$active}' id='{$item}'>
                 <div class='log_info'><a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=showContent&log_name={$item}{$search}' class='show_log'><span class='log_name'>{$name}</span> - <span class='log_date'>{$date}</span></a></div>
-                <div class='log_icon'><a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=delete={$name}&file={$item}' class='delete_log'><img src='" . URL_TO_IMG . "trash.png' alt='Delete log'></a></div>
+                <div class='log_icon'><a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=delete&file={$item}' class='delete'><img src='" . URL_TO_IMG . "trash.png' alt='Delete log'></a></div>
             </div>
         ";
     }
