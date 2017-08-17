@@ -90,16 +90,6 @@ if (!empty($_POST['deleteLog'])) {
     exit;
 }
 
-// Get scheduled task's logs
-if (!empty($_POST['show_log'])) {
-    $name = (isset($_POST['name'])) ? htmlspecialchars($_POST['name']) : htmlspecialchars($_POST['show_log']);
-    $search = (isset($_POST['search'])) ? htmlspecialchars($_POST['search']) : null;
-    $result = Logger::show($name, $search);
-    if (is_null($result)) $result = 'Nothing to display';
-    echo json_encode($result);
-    exit;
-}
-
 // Delete scheduled task's logs
 if (!empty($_POST['delete_log'])) {
     $name = htmlspecialchars($_POST['delete_log']);

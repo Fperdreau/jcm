@@ -585,7 +585,8 @@ class Tasks extends BaseModel {
                         <div class='plugTime' id='cron_time_$cronName'>$datetime</div>
                     </div>
                     <div class='optBar'>
-                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' data-action='getOptions' data-destination='.plugOpt#{$cronName}' data-name='{$cronName}'></div>
+                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' 
+                        data-action='getOptions' data-destination='.plugOpt#{$cronName}' data-name='{$cronName}'></div>
                         {$install_btn}
                         {$activate_btn}
                         {$runBtn}
@@ -645,8 +646,9 @@ class Tasks extends BaseModel {
     
                         <div class='plugOpt' id='$cronName'></div>
                         <div>
-                            <a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=manager&log_name=Tasks&search={$cronName}' class='loadContent' data-controller='Logger' data-action='manager' data-params='Tasks,{$cronName}' data-destination='.log_target_container#{$cronName}' id='{$cronName}'>
-                            <input type='submit' value='Show logs' id='{$cronName}' />
+                            <a href='php/router.php?controller=Logger&action=getManager&log_name=Tasks&search={$cronName}' 
+                            class='loadContent' data-destination='.log_target_container#{$cronName}' id='{$cronName}'>
+                            <input type='submit' value='Show logs'/>
                             </a>
                         </div>
 
