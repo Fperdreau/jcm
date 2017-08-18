@@ -71,36 +71,6 @@ if (!empty($_POST['delete'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Logs manager
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Get scheduled task's logs
-if (!empty($_POST['showLog'])) {
-    $name = htmlspecialchars($_POST['showLog']);
-    $result = Tasks::showLog($name);
-    if (is_null($result)) $result = 'Nothing to display';
-    echo json_encode($result);
-    exit;
-}
-
-// Delete scheduled task's logs
-if (!empty($_POST['deleteLog'])) {
-    $name = htmlspecialchars($_POST['deleteLog']);
-    $result['status'] = Tasks::deleteLog($name);
-    echo json_encode($result);
-    exit;
-}
-
-// Delete scheduled task's logs
-if (!empty($_POST['delete_log'])) {
-    $name = htmlspecialchars($_POST['delete_log']);
-    $file = htmlspecialchars($_POST['file']);
-    $result['status'] = Logger::delete($file);
-    $result['content'] = Logger::manager($name);
-    echo json_encode($result);
-    exit;
-}
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DigestMaker/ReminderMaker
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Update DigestMaker sections
@@ -1020,16 +990,4 @@ if (!empty($_POST['set_modal'])) {
     $result = $Modal->set_modal($_POST);
     echo json_encode($result);
     exit;
-}
-
-// Get dialog box
-if (!empty($_POST['get_box'])) {
-    $action = htmlspecialchars($_POST['action']) . '_box';
-    if (method_exists("Modal", $action)) {
-        $result = Modal::$action($_POST);
-        echo json_encode($result);
-        exit;
-    } else {
-        throw new Exception("'{$action}' method does not exist for class Modal'");
-    }
 }

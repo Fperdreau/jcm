@@ -390,19 +390,21 @@ class Logger {
 
     /**
      * Render logs manager (view and search in logs)
-     * @param string $search
      * @param null|string $log_name
+     * @param string|null $search
      * @return string
      */
-    public static function getManager($log_name, $search) {
+    public static function getManager($log_name, $search=null) {
         $log_files = self::get_logs($log_name);
         if (!empty($log_files)) {
+            // Log file name
             $name = $log_files[0];
+
             return self::manager(
+                $name,
                 $log_name,
-                $search,
                 self::show_list($log_files, $name, $search),
-                self::formatLog(self::getContent($name, $search))
+                self::getContent($name, $search)
             );
         } else {
             return self::nothing($search);
@@ -414,7 +416,7 @@ class Logger {
      * Get log content
      * @param string $name: log file name
      * @param string $search : search
-     * @return array : logs
+     * @return string : logs
      */
     private static function getContent($name, $search=null) {
         $logs = array();
@@ -427,7 +429,11 @@ class Logger {
                 $logs[] = $line[0];
             }
         }
-        return $logs;
+        if (empty($logs)) {
+            return self::emptySearch();
+        } else {
+            return self::formatLog($logs);
+        }
     }
 
     /**
@@ -437,7 +443,7 @@ class Logger {
      * @return string
      */
     public static function showContent($log_name, $search=null) {
-        return self::formatLog(self::getContent($log_name, $search));
+        return self::getContent($log_name, $search);
     }
 
     /**
@@ -457,27 +463,26 @@ class Logger {
 
     /**
      * Renders logs manager
-     * @param string $log_name: Log's file name
-     * @param string $class: search
-     * @param string $list: list of log files
-     * @param string $logs: log content
+     * @param string $log_name : Log's file name
+     * @param string $list : list of log files
+     * @param string $logs : log content
+     * @param null $id: container id (optional)
      * @return string
      */
-    private static function manager($log_name, $class, $list, $logs) {
+    private static function manager($log_name, $id, $list, $logs) {
         return "
-            <div class='log_container' id='{$class}'>
+            <div class='log_container' id='{$id}'>
                 <div class='log_search_bar'>
-                    <form method='post' action='" . URL_TO_APP . "php/router.php?controller=Router&action=show&name={$log_name}&search=$class'>
+                    <form method='post' action='php/router.php?controller=Logger&action=showContent&log_name={$log_name}&search='>
                         <input type='search' name='search' value='' placeholder='Search...'/>
-                        <input type='hidden' name='name' value='$class'/>
-                        <input type='button' class='search_log' id='{$class}' />
+                        <input type='hidden' name='name' value='$log_name'/>
+                        <input type='button' class='search_log' id='{$id}' />
                     </form>
                 </div>
                 <div class='log_files_container'>
                     <div class='log_list_container'>{$list}</div>
-                    <div class='log_content_container' id='{$class}'>{$logs}</div>
+                    <div class='log_content_container' id='{$id}'>{$logs}</div>
                 </div>
-
             </div>";
     }
 
@@ -507,18 +512,22 @@ class Logger {
             ";
     }
 
+    public static function emptySearch() {
+        return "<div>No result to show</div>";
+    }
+
     /**
      * Render list of log files
-     * @param $data
-     * @param null $selected
-     * @param null $log_name
+     * @param array $data: list of log files
+     * @param null|string $selected: currently selected log
+     * @param null|string $search: search query
      * @return null|string
      */
-    public static function show_list($data, $selected=null, $log_name=null) {
+    public static function show_list(array $data, $selected=null, $search=null) {
         $content = null;
         foreach ($data as $key=>$item) {
             $active = (!is_null($selected) & $item == $selected);
-            $content .= self::show_in_list($item, $active, $log_name);
+            $content .= self::show_in_list($item, $active, $search);
         }
         return $content;
     }
@@ -539,8 +548,8 @@ class Logger {
         $search = (!is_null($search)) ? "&search={$search}" : null;
         return "
             <div class='log_list_item_container {$active}' id='{$item}'>
-                <div class='log_info'><a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=showContent&log_name={$item}{$search}' class='show_log'><span class='log_name'>{$name}</span> - <span class='log_date'>{$date}</span></a></div>
-                <div class='log_icon'><a href='" . URL_TO_APP . "php/router.php?controller=Logger&action=delete&file={$item}' class='delete'><img src='" . URL_TO_IMG . "trash.png' alt='Delete log'></a></div>
+                <div class='log_info'><a href='php/router.php?controller=Logger&action=showContent&log_name={$item}{$search}' class='show_log' data-destination='.log_content_container#{$name}'><span class='log_name'>{$name}</span> - <span class='log_date'>{$date}</span></a></div>
+                <div class='log_icon'><a href='php/router.php?controller=Logger&action=delete&file={$item}' class='delete'><img src='" . URL_TO_IMG . "trash.png' alt='Delete log'></a></div>
             </div>
         ";
     }

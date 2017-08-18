@@ -20,23 +20,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-$manager = Logger::manager(APP_NAME);
-
 $result = "
     <div class='page_header'>
     <p class='page_description'>You can find the logs of Journal Club Manager below.</p>
     </div>
+   
+    " . Template::section(array('body'=>Logger::getManager(APP_NAME), 'title'=>'Logs' )) . "
     
-    <section>
-        <h2>Logs</h2>
-        <div class='section_content'>
-            {$manager}
-        </div>
-    </section>
-    
-    <div class='feedback'></div>
-
 ";
 
 echo $result;

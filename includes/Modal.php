@@ -36,7 +36,7 @@ class Modal {
      * @param array $post
      * @return bool|string
      */
-    public function get_modal(array $post) {
+    public static function get_modal(array $post) {
         $controllerName = htmlspecialchars($post['controller']);
         $action = htmlspecialchars($post['action']);
         $params = isset($post['params']) ? explode(',', htmlspecialchars($post['params'])) : array();
@@ -52,11 +52,26 @@ class Modal {
     }
 
     /**
+     * Get dialog box
+     * @param $box
+     * @return mixed
+     * @throws Exception
+     */
+    public static function get_box($box) {
+        $action = $box . '_box';
+        if (method_exists("Modal", $action)) {
+            return Modal::$action($_POST);
+        } else {
+            throw new Exception("'{$action}' method does not exist for class Modal'");
+        }
+    }
+
+    /**
      * Set modal content
      * @param array $post
      * @return bool|string
      */
-    public function set_modal(array $post) {
+    public static function set_modal(array $post) {
         return self::section($post);
     }
 

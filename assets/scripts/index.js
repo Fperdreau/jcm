@@ -56,14 +56,23 @@ var get_submission_form = function (data) {
 /**
  * Load content into target selector
  * @param el: current selector
+ * @param {undefined|function} final_callback
  */
-function loadContent(el) {
+function loadContent(el, final_callback) {
     var data = el.data();
     data['loadContent'] = true;
+
     var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
 
-    var url = el.attr('href') !== undefined ? el.attr('href') : 'php/form.php';
-    // First we remove any existing submission form
+    // Get target url
+    if (el.attr('href') !== undefined) {
+        var url = el.attr('href');
+    } else if (el.data('url') !== undefined) {
+        url = el.data('url');
+    } else {
+        url = 'php/form.php';
+    }
+
     var callback = function (result) {
         var html = result.content === undefined ? result : result.content;
         destination
@@ -71,10 +80,15 @@ function loadContent(el) {
             .css('visibility', 'visible')
             .fadeIn(200);
 
+        // Load WYSIWYG editor
         loadWYSIWYGEditor();
 
         // Load JCM calendar
         loadCalendarSubmission();
+
+        if (final_callback !== undefined) {
+            final_callback(result);
+        }
     };
 
     processAjax(destination, data, callback, url);
@@ -122,10 +136,8 @@ function confirmation_box(el, txt, txt_btn, callback) {
     // Render section
     jQuery.ajax({
         'type': 'post',
-        'url': 'php/form.php',
+        'url': 'php/router.php?controller=Modal&action=get_box&box=confirmation',
         'data': {
-            get_box: true,
-            action: "confirmation",
             button_txt: txt_btn,
             text: txt
         },
@@ -1216,27 +1228,16 @@ $(document).ready(function () {
          */
         .on('click', '.show_log', function(e) {
             e.preventDefault();
-            var name = $(this).closest('.log_container').attr('id');
-            var url = $(this).attr('href');
-            var div = $('.log_content_container#' + name);
-            $('.log_list_item_container').each(function() {
-                $(this).removeClass('log_list_active');
-            });
-            var item = $(this).closest('.log_list_item_container');
-            jQuery.ajax({
-                type: 'get',
-                url: url,
-                beforeSend: function() {
-                    loadingDiv(div);
-                },
-                complete: function() {
-                    removeLoading(div);
-                },
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    div.html(json);
-                    item.addClass('log_list_active');
-                }
+            var el = $(this);
+            loadContent(el, function(json) {
+                $('.log_list_item_container').each(function() {
+                    $(this).removeClass('log_list_active');
+                });
+                var name = el.closest('.log_container').attr('id');
+                //var div = $(el.data('destination'));
+                var item = el.closest('.log_list_item_container');
+                //div.html(json);
+                item.addClass('log_list_active');
             });
         })
 
@@ -1247,78 +1248,11 @@ $(document).ready(function () {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            var name = $(this).attr('id');
-            var url = form.attr('action');
-            var div = $('.log_content_container#' + name);
-            jQuery.ajax({
-                type: 'get',
-                url: url,
-                data: form.serializeArray(),
-                beforeSend: function() {
-                    loadingDiv(div);
-                },
-                complete: function() {
-                    removeLoading(div);
-                },
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    div.html(json);
-                }
+            input.data({
+                'url': form.attr('action') + form.find("input[name='search']").val(),
+                'destination': ".log_content_container#" + $(this).attr('id')
             });
-        })
-
-        /**
-         * Delete  log file
-         */
-        .on('click', '.delete_log', function(e) {
-            e.preventDefault();
-            var div = $(this).closest('.log_container').parent();
-            var url = $(this).attr('href');
-            jQuery.ajax({
-                type: 'get',
-                url: url,
-                beforeSend: function() {
-                    loadingDiv(div);
-                },
-                complete: function() {
-                    removeLoading(div);
-                },
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    if (json.status === true) {
-                        div.html(json.content);
-                    }
-                }
-            });
-        })
-
-        /**
-         * Show log file
-         */
-        .on('click', '.show_log_manager', function(e) {
-            e.preventDefault();
-            var name = $(this).attr('id');
-            var div = $('.log_target_container#' + name);
-            var url = $(this).attr('href');
-            if (!div.is(':visible')) {
-
-                jQuery.ajax({
-                    type: 'get',
-                    url: url,
-                    beforeSend: function () {
-                        loadingDiv(div);
-                    },
-                    complete: function () {
-                        removeLoading(div);
-                    },
-                    success: function (data) {
-                        var json = jQuery.parseJSON(data);
-                        div.html(json).toggle();
-                    }
-                });
-            } else {
-                div.toggle();
-            }
+            loadContent(input);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1741,15 +1675,14 @@ $(document).ready(function () {
         .on('click', '.delete', function(e) {
             e.preventDefault();
             var el = $(this);
+            var url = (el.data('controller') !== undefined) ?
+                'php/router.php?controller=' + el.data('controller') + '&action=delete' : el.attr('href');
             confirmation_box(el, 'Are you sure you want to delete this item?', 'Delete', function () {
                 jQuery.ajax({
-                    url: 'php/form.php',
+                    url: url,
                     type: 'post',
                     data: {
-                        'controller': el.data('controller'),
-                        'action': 'delete',
-                        'id': el.data('id'),
-                        'delete': true
+                        'id': el.data('id')
                     },
                     async: true,
                     success: function(ajax) {
