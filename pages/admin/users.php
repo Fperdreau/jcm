@@ -24,14 +24,8 @@ $result = "
 <div class='page_header'>
 <p class='page_description'>Here you can modify users status and activate, deactivate or delete user accounts.</p>
 </div>
-<section>
-    <h2>Users List</h2>
-    <div class='section_content'>
-    <div class='feedback'></div>
-    <div class='table_container' id='user_list'>
-        " . $user->generateuserslist() . "
-    </div>
-    </div>
-</section>";
+" . Template::section(array('body'=>"<div class='table_container' id='user_list'>
+            " . $user->generateuserslist() . "
+        </div>", 'title'=>'Users list' ));
 
 echo $result;

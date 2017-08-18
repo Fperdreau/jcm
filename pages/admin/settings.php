@@ -20,16 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-$user = new Users($_SESSION['username']);
-$App = App::getInstance();
-
 $Settings = new Settings();
-
-$Media = new Media();
-$MailManager = new MailManager();
-$Lab = new Lab();
-
 $result = "    
     <div class='section_container'>
         " . $Settings->index() . "

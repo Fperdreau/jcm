@@ -20,9 +20,6 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-$user = new Users($_SESSION['username']);
-
 // Plugins
 $plugins = new Plugins();
 $plugin_list = $plugins->show();
@@ -32,11 +29,7 @@ $result = "
     Your plugins must be located in the 'plugins' directory in order to be automatically loaded by the Journal Club Manager.</p>
     </div>
     
-    <div class='feedback'></div>
-    <section>
-        <h2>Plugins list</h2>
-        <div class='section_content'>{$plugin_list}</div>
-    </section>
+    " . Template::section(array('body'=>$plugins->show(), 'title'=>'Plugins list' )) . "
 ";
 
 echo $result;

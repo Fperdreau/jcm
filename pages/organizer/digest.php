@@ -28,14 +28,9 @@ $result = "
     <div class='page_header'>
     <p class='page_description'>Here you can customize and preview the weekly digest that will be sent to the JCM members.</p>
     </div>
-    <section>
-        <h2>Digests Sections</h2>
-        <div class='section_content'>{$section_content}
-            <div class='submit_btns'>
+    " . Template::section(array('body'=>$DigestMaker->edit() . "<div class='submit_btns'>
             <input type='submit' value='Preview' class='mail_preview' id='digest'/>
-            </div>
-        </div>
-    </section>
+            </div>", 'title'=>'Digests sections' )) . "
     <section class='mail_preview_container' style='display: none;'>
     </section> ";
 

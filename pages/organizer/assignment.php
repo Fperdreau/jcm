@@ -29,9 +29,7 @@ $result = "
     <div class='page_header'>
     <p class='page_description'>List of members's number of assignments per sessions' type.</p>
     </div>
-    <section>
-        <h2>Members list</h2>
-        <div class='section_content'>{$section_content}</div>
-    </section>";
+    " . Template::section(array('body'=>$Assignment->showAll(), 'title'=>'Members list' )) . "
+";
 
 echo $result;

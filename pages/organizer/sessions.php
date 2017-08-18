@@ -34,11 +34,8 @@ $result = "
     <div class='section_left'>
         " . Session::default_settings_form($Session->getSettings()) . "
     
-        <section>
-            <h2>Session/Presentation</h2>
-            <div class='section_content'>
-                
-                <div id='session_types_options'>
+        " . Template::section(array('body'=>"
+        <div id='session_types_options'>
                     <h3>Sessions</h3>
                     <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
                         <div class='form-group'>
@@ -73,16 +70,12 @@ $result = "
                     <div class='feedback' id='feedback_pres'></div>
                     <div class='type_list' id='presentation'>{$presentation_types['types']}</div>
                 </div>
-                
-            </div>
-        </section>
+        ", 'title'=>'Session/Presentation' )) . "
     </div>
 
     <div class='section_right'>
-        <section>
-            <h2>Session Manager</h2>
-            " . $Session->getSessionManager() . "
-        </section>
+        " . Template::section(array('body'=>$Session->getSessionManager(), 'title'=>'Session Manager' )) . "
+
     </div>
 </div>";
 

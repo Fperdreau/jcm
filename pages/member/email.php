@@ -26,7 +26,7 @@ $MailManager = new MailManager();
 $contactForm = $MailManager->getContactForm($recipients_list);
 
 // Send mail
-$result = "
+echo "
     <div class='page_header'>
     <p class='page_description'>Here you can send emails along with attached files to other JCM members.</p>
     </div>
@@ -34,5 +34,3 @@ $result = "
     <section>
         <div class='section_content'>{$contactForm}</div>
     </section>";
-
-echo $result;

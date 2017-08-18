@@ -21,5 +21,4 @@
  */
 
 $user = new Users();
-$result = $user->get_password_form();
-echo $result;
+echo $user->get_password_form();

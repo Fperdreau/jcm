@@ -21,10 +21,8 @@
  */
 
 // Show an empty form
-$user = new Users($_SESSION['username']);
 $post = new Posts();
-
-$options = $post->get_selection_list($user);
+$options = $post->get_selection_list(new Users($_SESSION['username']));
 
 $result = "
     <div class='page_header'>
@@ -36,7 +34,8 @@ $result = "
         <h2>Add/Edit News</h2>
         <div class='section_content'>
             <div class='action_btns'>
-                <input type='button' id='submit' class='loadContent' data-controller='Posts' data-action='editor' data-destination='.post_edit_container' value='Add a news'/>
+                <input type='button' id='submit' class='loadContent' data-controller='Posts' data-action='editor' 
+                data-destination='.post_edit_container' value='Add a news'/>
             </div>
             <div class='post_edit_container'></div>
             <div class='feedback'></div>

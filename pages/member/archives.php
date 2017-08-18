@@ -21,17 +21,12 @@
  */
 
 $Presentation = new Presentation();
-$years = $Presentation->generateYearsList();
 
-$result = "    
+echo "    
     <section>
         <div class='section_content tool_bar'>
-            <div class='feedback'></div>
-                " . $Presentation->generateYearsList() . "
-            </div>
+            " . $Presentation->generateYearsList() . "
         </div>
     </section>
     
     <div id='archives_list'>" . $Presentation->getAllList() . "</div>";
-
-echo $result;

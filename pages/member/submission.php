@@ -20,13 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Declare classes
-if (!Auth::is_logged()) {
-    echo json_encode(Page::login_required());
-    exit();
-}
-
-$username = (isset($_POST['Users'])) ? $_POST['Users']:$_SESSION['username'];
+$username = (isset($_POST['Users'])) ? $_POST['Users'] : $_SESSION['username'];
 $user = new Users($username);
 
 // Get options
@@ -57,7 +51,7 @@ if (isset($_POST['op'])) {
     } elseif ($op == 'wishpick') {
         if (!empty($_POST['id'])) {
             $id_pres = htmlspecialchars($_POST['id']);
-            $Presentation = new Suggestion($id_pres);
+            $Presentation = new Suggestion();
             $selectopt = $Presentation->generate_selectwishlist('.submission_container');
         } else {
             $Presentation = null;
