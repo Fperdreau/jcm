@@ -136,7 +136,7 @@ function confirmation_box(el, txt, txt_btn, callback) {
     // Render section
     jQuery.ajax({
         'type': 'post',
-        'url': 'php/router.php?controller=Modal&action=get_box&box=confirmation',
+        'url': 'php/router.php?controller=Modal&action=get_box&type=confirmation',
         'data': {
             button_txt: txt_btn,
             text: txt
@@ -193,12 +193,10 @@ function dialog_box(el, txt, title, callback) {
     // Render section
     jQuery.ajax({
         'type': 'post',
-        'url': 'php/form.php',
+        'url': 'php/router.php?controller=Modal&action=get_box&type=dialog',
         'data': {
-            get_box: true,
-            action: 'dialog',
             text: txt,
-            title: title,
+            title: title
         },
         async: true,
         success: function(json) {
@@ -1399,9 +1397,9 @@ $(document).ready(function () {
         // Modify session
         .on('click','.modify_session',function (e) {
             e.preventDefault();
-            var form = $(this).length > 0 ? $($(this)[0].form) : $();
-            var session_id = form.find('input[name="id"]').val();
             var input = $(this);
+            var form = input.length > 0 ? $(input[0].form) : $();
+            var session_id = form.find('input[name="id"]').val();
             var url = form.attr('action');
 
             var process = function(operation) {
@@ -1427,7 +1425,6 @@ $(document).ready(function () {
                 data: {'id': session_id},
                 async: true,
                 success: function(data) {
-
                     if (jQuery.parseJSON(data) === true) {
                         trigger_modal(input, false);
                         var msg = "<p>This event is recurrent</p>. " +
