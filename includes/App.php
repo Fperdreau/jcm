@@ -374,7 +374,6 @@ class App {
                         <div class='submit_btns'>
                             <input type='submit' name='modify' value='Modify' class='processform'>
                         </div>
-                        <input type='hidden' name='config_modify' value='true'/>
                         <div class='form-group'>
                             <select name='status'>
                                 <option value='{$settings['status']}' selected>{$settings['status']}</option>
