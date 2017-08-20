@@ -158,7 +158,9 @@ function confirmation_box(el, txt, txt_btn, callback) {
 
             // User has confirmed
             section.find("input[name='confirmation']").click(function() {
-                callback();
+                if (callback !== undefined) {
+                    callback();
+                }
             });
 
             // User cancelled
