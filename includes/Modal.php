@@ -53,12 +53,12 @@ class Modal {
 
     /**
      * Get dialog box
-     * @param $box
+     * @param $type
      * @return mixed
      * @throws Exception
      */
-    public static function get_box($box) {
-        $action = $box . '_box';
+    public static function get_box($type) {
+        $action = $type . '_box';
         if (method_exists("Modal", $action)) {
             return Modal::$action($_POST);
         } else {
