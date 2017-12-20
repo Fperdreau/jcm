@@ -121,7 +121,7 @@ class Router {
     private static function execute() {
         try {
             self::instantiate();
-            return call_user_func_array(array(self::$controller, self::$action), self::$argsOrdered);
+            return call_user_func(array(self::$controller, self::$action), self::$argsOrdered);
         } catch (Exception $e) {
             Logger::getInstance(APP_NAME)->error($e);
             return array('status'=>false);
@@ -130,7 +130,7 @@ class Router {
 
     private static function executeStatic() {
         try {
-            return call_user_func_array(self::$controller . "::" . self::$action, self::$argsOrdered);
+            return call_user_func(self::$controller . "::" . self::$action, self::$argsOrdered);
         } catch (Exception $e) {
             Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return array('status'=>false);
