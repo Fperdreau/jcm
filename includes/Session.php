@@ -1529,11 +1529,12 @@ class Session extends BaseModel {
      * @return string
      */
     public static function dayContainer(array $data) {
+        $date = date('d M Y', strtotime($data['date']));
         return "
             <div class='day_container'>
                 <!-- Day header -->
                 <div class='day_header'>
-                    <div class='day_date'>{$data['date']}</div>
+                    <div class='day_date'>{$date}</div>
                 </div>
                 
                 <!-- Day content -->
