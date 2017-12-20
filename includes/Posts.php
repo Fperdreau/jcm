@@ -28,8 +28,13 @@
  * Class Posts
  *
  * Handle creation of posts
+ *
+ * @package Include
+ * @author  Florian Perdreau <fp@florianperdreau.fr>
+ * @license AGPL <http://www.gnu.org/licenses/>
  */
-class Posts extends BaseModel {
+class Posts extends BaseModel
+{
 
     public $id = "";
     public $title = "";
@@ -42,6 +47,7 @@ class Posts extends BaseModel {
 
     /**
      * Constructor
+     * 
      * @param null $id
      */
     public function __construct($id=null) {
@@ -54,6 +60,8 @@ class Posts extends BaseModel {
 
     /**
      * Register into DigestMaker table
+     * 
+     * @return void
      */
     public static function registerDigest() {
         $DigestMaker = new DigestMaker();
@@ -62,6 +70,7 @@ class Posts extends BaseModel {
 
     /**
      * Add a post to the database
+     * 
      * @param array $post
      * @return bool|string
      */
@@ -92,6 +101,7 @@ class Posts extends BaseModel {
 
     /**
      * Edit Post
+     * 
      * @param array $data
      * @return mixed
      */
