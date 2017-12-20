@@ -30,7 +30,7 @@ class App {
     private $db;
 
     /**
-     * AppConfig instance
+     * Settings instance
      * @var $config Settings
      */
     private static $config;
@@ -132,30 +132,11 @@ class App {
         /**
          * Show PHP errors (debug mode only)
          */
-        if ($debug) {
-            error_reporting(E_ALL | E_STRICT);
-            ini_set('display_errors', true);
-        } else {
-            ini_set('display_errors', false);
-        }
+        self::setDebug($debug);
 
-        /**
-         * Define paths
-         */
-        if(!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
-        if(!defined('APP_NAME')) define('APP_NAME', basename(dirname(__DIR__)));
-        if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(dirname(__FILE__)) . DS);
-        if(!defined('PATH_TO_INCLUDES')) define('PATH_TO_INCLUDES', PATH_TO_APP. DS . 'includes' . DS);
-        if(!defined('PATH_TO_ASSETS')) define('PATH_TO_ASSETS', PATH_TO_APP. DS . 'assets' . DS);
-        if(!defined('PATH_TO_IMG')) define('PATH_TO_IMG', PATH_TO_ASSETS . 'images' . DS);
-        if(!defined('PATH_TO_PHP')) define('PATH_TO_PHP', PATH_TO_APP . DS . 'php' . DS);
-        if(!defined('PATH_TO_PAGES')) define('PATH_TO_PAGES', PATH_TO_APP . DS .'pages' . DS);
-        if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP . DS . 'config' . DS);
-        if(!defined('PATH_TO_TASKS')) define('PATH_TO_TASKS', PATH_TO_APP . DS . 'cronjobs' . DS);
-        if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'Plugins' . DS);
-
-        if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
-        if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");
+        // Set paths to application
+        self::setPaths();
+        
         // Register autoloader
         require PATH_TO_INCLUDES . DS . 'Autoloader.php';
         Autoloader::register();
@@ -171,7 +152,41 @@ class App {
              */
             self::getAppUrl();
         }
+    }
 
+    /**
+    * Set Php errors
+    * @param bool $debug: debug mode if True
+    * @return void
+    */
+    private static function setDebug($debug=false) {
+        if ($debug) {
+            error_reporting(E_ALL | E_STRICT);
+            ini_set('display_errors', true);
+        } else {
+            ini_set('display_errors', false);
+        }
+    }
+
+    /**
+    * Set paths to application components
+    * @return void
+    */
+    private static function setPaths() {
+         if(!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+         if(!defined('APP_NAME')) define('APP_NAME', basename(dirname(__DIR__)));
+         if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(dirname(__FILE__)) . DS);
+         if(!defined('PATH_TO_INCLUDES')) define('PATH_TO_INCLUDES', PATH_TO_APP. DS . 'includes' . DS);
+         if(!defined('PATH_TO_ASSETS')) define('PATH_TO_ASSETS', PATH_TO_APP. DS . 'assets' . DS);
+         if(!defined('PATH_TO_IMG')) define('PATH_TO_IMG', PATH_TO_ASSETS . 'images' . DS);
+         if(!defined('PATH_TO_PHP')) define('PATH_TO_PHP', PATH_TO_APP . DS . 'php' . DS);
+         if(!defined('PATH_TO_PAGES')) define('PATH_TO_PAGES', PATH_TO_APP . DS .'pages' . DS);
+         if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP . DS . 'config' . DS);
+         if(!defined('PATH_TO_TASKS')) define('PATH_TO_TASKS', PATH_TO_APP . DS . 'cronjobs' . DS);
+         if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'Plugins' . DS);
+ 
+         if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
+         if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");
     }
 
     /**
