@@ -363,7 +363,6 @@ function AnimateBack(el) {
                 }
             };
 
-            console.log(data, self.element);
             this._callAjax(data, callback);
         }
 
