@@ -68,15 +68,14 @@ class Media extends BaseModel{
     }
 
     /**
-     * Delete all files corresponding to the actual presentation
-     * @param string $pres_id : unique id of presentation
+     * Delete all files corresponding to a presentation
+     * @param string $objId : unique id of object
      * @param string $controller: reference controller name
      * @return bool
      */
-    public function delete_files($pres_id, $controller) {
-        foreach ($this->all(array('fileid'=>$pres_id, 'obj'=>$controller)) as $key=>$item) {
-            $up = new Media();
-            $result = $up->delete(array('fileid'=>$item['fileid']));
+    public function delete_files($objId, $controller) {
+        foreach ($this->all(array('presid'=>$objId, 'obj'=>$controller)) as $key=>$item) {
+            $result = $this->delete(array('fileid'=>$item['fileid']));
             if (!$result['status']) {
                 return false;
             }
