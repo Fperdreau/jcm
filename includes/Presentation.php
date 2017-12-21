@@ -1160,7 +1160,7 @@ class Presentation extends BaseModel {
             <div class='{$style}'>
                 <div class='submitMenuContainer'>
                     <div class='submitMenuSection'>
-                        <a href='" . App::getAppUrl() . 'index.php?page=submission&op=edit' . "' 
+                        <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=edit' . "' 
                         class='{$modal}' data-controller='Presentation' data-action='get_form'
                         data-destination='.submission_container' data-params='{$destination}' data-operation='edit'>
                            <div class='icon_container'>
@@ -1170,7 +1170,7 @@ class Presentation extends BaseModel {
                        </a>
                     </div>
                     <div class='submitMenuSection'>
-                        <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
+                        <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=suggest' . "' 
                         class='{$modal}' data-controller='Suggestion' data-action='get_form' data-params='{$destination}'
                         data-destination='.submission_container' data-operation='edit'>
                            <div class='icon_container'>
@@ -1180,7 +1180,7 @@ class Presentation extends BaseModel {
                         </a>
                     </div>
                     <div class='submitMenuSection'>
-                        <a href='" . App::getAppUrl() . 'index.php?page=submission&op=wishpick' . "' 
+                        <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=wishpick' . "' 
                         class='{$modal}' data-controller='Suggestion' data-action='get_suggestion_list' 
                         data-destination='.submission_container' data-params='{$destination}'>
                             <div class='icon_container'>
