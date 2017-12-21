@@ -1,6 +1,9 @@
 #ignore PhpStorm folder
 /.idea/
 
+#ignore vscode folder
+/.vscode/
+
 #ignore logs files
 *.txt
 
