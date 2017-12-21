@@ -226,73 +226,11 @@ if (!empty($_POST['get_calendar_param'])) {
     $Sessions = new Session();
     $force_select = htmlspecialchars($_POST['get_calendar_param']) === 'edit';
 
-    $formatdate = array();
-    $nb_pres = array();
-    $type = array();
-    $status = array();
-    $slots = array();
-    $all = array();
-    $session_ids = array();
-
-    foreach($Sessions->all() as $session_id=>$session_data) {
-        // Count how many presentations there are for this day
-        $nb = 0;
-        foreach ($session_data as $key=>$data) {
-            $nb += !is_null($data['id_pres']) ? 1 : 0;
-        }
-        $type[] = $session_data[0]['type'];
-        $status[] = $session_data[0]['status'];
-        $slots[] = $session_data[0]['slots'];
-        $formatdate[] = date('d-m-Y', strtotime($session_data[0]['date']));
-        $nb_pres[] = $nb;
-        $session_ids[] = $session_id;
+    try {
+        $result = $Session->getCalendarParams($force_select);
+    } catch (Exception $e) {
     }
 
-    // Get user's availability and assignments
-    if (Auth::is_logged()) {
-        $username = $_SESSION['username'];
-        $Availability = new Availability();
-        $availabilities = array();
-        foreach ($Availability->all(array('username'=>$username)) as $info) {
-            // Format date
-            $fdate = explode("-", $info['date']);
-            $day = $fdate[2];
-            $month = $fdate[1];
-            $year = $fdate[0];
-            $availabilities[] = "$day-$month-$year";
-        }
-
-        // Get user's assignments
-        $Presentation = new Presentation();
-        $assignments = array();
-        foreach ($Presentation->getList($username) as $row=>$info) {
-            // Format date
-            $fdate = explode("-", $info['date']);
-            $day = $fdate[2];
-            $month = $fdate[1];
-            $year = $fdate[0];
-            $assignments[] = "$day-$month-$year";
-        }
-        
-    } else {
-        $assignments = array();
-        $availabilities = array();
-    }
-    
-    $result = array(
-        "Assignments"=>$assignments,
-        "Availability"=>$availabilities,
-        "max_nb_session"=>$Sessions->getSettings('max_nb_session'),
-        "jc_day"=>$Sessions->getSettings('jc_day'),
-        "today"=>date('d-m-Y'),
-        "booked"=>$formatdate,
-        "nb"=>$nb_pres,
-        "status"=>$status,
-        "slots"=>$slots,
-        "renderTypes"=>$type,
-        "force_select"=>$force_select,
-        "session_id"=>$session_ids
-    );
     echo json_encode($result);
     exit;
 }
@@ -313,11 +251,11 @@ if (!empty($_POST['update_user_availability'])) {
             $speaker = new Users($username);
             $Assignment = new Assignment();
             $session = new Session($date);
-            $Presentation = new Presentation($data['id_pres']);
+            $Presentation = new Presentation($data['id']);
             $info['type'] = $session->type;
             $info['date'] = $session->date;
-            $info['presid'] = $data['id_pres'];
-            $result['status'] = $Presentation->delete_pres($data['id_pres']);
+            $info['presid'] = $data['id'];
+            $result['status'] = $Presentation->delete_pres($data['id']);
             if ($result['status']) {
                 $result['status'] = $Assignment->updateAssignment($speaker, $info, false, true);
             }
@@ -927,7 +865,7 @@ if (!empty($_POST['modSpeaker'])) {
             $result['status'] = true;
         }
         if ($result['status']) {
-            if ($Presentation->update(array('username'=>$speaker->username), array('id_pres'=>$presid))) {
+            if ($Presentation->update(array('username'=>$speaker->username), array('id'=>$presid))) {
                 $result['msg'] = "{$speaker->fullname} is the new speaker!";
                 $result['status'] = true;
             } else {

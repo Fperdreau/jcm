@@ -881,6 +881,82 @@ class Session extends BaseModel {
         }
     }
 
+    /**
+     * Get calendar data
+     *
+     * @param bool $force_select
+     * @return array
+     * @throws Exception
+     */
+    public function getCalendarParams($force_select=True) {
+        $formatdate = array();
+        $nb_pres = array();
+        $type = array();
+        $status = array();
+        $slots = array();
+        $session_ids = array();
+
+        foreach($this->all() as $session_id=>$session_data) {
+            // Count how many presentations there are for this day
+            $nb = 0;
+            foreach ($session_data as $key=>$data) {
+                $nb += !is_null($data['id_pres']) ? 1 : 0;
+            }
+            $type[] = $session_data[0]['type'];
+            $status[] = $session_data[0]['status'];
+            $slots[] = $session_data[0]['slots'];
+            $formatdate[] = date('d-m-Y', strtotime($session_data[0]['date']));
+            $nb_pres[] = $nb;
+            $session_ids[] = $session_id;
+        }
+
+        // Get user's availability and assignments
+        if (Auth::is_logged()) {
+            $username = $_SESSION['username'];
+            $Availability = new Availability();
+            $availabilities = array();
+            foreach ($Availability->all(array('username'=>$username)) as $info) {
+                // Format date
+                $fdate = explode("-", $info['date']);
+                $day = $fdate[2];
+                $month = $fdate[1];
+                $year = $fdate[0];
+                $availabilities[] = "$day-$month-$year";
+            }
+
+            // Get user's assignments
+            $Presentation = new Presentation();
+            $assignments = array();
+            foreach ($Presentation->getList($username) as $row=>$info) {
+                // Format date
+                $fdate = explode("-", $info['date']);
+                $day = $fdate[2];
+                $month = $fdate[1];
+                $year = $fdate[0];
+                $assignments[] = "$day-$month-$year";
+            }
+
+        } else {
+            $assignments = array();
+            $availabilities = array();
+        }
+
+        return array(
+            "Assignments"=>$assignments,
+            "Availability"=>$availabilities,
+            "max_nb_session"=>$this->getSettings('max_nb_session'),
+            "jc_day"=>$this->getSettings('jc_day'),
+            "today"=>date('d-m-Y'),
+            "booked"=>$formatdate,
+            "nb"=>$nb_pres,
+            "status"=>$status,
+            "slots"=>$slots,
+            "renderTypes"=>$type,
+            "force_select"=>$force_select,
+            "session_id"=>$session_ids
+        );
+    }
+
 
     /* MODEL */
 
@@ -904,7 +980,7 @@ class Session extends BaseModel {
         $sql = "SELECT *, id as session_id, type as renderTypes
                 FROM {$this->tablename} s
                  LEFT JOIN 
-                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id_pres, title, orator, username  FROM ". $this->db->getAppTables('Presentation').") p
+                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id as id_pres, title, orator, username  FROM ". $this->db->getAppTables('Presentation').") p
                         ON s.id=p.p_session_id
                  LEFT JOIN 
                     (SELECT username, fullname FROM " . $this->db->getAppTables('Users'). ") u
