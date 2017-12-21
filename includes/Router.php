@@ -6,11 +6,17 @@
  * Time: 15:14
  */
 
+
+/**
+ * Class Router
+ */
 class Router {
 
     private static $data;
 
     private static $controller;
+
+    private static $controllerName;
 
     private static $action;
 
@@ -20,19 +26,10 @@ class Router {
 
     private function __clone() {}
 
-    private static function sanitize(array $data) {
-        if (!empty($data)) {
-            // Sanitize $_POST data
-            foreach ($data as $key=>$value) {
-                self::$data[$key] = htmlspecialchars($value);
-            }
-        }
-    }
-
     public static function route() {
-        self::sanitize($_POST);
-        self::sanitize($_GET);
-        self::sanitize($_REQUEST);
+        self::addData($_POST);
+        self::addData($_GET);
+        self::addData($_REQUEST);
 
         if (!self::getController()) {
             Page::notFound();
@@ -50,16 +47,23 @@ class Router {
         }
     }
 
+    private static function addData($data) {
+        if (!empty($data)) {
+            foreach ($data as $key=>$value) {
+                self::$data[$key] = $value;
+            }
+        }
+    }
+
     public static function getData() {
         return self::$data;
     }
 
     private static function getParameters() {
-        $rm = new \ReflectionMethod(self::$controller, self::$action);
+        $rm = new \ReflectionMethod(self::$controllerName, self::$action);
         $params = $rm->getParameters();
 
         self::$argsOrdered = array();
-
         foreach($params as $param) {
             if (key_exists($param->getName(), self::$data)) {
                 self::$argsOrdered[] = self::$data[$param->getName()];
@@ -67,19 +71,17 @@ class Router {
         }
 
         if (empty(self::$argsOrdered)) {
-            self::$argsOrdered = self::$data;
+            self::$argsOrdered = array(self::$data);
         }
     }
 
-    private static function instantiate() {
-        if (class_exists(self::$data['controller'])) {
-            if (self::is_singleton(self::$data['controller'])) {
-                $controllerName = self::$data['controller'];
+    private static function instantiate($controllerName) {
+        if (class_exists($controllerName)) {
+            if (self::is_singleton($controllerName)) {
                 self::$controller = $controllerName::getInstance();
             } else {
-                self::$controller = new self::$data['controller']();
+                self::$controller = new $controllerName();
             }
-            unset(self::$data['controller']);
             return true;
         }
         return false;
@@ -87,7 +89,8 @@ class Router {
 
     private static function getController() {
         if (isset(self::$data['controller'])) {
-            self::$controller = self::$data['controller'];
+            self::$controllerName = self::$data['controller'];
+            unset(self::$data['controller']);
             return true;
         }
         return false;
@@ -95,7 +98,7 @@ class Router {
 
     private static function getAction() {
         if (isset(self::$data['action'])) {
-            if (method_exists(self::$controller, self::$data['action'])) {
+            if (method_exists(self::$controllerName, self::$data['action'])) {
                 self::$action = self::$data['action'];
                 unset(self::$data['action']);
                 return true;
@@ -109,7 +112,7 @@ class Router {
     }
 
     private static function is_static() {
-        $MethodChecker = new ReflectionMethod(self::$controller, self::$action);
+        $MethodChecker = new ReflectionMethod(self::$controllerName, self::$action);
         return $MethodChecker->isStatic();
     }
 
@@ -120,8 +123,8 @@ class Router {
 
     private static function execute() {
         try {
-            self::instantiate();
-            return call_user_func(array(self::$controller, self::$action), self::$argsOrdered);
+            self::instantiate(self::$controllerName);
+            return call_user_func_array(array(self::$controller, self::$action), self::$argsOrdered);
         } catch (Exception $e) {
             Logger::getInstance(APP_NAME)->error($e);
             return array('status'=>false);
@@ -130,7 +133,7 @@ class Router {
 
     private static function executeStatic() {
         try {
-            return call_user_func(self::$controller . "::" . self::$action, self::$argsOrdered);
+            return call_user_func_array(self::$controllerName . "::" . self::$action, self::$argsOrdered);
         } catch (Exception $e) {
             Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return array('status'=>false);
