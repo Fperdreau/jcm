@@ -23,25 +23,14 @@
 // Show an empty form
 $post = new Posts();
 $options = $post->get_selection_list(new Users($_SESSION['username']));
-
+$addNewsBar = Posts::addNewsSection($options);
 $result = "
     <div class='page_header'>
     <p class='page_description'>From this page you can add a news or edit your previous posts. Unless you have organizer
     or admin privileges, you will only be able to view and edit your news.</p>
     </div>
     
-    <section>
-        <h2>Add/Edit News</h2>
-        <div class='section_content'>
-            <div class='action_btns'>
-                <input type='button' id='submit' class='loadContent' data-controller='Posts' data-action='editor' 
-                data-destination='.post_edit_container#main' value='Add a news'/>
-            </div>
-            <div class='post_edit_container' id='main'></div>
-            <div class='feedback'></div>
-            {$options}
-        </div>
-    </section>
+    {$addNewsBar}
     ";
 
 echo $result;
