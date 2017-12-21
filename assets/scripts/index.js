@@ -65,10 +65,8 @@ function loadContent(el, final_callback) {
     var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
 
     // Get target url
-    if (el.attr('href') !== undefined) {
-        var url = el.attr('href');
-    } else if (el.data('url') !== undefined) {
-        url = el.data('url');
+    if (el.data('url') !== undefined) {
+        var url = el.data('url');
     } else {
         url = 'php/form.php';
     }
