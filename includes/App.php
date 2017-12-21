@@ -129,10 +129,11 @@ class App {
          */
         date_default_timezone_set('Europe/Paris');
 
-        /**
-         * Show PHP errors (debug mode only)
-         */
+        // Set debug mode
         self::setDebug($debug);
+
+        // Get application url
+        self::getAppUrl();
 
         // Set paths to application
         self::setPaths();
@@ -147,10 +148,6 @@ class App {
             // Start session
             SessionInstance::initsession();
 
-            /**
-             * Get App url
-             */
-            self::getAppUrl();
         }
     }
 
