@@ -216,6 +216,7 @@ class Posts extends BaseModel
         $count = $this->getCount($category);
         $posts_ids = $this->getLimited($category, 'date DESC', $page_index, $pp);
         $pagination = new Pagination();
+
         if (!empty($posts_ids)) {
             $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
             foreach ($posts_ids as $id) {
@@ -226,6 +227,10 @@ class Posts extends BaseModel
         } else {
             $news = self::nothing();
         }
+
+        // Add news section
+        $news .= self::formSection(self::editor());
+
         return $news;
     }
 
@@ -284,9 +289,10 @@ class Posts extends BaseModel
         $content = ($limit && strlen($txt_content) > $char_limit) ? substr($txt_content, 0, $char_limit) . "..." : $txt_content;
         $show_more = ($limit && strlen($txt_content) > $char_limit) ? "<span class='blog_more'><a href='{$url}'>"._('Show more')."</a></span>" : null;
         return "
-            <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
+            <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); 
+            border: 1px solid; border-color: #e5e6e9 #dfe0e4 #d0d1d5;'>
                 <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'><a href='{$url}'>{$post->title}</a></div>
-                <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 2px solid #555555;'></div>
+                <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 1px solid #d8d8d8'></div>
 
                 <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
                     $content
@@ -337,7 +343,7 @@ class Posts extends BaseModel
     /**
      * Get submission form
      * @param string $view
-     * @return string
+     * @return array|string
      */
     public function get_form($view='body') {
         if ($view === "body") {
@@ -355,10 +361,9 @@ class Posts extends BaseModel
     /**
      * Render submission editor
      * @param array|null $post
-     * @param string $view
      * @return array
      */
-    public function editor(array $post=null, $view='body') {
+    public function editor(array $post=null) {
         $post = (is_null($post)) ? $_POST : $post;
         $id = isset($post['id']) ? $post['id'] : false;
         $user = new Users($_SESSION['username']);
@@ -426,6 +431,29 @@ class Posts extends BaseModel
     }
 
     /**
+     * Render add news section
+     *
+     * @param null $options
+     * @return string
+     */
+    public static function addNewsSection($options=null) {
+        return "
+                <section>
+                    <h2>Post a news</h2>
+                    <div class='section_content'>
+                        <div class='action_btns'>
+                            <input type='button' id='submit' class='loadContent' data-controller='Posts' data-action='editor' 
+                            data-destination='.post_edit_container#main' value='Add a news'/>
+                        </div>
+                        <div class='post_edit_container' id='main'></div>
+                        <div class='feedback'></div>
+                        {$options}
+                    </div>
+                </section>
+        ";
+    }
+
+    /**
      * Show post form
      * @param Users $user
      * @param null|Posts $Post
@@ -460,9 +488,25 @@ class Posts extends BaseModel
                 </div>
             </form>";
 
-        $result['title'] = "Add/Edit presentation";
+        $result['title'] = "Add/Edit news";
         $result['description'] = self::description();
         return $result;
+    }
+
+    /**
+     * Render add news section
+     *
+     * @param array $data
+     * @return string
+     */
+    private static function formSection(array $data) {
+        return "
+            <section>
+                <div class='section_content'>
+                 {$data['content']}
+                </div>
+            </section>
+        ";
     }
 
     /**
