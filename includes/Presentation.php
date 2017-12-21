@@ -41,6 +41,7 @@ class Presentation extends BaseModel {
         'types'=>array("paper", "research", "methodology", "guest", "minute")
     );
 
+    public $id;
     public $type;
     public $date;
     public $jc_time;
@@ -126,13 +127,14 @@ class Presentation extends BaseModel {
      * Add a presentation to the database
      * @param array $post
      * @return bool|string
+     * @throws Exception
      */
     public function make(array $post){
         $is_full = Session::isBooked($post['session_id']);
         if ($is_full === false) {
             if ($this->pres_exist($post['title']) === false) {
                 // Create an unique ID
-                $post['id_pres'] = $this->generateID('id_pres');
+                //$post['id_pres'] = $this->generateID('id_pres');
 
                 // Upload datetime
                 $post['up_date'] = date('Y-m-d h:i:s');
@@ -140,12 +142,12 @@ class Presentation extends BaseModel {
                 // Associates this presentation to an uploaded file if there is one
                 if (!empty($post['link'])) {
                     $media = new Media();
-                    $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Presentation');
+                    $media->add_upload(explode(',', $post['link']), $post['id'], 'Presentation');
                 }
 
                 // Add publication to the database
                 if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
-                    return $this->id_pres;
+                    return $this->id;
                 } else {
                     return false;
                 }
@@ -167,7 +169,7 @@ class Presentation extends BaseModel {
         // Associates this presentation to an uploaded file if there is one
         if (!empty($data['link'])) {
             $media = new Media();
-            if (!$media->add_upload(explode(',', $data['link']), $data['id_pres'], __CLASS__)) {
+            if (!$media->add_upload(explode(',', $data['link']), $data['id'], __CLASS__)) {
                 return false;
             }
         }
@@ -178,10 +180,11 @@ class Presentation extends BaseModel {
      * Edit Presentation
      * @param array $data
      * @return mixed
+     * @throws Exception
      */
     public function edit(array $data) {
         // check entries
-        $id_pres = htmlspecialchars($data['id_pres']);
+        $id_pres = htmlspecialchars($data['id']);
 
         // IF not a guest presentation, the one who posted is the planned speaker
         if ($data['type'] !== "guest") {
@@ -189,7 +192,7 @@ class Presentation extends BaseModel {
         }
 
         if ($id_pres !== "false") {
-            $created = $this->update($data, array('id_pres'=>$id_pres));
+            $created = $this->update($data, array('id'=>$id_pres));
         } else {
             $created = $this->make($data);
         }
@@ -226,7 +229,8 @@ class Presentation extends BaseModel {
             return self::details($data, $show, $view);
         } else {
             return self::not_found();
-        }    }
+        }
+    }
 
     /**
      * Get submission form
@@ -256,7 +260,7 @@ class Presentation extends BaseModel {
         $content = null;
         $search = $filter == 'next' ? 'date >' : 'date <';
         foreach ($this->all(array('username'=>$username, $search=>'CURDATE()')) as $key=>$item) {
-            $content .= $this->show($item['id_pres'], $username);
+            $content .= $this->show($item['id'], $username);
         }
         return $content;
     }
@@ -315,20 +319,20 @@ class Presentation extends BaseModel {
     /**
      * Update a presentation (new info)
      * @param array $post
-     * @param null $id_pres
+     * @param null $id
      * @return bool
      */
-    public function modify($post=array(), $id_pres=null) {
-        if (null!=$id_pres) {
-            $this->id_pres = $id_pres;
-        } elseif (array_key_exists('id_pres',$post)) {
-            $this->id_pres = $_POST['id_pres'];
+    public function modify($post=array(), $id=null) {
+        if (null!=$id) {
+            $this->id = $id;
+        } elseif (array_key_exists('id',$post)) {
+            $this->id = $_POST['id'];
         }
 
         // Associate the new uploaded file (if there is one)
         if (array_key_exists("link", $post)) {
             $media = new Media();
-            $media->add_upload(explode(',', $post['link']), $post['id_pres'], 'Presentation');
+            $media->add_upload(explode(',', $post['link']), $post['id'], 'Presentation');
         }
 
         // Get presentation's type
@@ -338,12 +342,12 @@ class Presentation extends BaseModel {
         if ($this->db->update(
             $this->tablename,
             $this->parseData($post, array('link','chair')),
-            array('id_pres'=>$this->id_pres))) {
+            array('id'=>$this->id))) {
 
-            Logger::getInstance(APP_NAME, get_class($this))->info("Presentation ({$this->id_pres}) updated");
+            Logger::getInstance(APP_NAME, get_class($this))->info("Presentation ({$this->id}) updated");
             return true;
         } else {
-            Logger::getInstance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id_pres})");
+            Logger::getInstance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id})");
             return false;
         }
     }
@@ -353,31 +357,32 @@ class Presentation extends BaseModel {
      */
     private function get_uploads() {
         $upload = new Media();
-        $links = $upload->get_uploads($this->id_pres, 'Presentation');
+        $links = $upload->get_uploads($this->id, 'Presentation');
         $this->link = $links;
         return $links;
     }
 
     /**
      * Delete a presentation
-     * @param $pres_id
+     * @param int $id
      * @return bool
      */
-    public function delete_pres($pres_id) {
-        $this->getInfo($pres_id);
-
+    public function delete_pres($id) {
         // Delete corresponding file
         $uploads = new Media();
-        $uploads->delete_files($pres_id, __CLASS__);
-
-        // Delete corresponding entry in the publication table
-        return $this->delete(array('id_pres'=>$pres_id));
+        if ($uploads->delete_files($id, __CLASS__)) {
+            // Delete corresponding entry in the publication table
+            return $this->delete(array('id'=>$id));
+        } else {
+            return false;
+        }
     }
 
     /**
      * Check if presentation exists in the database
      * @param $title
      * @return bool
+     * @throws Exception
      */
     private function pres_exist($title) {
         $titlelist = $this->db->column($this->tablename, 'title');
@@ -411,9 +416,9 @@ class Presentation extends BaseModel {
 
     /**
      * Get presentation types
-     * @param $default_type: Default presentation type
+     * @param $default_type : Default presentation type
      * @param array|null $exclude
-     * @return string
+     * @return array
      */
     public static function presentation_type($default_type, array $exclude=null) {
         $prestype = "";
@@ -440,7 +445,7 @@ class Presentation extends BaseModel {
         foreach ($this->all() as $key=>$item) {
             $pres_obj = new Presentation($item['presid']);
             $pres_obj->update(array('session_id'=>$this->get_session_id($pres_obj->date)),
-                array('id_pres'=>$item['presid']));
+                array('id'=>$item['presid']));
         }
     }
 
@@ -451,8 +456,8 @@ class Presentation extends BaseModel {
         $Publications = new self();
         $Media = new Media();
         foreach ($Publications->all() as $key=>$item) {
-            if ($Media->is_exist(array('presid'=>$item['id_pres']))) {
-                if (!$Media->update(array('obj'=>'Presentation'), array('presid'=>$item['id_pres']))) {
+            if ($Media->is_exist(array('presid'=>$item['id']))) {
+                if (!$Media->update(array('obj'=>'Presentation'), array('presid'=>$item['id']))) {
                     return false;
                 }
             }
@@ -470,7 +475,7 @@ class Presentation extends BaseModel {
         foreach ($Publications->all() as $key=>$item) {
             if ($Session->is_exist(array('date'=>$item['date']))) {
                 $session_info = $Session->getInfo(array('date'=>$item['date']));
-                if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id_pres'=>$item['id_pres']))) {
+                if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id'=>$item['id']))) {
                     Logger::getInstance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
                     return false;
                 }
@@ -488,7 +493,7 @@ class Presentation extends BaseModel {
     public function getLatest() {
         $publicationList = array();
         foreach ($this->all(array('notified'=>0, 'title !='=>'TBA')) as $key=>$item) {
-            $publicationList[] = $item['id_pres'];
+            $publicationList[] = $item['id'];
         }
         return $publicationList;
     }
@@ -500,12 +505,12 @@ class Presentation extends BaseModel {
      */
     public function getByDate($excluded=false) {
         // Get presentations dates
-        $sql = "SELECT date,id_pres FROM $this->tablename";
+        $sql = "SELECT date,id FROM $this->tablename";
         if ($excluded !== false) $sql .= " WHERE type!='$excluded'";
         $req = $this->db->send_query($sql);
         $dates = array();
         while ($row = mysqli_fetch_assoc($req)) {
-            $dates[$row['date']][] = $row['id_pres'];
+            $dates[$row['date']][] = $row['id'];
         }
         return $dates;
     }
@@ -546,29 +551,29 @@ class Presentation extends BaseModel {
 
         $data = $this->db->resultSet(
             $this->tablename,
-            array('YEAR(date)', 'id_pres'),
+            array('YEAR(date)', 'id'),
             $search,
             'ORDER BY date DESC'
         );
 
         $years = array();
         foreach ($data as $key=>$item) {
-            $years[$item['YEAR(date)']][] = $item['id_pres'];
+            $years[$item['YEAR(date)']][] = $item['id'];
         }
         return $years;
     }
 
     /**
      * Get publication's information from the database
-     * @param $id_pres
+     * @param int $id: presentation id
      * @return bool|array
      */
-    public function getInfo($id_pres) {
+    public function getInfo($id) {
         $sql = "SELECT p.*, u.fullname as fullname 
                 FROM {$this->tablename} p
                 LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
                     ON u.username=p.username
-                WHERE id_pres='{$id_pres}'";
+                WHERE p.id='{$id}'";
         $data = $this->db->send_query($sql)->fetch_assoc();
 
         if (!empty($data)) {
@@ -658,7 +663,7 @@ class Presentation extends BaseModel {
      */
     public static function inSessionEdit(array $data) {
         $view_button = "<a href='#' class='leanModal pub_btn icon_btn' data-controller='Presentation' 
-            data-action='show_details' data-params='{$data['id_pres']},modal' data-section='submission' 
+            data-action='show_details' data-params='{$data['id']},modal' data-section='submission' 
             data-title='Submission'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
@@ -702,7 +707,7 @@ class Presentation extends BaseModel {
                 <span style='font-size: 14px; font-weight: 500; color: #777;'>{$data['fullname']}</span>
             </div>",
             "button"=>$Bookmark->getIcon(
-                $data['id_pres'],
+                $data['id'],
                 'Presentation',
                 Auth::is_logged() ? $_SESSION['username'] : null)
         );
@@ -771,11 +776,11 @@ class Presentation extends BaseModel {
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
-                data-controller='Presentation' data-operation='edit'>
+                data-controller='Presentation' data-action='delete_pres'>
                 <img src='" . URL_TO_IMG . "trash.png'></a></div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}'
                 data-controller='Presentation' data-section='presentation' data-action='get_form' data-params='{$view}' 
-                data-id='{$data['id_pres']}' data-operation='edit' data-date='{$data['date']}' data-destination='{$destination}'>
+                data-id='{$data['id']}' data-operation='edit' data-date='{$data['date']}' data-destination='{$destination}'>
                 <img src='" . URL_TO_IMG . "edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
@@ -970,7 +975,7 @@ class Presentation extends BaseModel {
         if (empty($type)) $type = 'paper';
 
         // Presentation ID
-        $idPres = ($Presentation->id_pres != "") ? $Presentation->id_pres : 'false';
+        $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
 
         // Make submission's type selection list
         $type_options = self::renderTypes($Presentation->getTypes(), $type);
@@ -1025,7 +1030,7 @@ class Presentation extends BaseModel {
                         <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
                         <input type='hidden' name='session_id' value='{$session_id}'/>
                         <input type='hidden' name='username' value='$user->username'/>
-                        <input type='hidden' id='id_pres' name='id_pres' value='{$idPres}'/>
+                        <input type='hidden' id='id' name='id' value='{$idPres}'/>
                     </div>
                 </form>
             </div>
