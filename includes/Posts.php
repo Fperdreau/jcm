@@ -395,10 +395,10 @@ class Posts extends BaseModel
                         
                             <!-- Edit button -->
                             <div class='action_icon'>
-                                <a href='' class='loadContent' data-destination='.post_edit_container#post_{$item['id']}' 
+                                <div class='loadContent' data-destination='.post_edit_container#post_{$item['id']}' 
                                 data-controller='Posts' data-action='editor' data-id='{$item['id']}'>
                                     <img src='" . URL_TO_IMG . 'edit.png' . "' />
-                                </a>
+                                </div>
                             </div>
                             
                             <!-- Delete button -->
