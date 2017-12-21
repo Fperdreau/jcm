@@ -235,34 +235,34 @@ class BaseModel {
 
     /**
      * Retrieve all elements from the selected table
-     * @param array $id
+     * @param array $ref
      * @param array $filter
      * @return array|mixed
      */
-    public function all(array $id=array(), array $filter=null) {
+    public function all(array $ref=array(), array $filter=null) {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir : null;
         $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT `{$filter['limit']}` " : null;
-        return $this->db->resultSet($this->tablename, array('*'), $id, $param . $limit);
+        return $this->db->resultSet($this->tablename, array('*'), $ref, $param . $limit);
     }
 
     /**
      * Update table entry
      * @param array $data
-     * @param array $id
+     * @param array $ref
      * @return bool
      */
-    public function update(array $data, array $id) {
-        return $this->db->update($this->tablename,  $data, $id);
+    public function update(array $data, array $ref) {
+        return $this->db->update($this->tablename,  $data, $ref);
     }
 
     /**
      * Delete table entry
-     * @param array $id
+     * @param array $ref
      * @return bool
      */
-    public function delete(array $id) {
-        return $this->db->delete($this->tablename, $id);
+    public function delete(array $ref) {
+        return $this->db->delete($this->tablename, $ref);
     }
 
     /**
@@ -276,11 +276,11 @@ class BaseModel {
 
     /**
      * Get information from db
-     * @param array $id
+     * @param array $ref
      * @return array
      */
-    public function get(array $id) {
-        return $this->db->single($this->tablename, array('*'), $id);
+    public function get(array $ref) {
+        return $this->db->single($this->tablename, array('*'), $ref);
     }
 
     /**
@@ -293,12 +293,12 @@ class BaseModel {
     }
 
     /**
-     * @param $id
+     * @param $ref
      * @return array
      */
-    public function search($id) {
+    public function search($ref) {
         $search = array();
-        foreach ($id as $field=>$value) {
+        foreach ($ref as $field=>$value) {
             $search[] = "{$field}='{$value}'";
         }
         $search = implode('AND ', $search);
@@ -331,19 +331,20 @@ class BaseModel {
 
     /**
      * Checks if id exists in a column
-     * @param array $id: array('column_name'=>'id')
+     * @param array $ref: array('column_name'=>'id')
      * @param null $tablename
      * @return bool
      */
-    public function is_exist(array $id, $tablename=null) {
+    public function is_exist(array $ref, $tablename=null) {
         $table_name = (is_null($tablename)) ? $this->tablename : $tablename;
-        return !empty($this->db->single($table_name, array('*'), $id));
+        return !empty($this->db->single($table_name, array('*'), $ref));
     }
 
     /**
      * Create specific ID for new item
      * @param $refId
      * @return string
+     * @throws Exception
      */
     public function generateID($refId) {
         $id = date('Ymd').rand(1,10000);
