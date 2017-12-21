@@ -1672,8 +1672,9 @@ $(document).ready(function () {
         .on('click', '.delete', function(e) {
             e.preventDefault();
             var el = $(this);
+            var action = (el.data('action') !== undefined) ? el.data('action') : 'delete';
             var url = (el.data('controller') !== undefined) ?
-                'php/router.php?controller=' + el.data('controller') + '&action=delete' : el.attr('href');
+                'php/router.php?controller=' + el.data('controller') + '&action=' + action : el.attr('href');
             confirmation_box(el, 'Are you sure you want to delete this item?', 'Delete', function () {
                 jQuery.ajax({
                     url: url,
