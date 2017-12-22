@@ -192,23 +192,7 @@ class MailManager extends BaseModel {
 
         // Add attachments
         if (!is_null($data['attachments'])) {
-            $attachments = array();
-            $Media = new Media();
-            foreach (explode(',', $data['attachments']) as $file_name) {
-
-                if (is_file($file_name)) {
-                    $attachments[] = $file_name;
-                } else {
-                    // Get file information
-                    $file_data = $Media->get(array('fileid'=>$file_name));
-                    if (!empty($file_data)) {
-                        $attachments[] = $file_data['filename'];
-                    } else {
-                        Logger::getInstance(APP_NAME, __CLASS__)->warning("Could not file '{$file_name}' in attachment");
-                    }
-                }
-
-            }
+            $attachments = $this->addAttachments($data['attachments']);
         } else {
             $attachments = null;
         }
@@ -216,28 +200,10 @@ class MailManager extends BaseModel {
         // Add email to the MailManager table
         $result = array('status'=>true, 'msg'=>null);
         if ($add) {
-            if ($this->add($data)) {
-
-                // Set Email instance
-                $this->setMail($this->settings);
-
-                // Send email
-                $result = $this->Mail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed);
-
-                if ($result['status'] === true) {
-                    // Update MailManager table
-                    $result['status'] = $this->update(array('status'=>1, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
-                } else {
-                    $this->update(array('status'=>0, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
-                    $result['msg'] = $result['logs'];
-                };
-
-            } else {
-                $result['status'] = false;
-                $result['msg'] = 'Could not add email to database';
-            };
+            $result = $this->addAndSend($data, $mailing_list, $content, $body, $attachments, $undisclosed);
         }
 
+        // Output result
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
         } else {
@@ -246,6 +212,69 @@ class MailManager extends BaseModel {
         }
 
         return $result;
+    }
+
+    /**
+     * Helper function to adding email to Db and sending email
+     *
+     * @param $data
+     * @param $mailing_list
+     * @param $content
+     * @param $body
+     * @param $attachments
+     * @param $undisclosed
+     * @return array
+     * @throws Exception
+     * @throws phpmailerException
+     */
+    private function addAndSend($data, $mailing_list, $content, $body, $attachments, $undisclosed) {
+        if ($this->add($data)) {
+
+            // Set Email instance
+            $this->setMail($this->settings);
+
+            // Send email
+            $result = $this->Mail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed);
+
+            if ($result['status'] === true) {
+                // Update MailManager table
+                $result['status'] = $this->update(array('status'=>1, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
+            } else {
+                $this->update(array('status'=>0, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
+                $result['msg'] = $result['logs'];
+            };
+
+        } else {
+            $result['status'] = false;
+            $result['msg'] = 'Could not add email to database';
+        };
+        return $result;
+    }
+
+    /**
+     * Helper function for adding attachments before sending email
+     * @param $data
+     * @return array
+     */
+    private function addAttachments($data) {
+        $attachments = array();
+        $Media = new Media();
+        foreach (explode(',', $data) as $file_name) {
+
+            if (is_file($file_name)) {
+                $attachments[] = $file_name;
+            } else {
+                // Get file information
+                $file_data = $Media->get(array('filename'=>$file_name));
+                if (!empty($file_data)) {
+                    $attachments[] = $file_data['filename'];
+                } else {
+                    Logger::getInstance(APP_NAME, __CLASS__)->warning(
+                        "Could not file '{$file_name}' in attachment");
+                }
+            }
+        }
+        return $attachments;
     }
 
     /**
@@ -453,6 +482,8 @@ class MailManager extends BaseModel {
      * @param $user_mail
      * @param $username
      * @return bool
+     * @throws Exception
+     * @throws phpmailerException
      */
     public function send_verification_mail($hash, $user_mail, $username) {
         $Users = new Users();
@@ -484,6 +515,8 @@ class MailManager extends BaseModel {
      * @param null $type
      * @param null $attachment
      * @return bool
+     * @throws Exception
+     * @throws phpmailerException
      */
     function send_to_mailinglist($subject,$body,$type=null,$attachment = NULL) {
         $to = array();
