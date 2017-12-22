@@ -341,7 +341,7 @@ function AnimateBack(el) {
          */
         _delUpload: function(el) {
             var self = this;
-            var data = {del_upl: true, file_id: el.attr('id')};
+            var data = {del_upl: true, id: el.attr('id')};
 
             /**
              * Callback function
