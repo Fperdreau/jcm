@@ -473,6 +473,17 @@ function sendToRecipients(el) {
     return true;
 }
 
+/**
+ * Test email settings
+ *
+ * @param el
+ */
+function testEmailSettings(el) {
+    var form = el.length > 0 ? $(el[0].form) : $();
+    var data = form.serializeArray();
+    processAjax(form, data, false, 'php/router.php?controller=MailManager&action=send_test_email');
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Logout
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -1109,11 +1120,7 @@ $(document).ready(function () {
         // Test email host settings
         .on('click', '.test_email_settings', function(e) {
             e.preventDefault();
-            var input = $(this);
-            var form = input.length > 0 ? $(input[0].form) : $();
-            var data = form.serializeArray();
-            data.push({name: 'test_email_settings', value: true});
-            processAjax(form, data, false, 'php/form.php');
+            testEmailSettings($(this));
         })
 
         // Add recipients

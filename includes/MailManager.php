@@ -384,18 +384,25 @@ class MailManager extends BaseModel {
         }
 
         return $result;
-
     }
 
     /**
      * Send a test email to verify the email host settings
      * @param array $data : email host settings
-     * @param null|string $to : recipient email
      * @return mixed
      * @throws Exception
      * @throws phpmailerException
      */
-    public function send_test_email(array $data, $to=null) {
+    public function send_test_email(array $data) {
+        // Tested settings
+        $settings = array();
+        foreach ($data as $setting=>$value) {
+            $settings[$setting] = htmlspecialchars($value);
+        }
+
+        // Get recipient
+        $to = (isset($_POST['test_email'])) ? htmlspecialchars($_POST['test_email']) : null;
+
         if (is_null($to)) {
             $Users = new Users();
             $admins = $Users->getadmin('admin');
@@ -411,6 +418,33 @@ class MailManager extends BaseModel {
         $content['body'] = self::test_email();
 
         return $this->send($content, $to, true, $data);
+    }
+
+    /**
+     * Send email to selected organizer
+     *
+     * @return array
+     * @throws Exception
+     * @throws phpmailerException
+     */
+    public function sendMessage() {
+        $sel_admin_mail = htmlspecialchars($_POST['admin_mail']);
+        $usr_msg = htmlspecialchars($_POST["message"]);
+        $usr_mail = htmlspecialchars($_POST["email"]);
+        $usr_name = htmlspecialchars($_POST["name"]);
+        $content = "Message sent by {$usr_name} ($usr_mail):<br><p>$usr_msg</p>";
+        $subject = "Contact from $usr_name";
+
+        $settings['mail_from'] = $usr_mail;
+        $settings['mail_from_name'] = $usr_mail;
+
+        if ($this->send(array('body'=>$content, 'subject'=>$subject), array($sel_admin_mail),true, $settings)) {
+            $result['status'] = true;
+            $result['msg'] = "Your message has been sent!";
+        } else {
+            $result['status'] = false;
+        }
+        return $result;
     }
 
     /**
