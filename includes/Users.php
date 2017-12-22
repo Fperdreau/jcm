@@ -995,7 +995,7 @@ class Users extends BaseModel {
      * @return string
      */
     private static function activation_email($fullname, $email, $hash) {
-        $authorize_url =App::getAppUrl() . "index.php?page=verify&email={$email}&hash={$hash}&result=true";
+        $authorize_url = App::getAppUrl() . "index.php?page=organizer/verify&email={$email}&hash={$hash}&result=true";
         $newpwurl = App::getAppUrl() . "index.php?page=renew_pwd&hash={$hash}&email={$email}";
 
         return "
