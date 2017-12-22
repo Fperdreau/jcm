@@ -65,10 +65,10 @@ return array(
     "media"=>array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "date" => array('DATETIME', false),
-        "fileid" => array('CHAR(20)', false),
+        "file_id" => array('CHAR(20)', false),
         "filename" => array('CHAR(20)', false),
         "name" => array('CHAR(255)', false),
-        "presid" => array('CHAR(20)', false),
+        "obj_id" => array('CHAR(20)', false),
         "obj" => array('CHAR(255)', false),
         "type" => array('CHAR(5)', false),
         "primary" => 'id'

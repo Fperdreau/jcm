@@ -38,7 +38,7 @@ class Media extends BaseModel{
     protected $maxsize;
     protected $allowed_types;
 
-    public $presid;
+    public $objId;
     public $fileid;
     public $date;
     public $filename;
@@ -74,8 +74,8 @@ class Media extends BaseModel{
      * @return bool
      */
     public function delete_files($objId, $controller) {
-        foreach ($this->all(array('presid'=>$objId, 'obj'=>$controller)) as $key=>$item) {
-            $result = $this->delete(array('fileid'=>$item['fileid']));
+        foreach ($this->all(array('obj_id'=>$objId, 'obj'=>$controller)) as $key=>$item) {
+            $result = $this->delete(array('file_id'=>$item['file_id']));
             if (!$result['status']) {
                 return false;
             }
@@ -85,14 +85,14 @@ class Media extends BaseModel{
 
     /**
      * Get uploades associated to a presentation
-     * @param $presid: presentation id
+     * @param $objId: presentation id
      * @param $obj_name: object name
      * @return array
      */
-    public function get_uploads($presid, $obj_name) {
+    public function get_uploads($objId, $obj_name) {
         $uploads = array();
-        foreach ($this->db->resultSet($this->tablename, array('*'), array('presid'=>$presid, 'obj'=>$obj_name)) as $key=> $item) {
-            $uploads[$item['fileid']] =$item;
+        foreach ($this->db->resultSet($this->tablename, array('*'), array('obj_id'=>$objId, 'obj'=>$obj_name)) as $key=> $item) {
+            $uploads[$item['file_id']] =$item;
         }
         return $uploads;
     }
@@ -124,11 +124,11 @@ class Media extends BaseModel{
         foreach ($dbfiles as $filename) {
             // Delete Db entry if the file does not exit on the server
             if (!in_array($filename,$files)) {
-                $sql = "SELECT fileid FROM $this->tablename WHERE filename='$filename'";
+                $sql = "SELECT file_id FROM $this->tablename WHERE filename='$filename'";
                 $req = $this->db->send_query($sql);
                 $data = mysqli_fetch_assoc($req);
-                $file = new Media($data['fileid']);
-                if  (!$this->db->delete($this->tablename, array('fileid'=>$file->fileid))) {
+                $file = new Media($data['file_id']);
+                if  (!$this->db->delete($this->tablename, array('file_id'=>$file->file_id))) {
                     Logger::getInstance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;
                 }
@@ -163,7 +163,7 @@ class Media extends BaseModel{
             'date'=>date('Y-m-d h:i:s'),
             'filename'=>$result['filename'],
             'name'=>$result['name'],
-            'fileid'=>$result['file_id'],
+            'file_id'=>$result['file_id'],
             'type'=>$result['type'],
             'obj'=>$controller
         );
@@ -187,7 +187,7 @@ class Media extends BaseModel{
      * @return bool
      */
     public function getInfo($file_id) {
-        $data = $this->get(array('fileid'=>$file_id));
+        $data = $this->get(array('file_id'=>$file_id));
         $data['filename'] = PATH_TO_APP . 'uploads' . DS . $data['filename'];
         if (!empty($data)) {
             $this->map($data);
@@ -206,7 +206,7 @@ class Media extends BaseModel{
         // First check if the db points to an existing file
         if (!is_file($this->directory.$this->filename)) {
             // If not, we remove the data from the db
-            $result = $this->delete(array('fileid'=>$this->fileid));
+            $result = $this->delete(array('file_id'=>$this->file_id));
             if (!$result['status']) {
                 return False;
             }
@@ -219,23 +219,23 @@ class Media extends BaseModel{
     /**
      * Associates a previously uploaded file to a presentation
      * @param $filename
-     * @param $presid
+     * @param $objId
      * @param $obj_name
      * @return mixed
      */
-    public function add_presid($filename, $presid, $obj_name) {
-        $data = $this->get(array('fileid'=>$filename, 'obj'=>$obj_name));
+    public function add_presid($filename, $objId, $obj_name) {
+        $data = $this->get(array('file_id'=>$filename, 'obj'=>$obj_name));
         if (!empty($data)) {
-            if ($this->db->update($this->tablename, array('presid'=>$presid), array('fileid'=>$filename, 'obj'=>$obj_name))) {
-                Logger::getInstance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$presid}) associated with file ({$filename})");
+            if ($this->db->update($this->tablename, array('obj_id'=>$objId), array('file_id'=>$filename, 'obj'=>$obj_name))) {
+                Logger::getInstance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$objId}) associated with file ({$filename})");
                 return true;
             } else {
-                Logger::getInstance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$presid}) to file ({$filename})");
+                Logger::getInstance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$objId}) to file ({$filename})");
                 return false;
             }
         } else {
             Logger::getInstance(APP_NAME, get_class($this))->error(
-                "Could not associate id ({$obj_name}: {$presid}) to file ({$filename}) because this file does not exit in our database");
+                "Could not associate id ({$obj_name}: {$objId}) to file ({$filename}) because this file does not exit in our database");
             return false;
         }
 
@@ -247,7 +247,7 @@ class Media extends BaseModel{
      * @return bool|string
      */
     public function delete(array $id) {
-        $data = $this->get(array('fileid'=>$id));
+        $data = $this->get(array('file_id'=>$id));
         if (!empty($data)) {
             if (is_file($this->directory . $data['filename'])) {
                 if (unlink($this->directory . $data['filename'])) {
@@ -344,7 +344,7 @@ class Media extends BaseModel{
                 }
                 $name = explode('.', $file['name'][0]);
                 $result['name'] = $name[0];
-                $result['file_id'] = $file_info['fileid'];
+                $result['file_id'] = $file_info['file_id'];
                 $result['filename'] = $file_info['filename'];
             }
         } else {
@@ -365,7 +365,7 @@ class Media extends BaseModel{
             $rnd = date('Ymd')."_".rand(0,100);
             $new_name = $rnd . '.' . $type;
         }
-        return array('fileid' => $rnd, 'filename'=>$new_name);
+        return array('file_id' => $rnd, 'filename'=>$new_name);
     }
 
     // VIEWS
@@ -453,7 +453,7 @@ class Media extends BaseModel{
      * @return string
      */
     private static function hidden_input(array $data) {
-        return "<input type='hidden' class='upl_link' id='{$data['fileid']}' value='{$data['fileid']}' />";
+        return "<input type='hidden' class='upl_link' id='{$data['file_id']}' value='{$data['file_id']}' />";
     }
 
     /**
@@ -463,9 +463,9 @@ class Media extends BaseModel{
      */
     private static function file_div(array $data) {
         $url = URL_TO_APP . '/uploads/' . $data['filename'];
-        return  "<div class='upl_info' id='upl_{$data['fileid']}'>
+        return  "<div class='upl_info' id='upl_{$data['file_id']}'>
                     <div class='upl_name'><a href='{$url}' target='_blank'>{$data['name']}</a></div>
-                    <div class='del_upl' id='{$data['fileid']}'></div>
+                    <div class='del_upl' id='{$data['file_id']}'></div>
                 </div>";
     }
 
