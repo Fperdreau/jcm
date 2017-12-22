@@ -382,6 +382,98 @@ function refresh_date(el, session_id) {
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Email
+ *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+/**
+ * Add Recipients to email list
+ *
+ * @param el
+ */
+function addRecipients(el) {
+    var input = $('.select_emails_selector');
+    var container = $('.select_emails_container');
+
+    var form = input.length > 0 ? $(input[0].form) : $();
+    var id = input.val();
+    var div = container.find('.select_emails_list');
+    container.find('.select_emails_list').find('.mailing_recipients_empty').remove();
+
+    var email_input = form.find("input[name='emails']");
+
+    jQuery.ajax({
+        url: 'php/router.php?controller=MailManager&action=addRecipients',
+        type: 'post',
+        data: {
+            add_emails: id
+        },
+        async: true,
+        success: function (data) {
+            var json = jQuery.parseJSON(data);
+            if (json.status) {
+                if (email_input !== undefined && email_input.length > 0) {
+                    var emails = email_input.val().split(',');
+                    emails.push(json.ids);
+                    emails = (emails[0] === "") ? emails.slice(1,emails.length):emails;
+                    email_input.val(emails.join(','));
+                } else {
+                    form.append("<input name='emails' type='hidden' value='"+json.ids+"'/>");
+                }
+                div.append(json.content);
+            }
+        }
+    });
+}
+
+/**
+ * Send email to recipients
+ *
+ * @param el: input selector
+ * @return {boolean}
+ */
+function sendToRecipients(el) {
+    var form = el.length > 0 ? $(el[0].form) : $();
+
+    // Check if recipients have been added
+    var div = $('.select_emails_container').find('.select_emails_list');
+    div.find('.mailing_recipients_empty').remove();
+    if (!$.trim( div.html() ).length) {
+        div.html('<p class="mailing_recipients_empty sys_msg warning leanmodal" id="warning">You must select ' +
+            'recipients before sending your email!</p>');
+        return true;
+    }
+
+    // Check if form has been filled in properly
+    if (!checkform(form)) {return false;}
+
+    var callback = function() {
+        // Get data
+        var data = getData(form);
+        var attachments = [];
+
+        form.find('input.upl_link').each(function() {
+            attachments.push($(this).val());
+        });
+        attachments = attachments.join(',');
+        data = modArray(data, 'attachments', attachments);
+
+        // Process data
+        processAjax($('.mailing_container'), data, false, "php/router.php?controller=MailManager&action=sendToRecipients");
+    };
+
+    // Shall we publish this email content as news (in case the email is sent to everyone).
+    if ($('#make_news').val() === 'yes') {
+        trigger_modal($(this));
+        var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
+            'published as a news.' + ' Do you want to continue?';
+        confirmation_box($(this), msg, 'Continue', callback);
+    } else {
+        callback();
+    }
+    return true;
+}
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Logout
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /**
@@ -1024,78 +1116,13 @@ $(document).ready(function () {
             processAjax(form, data, false, 'php/form.php');
         })
 
-        // Add emails
-        .on('click', '.add_email', function (e) {
-            e.preventDefault();
-            var input = $('.select_emails_selector');
-            var form = input.length > 0 ? $(input[0].form) : $();
-            var name = input.find('option:selected').html();
-            var id = input.val();
-            var div = $('.select_emails_container').find('.select_emails_list');
-            $('.select_emails_container').find('.select_emails_list').find('.mailing_recipients_empty').remove();
-
-            var email_input = form.find("input[name='emails']");
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'post',
-                data: {
-                    add_emails: id
-                },
-                async: true,
-                success: function (data) {
-                    var json = jQuery.parseJSON(data);
-                    if (json.status) {
-                        if (email_input !== undefined && email_input.length > 0) {
-                            var emails = email_input.val().split(',');
-                            emails.push(json.ids);
-                            emails = (emails[0] === "") ? emails.slice(1,emails.length):emails;
-                            email_input.val(emails.join(','));
-                        } else {
-                            form.append("<input name='emails' type='hidden' value='"+json.ids+"'/>");
-                        }
-                        div.append(json.content);
-                    }
-                }
-            });
-        })
-
+        // Add recipients
         .on('change', '.select_emails_selector', function(e) {
             e.preventDefault();
-            var input = $(this);
-            var form = input.length > 0 ? $(input[0].form) : $();
-            var name = input.find('option:selected').html();
-            var id = input.val();
-            var div = $('.select_emails_container').find('.select_emails_list');
-            $('.select_emails_container').find('.select_emails_list').find('.mailing_recipients_empty').remove();
-            var email_input = form.find("input[name='emails']");
-            if (id === "all") {
-                $("#make_news").find("option[value='yes']").prop('selected', true);
-            }
-
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'post',
-                data: {
-                    add_emails: id
-                },
-                success: function (data) {
-                    var json = jQuery.parseJSON(data);
-                    if (json.status) {
-                        if (email_input !== undefined && email_input.length > 0) {
-                            var emails = email_input.val().split(',');
-                            emails.push(json.ids);
-                            emails = (emails[0] === "") ? emails.slice(1,emails.length):emails;
-                            email_input.val(emails.join(','));
-                        } else {
-                            form.append("<input name='emails' type='hidden' value='"+json.ids+"'/>");
-                        }
-                        div.append(json.content);
-                    }
-                }
-            });
+            addRecipients($(this));
         })
 
+        // Delete recipients
         .on('click', '.added_email_delete', function (e) {
             var form = $(this).closest('form');
             var id = $(this).attr('id');
@@ -1114,49 +1141,7 @@ $(document).ready(function () {
 		// Send an email to the mailing list
         .on('click','.mailing_send',function (e) {
             e.preventDefault();
-
-            var form = $(this).length > 0 ? $($(this)[0].form) : $();
-            var el = $('.mailing_container');
-
-            // Check if recipients have been added
-            var div = $('.select_emails_container').find('.select_emails_list');
-            div.find('.mailing_recipients_empty').remove();
-            if (!$.trim( div.html() ).length) {
-                div.html('<p class="mailing_recipients_empty sys_msg warning leanmodal" id="warning">You must select ' +
-                    'recipients before sending your email!</p>');
-                return true;
-            }
-
-            // Check if form has been filled in properly
-            if (!checkform(form)) {return false;}
-
-            var callback = function() {
-                // Get data
-                var data = getData(form);
-                var attachments = [];
-
-                form.find('input.upl_link').each(function() {
-                    attachments.push($(this).val());
-                });
-                attachments = attachments.join(',');
-                data = modArray(data, 'attachments', attachments);
-
-                // Process data
-                processAjax(el, data, false, "php/form.php");
-
-            };
-
-            // Shall we publish this email content as news (in case the email is sent to everyone).
-            var id = $('.select_emails_selector').val();
-            if ($('#make_news').val() === 'yes') {
-                trigger_modal($(this));
-                var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
-                    'published as a news.' + ' Do you want to continue?';
-                confirmation_box($(this), msg, 'Continue', callback);
-            } else {
-                callback();
-            }
-            return true;
+            sendToRecipients($(this));
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -541,80 +541,11 @@ if (!empty($_POST['user_select'])) {
 
 // Change user status
 if (!empty($_POST['modify_status'])) {
-    $Users = new Users();
     $username = htmlspecialchars($_POST['username']);
     $newStatus = htmlspecialchars($_POST['option']);
     $user = new Users($username);
     $result = $user->setStatus($newStatus);
-    $result['content'] = $Users->generateuserslist();
-    echo json_encode($result);
-    exit;
-}
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Mailing
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Send mail if asked
-if (!empty($_POST['mailing_send'])) {
-    $content = array();
-    foreach ($_POST as $key => $value) {
-        if (!is_array($value)) {
-            $value = htmlspecialchars_decode($value);
-        }
-        $content[$key] = $value;
-    }
-
-    $ids = explode(',',$_POST['emails']); // Recipients list
-    $content['attachments'] = $_POST['attachments']; // Attached files
-    $disclose = htmlspecialchars($_POST['undisclosed']) == 'yes'; // Do we show recipients list?
-    $make_news = htmlspecialchars($_POST['make_news']) == 'yes'; // Do we show recipients list?
-    $user = new Users();
-    $MailManager = new MailManager();
-
-    // Get emails from the provided list of IDs
-    $mailing_list = array();
-    foreach ($ids as $id) {
-        $data = $user->getById($id);
-        $mailing_list[] = $data['email'];
-    }
-    
-    $result = $MailManager->send($content, $mailing_list, $disclose);
-
-    if ($make_news) {
-        $news = new Posts();
-        $news->add(array(
-            'title'=>$content['subject'],
-            'content'=>$content['body'],
-            'username'=>$_SESSION['username'],
-            'homepage'=>1
-        ));
-    }
-
-    echo json_encode($result);
-    exit;
-}
-
-// Add emails to recipients list
-if (!empty($_POST['add_emails'])) {
-    $id = htmlspecialchars($_POST['add_emails']);
-    $icon = "images/close.png";
-    $user = new Users();
-    if (strtolower($id) === 'all') {
-        $users = $user->all_but_admin();
-        $content = "";
-        $ids = array();
-        foreach ($users as $key=>$info) {
-            $ids[] = $info['id'];
-            $content .= MailManager::showRecipient($info);
-        }
-        $result['ids'] = implode(',', $ids);
-    } else {
-        $info = $user->getById($id);
-        $content = MailManager::showRecipient($info);
-        $result['ids'] = $id;
-    }
-    $result['content'] = $content;
-    $result['status'] = true;
+    $result['content'] = $user->generateuserslist();
     echo json_encode($result);
     exit;
 }
