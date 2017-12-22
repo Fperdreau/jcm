@@ -480,7 +480,7 @@ class MailManager extends BaseModel {
         return "
             <div class='added_email' id='{$info['id']}'>
                 <div class='added_email_name'>{$info['fullname']}</div>
-                <div class='added_email_delete' id='{$info['id']}'><img src='images/trash.png'></div>
+                <div class='added_email_delete' id='{$info['id']}'><img src='". URL_TO_IMG . "trash.png'></div>
             </div>
         ";
     }
