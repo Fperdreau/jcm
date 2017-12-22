@@ -150,8 +150,10 @@ class MailManager extends BaseModel {
      * @param array $mailing_list : recipients list
      * @param bool $undisclosed : hide (true) or show(false) recipients list
      * @param array $settings : email host settings (for testing)
-     * @param bool $add: add email to Db
+     * @param bool $add : add email to Db
      * @return mixed
+     * @throws Exception
+     * @throws phpmailerException
      */
     public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null, $add=true) {
         // Generate ID
@@ -250,8 +252,9 @@ class MailManager extends BaseModel {
      * Format email (html)
      * @param string $content
      * @param null $email_id
-     * @param bool $auto: has this email been sent automatically
+     * @param bool $auto : has this email been sent automatically
      * @return string
+     * @throws Exception
      */
     public function formatmail($content, $email_id=null, $auto=True) {
         $show_in_browser = (is_null($email_id)) ? null:
@@ -312,10 +315,85 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Send a test email to verify the email host settings
-     * @param array $data: email host settings
-     * @param null|string $to: recipient email
+     * @param array $data
      * @return mixed
+     */
+    public static function addRecipients(array $data) {
+        $id = htmlspecialchars($data['add_emails']);
+        $user = new Users();
+        if (strtolower($id) === 'all') {
+            $users = $user->all_but_admin();
+            $content = "";
+            $ids = array();
+            foreach ($users as $key=>$info) {
+                $ids[] = $info['id'];
+                $content .= self::showRecipient($info);
+            }
+            $result['ids'] = implode(',', $ids);
+        } else {
+            $info = $user->getById($id);
+            $content = self::showRecipient($info);
+            $result['ids'] = $id;
+        }
+        $result['content'] = $content;
+        $result['status'] = true;
+        return $result;
+    }
+
+    /**
+     * Send email to selected recipients
+     *
+     * @param array $data
+     * @return mixed
+     * @throws Exception
+     * @throws phpmailerException
+     */
+    public static function sendToRecipients(array $data) {
+        $content = array();
+        foreach ($data as $key => $value) {
+            if (!is_array($value)) {
+                $value = htmlspecialchars_decode($value);
+            }
+            $content[$key] = $value;
+        }
+
+        $ids = explode(',',$data['emails']); // Recipients list
+        $content['attachments'] = $data['attachments']; // Attached files
+        $disclose = htmlspecialchars($data['undisclosed']) == 'yes'; // Do we show recipients list?
+        $make_news = htmlspecialchars($data['make_news']) == 'yes'; // Do we show recipients list?
+        $user = new Users();
+        $MailManager = new MailManager();
+
+        // Get emails from the provided list of IDs
+        $mailing_list = array();
+        foreach ($ids as $id) {
+            $tmp = $user->getById($id);
+            $mailing_list[] = $tmp['email'];
+        }
+
+        $result = $MailManager->send($content, $mailing_list, $disclose);
+
+        if ($make_news) {
+            $news = new Posts();
+            $news->add(array(
+                'title'=>$content['subject'],
+                'content'=>$content['body'],
+                'username'=>$_SESSION['username'],
+                'homepage'=>1
+            ));
+        }
+
+        return $result;
+
+    }
+
+    /**
+     * Send a test email to verify the email host settings
+     * @param array $data : email host settings
+     * @param null|string $to : recipient email
+     * @return mixed
+     * @throws Exception
+     * @throws phpmailerException
      */
     public function send_test_email(array $data, $to=null) {
         if (is_null($to)) {
