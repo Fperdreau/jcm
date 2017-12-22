@@ -259,18 +259,18 @@ class MailManager extends BaseModel {
     private function addAttachments($data) {
         $attachments = array();
         $Media = new Media();
-        foreach (explode(',', $data) as $file_name) {
+        foreach (explode(',', $data) as $file_id) {
 
-            if (is_file($file_name)) {
-                $attachments[] = $file_name;
+            if (is_file($file_id)) {
+                $attachments[] = $file_id;
             } else {
                 // Get file information
-                $file_data = $Media->get(array('filename'=>$file_name));
+                $file_data = $Media->get(array('id'=>$file_id));
                 if (!empty($file_data)) {
-                    $attachments[] = $file_data['filename'];
+                    $attachments[] = PATH_TO_UPLOADS . $file_data['filename'];
                 } else {
                     Logger::getInstance(APP_NAME, __CLASS__)->warning(
-                        "Could not file '{$file_name}' in attachment");
+                        "Could not add file '{$file_data['filename']}' in attachment");
                 }
             }
         }
