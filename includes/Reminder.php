@@ -9,12 +9,30 @@
 namespace includes;
 
 
+/**
+ * Class Reminder
+ * @package includes
+ */
 class Reminder extends \BaseModel {
 
+    /**
+     * @var string $controller: controller name
+     */
     public $controller;
+
+    /**
+     * @var int $ref_id: event id
+     */
     public $ref_id;
+
+    /**
+     * @var int $reminded: has the event been reminded
+     */
     public $reminded = 0;
 
+    /**
+     * @var array $settings: object settings
+     */
     protected $settings = array(
         'days'=>0,
         'hours'=>0,
@@ -23,12 +41,14 @@ class Reminder extends \BaseModel {
 
     /**
      * Session instance
+     *
      * @var \Session $Session
      */
     private static $Session;
 
     /**
-     * Test if
+     * Test if event has been reminded
+     *
      * @param $id
      * @return bool
      */
@@ -38,6 +58,7 @@ class Reminder extends \BaseModel {
 
     /**
      * Add upcoming sessions to Reminder table
+     *
      * @return array: array('status'=>bool, 'msg'=>string)
      */
     public function addSessions() {
@@ -56,6 +77,11 @@ class Reminder extends \BaseModel {
         return $result;
     }
 
+    /**
+     * Get session instance
+     *
+     * @return \Session
+     */
     private static function getSession() {
         if (is_null(self::$Session)) {
             self::$Session = new \Session();
