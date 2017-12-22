@@ -62,22 +62,25 @@ class Suggestion extends BaseModel {
      * Add a presentation to the database
      * @param array $post
      * @return bool|string
+     * @throws Exception
      */
     public function add_suggestion(array $post){
         if ($this->is_exist(array('title'=>$post['title'])) === false) {
 
-            $post['id_pres'] = $this->generateID('id_pres');
+            //$post['id'] = $this->generateID('id');
             $post['up_date'] = date('Y-m-d h:i:s');
-
-            // Associates this presentation to an uploaded file if there is one
-            if (!empty($post['link'])) {
-                $media = new Media();
-                $media->add_upload(explode(',', $post['link']), $post['id_pres'], __CLASS__);
-            }
 
             // Add publication to the database
             if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
-                return $post['id_pres'];
+
+                $id = $this->db->getLastId();
+                // Associates this presentation to an uploaded file if there is one
+                if (!empty($post['link'])) {
+                    $media = new Media();
+                    $media->add_upload(explode(',', $post['link']), $id, __CLASS__);
+                }
+
+                return $id;
             } else {
                 return false;
             }
@@ -87,24 +90,26 @@ class Suggestion extends BaseModel {
     }
 
     /**
-     * Delete a presentation
-     * @param $pres_id
+     * Delete an item and its corresponding files
+     * @param int $id
      * @return bool
      */
-    public function delete_pres($pres_id) {
-        $this->getInfo($pres_id);
-
+    public function delete_pres($id) {
         // Delete corresponding file
         $uploads = new Media();
-        $uploads->delete_files($pres_id, __CLASS__);
-
-        // Delete corresponding entry in the publication table
-        return $this->delete(array('id_pres'=>$pres_id));
+        if ($uploads->delete_files($id, __CLASS__)) {
+            // Delete corresponding entry in the publication table
+            return $this->delete(array('id'=>$id));
+        } else {
+            return false;
+        }
     }
 
     /**
      * Alias for editor()
+     * @param $view
      * @return array|string
+     * @throws Exception
      */
     public function get_suggestion_list($view) {
         $_POST['operation'] = 'selection_list';
@@ -119,13 +124,14 @@ class Suggestion extends BaseModel {
      * Update information
      * @param array $data
      * @param array $id
+     * @param bool $filter
      * @return bool
      */
     public function update(array $data, array $id, $filter=true) {
         // Associates this presentation to an uploaded file if there is one
         if (!empty($data['link'])) {
             $media = new Media();
-            if (!$media->add_upload(explode(',', $data['link']), $data['id_pres'], __CLASS__)) {
+            if (!$media->add_upload(explode(',', $data['link']), $data['id'], __CLASS__)) {
                 return false;
             }
         }
@@ -136,10 +142,11 @@ class Suggestion extends BaseModel {
      * Edit Presentation
      * @param array $data
      * @return mixed
+     * @throws Exception
      */
     public function edit(array $data) {
         // check entries
-        $id_pres = htmlspecialchars($data['id_pres']);
+        $id_pres = htmlspecialchars($data['id']);
 
         // IF not a guest presentation, the one who posted is the planned speaker
         if ($data['type'] !== "guest") {
@@ -147,7 +154,7 @@ class Suggestion extends BaseModel {
         }
 
         if ($id_pres !== "false") {
-            $created = $this->update($data, array('id_pres'=>$id_pres));
+            $created = $this->update($data, array('id'=>$id_pres));
         } else {
             $created = $this->add_suggestion($data);
         }
@@ -168,10 +175,11 @@ class Suggestion extends BaseModel {
      * Select suggestion to present it
      * @param array $data
      * @return array: returns status and msg
+     * @throws Exception
      */
     public function select(array $data) {
-        $id_pres = $data['id_pres'];
-        $data['id_pres'] = "false";
+        $id_pres = $data['id'];
+        $data['id'] = "false";
         $Presentation = new Presentation();
         $result = $Presentation->edit($data);
         if ($result['status'] == true) {
@@ -185,6 +193,7 @@ class Suggestion extends BaseModel {
      * @param array|null $post
      * @param string $view
      * @return array
+     * @throws Exception
      */
     public function editor(array $post=null, $view='body') {
         $post = (is_null($post)) ? $_POST : $post;
@@ -239,8 +248,9 @@ class Suggestion extends BaseModel {
         $Bookmark = new Bookmark();
 
         foreach ($this->getAll($limit) as $key=>$item) {
-            $vote_icon = $Vote->getIcon($item['id_pres'], 'Suggestion', $username);
-            $bookmark_icon = $Bookmark->getIcon($item['id_pres'], 'Suggestion', $username);
+
+            $vote_icon = $Vote->getIcon($item['id'], 'Suggestion', $username);
+            $bookmark_icon = $Bookmark->getIcon($item['id'], 'Suggestion', $username);
             $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
 
@@ -260,7 +270,7 @@ class Suggestion extends BaseModel {
 
         $option = "<option disabled selected>Select a suggestion</option>";
         foreach ($this->getAll() as $key=>$item) {
-            $option .= "<option value='{$item['id_pres']}'>{$item['authors']} | {$item['title']}</option>";
+            $option .= "<option value='{$item['id']}'>{$item['authors']} | {$item['title']}</option>";
         }
 
         return self::select_menu($option, $target, $destination);
@@ -269,6 +279,7 @@ class Suggestion extends BaseModel {
     /**
      * Copy wishes from presentation table to suggestion table
      * @return bool: success or failure
+     * @throws Exception
      */
     public static function patch() {
         $self = new self();
@@ -279,7 +290,7 @@ class Suggestion extends BaseModel {
             if ($self->add_suggestion($item) === false) {
                 return false;
             } else {
-                $Presentations->delete(array('id_pres'=>$item['id_pres']));
+                $Presentations->delete(array('id'=>$item['id']));
             }
         }
 
@@ -317,6 +328,7 @@ class Suggestion extends BaseModel {
      * Get submission form
      * @param string $view
      * @return mixed
+     * @throws Exception
      */
     public function get_form($view='body') {
         if ($view === "body") {
@@ -345,6 +357,7 @@ class Suggestion extends BaseModel {
     /**
      * Get Presentation types
      * @return array
+     * @throws Exception
      */
     public function getTypes() {
         $Presentation = new Presentation();
@@ -363,11 +376,10 @@ class Suggestion extends BaseModel {
      * @return bool|array
      */
     public function getInfo($id_pres) {
-        $sql = "SELECT p.*, u.fullname as fullname 
-                FROM {$this->tablename} p
+        $sql = "SELECT p.*, u.fullname as fullname FROM {$this->tablename} p
                 LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
                     ON u.username=p.username
-                WHERE id_pres='{$id_pres}'";
+                WHERE p.id='{$id_pres}'";
         $data = $this->db->send_query($sql)->fetch_assoc();
 
         if (!empty($data)) {
@@ -390,20 +402,21 @@ class Suggestion extends BaseModel {
      * @return array
      */
     public function getAll($limit=null, $order='count_vote', $dir='DESC') {
-        $sql = "SELECT *, COUNT((v.ref_id)) as count_vote
+        $sql = "SELECT *, p.id as id, COUNT((v.ref_id)) as count_vote
                   FROM {$this->tablename} p 
                   LEFT JOIN " . Db::getInstance()->getAppTables('Users'). " u 
                     ON p.username = u.username
                   LEFT JOIN " . Db::getInstance()->getAppTables('Media') . " m
-                    ON p.id_pres = m.presid
+                    ON p.id = m.obj_id
                   LEFT JOIN " . Db::getInstance()->getAppTables('Vote') . " v
-                    ON v.ref_id = p.id_pres
-                  GROUP BY id_pres
+                    ON v.ref_id = p.id
+                  GROUP BY p.id
                   ORDER BY {$order} {$dir}" . $limit;
-        $req = $this->db->send_query($sql);
         $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
+        if ($req = $this->db->send_query($sql)) {
+            while ($row = $req->fetch_assoc()) {
+                $data[] = $row;
+            }
         }
         return $data;
     }
@@ -413,7 +426,7 @@ class Suggestion extends BaseModel {
      */
     private function get_uploads() {
         $upload = new Media();
-        $this->link = $upload->get_uploads($this->id_pres, 'Suggestion');
+        $this->link = $upload->get_uploads($this->id, 'Suggestion');
         return $this->link;
     }
 
@@ -473,18 +486,18 @@ class Suggestion extends BaseModel {
      */
     public static function inList(stdClass $item, $vote=null, $bookmark=null) {
         $update = date('d M y', strtotime($item->up_date));
-        $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id_pres}";
+        $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id}";
         $keywords = self::keywords_list($item->keywords);
 
         return "
-        <div class='suggestion_container' id='{$item->id_pres}''>
+        <div class='suggestion_container' id='{$item->id}''>
             <div class='suggestion_date'>
                 {$update}
             </div>
             <div class='suggestion_details_container'>
                 <div class='suggestion_details'>
                    <a href='$url' class='leanModal' data-controller='Suggestion' data-action='show_details' 
-                   data-section='suggestion' data-params='{$item->id_pres},modal' data-id='{$item->id_pres}'>
+                   data-section='suggestion' data-params='{$item->id},modal' data-id='{$item->id}'>
                         <div style='font-size: 16px;'>{$item->title}</div>
                         <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
                    </a>
@@ -538,6 +551,7 @@ class Suggestion extends BaseModel {
      * @param string $submit
      * @param bool $type
      * @return array
+     * @throws Exception
      */
     public static function form(Users $user, Suggestion $Suggestion=null, $submit="edit", $type=null) {
         if (is_null($Suggestion)) {
@@ -548,7 +562,7 @@ class Suggestion extends BaseModel {
         $controller = get_class($Suggestion);
 
         // Presentation ID
-        $idPres = ($Suggestion->id_pres != "") ? $Suggestion->id_pres : 'false';
+        $idPres = ($Suggestion->id != "") ? $Suggestion->id : 'false';
 
         // Make submission's type selection list
         $Presentation = new Presentation();
@@ -610,7 +624,7 @@ class Suggestion extends BaseModel {
                         <input type='hidden' name='operation' value='{$submit}'/>
                         <input type='hidden' name='process_submission' value='true'/>
                         <input type='hidden' name='username' value='$user->username'/>
-                        <input type='hidden' id='id_pres' name='id_pres' value='{$idPres}'/>
+                        <input type='hidden' id='id' name='id' value='{$idPres}'/>
                     </div>
                 </form>
             </div>
@@ -671,7 +685,7 @@ class Suggestion extends BaseModel {
      * @param array $data : presentation information
      * @param bool $show : show buttons (true)
      * @param string $view: requested view ('modal' or 'body')
-     * @return string
+     * @return array
      */
     public static function details(array $data, $show=false, $view='modal') {
 
@@ -687,7 +701,7 @@ class Suggestion extends BaseModel {
                 <img src='" . URL_TO_IMG . "trash.png'></a>
                 </div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}' data-controller='Suggestion' 
-                data-action='get_form' data-section='suggestion' data-params='{$view}' data-id='{$data['id_pres']}' 
+                data-action='get_form' data-section='suggestion' data-params='{$view}' data-id='{$data['id']}' 
                 data-operation='edit' data-destination='{$destination}'>
                 <img src='" . URL_TO_IMG . "edit.png'></a>
                 </div>";
@@ -703,7 +717,7 @@ class Suggestion extends BaseModel {
         // Present button
         $present_button = (Auth::is_logged()) ? "<div>
             <input type='submit' class='{$trigger}' value='Present it' data-controller='Suggestion' 
-            data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id_pres']}' 
+            data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id']}' 
             data-view='{$view}' data-destination='{$destination}' data-operation='select'/>
         </div>" : null;
 
