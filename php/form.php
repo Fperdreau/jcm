@@ -487,44 +487,6 @@ if (!empty($_POST['select_year'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Contact form
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-if (!empty($_POST['contact_send'])) {
-    $AppMail = new MailManager();
-    $sel_admin_mail = htmlspecialchars($_POST['admin_mail']);
-    $usr_msg = htmlspecialchars($_POST["message"]);
-    $usr_mail = htmlspecialchars($_POST["email"]);
-    $usr_name = htmlspecialchars($_POST["name"]);
-    $content = "Message sent by {$usr_name} ($usr_mail):<br><p>$usr_msg</p>";
-    $subject = "Contact from $usr_name";
-
-    $settings['mail_from'] = $usr_mail;
-    $settings['mail_from_name'] = $usr_mail;
-
-    if ($AppMail->send(array('body'=>$content, 'subject'=>$subject), array($sel_admin_mail),true, $settings)) {
-        $result['status'] = true;
-        $result['msg'] = "Your message has been sent!";
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
-    exit;
-}
-
-// Test email settings
-if (!empty($_POST['test_email_settings'])) {
-    $settings = array();
-    foreach ($_POST as $setting=>$value) {
-        $settings[$setting] = htmlspecialchars($value);
-    }
-    $AppMail = new MailManager();
-    $to = (isset($_POST['test_email'])) ? htmlspecialchars($_POST['test_email']) : null;
-    $result = $AppMail->send_test_email($settings, $to);
-    echo json_encode($result);
-    exit;
-}
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 User Management tools
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Sort user list

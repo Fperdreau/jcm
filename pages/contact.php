@@ -73,8 +73,7 @@ $result = "
             <h2>Contact us</h2>
             <div class='section_content'>
             <div class='feedback'></div>
-            <form id='contact_form' method='post' action='php/form.php'>
-                <input type='hidden' name='contact_send' value='true'/>
+            <form method='post' action='php/router.php?controller=MailManager&action=sendMessage'>
                 <div class='submit_btns'>
                     <input type='submit' name='send' value='Send' class='processform'>
                 </div>
