@@ -50,7 +50,7 @@ class Presentation extends BaseModel {
     public $title;
     public $authors;
     public $summary;
-    public $link;
+    public $media;
     public $orator;
     public $chair;
     public $notified;
@@ -125,32 +125,35 @@ class Presentation extends BaseModel {
 
     /**
      * Add a presentation to the database
-     * @param array $post
+     * @param array $data
      * @return bool|string
      * @throws Exception
      */
-    public function make(array $post){
-        $is_full = Session::isBooked($post['session_id']);
+    public function make(array $data){
+        $is_full = Session::isBooked($data['session_id']);
         if ($is_full === false) {
-            if ($this->pres_exist($post['title']) === false) {
+            if ($this->pres_exist($data['title']) === false) {
                 // Create an unique ID
                 //$post['id_pres'] = $this->generateID('id_pres');
 
                 // Upload datetime
-                $post['up_date'] = date('Y-m-d h:i:s');
-
-                // Associates this presentation to an uploaded file if there is one
-                if (!empty($post['link'])) {
-                    $media = new Media();
-                    $media->add_upload(explode(',', $post['link']), $post['id'], 'Presentation');
-                }
+                $data['up_date'] = date('Y-m-d h:i:s');
 
                 // Add publication to the database
-                if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
-                    return $this->id;
+                if ($this->db->insert($this->tablename, $this->parseData($data, array("media")))) {
+                    $data['id'] = $this->db->getLastId();
                 } else {
                     return false;
                 }
+                
+                // Associates this presentation to an uploaded file if there is one
+                if (!empty($data['media'])) {
+                    $media = new Media();
+                    if (!$media->add_upload(explode(',', $data['media']), $data['id'], __CLASS__)) {
+                        return false;
+                    }
+                }
+                return $data['id'];
             } else {
                 return "exist";
             }
@@ -167,13 +170,13 @@ class Presentation extends BaseModel {
      */
     public function update(array $data, array $id) {
         // Associates this presentation to an uploaded file if there is one
-        if (!empty($data['link'])) {
+        if (!empty($data['media'])) {
             $media = new Media();
-            if (!$media->add_upload(explode(',', $data['link']), $data['id'], __CLASS__)) {
+            if (!$media->add_upload(explode(',', $data['media']), $data['id'], __CLASS__)) {
                 return false;
             }
         }
-        return $this->db->update($this->tablename, $this->parseData($data, array("link","chair")), $id);
+        return $this->db->update($this->tablename, $this->parseData($data, array("media","chair")), $id);
     }
 
     /**
@@ -330,9 +333,9 @@ class Presentation extends BaseModel {
         }
 
         // Associate the new uploaded file (if there is one)
-        if (array_key_exists("link", $post)) {
+        if (array_key_exists("media", $post)) {
             $media = new Media();
-            $media->add_upload(explode(',', $post['link']), $post['id'], 'Presentation');
+            $media->add_upload(explode(',', $post['media']), $post['id'], 'Presentation');
         }
 
         // Get presentation's type
@@ -341,7 +344,7 @@ class Presentation extends BaseModel {
         // Update table
         if ($this->db->update(
             $this->tablename,
-            $this->parseData($post, array('link','chair')),
+            $this->parseData($post, array('media', 'chair')),
             array('id'=>$this->id))) {
 
             Logger::getInstance(APP_NAME, get_class($this))->info("Presentation ({$this->id}) updated");
@@ -358,7 +361,7 @@ class Presentation extends BaseModel {
     private function get_uploads() {
         $upload = new Media();
         $links = $upload->get_uploads($this->id, 'Presentation');
-        $this->link = $links;
+        $this->media = $links;
         return $links;
     }
 
@@ -580,7 +583,7 @@ class Presentation extends BaseModel {
             $this->map($data);
 
             // Get associated files
-            $data['link'] = $this->get_uploads();
+            $data['media'] = $this->get_uploads();
             return $data;
         } else {
             return false;
@@ -721,7 +724,7 @@ class Presentation extends BaseModel {
      */
     public static function mail_details(array $data, $show=false) {
         // Make download menu if required
-        $file_div = $show ? Media::download_menu_email($data['link'], App::getAppUrl()) : null;
+        $file_div = $show ? Media::download_menu_email($data['media'], App::getAppUrl()) : null;
 
         // Format presentation's type
         $type = ucfirst($data['type']);
@@ -767,7 +770,7 @@ class Presentation extends BaseModel {
      * @return string
      */
     public static function details(array $data, $show=false, $view='modal') {
-        $dl_menu = Media::download_menu($data['link'], $show);
+        $dl_menu = Media::download_menu($data['media'], $show);
 
         $file_div = $show ? $dl_menu['menu'] : null;
         $destination = $view === 'modal' ? '#presentation' : '#presentation_container';
@@ -981,7 +984,7 @@ class Presentation extends BaseModel {
         $type_options = self::renderTypes($Presentation->getTypes(), $type);
 
         // Download links
-        $links = !is_null($Presentation->link) ? $Presentation->link : array();
+        $links = !is_null($Presentation->media) ? $Presentation->media : array();
 
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
