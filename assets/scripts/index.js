@@ -725,15 +725,15 @@ function process_post(el, e) {
         if (result.status === true) {
             var container_id = controller.toLowerCase() + '_form';
             $('section#' + container_id + ', .modal_section#' + container_id).empty();
-            var id_pres = form.find('input[name="id_pres"]').val().length > 0
-            && form.find('input[name="id_pres"]').length > 0 ? form.find('input[name="id_pres"]').val() : undefined;
-            var operation = id_pres !== undefined ? 'edit' : 'new';
+            var id = form.find('input[name="id"]').val().length > 0
+            && form.find('input[name="id"]').length > 0 ? form.find('input[name="id"]').val() : undefined;
+            var operation = id !== undefined ? 'edit' : 'new';
 
             get_submission_form({
                 'controller': controller,
                 'action': 'get_form',
                 'operation': operation,
-                'id': id_pres,
+                'id': id,
                 'destination': '#' + controller.toLowerCase() + '_container'}
             );
 
@@ -793,7 +793,7 @@ function process_submission(el, e) {
             links.push(link);
         });
         links = links.join(',');
-        form.append("<input type='hidden' name='link' value='"+links+"'>");
+        form.append("<input type='hidden' name='media' value='"+links+"'>");
     }
 
     // Form data
@@ -807,9 +807,9 @@ function process_submission(el, e) {
         if (result.status === true) {
             var container_id = controller.toLowerCase() + '_form';
             $('section#' + container_id + ', .modal_section#' + container_id).empty();
-            var id_pres = form.find('input[name="id_pres"]').val().length > 0
-            && form.find('input[name="id_pres"]').length > 0 ? form.find('input[name="id_pres"]').val() : undefined;
-            var operation = id_pres !== undefined ? 'edit' : 'new';
+            var id = form.find('input[name="id"]').val().length > 0
+            && form.find('input[name="id"]').length > 0 ? form.find('input[name="id"]').val() : undefined;
+            var operation = id !== undefined ? 'edit' : 'new';
             if (in_modal(el)) {
                 el.find('.modalContainer').modalWindow('close');
                 location.reload();
@@ -818,7 +818,7 @@ function process_submission(el, e) {
                     'controller': controller,
                     'action': 'get_form',
                     'operation': operation,
-                    'id': id_pres,
+                    'id': id,
                     'destination': '#' + controller.toLowerCase() + '_container'}
                 );
             }
