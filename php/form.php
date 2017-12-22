@@ -223,7 +223,7 @@ Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar
 if (!empty($_POST['get_calendar_param'])) {
-    $Sessions = new Session();
+    $Session = new Session();
     $force_select = htmlspecialchars($_POST['get_calendar_param']) === 'edit';
 
     try {
@@ -378,9 +378,9 @@ if (!empty($_POST['getfiles'])) {
 
 //  delete files
 if (!empty($_POST['del_upl'])) {
-    $file_id = htmlspecialchars($_POST['file_id']);
+    $file_id = htmlspecialchars($_POST['id']);
     $up = new Media();
-    $result = $up->delete(array('fileid'=>$file_id));
+    $result = $up->delete(array('id'=>$file_id));
     $result['uplname'] = $file_id;
     echo json_encode($result);
     exit;
