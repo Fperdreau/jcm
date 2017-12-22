@@ -502,6 +502,7 @@ class Posts extends BaseModel
     private static function formSection(array $data) {
         return "
             <section>
+                <h2>Post a news</h2>
                 <div class='section_content'>
                  {$data['content']}
                 </div>
