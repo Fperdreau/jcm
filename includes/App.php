@@ -181,9 +181,11 @@ class App {
          if(!defined('PATH_TO_CONFIG')) define('PATH_TO_CONFIG', PATH_TO_APP . DS . 'config' . DS);
          if(!defined('PATH_TO_TASKS')) define('PATH_TO_TASKS', PATH_TO_APP . DS . 'cronjobs' . DS);
          if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'Plugins' . DS);
- 
+         if(!defined('PATH_TO_UPLOADS')) define('PATH_TO_UPLOADS', PATH_TO_APP . DS . 'uploads' . DS);
+
          if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
          if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");
+         if(!defined('URL_TO_UPLOADS')) define('URL_TO_UPLOADS', URL_TO_APP . "uploads");
     }
 
     /**
