@@ -16,7 +16,7 @@ class Suggestion extends BaseModel {
     public $title;
     public $authors;
     public $summary;
-    public $link;
+    public $media;
     public $notified;
     public $vote;
     public $keywords;
@@ -71,13 +71,13 @@ class Suggestion extends BaseModel {
             $post['up_date'] = date('Y-m-d h:i:s');
 
             // Add publication to the database
-            if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
+            if ($this->db->insert($this->tablename, $this->parseData($post, array("media")))) {
 
                 $id = $this->db->getLastId();
                 // Associates this presentation to an uploaded file if there is one
-                if (!empty($post['link'])) {
+                if (!empty($post['media'])) {
                     $media = new Media();
-                    $media->add_upload(explode(',', $post['link']), $id, __CLASS__);
+                    $media->add_upload(explode(',', $post['media']), $id, __CLASS__);
                 }
 
                 return $id;
@@ -129,13 +129,13 @@ class Suggestion extends BaseModel {
      */
     public function update(array $data, array $id, $filter=true) {
         // Associates this presentation to an uploaded file if there is one
-        if (!empty($data['link'])) {
+        if (!empty($data['media'])) {
             $media = new Media();
-            if (!$media->add_upload(explode(',', $data['link']), $data['id'], __CLASS__)) {
+            if (!$media->add_upload(explode(',', $data['media']), $data['id'], __CLASS__)) {
                 return false;
             }
         }
-        return $this->db->update($this->tablename, $this->parseData($data, array("link")), $id);
+        return $this->db->update($this->tablename, $this->parseData($data, array("media")), $id);
     }
 
     /**
@@ -386,7 +386,7 @@ class Suggestion extends BaseModel {
             $this->map($data);
 
             // Get associated files
-            $data['link'] = $this->get_uploads();
+            $data['media'] = $this->get_uploads();
             return $data;
         } else {
             return false;
@@ -426,8 +426,8 @@ class Suggestion extends BaseModel {
      */
     private function get_uploads() {
         $upload = new Media();
-        $this->link = $upload->get_uploads($this->id, 'Suggestion');
-        return $this->link;
+        $this->media = $upload->get_uploads($this->id, 'Suggestion');
+        return $this->media;
     }
 
     // VIEWS
@@ -572,8 +572,8 @@ class Suggestion extends BaseModel {
             array('minute')
         );
 
-        // Download links
-        $links = !is_null($Suggestion->link) ? $Suggestion->link : array();
+        // Download medias
+        $medias = !is_null($Suggestion->media) ? $Suggestion->media : array();
 
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
@@ -583,7 +583,7 @@ class Suggestion extends BaseModel {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader(__CLASS__, $links, 'suggestion_form') . "
+                    " . Media::uploader(__CLASS__, $medias, 'suggestion_form') . "
                 </div>
                 
                 <form method='post' action='php/form.php' enctype='multipart/form-data' id='suggestion_form'>
@@ -689,12 +689,12 @@ class Suggestion extends BaseModel {
      */
     public static function details(array $data, $show=false, $view='modal') {
 
-        $dl_menu = Media::download_menu($data['link'], $show);
+        $dl_menu = Media::download_menu($data['media'], $show);
         $file_div = $show ? $dl_menu['menu'] : null;
         $destination = $view === 'modal' ? '#suggestion' : '#suggestion_container';
         $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
 
-        // Add a delete link (only for admin and organizers or the authors)
+        // Add a delete media (only for admin and organizers or the authors)
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Suggestion' data-action='delete'>
