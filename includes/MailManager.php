@@ -192,7 +192,7 @@ class MailManager extends BaseModel {
 
         // Add attachments
         if (!is_null($data['attachments'])) {
-            $attachments = $this->addAttachments($data['attachments']);
+            $attachments = $this->addAttachments($data['attachments'], $data['mail_id']);
         } else {
             $attachments = null;
         }
@@ -254,9 +254,10 @@ class MailManager extends BaseModel {
     /**
      * Helper function for adding attachments before sending email
      * @param $data
+     * @param $mail_id
      * @return array
      */
-    private function addAttachments($data) {
+    private function addAttachments($data, $mail_id) {
         $attachments = array();
         $Media = new Media();
         foreach (explode(',', $data) as $file_id) {
@@ -267,7 +268,9 @@ class MailManager extends BaseModel {
                 // Get file information
                 $file_data = $Media->get(array('id'=>$file_id));
                 if (!empty($file_data)) {
-                    $attachments[] = PATH_TO_UPLOADS . $file_data['filename'];
+                    if ($Media->update(array('obj_id'=>$mail_id), array('id'=>$file_id))) {
+                        $attachments[] = PATH_TO_UPLOADS . $file_data['filename'];
+                    }
                 } else {
                     Logger::getInstance(APP_NAME, __CLASS__)->warning(
                         "Could not add file '{$file_data['filename']}' in attachment");
