@@ -142,6 +142,38 @@ class ReminderMaker extends BaseModel {
         return true;
     }
 
+    /**
+     * Preview reminder email
+     *
+     * @param array $data
+     * @return array
+     */
+    public function preview() {
+        $result = $this->makeDigest($_SESSION['username']);
+        $AppMail = new MailManager();
+        return $AppMail->formatmail($result['body']);
+    }
+
+    /**
+     * Render Reminder index page
+     * 
+     * @return string
+     */
+    public function index() {
+        return "
+            <div class='page_header'>
+            <p class='page_description'>Here you can customize and preview the 
+            reminder email that will be sent to the JCM members.</p>
+            </div>
+            " . Template::section(array('body'=>$this->edit() . "<div class='submit_btns'>
+                    <input type='submit' value='Preview' class='loadContent' 
+                    data-url='php/router.php?controller=ReminderMaker&action=preview' 
+                    data-destination='.mail_preview_container' />
+                    </div>", 'title'=>'Reminder sections' )) . "
+            <section class='mail_preview_container' style='display: none;'>
+            </section> ";
+    }
+
     // VIEW
 
     /**
