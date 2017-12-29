@@ -367,7 +367,8 @@ class Users extends BaseModel {
      */
     public function send_confirmation_mail(array $data) {
         $MailManager = new MailManager();
-        $body = self::confirmation_mail($data['fullname'], $data['username']);
+        $fullname = isset($data['fullname']) ? $data['fullname'] : $data['username'];
+        $body = self::confirmation_mail($fullname, $data['username']);
         return $MailManager->send(array(
             'body'=>$body,
             'subject'=>'Sign up | Confirmation'
