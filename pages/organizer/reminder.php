@@ -21,16 +21,5 @@
  */
 
 $Reminder = new ReminderMaker();
-$section_content = $Reminder->edit();
-// Send mail
-$result = "
-    <div class='page_header'>
-    <p class='page_description'>Here you can customize and preview the reminder email that will be sent to the JCM members.</p>
-    </div>
-    " . Template::section(array('body'=>$Reminder->edit() . "<div class='submit_btns'>
-            <input type='submit' value='Preview' class='mail_preview' id='reminder' />
-            </div>", 'title'=>'Reminder sections' )) . "
-    <section class='mail_preview_container' style='display: none;'>
-    </section> ";
-
+$result = $Reminder->index();
 echo $result;
