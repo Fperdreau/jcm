@@ -1152,25 +1152,6 @@ $(document).ready(function () {
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Admin - Digest Maker
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        .on('click', '.mail_preview', function (e) {
-            e.preventDefault();
-            var operation = $(this).attr('id');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'post',
-                async: true,
-                data: {
-                    preview: operation},
-                success: function (data) {
-                    var json = jQuery.parseJSON(data);
-                    $('.mail_preview_container').hide().html(json.body).fadeIn(200);
-                }
-            });
-        })
-
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin - News
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         // Select news to modify
