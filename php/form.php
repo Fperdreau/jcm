@@ -56,20 +56,6 @@ if (!empty($_POST['router'])) {
     exit;
 }
 
-// Delete item
-if (!empty($_POST['delete'])) {
-    $controller_name = htmlspecialchars($_POST['controller']);
-    $Controller = new $controller_name();
-    $id = htmlspecialchars($_POST['id']);
-
-    /**
-     * @var BaseModel $Controller
-     */
-    $result = $Controller->delete(array('id'=>$id));
-    echo json_encode($result);
-    exit;
-}
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DigestMaker/ReminderMaker
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -93,21 +79,6 @@ if (!empty($_POST['modReminder'])) {
 
     $reminderMaker = new ReminderMaker();
     $result['status'] = $reminderMaker->update($_POST, array('name'=>$name));
-    echo json_encode($result);
-    exit;
-}
-
-if (!empty($_POST['preview'])) {
-    $operation = htmlspecialchars($_POST['preview']);
-    if ($operation === 'digest') {
-        $DigestMaker = new DigestMaker();
-        $result = $DigestMaker->makeDigest($_SESSION['username']);
-    } else {
-        $DigestMaker = new ReminderMaker();
-        $result = $DigestMaker->makeDigest($_SESSION['username']);
-    }
-    $AppMail = new MailManager();
-    $result['body'] = $AppMail->formatmail($result['body']);
     echo json_encode($result);
     exit;
 }
