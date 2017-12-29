@@ -237,28 +237,27 @@ class Session extends BaseModel {
      * @return string
      */
     public function showCalendar($nsession = 4) {
+
         // Get next planned date
-        $dates = $this->getNextDates(1);
+        if (!empty($this->all())) {
+            $dates = $this->getNextDates(1);
 
-        $dates = ($dates === false) ? false : $dates[0];
-
-        // Get journal club days
-        $jc_days = $this->getJcDates($this->settings['jc_day'], $nsession, $dates);
-
-        // Repeat sessions
-        $this->repeatAll(end($jc_days));
-
-        // Get futures journal club sessions
-        if ($dates !== false) {
+            $dates = ($dates === false) ? false : $dates[0];
+    
+            // Get journal club days
+            $jc_days = $this->getJcDates($this->settings['jc_day'], $nsession, $dates);
+    
+            // Repeat sessions
+            $this->repeatAll(end($jc_days));
+    
             $content = "";
             foreach ($jc_days as $day) {
                 $content .= $this->getDayContent($this->all(array('s.date'=>$day)), $day, false);
             }
+            return $content;
         } else {
-            $content = self::nothingToDisplay();
-        }
-
-        return $content;
+            return self::nothingToDisplay();
+        }        
     }
 
     /**
@@ -1041,7 +1040,7 @@ class Session extends BaseModel {
      * @return array|bool
      */
     public function getNextDates($limit=null) {
-        $sql = "SELECT id,date FROM {$this->tablename} WHERE date>CURDATE() ORDER BY date ASC";
+        $sql = "SELECT id,date FROM {$this->tablename} WHERE date>=CURDATE() ORDER BY date ASC";
 
         $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
         $req = $this->db->send_query($sql);
