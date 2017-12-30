@@ -350,7 +350,7 @@ class Suggestion extends BaseModel {
      */
     public function makeMail($username=null) {
         $content['body'] = $this->getWishList(4);
-        $content['title'] = "Wish list";
+        $content['title'] = "Suggestions";
         return $content;
     }
 
