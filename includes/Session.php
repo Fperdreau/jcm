@@ -119,18 +119,6 @@ class Session extends BaseModel {
     }
 
     /**
-     *
-     * @param null $username
-     * @return mixed
-     */
-    public function makeReminder($username=null) {
-        // Get future presentations
-        $content['body'] = $this->showNextSession(true);;
-        $content['title'] = 'Session Information';
-        return $content;
-    }
-
-    /**
      * Get session types
      * @return array
      */
