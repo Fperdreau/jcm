@@ -22,16 +22,4 @@
 
 // Declare classes
 $DigestMaker = new DigestMaker();
-$section_content = $DigestMaker->edit();
-// Send mail
-$result = "
-    <div class='page_header'>
-    <p class='page_description'>Here you can customize and preview the weekly digest that will be sent to the JCM members.</p>
-    </div>
-    " . Template::section(array('body'=>$DigestMaker->edit() . "<div class='submit_btns'>
-            <input type='submit' value='Preview' class='mail_preview' id='digest'/>
-            </div>", 'title'=>'Digests sections' )) . "
-    <section class='mail_preview_container' style='display: none;'>
-    </section> ";
-
-echo $result;
+echo $DigestMaker->index();

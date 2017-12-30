@@ -57,33 +57,6 @@ if (!empty($_POST['router'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DigestMaker/ReminderMaker
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Update DigestMaker sections
-if (!empty($_POST['modDigest'])) {
-    $name = htmlspecialchars($_POST['name']);
-    $display = htmlspecialchars($_POST['display']);
-    $position = htmlspecialchars($_POST['position']);
-
-    $DigestMaker = new DigestMaker();
-    $result['status'] = $DigestMaker->update($_POST, array('name'=>$name));
-    echo json_encode($result);
-    exit;
-}
-
-// Update ReminderMaker sections
-if (!empty($_POST['modReminder'])) {
-    $name = htmlspecialchars($_POST['name']);
-    $display = htmlspecialchars($_POST['display']);
-    $position = htmlspecialchars($_POST['position']);
-
-    $reminderMaker = new ReminderMaker();
-    $result['status'] = $reminderMaker->update($_POST, array('name'=>$name));
-    echo json_encode($result);
-    exit;
-}
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Scheduled Tasks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Run cron job

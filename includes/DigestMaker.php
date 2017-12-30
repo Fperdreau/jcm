@@ -27,206 +27,46 @@
 /**
  * Class DigestMaker
  */
-class DigestMaker extends BaseModel {
-
-    public $name;
-    public $position;
-    public $display;
+class DigestMaker extends BaseMailMaker {
 
     /**
      * Constructor
      * @param bool $name
      */
     public function __construct($name=False) {
-        parent::__construct();
-        if ($name !== False) {
-            $this->name = $name;
-            $this->getInfo($name);
-        }
+        parent::__construct($name);
     }
 
-    // CONTROLLER
-
-    /**
-     * Install DigestMaker
-     * @param bool $op
-     * @return bool
-     */
-    public function setup($op=False) {
-        return self::registerAll();
-    }
-
-    /**
-     * Renders digest email
-     * @param string $username
-     * @return mixed
-     */
-    public function makeDigest($username) {
-        $user = new Users($username);
-        $string = "";
-        foreach ($this->all() as $key=>$item) {
-            if ($item['display'] == 1) {
-                if (class_exists($item['name'])) {
-                    $section = new $item['name']();
-                    if (method_exists($section, 'makeMail'))
-                        $string .= self::showSection($section->makeMail($username));
-                }
-
-            }
-        }
-
-        $content['body'] = "
-                <div style='width: 100%; margin: auto;'>
-                    <p>Hello {$user->firstname},</p>
-                    <p>This is your Journal Club weekly digest.</p>
-                </div>
-                {$string}
-                ";
-        $content['subject'] = "Digest - ".date('d M Y');
-        
-        return $content;
-    }
-
-    /**
-     * Show form
-     * @return string
-     */
-    public function edit() {
-        $data = $this->all(array(), array('dir'=>'asc', 'order'=>'position'));
-        return self::form($data);
-    }
-
-    // MODEL
-    /**
-     * @param $name
-     * @return bool|$this
-     */
-    public function getInfo($name) {
-        $data = $this->get(array('name'=>$name));
-        if (!empty($data)) {
-            $this->map($data);
-
-            return $this;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * Register module into digest table
-     * @param $name: module name
-     * @return void
-     */
-    public function register($name) {
-        if (!$this->getInfo($name)) {
-            if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
-                Logger::getInstance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into digest table");
-            } else {
-                Logger::getInstance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into digest table");
-            }
-        }
-    }
-
-    /**
-     * Search for module that must be registered into the Digest table.
-     * @return bool
-     */
-    public static function registerAll() {
-        $includeList = scandir(PATH_TO_INCLUDES);
-        foreach ($includeList as $includeFile) {
-            if (!in_array($includeFile, array('.', '..'))) {
-                $class_name = explode('.', $includeFile);
-                if (method_exists($class_name[0], 'registerDigest')) {
-                    $class_name[0]::registerDigest();
-                }
-            }
-        }
-        return true;
-    }
-    
     // VIEW
-
-    /**
-     * Renders positions input
-     * @param array $data
-     * @param $position
-     * @return string
-     */
-    private static function getPositions(array $data, $position) {
-        $nb_sections = count($data);
-        $content = "";
-        for ($i=0; $i<$nb_sections; $i++) {
-            $selected = ($i == $position) ? "selected":null;
-            $content .= "<option value='{$i}' {$selected}>{$i}</option>";
-        }
-        return $content;
+    protected static function pageHeader() {
+        return "<p class='page_description'>Here you can customize and preview the 
+        weekly digest email that will be sent to the JCM members.</p>";
     }
 
     /**
-     * Renders digest section
-     * @param array $data
+     * Email header
+     *
      * @return string
      */
-    public static function showSection(array $data) {
-        if (empty($data)) {
-            return null;
-        }
+    protected static function header() {
+        return "Weekly digest - ".date('d M Y');
+    }
+
+    /**
+     * Email body
+     *
+     * @param Users $user
+     * @param string $content: email content
+     * @return string
+     */
+    protected static function body(Users $user, $content) {
         return "
-           <div style='display: block; padding: 10px; margin: 0 auto 20px auto; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
-                    {$data['title']}
-                </div>
-
-                <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
-                    {$data['body']}
-                </div>
-            </div>
+        <div style='width: 100%; margin: auto;'>
+            <p>Hello {$user->firstname},</p>
+            <p>This is your Journal Club weekly digest.</p>
+        </div>
+        {$content}
         ";
-    }
-
-    /**
-     * Renders Edit form
-     * @param array $data
-     * @return string
-     */
-    public static function form(array $data) {
-        $content = "";
-        foreach ($data as $key=>$info) {
-            $positions = self::getPositions($data, $info['position']);
-            $display = "";
-            $opt = array('Yes'=>1, 'No'=>0);
-            foreach ($opt as $label=>$value) {
-                $selected = ($value == $info['display']) ? "selected":null;
-                $display .= "<option value='{$value}' {$selected}>{$label}</option>";
-            }
-            $content .= "
-            <div class='digest_section'>
-                <div id='name'>{$info['name']}</div>
-                <div id='form'>
-                    <form method='post' action='php/form.php'>
-                        <input type='hidden' name='modDigest' value='true'>
-                        <input type='hidden' name='name' value='{$info['name']}'>
-                        <div class='form-group inline_field field_auto'>
-                            <select name='display'>
-                                {$display}
-                            </select>
-                            <label for='display'>Display</label>
-                        </div>
-                        <div class='form-group inline_field field_auto'>
-                            <select name='position'>
-                                {$positions}
-                            </select>
-                            <label for='position'>Position</label>
-                        </div>
-                        <div id='submit'>
-                            <input type='submit' value='Ok' class='processform' />
-                        </div>
-                    </form>
-                </div>
-            </div>
-            ";
-        }
-        return $content;
     }
     
 }
