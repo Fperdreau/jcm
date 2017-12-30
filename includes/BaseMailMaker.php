@@ -85,15 +85,15 @@ abstract class BaseMailMaker extends BaseModel {
      * @param string $username
      * @return mixed
      */
-    public function makeDigest($username) {
+    public function makeMail($username) {
         $user = new Users($username);
         $string = "";
         foreach ($this->all() as $key=>$item) {
             if ($item['display'] == 1) {
                 if (class_exists($item['name'])) {
                     $section = new $item['name']();
-                    if (method_exists($section, 'makeReminder'))
-                        $string .= self::showSection($section->makeReminder($username));
+                    if (method_exists($section, 'makeMail'))
+                        $string .= self::showSection($section->makeMail($username));
                 }
             }
         }
@@ -170,7 +170,7 @@ abstract class BaseMailMaker extends BaseModel {
      * @return array
      */
     public function preview() {
-        $result = $this->makeDigest($_SESSION['username']);
+        $result = $this->makeMail($_SESSION['username']);
         $AppMail = new MailManager();
         return $AppMail->formatmail($result['body']);
     }
