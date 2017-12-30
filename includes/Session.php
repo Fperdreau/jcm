@@ -216,19 +216,24 @@ class Session extends BaseModel {
         $date = $this->getNextDates(1)[0];
         $data = $this->all(array('s.date'=>$date));
         $data = reset($data);
-        if ($this->is_available(array('date'=>$date))) {
-            if (!$mail) {
-                return self::session_details($data[0], Session::no_session());
+        if (!empty($data)) {
+            if ($this->is_available(array('date'=>$date))) {
+                if (!$mail) {
+                    return self::session_details($data[0], Session::no_session());
+                } else {
+                    return self::mail_session_details($data[0], Session::no_session());
+                }
             } else {
-                return self::mail_session_details($data[0], Session::no_session());
+                if (!$mail) {
+                    return self::session_details($data[0], $this->getSessionDetails($data, $date, $mail));
+                } else {
+                    return self::mail_session_details($data[0], $this->getSessionDetails($data, $date, $mail));
+                }
             }
         } else {
-            if (!$mail) {
-                return self::session_details($data[0], $this->getSessionDetails($data, $date, $mail));
-            } else {
-                return self::mail_session_details($data[0], $this->getSessionDetails($data, $date, $mail));
-            }
+            return self::noUpcomingSession();
         }
+
     }
 
     /**
@@ -256,7 +261,7 @@ class Session extends BaseModel {
             }
             return $content;
         } else {
-            return self::nothingToDisplay();
+            return self::nothingPlannedYet();
         }        
     }
 
@@ -1333,15 +1338,27 @@ class Session extends BaseModel {
     }
 
     /**
-     * Render nothing to display message
+     * Message displayed when there is no upcoming session planned
+     * 
      * @return string
      */
-    public static function nothingToDisplay() {
+    public static function noUpcomingSession() {
+        return "
+            There is no upcoming session.
+        ";
+    }
+
+    /**
+     * Message to display when there is no session  planned yet
+     * 
+     * @return string
+     */
+    public static function nothingPlannedYet() {
         $url = URL_TO_APP . 'index.php?page=organizer/sessions';
         return "
             <div class='sys_msg status'>
-                <p>Sorry, there is nothing to display yet.</p>
-                <p>You must set a journal club day from <a href='{$url}'>Admin>Sessions, 'Default settings'</a></p>
+                <p>Sorry, there is nothing planned yet.</p>
+                <p>Add your first session from <a href='{$url}'>Admin>Sessions, 'Default settings'</a></p>
             </div>
         ";
     }
