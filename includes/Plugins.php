@@ -185,18 +185,20 @@ class Plugins extends BaseModel {
 
     /**
      * Update plugin's options
+     * 
+     * @param array $data
      * @return mixed
      */
-    public function updateOptions() {
-        $name = htmlspecialchars($_POST['name']);
+    public function updateOptions(array $data) {
+        $name = htmlspecialchars($data['name']);
         if ($this->isInstalled($name)) {
-            foreach ($_POST as $key=>$setting) {
+            foreach ($data as $key=>$setting) {
                 $this->getPlugin($name)->setOption($key, $setting);
             }
 
             if ($this->update($this->getPlugin($name)->getInfo(), array('name'=>$name))) {
                 $result['status'] = true;
-                $result['msg'] = "$name's settings successfully updated!";
+                $result['msg'] = "{$name}'s settings successfully updated!";
             } else {
                 $result['status'] = false;
             }
