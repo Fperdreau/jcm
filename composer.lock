@@ -4,6 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
+    "hash": "0d1308591a999bd4c84402eb543da368",
     "content-hash": "4770f52d19eb11021d0bb269bf0e24af",
     "packages": [
         {
@@ -45,7 +46,7 @@
                 "text",
                 "wysiwyg"
             ],
-            "time": "2017-12-13T16:47:19+00:00"
+            "time": "2017-12-13 16:47:19"
         },
         {
             "name": "components/jquery",
@@ -87,7 +88,7 @@
             ],
             "description": "jQuery JavaScript Library",
             "homepage": "http://jquery.com",
-            "time": "2017-03-21T07:01:49+00:00"
+            "time": "2017-03-21 07:01:49"
         },
         {
             "name": "phpmailer/phpmailer",
@@ -164,7 +165,7 @@
                 }
             ],
             "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
-            "time": "2017-11-04T09:26:05+00:00"
+            "time": "2017-11-04 09:26:05"
         },
         {
             "name": "soundasleep/html2text",
@@ -214,7 +215,7 @@
                 "php",
                 "text"
             ],
-            "time": "2017-04-19T22:01:50+00:00"
+            "time": "2017-04-19 22:01:50"
         },
         {
             "name": "squizlabs/php_codesniffer",
@@ -265,7 +266,7 @@
                 "phpcs",
                 "standards"
             ],
-            "time": "2017-12-19T21:44:46+00:00"
+            "time": "2017-12-19 21:44:46"
         }
     ],
     "packages-dev": [],
