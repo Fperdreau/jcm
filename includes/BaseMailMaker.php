@@ -98,8 +98,8 @@ abstract class BaseMailMaker extends BaseModel {
             }
         }
 
-        $content['body'] = self::body($user, $string);
-        $content['subject'] = self::header();
+        $content['body'] = $this::body($user, $string);
+        $content['subject'] = $this::header();
 
         return $content;
     }
@@ -171,10 +171,8 @@ abstract class BaseMailMaker extends BaseModel {
      */
     public function preview() {
         $result = $this->makeDigest($_SESSION['username']);
-        var_dump($result); exit;
         $AppMail = new MailManager();
-        $result = $AppMail->formatmail($result['body']);
-        var_dump($result);
+        return $AppMail->formatmail($result['body']);
     }
 
     // VIEW
