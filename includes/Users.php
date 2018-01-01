@@ -382,7 +382,7 @@ class Users extends BaseModel {
      */
     public function send_activation_mail(array $data) {
         $MailManager = new MailManager();
-        $body = self::activation_email($data['fullname'], $data['email'], $data['hash']);
+        $body = self::deactivationEmail($data['fullname'], $data['email'], $data['hash']);
         return $MailManager->send(array(
             'body'=>$body,
             'subject'=>'Your account has been deactivated'
@@ -617,12 +617,12 @@ class Users extends BaseModel {
     }
 
     /**
-     * Render user information in users list
+     * Display time passed since account activation
+     *
      * @param array $item
      * @return string
      */
-    private static function user_in_list(array $item) {
-        // Compute age
+    private static function ageOfSubscription(array $item) {
         if ($item['active'] == 1) {
             $to   = new DateTime(date('Y-m-d'));
             $from = new DateTime(date("Y-m-d",strtotime($item['date'])));
@@ -637,45 +637,81 @@ class Users extends BaseModel {
                     $cur_trage = "$cur_age years ago";
                 }
             }
-            $option_active = "<option value='deactivate'>Deactivate</option>";
         } else {
-            $cur_trage = "No";
-            $option_active = "<option value='activate'>Activate</option>";
+            $cur_trage = 'Not activated';
         }
+        return $cur_trage;
+    }
 
-        // Render status option list
-        $status_options = '';
+    /**
+     * Display list of actions
+     *
+     * @param array $item
+     * @return string: select input
+     */
+    private static function actionsList(array $item) {
+        // Account activation/deactivation option
+        $activOption = $item['active'] == 1 ? "<option value='deactivate'>Deactivate</option>" 
+        : "<option value='activate'>Activate</option>";
+        
+        return "
+        <select name='action' class='account_action' data-user='{$item['username']}' style='max-width: 75%;'>
+            <option selected disabled>Select an action</option>
+            {$activOption}
+            <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
+        </select>
+        ";
+    }
+
+    /**
+     * Display list of account status
+     *
+     * @param array $item
+     * @return string: select input
+     */
+    private static function statusList(array $item) {
+        // Generate actions list
+        $statusList = '';
         $status = ['member', 'admin', 'organizer'];
         foreach ($status as $value) {
             $selected = $value == $item['status'] ? 'selected' : null;
-            $status_options .= "<option value='{$value}' {$selected}> ". ucfirst($value). "</option>";
+            $statusList .= "<option value='{$value}' {$selected}> ". ucfirst($value). "</option>";
         }
+        
+        return "
+        <select name='status' class='modify_status' data-user='{$item['username']}' style='max-width: 75%;'>
+            {$statusList}
+        </select>
+        ";
+    }
 
+    /**
+     * Display user information in list
+     * 
+     * @param array $item
+     * @return string
+     */
+    private static function user_in_list(array $item) {
         return "
             <div class='list-container' id='section_{$item['username']}->username'>
                 <div class='user_firstname'>{$item['firstname']}</div>
                 <div class='user_lastname'>{$item['lastname']}</div>
                 <div class='user_email'>{$item['email']}</div>
                 <div class='user_position'>{$item['position']}</div>
-                <div class='user_small'>$cur_trage</div>
+                <div class='user_small'>" . self::ageOfSubscription($item) . "</div>
                 <div class='user_status'>
-                    <select name='status' class='modify_status' data-user='{$item['username']}' style='max-width: 75%;'>
-                        {$status_options}
-                    </select>
+                    " . self::statusList($item) . "
                 </div>
                 <div class='user_action'>
-                    <select name='action' class='account_action' data-user='{$item['username']}' style='max-width: 75%;'>
-                        <option selected disabled>Select an action</option>
-                        $option_active
-                        <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
-                    </select>
+                    " . self::actionsList($item) . "
                 </div>
             </div>
             ";
     }
 
     /**
-     * Render login form
+     * Render login form to be displayed in full page
+     * 
      * @return string|array
      */
     public static function login_form_body() {
@@ -707,6 +743,7 @@ class Users extends BaseModel {
 
     /**
      * Render login form for modal windows
+     * 
      * @return array
      */
     public static function login_form_modal() {
@@ -995,7 +1032,7 @@ class Users extends BaseModel {
      * @param $hash
      * @return string
      */
-    private static function activation_email($fullname, $email, $hash) {
+    private static function deactivationEmail($fullname, $email, $hash) {
         $authorize_url = App::getAppUrl() . "index.php?page=organizer/verify&email={$email}&hash={$hash}&result=true";
         $newpwurl = App::getAppUrl() . "index.php?page=renew_pwd&hash={$hash}&email={$email}";
 
