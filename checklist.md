@@ -72,6 +72,16 @@
 * SessionMaker - ?
 * SpeakerAssignment - ?
 
+## Logs
+
+* Display of logs in admin interface - OK
+* Suppression of logs from admin interface - OK
+* Search in logs from admin interface - ?
+* Display of logs in plugins - ?
+* Suppression of logs in plugins - ?
+* Display of logs in Tasks - ?
+* Suppression of logs in Tasks - ?
+
 ## Pages
 
 * Home - OK
