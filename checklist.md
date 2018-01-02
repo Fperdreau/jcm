@@ -1,6 +1,6 @@
 # Checklist
 
-## Submission
+## Presentation
 
 * Add presentation - OK
 * Edit presentation - OK
@@ -34,23 +34,43 @@
 * Create account with email notification to admins - OK
 * Activation from invitation email sent to user - OK
 * Deactivation of account from admin interface - OK
-* Suppression of account from admin inteface - ?
+* Modify account type - OK
+* Prevent modification of account type for admin account if no other admin account is defined - ?
+* Suppression of account from admin inteface - OK
+* Prevent suppression of admin account if no other admin account exists - ?
 
 ## Plugins
 
 * Installation - OK
 * Options update - OK
-* Uninstall - ?
+* Uninstall - OK
 * Activation - OK
+
+### Plugins modules
+
+* Groups - ?
+* AutoAssignment - ?
 
 ## Tasks
 
 * Installation - OK
 * Options update - OK
-* Uninstall - ?
+* Uninstall - OK
 * Activation - OK
-* Execution - ?
+* Execution - OK
 * Email notification - ?
+
+### Tasks modules
+
+* Reminder - FAILED
+* DbBackup - OK
+* FullBackup - ?
+* GroupMaker - ?
+* MailSender - ?
+* Mailing - ?
+* Notification - ?
+* SessionMaker - ?
+* SpeakerAssignment - ?
 
 ## Pages
 
