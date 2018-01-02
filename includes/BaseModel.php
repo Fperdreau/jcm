@@ -155,12 +155,14 @@ class BaseModel {
 
     /**
      * Update controller settings
+     * 
+     * @param array $data: post data
      * @return array
      */
-    public function updateSettings() {
-        if ($this->setSettings($_POST)) {
+    public function updateSettings(array $data) {
+        if ($this->setSettings($data)) {
             if ($this->Settings->update($this->settings, array('object'=>__CLASS__))) {
-                return array('status'=>true, 'msg'=>'Ok');
+                return array('status'=>true, 'msg'=>'Settings updated');
             } else {
                 return array('status'=>false, 'msg'=>'Sorry, something went wrong!');
             }
