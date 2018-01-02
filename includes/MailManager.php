@@ -762,6 +762,14 @@ class MailManager extends BaseModel {
             ";
         }
 
+        // Make protocol list
+        $protList = '';
+        $protocols = ['ssl', 'tls', 'none'];
+        foreach ($protocols as $opt) {
+            $selected = $settings['SMTP_secure'] == $opt ? 'selected' : null;
+            $protList .= "<option value='{$opt}' {$selected}}>" . strtoupper($opt) . "</option>";
+        }
+        
         return  array(
             'title'=>'Email settings',
             'body'=>"
@@ -784,18 +792,15 @@ class MailManager extends BaseModel {
                 </div>
                 <div class='form-group'>
                     <select name='SMTP_secure'>
-                        <option value='{$settings['SMTP_secure']}' selected='selected'>{$settings['SMTP_secure']}</option>
-                        <option value='ssl'>ssl</option>
-                        <option value='tls'>tls</option>
-                        <option value='none'>none</option>
-                     </select>
-                     <label for='SMTP_secure'>SMTP access</label>
+                        {$protList}
+                    </select>
+                    <label for='SMTP_secure'>SMTP access</label>
                 </div>
                 <div class='form-group'>
                     <select name='SMTP_debug'>
                         {$debug_options}
-                     </select>
-                     <label for='SMTP_secure'>SMTP debug</label>
+                    </select>
+                    <label for='SMTP_secure'>SMTP debug</label>
                 </div>
                 <div class='form-group'>
                     <input name='mail_port' type='text' value='{$settings['mail_port']}'>
