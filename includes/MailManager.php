@@ -820,7 +820,7 @@ class MailManager extends BaseModel {
 
                 <div class='submit_btns'>
                     <input type='submit' value='Test settings' class='test_email_settings'> 
-                    <input type='submit' value='Next' class='process_form'>
+                    <input type='submit' value='Next' class='processform'>
                 </div>
             </form>
             <div class='feedback'></div>
