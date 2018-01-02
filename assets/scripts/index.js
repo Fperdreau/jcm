@@ -60,13 +60,16 @@ var get_submission_form = function (data) {
  */
 function loadContent(el, final_callback) {
     var data = el.data();
-    data['loadContent'] = true;
+    data.loadContent = true;
 
-    var destination = (data['destination'] === undefined) ? el.closest('section') : $(data['destination']);
+    var destination = (data.destination === undefined) ? el.closest('section') : $(data['destination']);
 
     // Get target url
+    var url;
     if (el.data('url') !== undefined) {
-        var url = el.data('url');
+        url = el.data('url');
+    } else if (el.attr('href') !== undefined) {
+        url = el.attr('href');
     } else {
         url = 'php/form.php';
     }
