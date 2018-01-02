@@ -141,10 +141,9 @@ class Settings extends BaseModel {
      */
     public function update(array $post, array $id) {
         // Sanitize posted data
-        $post = $this->sanitize($post);
         $result = true;
         foreach ($this->settings as $varName=>$value) {
-            $new_value = (!empty($post[$varName])) ? $post[$varName] : $value;
+            $new_value = isset($post[$varName]) ? $post[$varName] : $value;
             if (is_array($value)) $new_value = json_encode($new_value);
 
             if ($this->is_exist(array("variable"=>$varName, "object"=>$this->object))) {
