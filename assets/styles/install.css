@@ -1,0 +1,241 @@
+/**
+ * File for Installation stylesheet
+ *
+ * CSS 3.0
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2014 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of Journal Club Manager.
+ *
+ * Journal Club Manager is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Journal Club Manager is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+body {
+    background: rgb(49, 49, 49);
+}
+
+.box {
+    max-width: 600px;
+    min-width: 300px;
+    width: 60%;
+    padding: 20px;
+    margin: auto;
+}
+
+.box > div {
+    margin: auto;
+}
+
+header {
+    position: relative;
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    min-width: 100%;
+    box-shadow: none !important;
+    text-align: center;
+    padding: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+header .box {
+    padding: 10px;
+}
+
+header > div {
+    display: block;
+    height: auto;
+}
+
+#page_title {
+    text-align: center;
+    font-size: 40px;
+    color: rgb(255, 255, 255);
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+main {
+    min-height: 400px;
+    padding: 0;
+}
+
+section {
+    border-radius: 5px;
+}
+
+#operation {
+    width: 70%;
+    margin: 20px auto;
+    min-width: 300px;
+    box-sizing: border-box;
+}
+
+#section_title {
+    font-size: 30px;
+    border: 1px solid #eeeeee;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    font-weight: 500;
+    text-transform: capitalize;
+    background: white;
+    color: rgb(49, 49, 49);
+    margin-bottom: 50px;
+    margin-top: 30px;
+
+}
+
+header #appTitle {
+    text-transform: uppercase;
+    color: rgb(255, 255, 255);
+    margin-top: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.appname {
+    font-weight: 500;
+    color: rgb(49, 49, 49);
+    font-style: italic;
+}
+
+#appVersion {
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    color: rgb(212, 212, 212);
+    margin-top: 0;
+    font-size: .6em;
+    font-weight: 200;
+}
+
+footer {
+    background-color: rgba(255, 255, 255, 0.1);
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    line-height: 5vh;
+    padding: 0 5px;
+    box-sizing: border-box;
+    min-height: 0;
+    text-align: left;
+    margin: 0;
+}
+
+footer > div {
+    display: inline-block;
+}
+
+footer #appTitle {
+    text-transform: uppercase;
+    color: rgb(255, 255, 255);
+    margin-top: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+footer #appVersion {
+    border-top: none !important;
+    color: rgb(212, 212, 212);
+    font-size: .8em;
+    font-weight: 200;
+}
+
+footer #sign {
+    float: right;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+footer #sign a {
+    color: white;
+}
+
+footer #sign a:hover {
+    color: rgba(255, 255, 255, .8);
+}
+
+#page_container {
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#hidden_container {
+    width: 200%;
+}
+
+#hidden_container > div {
+    display: inline-block;
+    width: 49.8%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    vertical-align: top;
+    float: left;
+}
+
+.progress_layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background: rgba(255, 255, 255, 1);
+    z-index: 10;
+}
+
+.progressText_container {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: rgb(49, 49, 49);
+    position: relative;
+}
+
+.progressText_container > div {
+    text-align: center;
+}
+
+.progressText_container > .text {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 5px 10px;
+}
+
+.progressBar_container {
+    height: 2px;
+    border-radius: 5px;
+}
+
+.progressBar {
+    background: rgba(100, 100, 100, 1);
+    height: 100%;
+    border-radius: 5px;
+}
+
+.progressBar_loading {
+    width: 30px;
+    height: 30px;
+    margin: 20px auto;
+    background: rgba( 255, 255, 255, .7)
+    url('../images/spinner.gif')
+    50% 50%
+    no-repeat;
+    background-size: 100%;
+}
