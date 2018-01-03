@@ -4,10 +4,9 @@
  * Used by install.php
  *
  * usage: $tables = array(
-"table_name_without_prefix"=>array(
- *      "column_name"=>array("DATA_TYPE", default_value
- *  )
- * );
+ *      "table_name_without_prefix"=>array(
+ *          "column_name"=>array("DATA_TYPE", default_value)
+ *      );
  */
 
 return array(
