@@ -494,9 +494,17 @@ function testEmailSettings(el) {
  * Log out the user and trigger a modal window informing the user he/she has been logged out
  */
 var logoutTemplate = "<div class='logoutWarning'><div class='logout_msg'></div><div class='logout_button'>OK</div></div>";
-var logout = function () {
+
+var login_start = null, login_expire = null, login_warning = null;
+var logoutContainer = $('.logoutWarning');
+
+/**
+ * Logout
+ */
+function logout() {
     if (logoutContainer.length === 0) {
         $('body').append(logoutTemplate);
+        logoutContainer = $('.logoutWarning');
     }
 
     login_start = null;
@@ -524,8 +532,6 @@ var logout = function () {
     });
 };
 
-var login_start = null, login_expire = null, login_warning = null;
-var logoutContainer = $('.logoutWarning');
 /**
  * Check login status and expiration
  */
@@ -1123,6 +1129,7 @@ $(document).ready(function () {
         // Test email host settings
         .on('click', '.test_email_settings', function(e) {
             e.preventDefault();
+            console.log($(this));
             testEmailSettings($(this));
         })
 
