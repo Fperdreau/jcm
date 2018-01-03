@@ -30,7 +30,7 @@
  * Used by any class that needs to store information in database. Handle creation of tables, updates and retrieval of
  * information from the database.
  */
-class BaseModel {
+abstract class BaseModel {
 
     /**
      * @var Db
