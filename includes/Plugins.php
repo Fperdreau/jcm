@@ -44,7 +44,6 @@ class Plugins extends BaseModel {
 
     public function __construct($plugin = False) {
         parent::__construct($plugin);
-        $this->loadAll();
     }
 
     /**
@@ -56,6 +55,12 @@ class Plugins extends BaseModel {
         return $this->add($post);
     }
 
+    /**
+     * Install plugin
+     *
+     * @param string $name: plugin name
+     * @return array: array("msg"=>string, "status"=>bool)
+     */
     public function install($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] = false;
@@ -67,6 +72,12 @@ class Plugins extends BaseModel {
         return $result;
     }
 
+    /**
+     * Uninstall plugin
+     *
+     * @param string $name: plugin name
+     * @return array: array("msg"=>string, "status"=>bool)
+     */
     public function uninstall($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] = false;
@@ -77,6 +88,12 @@ class Plugins extends BaseModel {
         return $result;
     }
 
+    /**
+     * Activate plugin
+     *
+     * @param string $name: plugin name
+     * @return array: array("msg"=>string, "status"=>bool)
+     */
     public function activate($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
@@ -84,6 +101,12 @@ class Plugins extends BaseModel {
         return $result;
     }
 
+    /**
+     * Deactivate plugin
+     *
+     * @param string $name: plugin name
+     * @return array: array("msg"=>string, "status"=>bool)
+     */
     public function deactivate($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] =  $this->update(array('status'=>0), array('name'=>$name));
