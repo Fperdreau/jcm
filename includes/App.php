@@ -314,16 +314,19 @@ class App {
     public static function call($class_name, $action, $param=null) {
         $result = array('status'=>true, 'msg'=>null);
         if (class_exists($class_name, true)) {
-            if (method_exists($class_name, $action)) {
-                $obj = new $class_name();
-                try {
-                    $obj->$action($param);
-                } catch (Exception $e) {
-                    $result['msg'] = "Something went wrong while calling {$class_name}->{$action}: {$e}";
-                    $result['status'] = false;
-                    return $result;
+            $class = new ReflectionClass($class_name); 
+            if (!$class->isAbstract()) {
+                if (method_exists($class_name, $action)) {
+                    $obj = new $class_name();
+                    try {
+                        $obj->$action($param);
+                    } catch (Exception $e) {
+                        $result['msg'] = "Something went wrong while calling {$class_name}->{$action}: {$e}";
+                        $result['status'] = false;
+                        return $result;
+                    }
                 }
-            }
+             }
         }
         return $result;
     }
