@@ -128,50 +128,11 @@ class Mail {
      */
     public function send_mail($to, $subject, $body, $attachment = null, $undisclosed=true)
     {
-        $mail = self::getPhpMailer();
-
         if (!is_array($to)) $to = array($to);
 
         try {
-            $mail->CharSet = 'UTF-8';
-            $mail->Mailer = "smtp";
-            $mail->isSMTP();                                      // set mailer to use SMTP
-
-            // Settings
-            $mail->WordWrap = 50;                                 // set word wrap to 50 characters
-
-            // SMTP information
-            $mail->SMTPDebug = $this->settings['SMTP_debug'];     // enables SMTP debug information (for testing)
-            $mail->SMTPDebug = 3;
-            $mail->Debugoutput = 'html'; //Ask for HTML-friendly debug output
-            $mail->Host = $this->settings['mail_host'];
-            $mail->Port = $this->settings['mail_port'];
-
-            // Set sender
-            $mail->setFrom($this->settings['mail_from'], $this->settings['mail_from_name']);
-
-            // Set SMTP authentication
-            if ($this->settings['SMTP_secure'] !== "none") {
-                $mail->SMTPAuth = true;     // turn on SMTP authentication
-                $mail->SMTPSecure = $this->settings['SMTP_secure']; // secure transfer enabled REQUIRED for GMail
-                $mail->Username = $this->settings['mail_username'];
-                $mail->Password = $this->settings['mail_password'];
-            }
-
-            // Debugger output
-            $mail->Debugoutput = function ($str, $level) {
-                $this->logs .= "$level: $str\n";
-            };
-
-            // Mail content
-            $mail->isHTML(true);
-            $mail->Subject = $subject;
-            $mail->Body = $body;
-            // Convert to plain text for email viewers non-compatible with HTML content
-            $mail->AltBody = Html2Text\Html2Text::convert($body, true);
-
-            // Add recipients
-            $mail->addReplyTo($mail->From, $mail->FromName);
+            // Set PhpMailer instance
+            $mail = $this->setMailObj($subject, $body);
 
             foreach ($to as $to_add) {
 
@@ -218,6 +179,60 @@ class Mail {
             Logger::getInstance('jcm')->error($e->getMessage()); //Catch error messages from PHPMailer
             return array('status' => false, 'logs' => $e->getMessage());
         }
+    }
+
+    /**
+     * Set PhpMailer object
+     *
+     * @param string $subject: email subject
+     * @param string $body: email content
+     * @return PhpMailer
+     */
+    private function setMailObj($subject, $body) {
+        // Get PhpMailer instance
+        $mail = self::getPhpMailer();
+
+        $mail->CharSet = 'UTF-8';
+        $mail->Mailer = "smtp";
+        $mail->isSMTP();                                      // set mailer to use SMTP
+
+        // Settings
+        $mail->WordWrap = 50;                                 // set word wrap to 50 characters
+
+        // SMTP information
+        $mail->SMTPDebug = $this->settings['SMTP_debug'];     // enables SMTP debug information (for testing)
+        $mail->SMTPDebug = 3;
+        $mail->Debugoutput = 'html'; //Ask for HTML-friendly debug output
+        $mail->Host = $this->settings['mail_host'];
+        $mail->Port = $this->settings['mail_port'];
+
+        // Set sender
+        $mail->setFrom($this->settings['mail_from'], $this->settings['mail_from_name']);
+
+        // Set SMTP authentication
+        if ($this->settings['SMTP_secure'] !== "none") {
+            $mail->SMTPAuth = true;     // turn on SMTP authentication
+            $mail->SMTPSecure = $this->settings['SMTP_secure']; // secure transfer enabled REQUIRED for GMail
+            $mail->Username = $this->settings['mail_username'];
+            $mail->Password = $this->settings['mail_password'];
+        }
+
+        // Debugger output
+        $mail->Debugoutput = function ($str, $level) {
+            $this->logs .= "$level: $str\n";
+        };
+
+        // Mail content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $body;
+        // Convert to plain text for email viewers non-compatible with HTML content
+        $mail->AltBody = Html2Text\Html2Text::convert($body, true);
+
+        // Add recipients
+        $mail->addReplyTo($mail->From, $mail->FromName);
+
+        return $mail;
     }
 
 }
