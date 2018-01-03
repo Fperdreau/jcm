@@ -159,8 +159,7 @@ class Users extends BaseModel {
         try {
             if ($this->status !=  "admin") {
                 // Send verification email to admins/organizer
-                $mail = new MailManager();
-                if ($mail->send_verification_mail($this->hash, $this->email, $this->fullname)) {
+                if ($this->send_verification_mail($this->hash, $this->email, $this->fullname)) {
                     $result['status'] = true;
                     $result['msg'] = "Your account has been created. You will receive an email after
                     its validation by our admins.";
@@ -399,8 +398,8 @@ class Users extends BaseModel {
         }
 
         $content['subject'] = 'Sign up | Verification';
-        $authorize_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=true";
-        $deny_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=false";
+        $authorize_url = URL_TO_APP . "index.php?page=organizer/verify&email={$user_mail}&hash={$hash}&result=true";
+        $deny_url = URL_TO_APP . "index.php?page=organizer/verify&email={$user_mail}&hash={$hash}&result=false";
 
         $content['body'] = "
         Hello,<br><br>
