@@ -104,6 +104,7 @@ class Users extends BaseModel {
     }
 
     // Controller
+
     /**
      * Create user
      *
@@ -132,30 +133,7 @@ class Users extends BaseModel {
 
             // Add user information to Db
             if ($this->db->insert($this->tablename, $this->parseData($post))) {
-                if ($this->status !=  "admin") {
-                    // Send verification email to admins/organizer
-                    $mail = new MailManager();
-                    if ($mail->send_verification_mail($this->hash, $this->email, $this->fullname)) {
-                        $result['status'] = true;
-                        $result['msg'] = "Your account has been created. You will receive an email after
-                        its validation by our admins.";
-                    } else {
-                        self::delete_user($this->username);
-                        $result['status'] = false;
-                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
-                        Your registration cannot be validated for the moment. Please try again later.";
-                    }
-                } else {
-                    // Send confirmation email to the user directly
-                    if ($this->send_confirmation_mail($post)) {
-                        $result['status'] = true;
-                        $result['msg'] = "Your account has been successfully created!";
-                    } else {
-                        $result['status'] = true;
-                        $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
-                        Your registration cannot be validated for the moment. Please try again later.";;
-                    }
-                }
+                $result = $this->sendAccountCreationEmail($this->status, $post);
             } else {
                 $result['status'] = false;
                 $result['msg'] = "Oops, something went wrong";;
@@ -165,6 +143,49 @@ class Users extends BaseModel {
         } else {
             $result['status'] = false;
             $result['msg'] = "This username/email address already exist in our database";
+        }
+        return $result;
+    }
+
+    /**
+     * Send verification/confirmation email after account creation
+     *
+     * @param string $status: account status
+     * @param array|null $post
+     * @throws Exception
+     * @return void
+     */
+    private function sendAccountCreationEmail($status, array $post=null) {
+        try {
+            if ($this->status !=  "admin") {
+                // Send verification email to admins/organizer
+                $mail = new MailManager();
+                if ($mail->send_verification_mail($this->hash, $this->email, $this->fullname)) {
+                    $result['status'] = true;
+                    $result['msg'] = "Your account has been created. You will receive an email after
+                    its validation by our admins.";
+                } else {
+                    $this->delete_user($this->username);
+                    $result['status'] = false;
+                    $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                    Your registration cannot be validated for the moment. Please try again later.";
+                }
+            } else {
+                // Send confirmation email to the user directly
+                if ($this->send_confirmation_mail($post)) {
+                    $result['status'] = true;
+                    $result['msg'] = "Your account has been successfully created!";
+                } else {
+                    $result['status'] = true;
+                    $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
+                    Your registration cannot be validated for the moment. Please try again later.";
+                }
+            }
+        } catch (Exception $e) {
+            Logger::getInstance('jcm')->error($e->getMessage());
+            $this->delete_user($this->username);
+            $result['status'] = false;
+            $result['msg'] = "Sorry, something went wrong and we were not able to create your account. Please try again later.";
         }
         return $result;
     }
@@ -358,6 +379,39 @@ class Users extends BaseModel {
         }
         Logger::getInstance(APP_NAME, get_class($this))->log($result['msg']);
         return $result;
+    }
+
+    /**
+     * Send a verification email to organizers when someone signed up to the application.
+     * @param $hash
+     * @param $user_mail
+     * @param $username
+     * @return bool
+     * @throws Exception
+     * @throws phpmailerException
+     */
+    public function send_verification_mail($hash, $user_mail, $username) {
+        $Users = new Users();
+        $admins = $Users->getadmin('admin');
+        $to = array();
+        foreach ($admins as $key=>$admin) {
+            $to[] = $admin['email'];
+        }
+
+        $content['subject'] = 'Sign up | Verification';
+        $authorize_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=true";
+        $deny_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=false";
+
+        $content['body'] = "
+        Hello,<br><br>
+        <p><b>$username</b> wants to create an account.</p>
+        <p><a href='$authorize_url'>Authorize</a></p>
+        or
+        <p><a href='$deny_url'>Deny</a></p>
+        ";
+
+        $mail = new MailManager();
+        return $mail->send($content, $to);
     }
 
     /**
@@ -816,6 +870,8 @@ class Users extends BaseModel {
             <div class='feedback'></div>
 			<form action='php/router.php?controller=Users&action=make' method='post'>
                 <input type='hidden' name='status' value='admin'/>
+                <input type='hidden' name='firstname' value='The'>
+                <input type='hidden' name='lastname' value='Admin'>
 
 			    <div class='form-group'>
 				    <input type='text' name='username' required autocomplete='on'>

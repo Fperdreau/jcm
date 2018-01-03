@@ -480,38 +480,6 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Send a verification email to organizers when someone signed up to the application.
-     * @param $hash
-     * @param $user_mail
-     * @param $username
-     * @return bool
-     * @throws Exception
-     * @throws phpmailerException
-     */
-    public function send_verification_mail($hash, $user_mail, $username) {
-        $Users = new Users();
-        $admins = $Users->getadmin('admin');
-        $to = array();
-        foreach ($admins as $key=>$admin) {
-            $to[] = $admin['email'];
-        }
-
-        $content['subject'] = 'Sign up | Verification';
-        $authorize_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=true";
-        $deny_url = URL_TO_APP . "index.php?page=verify&email={$user_mail}&hash={$hash}&result=false";
-
-        $content['body'] = "
-        Hello,<br><br>
-        <p><b>$username</b> wants to create an account.</p>
-        <p><a href='$authorize_url'>Authorize</a></p>
-        or
-        <p><a href='$deny_url'>Deny</a></p>
-        ";
-
-        return $this->send($content, $to);
-    }
-
-    /**
      * Send an email to the whole mailing list (but only to users who agreed upon receiving emails)
      * @param $subject
      * @param $body
@@ -747,21 +715,12 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Render settings form
-     * @param array $settings MailManager->settings
-     * @return array
+     * Generate protocols input list
+     *
+     * @param array $settings
+     * @return string
      */
-    public static function settingsForm(array $settings) {
-        // Make SMTP options list
-        $debug_options = "";
-        for ($i=0; $i<=5; $i++) {
-            $selected = $settings['SMTP_debug'] == $i ? "selected" : null;
-            $label = ($i == 0) ? 'Off' : 'Level ' . $i;
-            $debug_options .= "
-             <option value='{$i}' {$selected}>{$label}</option>
-            ";
-        }
-
+    private static function protocolsList(array $settings) {
         // Make protocol list
         $protList = '';
         $protocols = ['ssl', 'tls', 'none'];
@@ -769,14 +728,43 @@ class MailManager extends BaseModel {
             $selected = $settings['SMTP_secure'] == $opt ? 'selected' : null;
             $protList .= "<option value='{$opt}' {$selected}}>" . strtoupper($opt) . "</option>";
         }
-        
+        return $protList;
+    }
+
+    /**
+     * Generate debug options list
+     *
+     * @param array $settings
+     * @return string
+     */
+    private static function debugOptions(array $settings) {
+        $debug_options = '';
+        for ($i=0; $i<=5; $i++) {
+            $selected = $settings['SMTP_debug'] == $i ? "selected" : null;
+            $label = ($i == 0) ? 'Off' : 'Level ' . $i;
+            $debug_options .= "
+             <option value='{$i}' {$selected}>{$label}</option>
+            ";
+        }
+        return $debug_options;
+    }
+
+    /**
+     * Render settings form
+     * @param array $settings MailManager->settings
+     * @return array
+     */
+    public static function settingsForm(array $settings) {
+        // Make SMTP options list
+        $debug_options = self::debugOptions($settings);
+
+        // Make protocol list
+        $protList = self::protocolsList($settings);
+
         return  array(
             'title'=>'Email settings',
             'body'=>"
             <form action='php/router.php?controller=MailManager&action=updateSettings' method='post'>
-                <input type='hidden' name='version' value='" . App::version. "'>
-                <input type='hidden' name='operation' value='mail_settings'/>
-
                 <h3>Mailing service</h3>
                 <div class='form-group'>
                     <input name='mail_from' type='email' value='{$settings['mail_from']}'>
@@ -825,7 +813,7 @@ class MailManager extends BaseModel {
 
                 <div class='submit_btns'>
                     <input type='submit' value='Test settings' class='test_email_settings'> 
-                    <input type='submit' value='Next' class='processform'>
+                    <input type='submit' value='Next' class='processform process_form'>
                 </div>
             </form>
             <div class='feedback'></div>
