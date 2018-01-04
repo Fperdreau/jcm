@@ -28,14 +28,17 @@
  * Run scheduled tasks and send a notification to the admins
  * @return array
  */
-global $db, $AppConfig;
 
-$AppCron = new Tasks();
-$logs = $AppCron->execute_all();
+include('../includes/App.php');
+
+App::boot(true);
+
+$Tasks = new Tasks();
+$logs = $Tasks->execute_all();
 
 // Send logs to admins
 if (!empty($logs)) {
-    if ($AppConfig->notify_admin_task === "yes") {
-        $AppCron->notify_admin($logs);
+    if ($Tasks->getSettings('notify_admin_task') === "yes") {
+        $Tasks->notify_admin($logs);
     }
 }
