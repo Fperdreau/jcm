@@ -136,12 +136,14 @@ function execute(el, states) {
             $(el).addClass('loadBtn');
         },
         success: function(data) {
-            validsubmitform(div, data,  function(result) {
+            validsubmitform(div, jQuery.parseJSON(data), function(result) {
                 if (result.status === true) {
                     $(el)
                         .attr('data-action', action)
                         .removeClass('loadBtn')
                         .addClass(newClass);
+                } else {
+                    $(el).removeClass('loadBtn');
                 }
             });
         }
