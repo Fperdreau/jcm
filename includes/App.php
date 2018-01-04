@@ -122,7 +122,6 @@ class App {
      * @param bool $debug
      */
     public static function boot($debug=false) {
-
         /**
          * Define timezone
          *
@@ -131,23 +130,25 @@ class App {
 
         // Set debug mode
         self::setDebug($debug);
+        
+        // Set paths to application
+        self::setLocalPaths();
+
+        // Register autoloader
+        require 'Autoloader.php';
+        Autoloader::register();
 
         // Get application url
         self::getAppUrl();
 
-        // Set paths to application
-        self::setPaths();
-        
-        // Register autoloader
-        require PATH_TO_INCLUDES . DS . 'Autoloader.php';
-        Autoloader::register();
+        // Set web paths to application
+        self::setWebPaths();
 
         // Register session and App url if not running in command line
         if (php_sapi_name() !== "cli") {
 
             // Start session
             SessionInstance::initsession();
-
         }
     }
 
@@ -169,7 +170,7 @@ class App {
     * Set paths to application components
     * @return void
     */
-    private static function setPaths() {
+    private static function setLocalPaths() {
          if(!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
          if(!defined('APP_NAME')) define('APP_NAME', basename(dirname(__DIR__)));
          if(!defined('PATH_TO_APP')) define('PATH_TO_APP', dirname(dirname(__FILE__)) . DS);
@@ -182,10 +183,17 @@ class App {
          if(!defined('PATH_TO_TASKS')) define('PATH_TO_TASKS', PATH_TO_APP . DS . 'cronjobs' . DS);
          if(!defined('PATH_TO_PLUGINS')) define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'plugins' . DS);
          if(!defined('PATH_TO_UPLOADS')) define('PATH_TO_UPLOADS', PATH_TO_APP . DS . 'uploads' . DS);
+    }
 
-         if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
-         if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");
-         if(!defined('URL_TO_UPLOADS')) define('URL_TO_UPLOADS', URL_TO_APP . "uploads");
+    /**
+     * Set Web paths to application
+     *
+     * @return void
+     */
+    private static function setWebPaths() {
+        if(!defined('URL_TO_APP')) define('URL_TO_APP', self::$site_url);
+        if(!defined('URL_TO_IMG')) define('URL_TO_IMG', URL_TO_APP . "assets/images/");
+        if(!defined('URL_TO_UPLOADS')) define('URL_TO_UPLOADS', URL_TO_APP . "uploads");
     }
 
     /**
