@@ -111,21 +111,24 @@ function actionOnSelect(el, final_callback) {
     var url = form.attr('action');
 
     var callback = function (result) {
-        var html = result.content === undefined ? result : result.content;
-        destination
-            .html(html)
-            .css('visibility', 'visible')
-            .fadeIn(200);
-
-        // Load WYSIWYG editor
-        loadWYSIWYGEditor();
-
-        // Load JCM calendar
-        loadCalendarSubmission();
-
-        if (final_callback !== undefined) {
-            final_callback(result);
+        if (result.content !== undefined) {
+            var html = result.content === undefined ? result : result.content;
+            destination
+                .html(html)
+                .css('visibility', 'visible')
+                .fadeIn(200);
+    
+            // Load WYSIWYG editor
+            loadWYSIWYGEditor();
+    
+            // Load JCM calendar
+            loadCalendarSubmission();
+    
+            if (final_callback !== undefined) {
+                final_callback(result);
+            }
         }
+
     };
 
     processAjax(destination, data, callback, url);
