@@ -27,6 +27,5 @@
 include('includes/App.php');
 App::boot(true);
 
-// Menu
-$menu = Page::menu();
+// Render page
 echo Template::layout();
