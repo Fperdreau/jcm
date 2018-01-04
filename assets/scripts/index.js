@@ -1197,46 +1197,6 @@ $(document).ready(function () {
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Admin - News
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-        // Select news to modify
-        .on('change','.select_post',function (e) {
-            e.preventDefault();
-            var postid = $(this).val();
-            showpostform(postid);
-        })
-
-        .on('click','.edit_post',function (e) {
-            e.preventDefault();
-            var postid = $(this).closest('.news-details').attr('id');
-            showpostform(postid);
-        })
-
-        // Add a new post
-        .on('click','.post_new',function (e) {
-            e.preventDefault();
-            showpostform(false);
-        })
-
-        // Delete a post
-        .on('click','.post_del',function (e) {
-            e.preventDefault();
-            var postid = $(this).attr('data-id');
-            var data = {post_del: true, postid: postid};
-            var callback = function (result) {
-                if (result.status === true) {
-                    showpostform(false);
-                }
-            };
-            processAjax($('.postcontent'), data, callback, "php/form.php");
-        })
-
-        // Add a news to the homepage
-        .on('click','.process_post',function (e) {
-            process_post($(this), e);
-        })
-
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
          Admin - Sessions
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
         /**

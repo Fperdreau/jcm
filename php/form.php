@@ -445,17 +445,6 @@ if (!empty($_POST['user_select'])) {
     exit;
 }
 
-// Change user status
-if (!empty($_POST['modify_status'])) {
-    $username = htmlspecialchars($_POST['username']);
-    $newStatus = htmlspecialchars($_POST['option']);
-    $user = new Users($username);
-    $result = $user->setStatus($newStatus);
-    $result['content'] = $user->generateuserslist();
-    echo json_encode($result);
-    exit;
-}
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Application settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -467,23 +456,6 @@ if (!empty($_POST['config_modify'])) {
      */
     $controller = new $controller_name();
     echo json_encode($controller->updateSettings($_POST));
-    exit;
-}
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-POSTS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Delete a post
-if (!empty($_POST['post_del'])) {
-    $postid = htmlspecialchars($_POST['postid']);
-    $post = new Posts($postid);
-    if ($post->delete(array('postid'=>$postid))) {
-        $result['status'] = true;
-        $result['msg'] = "The post has been deleted";
-    } else {
-        $result['status'] = true;
-    }
-    echo json_encode($result);
     exit;
 }
 
