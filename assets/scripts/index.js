@@ -96,6 +96,42 @@ function loadContent(el, final_callback) {
 }
 
 /**
+ * Execute action on select input and load result in target div
+ * 
+ * @param el: current selector
+ * @param {undefined|function} final_callback
+ */
+function actionOnSelect(el, final_callback) {
+    var form = el.length > 0 ? $(el[0].form) : $();
+    var data = getData(form);
+
+    var destination = (el.data('destination') === undefined) ? el.closest('section') : $(el.data('destination'));
+
+    // Get target url
+    var url = form.attr('action');
+
+    var callback = function (result) {
+        var html = result.content === undefined ? result : result.content;
+        destination
+            .html(html)
+            .css('visibility', 'visible')
+            .fadeIn(200);
+
+        // Load WYSIWYG editor
+        loadWYSIWYGEditor();
+
+        // Load JCM calendar
+        loadCalendarSubmission();
+
+        if (final_callback !== undefined) {
+            final_callback(result);
+        }
+    };
+
+    processAjax(destination, data, callback, url);
+}
+
+/**
  * Display form to post a news
  * @param postid
  */
@@ -1129,7 +1165,6 @@ $(document).ready(function () {
         // Test email host settings
         .on('click', '.test_email_settings', function(e) {
             e.preventDefault();
-            console.log($(this));
             testEmailSettings($(this));
         })
 
@@ -1511,6 +1546,11 @@ $(document).ready(function () {
         .on('click', '.loadContent', function(e) {
             e.preventDefault();
             loadContent($(this));
+        })
+
+        .on('change', '.actionOnSelect', function(e) {
+            e.preventDefault();
+            actionOnSelect($(this));
         })
 
         .on('click', '.select_suggestion', function(e) {
