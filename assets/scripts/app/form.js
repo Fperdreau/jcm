@@ -128,7 +128,7 @@ var processAjax = function(formEl, data, callback, url, timing) {
         },
         success: function (data) {
             callback = (callback === undefined) ? false: callback;
-            validsubmitform(formEl, data, callback, timing, btn);
+            validsubmitform(formEl, jQuery.parseJSON(data), callback, timing, btn);
         },
         error: function() {
             if (btn.length > 0) {
@@ -143,18 +143,19 @@ var processAjax = function(formEl, data, callback, url, timing) {
 /**
  * Temporarily replace a form by a feedback message
  * @param el: DOM element
- * @param data: feedback to show
+ * @param result: feedback to show
  * @param callback: callback function (what to do after the feedback message. By default, we simply re-display the form
  * as it was)
  * @param timing: duration of feedback
  * @param btn
  */
-var validsubmitform = function (el, data, callback, timing, btn) {
+var validsubmitform = function (el, result, callback, timing, btn) {
 
     el = (el === undefined) ? $('body') : el;
-    var result = jQuery.parseJSON(data);
     callback = (callback === undefined) ? false : callback;
     timing = (timing === undefined) ? 2000 : timing;
+
+    // Display animation within clicked submit button
     if (btn !== undefined && btn.length > 0) {
         removeLoadingButton(btn);
         if ( (typeof(result) === "boolean" && result === true) || result.status === true) {
@@ -166,12 +167,17 @@ var validsubmitform = function (el, data, callback, timing, btn) {
 
     // Display feedback message and/or run callback function
     if (result.msg !== undefined) {
+        // Show feedback message
         showFeedBack(el, result.status, result.msg);
+
+        // Reset submit button appearance
+        if (btn !== undefined && btn.length > 0) resetButton(btn);
+
         if (result.status === true) {
             setTimeout(function() {
-                removeFeedBack(el);
 
-                if (btn !== undefined && btn.length > 0) resetButton(btn);
+                // Remove feedback message
+                removeFeedBack(el);
 
                 // Run callback function
                 if (callback !== false) {
@@ -180,9 +186,12 @@ var validsubmitform = function (el, data, callback, timing, btn) {
             }, timing);
         }
     } else {
-
+        // Reset submit button appearance
         if (btn !== undefined && btn.length > 0) resetButton(btn);
+
+        // Remove loading animation
         removeLoading(el);
+        
         // Run callback function
         if (callback !== false) {
             callback(result);
