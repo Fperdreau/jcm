@@ -123,7 +123,7 @@ $menu = Page::menu();
 
 <!-- Bunch of jQuery functions -->
 <script type="text/javascript" src="assets/scripts/app/form.js" defer ></script>
-<script type="text/javascript" src="assets/scripts/app/plugins.min.js" defer ></script>
+<script type="text/javascript" src="assets/scripts/app/plugins.js" defer ></script>
 
 <script type="text/javascript" src="assets/scripts/lib/DrpUploader/DrpUploader.js" defer ></script>
 <script type="text/javascript" src="assets/scripts/lib/leanModal/jquery.leanModal.js" defer ></script>
