@@ -205,7 +205,6 @@ class Router {
      * @return void
      */
     private static function output($result) {
-        var_dump($result);
         if (self::is_ajax()) {
             echo json_encode($result);
         }
