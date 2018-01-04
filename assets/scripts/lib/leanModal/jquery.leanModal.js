@@ -130,6 +130,7 @@
             // Add overlay to document
             this._addOverlay();
 
+            // Display overlay
             this.showOverlay();
 
             // Load window content
@@ -212,8 +213,9 @@
          */
         _bind_close: function() {
             // Bind close buttons
-            var overlay = $("<div id='lean_overlay'></div>");
-
+            var overlayHtml = "<div id='lean_overlay'></div>";
+            $('body').append(overlayHtml);
+            var overlay = $("#lean_overlay");
             var modal_id = this.options.modal_id;
             var obj = this;
 
