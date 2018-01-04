@@ -451,6 +451,7 @@ class Tasks extends BaseModel {
         $thisPlugin = $this->getTask($name);
 
         return array(
+            'name'=> $name,
             'installed' => $installed,
             'status' => $thisPlugin->status,
             'path'=>$thisPlugin->path,
@@ -775,29 +776,30 @@ class Tasks extends BaseModel {
 
     /**
      * Render install/uninstall button
-     * @param $pluginName
-     * @param $installed
+     * @param string $name: task name
+     * @param bool $installed: installation status
      * @return string
      */
-    private static function install_button($pluginName, $installed) {
+    private static function install_button($name, $installed) {
         if ($installed) {
-            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' data-action='uninstall' data-name='$pluginName'></div>";
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' data-action='uninstall' data-name='{$name}'></div>";
         } else {
-            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' data-action='install' data-name='$pluginName'></div>";
+            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' data-action='install' data-name='{$name}'></div>";
         }
     }
 
     /**
      * Render activate/deactivate button
-     * @param $pluginName
-     * @param $status
+     * 
+     * @param string $name: task name
+     * @param string $status: task activation status ('0' or '1')
      * @return string
      */
-    private static function activate_button($pluginName, $status) {
-        if ($status === 1) {
-            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='$pluginName'></div>";
+    private static function activate_button($name, $status) {
+        if ($status === '1') {
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='{$name}'></div>";
         } else {
-            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ . "' data-action='activate' data-name='$pluginName'></div>";
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ . "' data-action='activate' data-name='{$name}'></div>";
         }
     }
 }
