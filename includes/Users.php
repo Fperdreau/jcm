@@ -364,11 +364,9 @@ class Users extends BaseModel {
      * @param bool $option : activate (true) or deactivate account (false)
      * @return array
      */
-    public function activation($username=null, $option=true) {
-        if (is_null($username)) {
-            $username = $_POST['username'];
-            $option = $_POST['option'];
-        }
+    public function activation(array $post) {
+        $username = $post['username'];
+        $option = $post['action'];
 
         $data = $this->get(array('username'=>$username));
         if ($option === true){
@@ -570,17 +568,22 @@ class Users extends BaseModel {
     /**
      * Change the user's status (admin/organizer/member)
      *
-     * @param $newStatus
+     * @param array $data: array('username'=>string, 'status'=>string)
      * @return array
      */
-    public function setStatus($newStatus) {
-        $result['status'] = $this->db->update($this->tablename,array('status'=>$newStatus),array("username"=>$this->username));
+    public function setStatus(array $data) {
+
+        $result['status'] = $this->db->update($this->tablename, 
+            array('status'=>$data['status']), array("username"=>$data['username']));
         if ($result['status']) {
-            $result['msg'] = "{$this->username} status is now $newStatus!";
+            $result['msg'] = "{$data['username']} status is now {$data['status']}!";
         } else {
             $result['msg'] = "Oops, something went wrong";
         }
         Logger::getInstance(APP_NAME, get_class($this))->log($result);
+
+        // Refresh list
+        $result['content'] = $this->generateuserslist();
         return $result;
     }
 
@@ -708,11 +711,14 @@ class Users extends BaseModel {
         : "<option value='activate'>Activate</option>";
         
         return "
-        <select name='action' class='account_action' data-user='{$item['username']}' style='max-width: 75%;'>
-            <option selected disabled>Select an action</option>
-            {$activOption}
-            <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
-        </select>
+        <form action='php/router.php?controller=Users&action=activation' method='post'>
+            <input type='hidden' name='username' value='{$item['username']}' />
+            <select name='status' class='actionOnSelect' data-destination='#user_list' style='max-width: 75%;'>
+                <option selected disabled>Select an action</option>
+                {$activOption}
+                <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
+            </select>
+        </form>
         ";
     }
 
@@ -732,9 +738,12 @@ class Users extends BaseModel {
         }
         
         return "
-        <select name='status' class='modify_status' data-user='{$item['username']}' style='max-width: 75%;'>
-            {$statusList}
-        </select>
+        <form action='php/router.php?controller=Users&action=setStatus' method='post'>
+            <input type='hidden' name='username' value='{$item['username']}' />
+            <select name='status' class='actionOnSelect' data-destination='#user_list' style='max-width: 75%;'>
+                {$statusList}
+            </select>
+        </form>
         ";
     }
 
