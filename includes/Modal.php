@@ -31,12 +31,15 @@
  */
 class Modal {
 
+    public function __construct() {}
+
     /**
      * Get modal content
      * @param array $post
      * @return bool|string
      */
     public static function get_modal(array $post) {
+        var_dump($post);
         $controllerName = htmlspecialchars($post['controller']);
         $action = htmlspecialchars($post['action']);
         $params = isset($post['params']) ? explode(',', htmlspecialchars($post['params'])) : array();
@@ -49,6 +52,10 @@ class Modal {
             }
         }
         return false;
+    }
+
+    public static function render(array $data) {
+        return self::section($data);
     }
 
     /**

@@ -257,10 +257,46 @@
                 target_section.remove();
             }
 
-            var obj = this;
-            data.get_modal = true;
+            this._loadData(data, this, modalContainer, this._renderModalContent);
+        },
+
+        /**
+         * Render modal content
+         */
+        _renderModalContent: function(data, json, obj, modalContainer) {
             jQuery.ajax({
-                url: 'php/form.php',
+                url: 'php/router.php?controller=Modal&action=render',
+                data: json,
+                type: 'post',
+                async: true,
+                beforeSend: function () {
+                    obj._animate_before();
+                },
+                complete: function() {
+                    obj._removeLoading();
+                },
+                success: function(json) {
+                    var result = jQuery.parseJSON(json);
+                    modalContainer.append(result);
+                    obj.show_section(data.section, obj.options.modal_id);
+
+                    // Call callback function if specified
+                    if (obj.options.callback !== null) {
+                        obj.options.callback();
+                    }
+                },
+                error: function () {
+                    obj._removeLoading();
+                }
+            });
+        }, 
+
+        /**
+         * load data from provided url
+         */
+        _loadData: function(data, obj, modalContainer, callback) {
+            jQuery.ajax({
+                url: data.url,
                 data: data,
                 type: 'post',
                 async: true,
@@ -273,13 +309,9 @@
                 success: function(json) {
                     var result = jQuery.parseJSON(json);
 
-                    modalContainer.append(result);
-                    obj.show_section(data.section, obj.options.modal_id);
-
                     // Call callback function if specified
-                    if (obj.options.callback !== null) {
-                        obj.options.callback();
-                    }
+                    callback(data, result, obj, modalContainer);
+                    
                 },
                 error: function () {
                     obj._removeLoading();

@@ -27,7 +27,7 @@ class Template {
                 </head>
 
                 <body class='mainbody'>
-                    <?php echo Modal::template(); ?>
+                    " . Modal::template() . "
 
                     <div class='sideMenu'>
                         {$menu}
@@ -88,7 +88,7 @@ class Template {
     private static function loginMenu() {
         if (!Auth::is_logged()) {
             $showlogin = "
-            <div class='leanModal' data-controller='Users' data-action='get_view' data-params='login_form,modal' data-section='login_form'><img src='assets/images/login_bk.png' alt='login'></div>
+            <div class='leanModal' data-url='php/router.php?controller=Users&action=get_view&view=login_form&destination=modal' data-section='login_form'><img src='assets/images/login_bk.png' alt='login'></div>
             <div class='leanModal' data-controller='Users' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='assets/images/signup_bk.png' alt='signup'></div>
             ";
         } else {

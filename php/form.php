@@ -712,13 +712,6 @@ if (!empty($_POST['process_vote'])) {
     exit;
 }
 
-if (!empty($_POST['get_modal'])) {
-    $Modal = new Modal();
-    $result = $Modal->get_modal($_POST);
-    echo json_encode($result);
-    exit;
-}
-
 if (!empty($_POST['loadContent'])) {
     $controllerName = htmlspecialchars($_POST['controller']);
     $action = htmlspecialchars($_POST['action']);
