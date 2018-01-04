@@ -515,13 +515,11 @@ class Users extends BaseModel {
      * @return bool
      */
     public function is_admin($username) {
-        $admins = $this->all(array('status'=>'admin'));
-        foreach ($admins as $key=>$admin) {
+        foreach ($this->all(array('status'=>'admin')) as $key=>$admin) {
             if ($admin['username'] == $username) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -546,6 +544,7 @@ class Users extends BaseModel {
             }
         }
 
+        // Check if current user has necessary credentials
         $is_authorized = !is_null($current_user) && !empty($this->get(
             array('username'=>$current_user, 'status !='=>'member')));
 
@@ -572,18 +571,35 @@ class Users extends BaseModel {
      * @return array
      */
     public function setStatus(array $data) {
-
-        $result['status'] = $this->db->update($this->tablename, 
-            array('status'=>$data['status']), array("username"=>$data['username']));
-        if ($result['status']) {
-            $result['msg'] = "{$data['username']} status is now {$data['status']}!";
-        } else {
-            $result['msg'] = "Oops, something went wrong";
+        // check if user has admin status and if there will be remaining admins after we delete this account.
+        $is_admin = false;
+        $admins = $this->all(array('status'=>'admin'));
+        foreach ($admins as $key=>$admin) {
+            if ($admin['username'] == $data['username']) {
+                $is_admin = true;
+                break;
+            }
         }
-        Logger::getInstance(APP_NAME, get_class($this))->log($result);
 
-        // Refresh list
+        // If target account has admin status, check if there is at least one admin account remaining after status modification
+        if ($is_admin and count($admins) <= 1) {
+            return array(
+                'status'=>false,
+                'msg'=>'This account has an admin status and there must be at least one admin account registered'
+            );
+        } else {
+            $result['status'] = $this->db->update($this->tablename, 
+                array('status'=>$data['status']), array("username"=>$data['username']));
+            if ($result['status']) {
+                $result['msg'] = "{$data['username']} status is now {$data['status']}!";
+            } else {
+                $result['msg'] = "Oops, something went wrong";
+            }
+        }
+
+        Logger::getInstance(APP_NAME, get_class($this))->log($result);
         $result['content'] = $this->generateuserslist();
+
         return $result;
     }
 
@@ -713,7 +729,7 @@ class Users extends BaseModel {
         return "
         <form action='php/router.php?controller=Users&action=activation' method='post'>
             <input type='hidden' name='username' value='{$item['username']}' />
-            <select name='status' class='actionOnSelect' data-destination='#user_list' style='max-width: 75%;'>
+            <select name='action' class='actionOnSelect' data-destination='#user_list' style='max-width: 75%;'>
                 <option selected disabled>Select an action</option>
                 {$activOption}
                 <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
