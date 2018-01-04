@@ -112,11 +112,11 @@ class Suggestion extends BaseModel {
      * @throws Exception
      */
     public function get_suggestion_list($view) {
-        $_POST['operation'] = 'selection_list';
+        $data['operation'] = 'selection_list';
         if ($view === "body") {
-            return self::format_section($this->editor($_POST, $view));
+            return self::format_section($this->editor($data, $view));
         } else {
-            return $this->editor($_POST, $view);
+            return $this->editor($data, $view);
         }
     }
 

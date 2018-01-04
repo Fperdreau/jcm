@@ -1169,8 +1169,8 @@ class Presentation extends BaseModel {
                 <div class='submitMenuContainer'>
                     <div class='submitMenuSection'>
                         <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=edit' . "' 
-                        class='{$modal}' data-controller='Presentation' data-action='get_form'
-                        data-destination='.submission_container' data-params='{$destination}' data-operation='edit'>
+                        class='{$modal}' data-url='php/router.php?controller=Presentation&action=get_form&view={$destination}' 
+                        data-destination='.submission_container' data-operation='edit'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'add_paper.png' . "'></div>
                                 <div class='text'>Submit</div>
@@ -1179,7 +1179,7 @@ class Presentation extends BaseModel {
                     </div>
                     <div class='submitMenuSection'>
                         <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=suggest' . "' 
-                        class='{$modal}' data-controller='Suggestion' data-action='get_form' data-params='{$destination}'
+                        class='{$modal}' data-url='php/router.php?controller=Suggestion&action=get_form&view={$destination}' 
                         data-destination='.submission_container' data-operation='edit'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'wish_paper.png' . "'></div>
@@ -1189,8 +1189,8 @@ class Presentation extends BaseModel {
                     </div>
                     <div class='submitMenuSection'>
                         <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=wishpick' . "' 
-                        class='{$modal}' data-controller='Suggestion' data-action='get_suggestion_list' 
-                        data-destination='.submission_container' data-params='{$destination}'>
+                        class='{$modal}' data-url='php/router.php?controller=Suggestion&action=get_suggestion_list&view={$destination}' 
+                        data-destination='.submission_container'>
                             <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'select_paper.png'. "'></div>
                                 <div class='text'>Select a wish</div>
