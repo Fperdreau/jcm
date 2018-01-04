@@ -318,18 +318,8 @@ class Tasks extends BaseModel {
         // Get admins email
         $adminMails = $this->db->resultSet($this->db->tablesname['Users'],array('email'),array('status'=>"admin"));
         if (!is_array($adminMails)) $adminMails = array($adminMails);
-        $content['body'] = "
-            <p>Hello, </p>
-            <p>Please find below the logs of the scheduled tasks.</p>
-            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
-                    Logs
-                </div>
-                <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
-                    $string
-                </div>
-            </div>";
-        $content['subject'] = "Scheduled tasks logs";
+        $content = self::logsEmailContent($string);
+       
         if ($MailManager->send($content, $adminMails)) {
             return true;
         } else {
@@ -547,8 +537,41 @@ class Tasks extends BaseModel {
      * @return string
      */
     public function index() {
-        $notify = $this->settings['notify_admin_task'];
+        return self::indexPage($this->show(), $this->settings['notify_admin_task']);
+    }
+    
+    /**
+     * Display jobs list
+     * @return string
+     */
+    public function show() {
 
+        $cronList = "";
+        foreach ($this->loadAll() as $cronName => $info) {
+            $cronList .= self::displayTask($info);
+        }
+
+        return $cronList;
+    }
+
+    /**
+     * Run task
+     * @return string: result message
+     */
+    public function run() {
+        return "";
+    }
+
+    /* VIEWS */
+
+    /**
+     * Render index page
+     *
+     * @param string $content
+     * @param bool $notify
+     * @return string
+     */
+    private static function indexPage($content, $notify) {
         return "
             <div class='page_header'>
             <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
@@ -580,48 +603,57 @@ class Tasks extends BaseModel {
             <section>
                 <h2>Tasks list</h2>
                 <div class='section_content'>
-                " . $this->show() . "
+                {$content}
                 </div>
             </section>
         ";
     }
-    
+
     /**
-     * Display jobs list
+     * Display task details and settings in scheduled tasks page
+     *
+     * @param array $info: task info
      * @return string
      */
-    public function show() {
+    private static function displayTask(array $info) {
 
-        $cronList = "";
-        foreach ($this->loadAll() as $cronName => $info) {
+        // Task description
+        $pluginDescription = (!empty($info['description'])) ? $info['description'] : null;
 
-            $pluginDescription = (!empty($info['description'])) ? $info['description'] : null;
-            $install_btn = self::install_button($cronName, $info['installed']);
-            $activate_btn = self::activate_button($cronName, $info['status']);
+        // Task installation button
+        $install_btn = self::install_button($info['name'], $info['installed']);
 
-            // Icon showing if task is currently being executed
-            $css_running = ($info['running'] == 1) ? 'is_running' : 'not_running';
-            $running_icon = "<div class='task_running_icon {$css_running}'></div>";
+        // Task activation/deactivation button
+        $activate_btn = self::activate_button($info['name'], $info['status']);
 
-            $runBtn = "<div class='run_cron workBtn runBtn' data-cron='$cronName'></div>";
-            $stopBtn = "<div class='stop_cron workBtn stopBtn' data-cron='$cronName'></div>";
+        // Icon showing if task is currently being executed
+        $css_running = ($info['running'] == 1) ? 'is_running' : 'not_running';
+        $running_icon = "<div class='task_running_icon {$css_running}'></div>";
 
-            $datetime = $info['time'];
-            $date = date('Y-m-d', strtotime($datetime));
-            $time = date('H:i', strtotime($datetime));
+        // Execute Task button
+        $runBtn = "<div class='run_cron workBtn runBtn' data-cron='{$info['name']}'></div>";
 
-            $frequency = (!empty($info['frequency'])) ? explode(',', $info['frequency']): array(0, 0, 0, 0);
+        // Stop Task button
+        $stopBtn = "<div class='stop_cron workBtn stopBtn' data-cron='{$info['name']}'></div>";
 
-            $cronList .= "
-            <div class='plugDiv' id='cron_$cronName'>
+        // Next Task's running time
+        $datetime = $info['time'];
+        $date = date('Y-m-d', strtotime($datetime));
+        $time = date('H:i', strtotime($datetime));
+
+        // Scheduler
+        $frequency = (!empty($info['frequency'])) ? explode(',', $info['frequency']): array(0, 0, 0, 0);
+
+        return "
+            <div class='plugDiv' id='cron_{$info['name']}'>
                 <div class='plugHeader'>
                     <div class='plug_header_panel'>
-                        <div class='plugName'>$cronName</div>
-                        <div class='plugTime' id='cron_time_$cronName'>$datetime</div>
+                        <div class='plugName'>{$info['name']}</div>
+                        <div class='plugTime' id='cron_time_{$info['name']}'>{$datetime}</div>
                     </div>
                     <div class='optBar'>
                         <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' 
-                        data-action='getOptions' data-destination='.plugOpt#{$cronName}' data-name='{$cronName}'></div>
+                        data-action='getOptions' data-destination='.plugOpt#{$info['name']}' data-name='{$info['name']}'></div>
                         {$install_btn}
                         {$activate_btn}
                         {$runBtn}
@@ -672,42 +704,51 @@ class Tasks extends BaseModel {
                                     </div>
                                 </div>
                                 <div class='submit_btns'>
-                                    <input type='hidden' name='name' value='{$cronName}'/> 
+                                    <input type='hidden' name='name' value='{$info['name']}'/> 
                                     <input type='submit' value='Update' class='modCron'/>
                                 </div>
                             </form>
     
                         </div>
     
-                        <div class='plugOpt' id='$cronName'></div>
+                        <div class='plugOpt' id='{$info['name']}'></div>
                         <div>
-                            <a href='php/router.php?controller=Logger&action=getManager&log_name=Tasks&search={$cronName}' 
-                            class='loadContent' data-destination='.log_target_container#{$cronName}' id='{$cronName}'>
+                            <a href='php/router.php?controller=Logger&action=getManager&log_name=Tasks&search={$info['name']}' 
+                            class='loadContent' data-destination='.log_target_container#{$info['name']}' id='{$info['name']}'>
                             <input type='submit' value='Show logs'/>
                             </a>
                         </div>
 
-                        <div class='log_target_container' id='${cronName}' style='display: none'></div>
+                        <div class='log_target_container' id='{$info['name']}' style='display: none'></div>
 
                     </div>
                     
                 </div>
             </div>
             ";
-        }
-
-        return $cronList;
     }
 
     /**
-     * Run task
-     * @return string: result message
+     * Generate email including logs
+     *
+     * @param string $logs: logs
+     * @return array: array('content'=>html, 'subject'=>string)
      */
-    public function run() {
-        return "";
+    private static function logsEmailContent($logs) {
+        $content['body'] = "
+            <p>Hello, </p>
+            <p>Please find below the logs of the scheduled tasks.</p>
+            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+                    Logs
+                </div>
+                <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
+                    {$logs}
+                </div>
+            </div>";
+        $content['subject'] = "Scheduled tasks logs";
+        return $content;
     }
-
-    /* VIEWS */
 
     private static function renderOptions(array $options) {
         $opt = '';
