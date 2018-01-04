@@ -85,17 +85,24 @@ class Tasks extends BaseModel {
     }
 
     /**
-     * Instantiate a class from class name
-     * @param: class name (must be the same as the file name)
+     * Instantiate a task from class name
+     * 
+     * @param string $name: task name (must be the same as the file name)
      * @return Task
      */
-    public function getTask($pluginName) {
-        if (is_null($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
-            $this->instances[$pluginName] = new $pluginName();
+    public function getTask($name) {
+        if (is_null($this->instances) || !in_array($name, array_keys($this->instances))) {
+            $this->instances[$name] = new $name();
         }
-        return $this->instances[$pluginName];
+        return $this->instances[$name];
     }
 
+    /**
+     * Install scheduled task
+     *
+     * @param string $name: task name
+     * @return array
+     */
     public function install($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] = $this->add($this->getTask($name)->getInfo());
@@ -104,6 +111,12 @@ class Tasks extends BaseModel {
         return $result;
     }
 
+    /**
+     * Uninstall scheduled task
+     *
+     * @param string $name: task name
+     * @return array
+     */
     public function uninstall($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
         $result['status'] = $this->delete(array('name'=>$name));
@@ -111,17 +124,39 @@ class Tasks extends BaseModel {
         return $result;
     }
 
+    /**
+     * Activate scheduled task
+     *
+     * @param string $name: task name
+     * @return array
+     */
     public function activate($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
-        $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
-        $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
+        if ($this->isInstalled($name)) {
+            $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
+            $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = 'Sorry, you must install this module before activating it';
+        }
         return $result;
     }
 
+    /**
+     * Deactivate scheduled task
+     *
+     * @param string $name: task name
+     * @return array
+     */
     public function deactivate($name) {
         if (isset($_POST['name'])) $name = $_POST['name'];
-        $result['status'] =  $this->update(array('status'=>0), array('name'=>$name));
-        $result['msg'] = $result['status'] ? $name . " has been deactivated" : "Oops, something went wrong";
+        if ($this->isInstalled($name)) {
+            $result['status'] = $this->update(array('status'=>0), array('name'=>$name));
+            $result['msg'] = $result['status'] ? $name . " has been deactivated" : "Oops, something went wrong";
+        } else {
+            $result['status'] = False;
+            $result['msg'] = 'Sorry, you must install this module before activating it';
+        }
         return $result;
     }
 
