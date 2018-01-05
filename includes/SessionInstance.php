@@ -69,11 +69,12 @@ class SessionInstance
     /**
      * Create instance of $_SESSION
      */
-    public static function initsession()
+    public static function getInstance()
     {
         if (self::$instance === null) {
             self::$instance = new self();
         }
+        return self::$instance;
     }
 
     /**
