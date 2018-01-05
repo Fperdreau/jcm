@@ -369,7 +369,7 @@ class Groups extends Plugin
         $groupusrs['presid'] = $data['presid'];
 
         if (!empty($data)) {
-            foreach ($this->get(array('groups'=>$data['group'])) as $key => $row) {
+            foreach ($this->all(array('groups'=>$data['groups'])) as $key => $row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
             return $groupusrs;
