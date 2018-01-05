@@ -26,6 +26,8 @@
 
  namespace includes;
  
+ use includes\Db;
+
 /**
  * Class AppTable
  *
@@ -209,7 +211,8 @@ abstract class BaseModel {
      * @return string
      */
     protected function getTableName() {
-        return Db::getInstance()->gen_name(get_class($this));
+        $split = explode('\\', get_class($this));
+        return Db::getInstance()->gen_name(end($split));
     }
 
     /**
@@ -328,7 +331,7 @@ abstract class BaseModel {
         $class_name = get_class($this);
         foreach ($data as $var_name=>$value) {
             if (property_exists($class_name, $var_name)) {
-                $prop = new ReflectionProperty($class_name, $var_name);
+                $prop = new \ReflectionProperty($class_name, $var_name);
                 if (!$prop->isStatic()) {
                     $this->$var_name = (is_array($value)) ? $value : htmlspecialchars_decode($value);
                 }
