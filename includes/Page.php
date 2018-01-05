@@ -134,13 +134,35 @@ class Page extends BaseModel {
     }
 
     /**
+     * Convert parameters string from URL to array
+     *
+     * @param string $paramsStr
+     * @return array
+     */
+    private static function paramsToArray($paramsStr)
+    {
+        $params = array();
+        if (strpos($paramsStr, '&')) {
+            $paramList = explode("&", $paramsStr);
+            foreach ($paramList as $item) {
+                $paramTuple = explode("=", $item);
+                $params[$paramTuple[0]] = $paramTuple[1];
+            }
+        }
+        return $params;
+    }
+
+    /**
      * Get page content
      *
      * @param string $page: page name
      * @return array
      */
-    public function getPage($page)
+    public function getPage($page, $params)
     {
+        // Convert params to array
+        $pageParameters = self::paramsToArray($params);
+
         if (strpos($page, "#")) {
             // Remove hashtags
             $page = substr($page, 0, strpos($page, "#"));
@@ -173,7 +195,7 @@ class Page extends BaseModel {
                 if (!self::exist($page)) {
                     $result = self::notFound();
                 } else {
-                    $result['content'] = self::render($page);
+                    $result['content'] = self::render($page, compact('pageParameters'));
                     $result['header'] = self::header($page_id, $content['icon']);
                 }
             }
@@ -240,10 +262,13 @@ class Page extends BaseModel {
      * @param $page
      * @return mixed|string
      */
-    public static function render($page) {
-
+    public static function render($page, array $variables) {
         // Start buffering
         ob_start("ob_gzhandler");
+
+        if (!empty($variables)) {
+            extract($variables);
+        }
 
         include_once(PATH_TO_PAGES . $page . '.php');
 

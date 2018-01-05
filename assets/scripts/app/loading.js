@@ -131,8 +131,9 @@ function getPage(page, urlparam) {
     params['getPage'] = page;
 
     jQuery.ajax({
-        url: 'php/router.php?controller=Page&action=getPage&page=' + page,
+        url: 'php/router.php?controller=Page&action=getPage&page=' + page + '&params=' + urlparam,
         type: 'POST',
+        data: {params: urlparam},
         async: true,
         beforeSend: function () {
             loadingDiv(el);
@@ -252,7 +253,7 @@ var parseurl = function () {
  * Get URL parameters ($_GET)
  * @returns {{}}
  */
-getParams = function () {
+function getParams() {
     var url = window.location.href;
     var splitted = url.split("?");
     if (splitted.length === 1) {
