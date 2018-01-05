@@ -20,6 +20,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\App;
+use includes\Router;
+
 /**
  * BOOTING PART
  */

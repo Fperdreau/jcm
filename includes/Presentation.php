@@ -230,7 +230,7 @@ class Presentation extends BaseModel {
      */
     public function show_details($id=false, $view='body') {
         $data = $this->getInfo($id);
-        $user = Auth::is_logged() ? new Users($_SESSION['username']) : null;
+        $user = SessionInstance::isLogged() ? new Users($_SESSION['username']) : null;
         $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
                 || $data['username'] === $user->username);
         if ($data !== false) {
@@ -737,7 +737,7 @@ class Presentation extends BaseModel {
             "button"=>$Bookmark->getIcon(
                 $data['id'],
                 'Presentation',
-                Auth::is_logged() ? $_SESSION['username'] : null)
+                SessionInstance::isLogged() ? $_SESSION['username'] : null)
         );
     }
 

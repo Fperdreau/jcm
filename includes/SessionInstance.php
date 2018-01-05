@@ -31,44 +31,49 @@ namespace includes;
  *
  * Manage $_SESSION.
  */
-class SessionInstance {
+class SessionInstance
+{
 
     /**
-     * @var $_instance: session instance
+     * @var $instance: session instance
      */
-    protected static $_instance;
+    protected static $instance;
 
     /**
      * Maximum duration of session
      */
-    const timeout = 3600;
+    const TIMEOUT = 3600;
 
     /**
      * Warning timing (in seconds)
      */
-    const warning = 300;
+    const WARNING = 300;
 
     /**
      * Constructor
      */
-    private function __construct() {
+    private function __construct()
+    {
         session_start();
-        session_set_cookie_params(self::timeout);
+        session_set_cookie_params(self::TIMEOUT);
     }
 
     /**
      * Destroy instance of $_SESSION
      */
-    function __destruct() {
+    public function __destruct()
+    {
         session_write_close();
     }
 
     /**
      * Create instance of $_SESSION
      */
-    public static function initsession() {
-        if(self::$_instance === null)
-            self::$_instance = new self();
+    public static function initsession()
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
     }
 
     /**
@@ -76,7 +81,8 @@ class SessionInstance {
      * @param $key
      * @param $value
      */
-    public function set($key,$value) {
+    public function set($key, $value)
+    {
         $_SESSION[$key] = $value;
     }
 
@@ -85,7 +91,8 @@ class SessionInstance {
      * @param $key
      * @return mixed
      */
-    public function get($key) {
+    public function get($key)
+    {
         return $_SESSION[$key];
     }
 
@@ -93,22 +100,89 @@ class SessionInstance {
      * Check if session has started
      * @return bool
      */
-    public static function is_started() {
+    public static function isStarted()
+    {
         return session_status() !== PHP_SESSION_NONE;
     }
 
     /**
-     * Destroy session instance
-     * @return bool
+     * Start logged session
+     *
+     * @param string $username: user name
+     * @param string $status: user status
+     * @return void
      */
-    public static function destroy() {
-        if (self::is_started()) {
+    public static function startLoggedSession($username, $status)
+    {
+        $_SESSION['auth'] = $username;
+        $_SESSION['logok'] = true;
+        $_SESSION['login_start'] = time();
+        $_SESSION['login_expire'] = $_SESSION['login_start'] + self::TIMEOUT;
+        $_SESSION['login_warning'] = self::WARNING;
+        $_SESSION['username'] = $username;
+        $_SESSION['status'] = $status;
+    }
+
+    /**
+     * Destroy session instance
+     * @return bool|string
+     */
+    public static function destroy()
+    {
+        if (self::isStarted()) {
             $_SESSION = array();
             unset($_SESSION);
             session_destroy();
-            return true;
+            return App::getAppUrl();
         } else {
             return false;
         }
+    }
+
+    /**
+     * Check login status
+     *
+     * @return void
+     */
+    public static function checkLogin()
+    {
+        if (self::isLogged()) {
+            $result = array(
+                "start"=>$_SESSION['login_start'],
+                "expire"=>$_SESSION['login_expire'],
+                "warning"=>$_SESSION['login_warning']
+            );
+        } else {
+            $result = false;
+        }
+        return $result;
+    }
+
+    /**
+     * Extend user session
+     */
+    public function extendSession()
+    {
+        // Extend session duration
+        if (SessionInstance::isLogged()) {
+            $_SESSION['login_expire'] = time() + self::TIMEOUT;
+            $result = array(
+                "start"=>$_SESSION['login_start'],
+                "expire"=>$_SESSION['login_expire'],
+                "warning"=>$_SESSION['login_warning']
+            );
+            return $result;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Check if user is logged in
+     * @return bool
+     */
+    public static function isLogged()
+    {
+        return SessionInstance::isStarted() && isset($_SESSION['auth']) && $_SESSION['logok'] == true;
     }
 }

@@ -100,7 +100,7 @@ class Template
      */
     private static function loginMenu()
     {
-        if (!Auth::is_logged()) {
+        if (!SessionInstance::isLogged()) {
             $leanModalUrlLogin = Modal::buildUrl(
                 'Users',
                 'get_view',

@@ -70,7 +70,7 @@ class Auth extends BaseModel {
      */
     public static function getUserId()
     {
-        if (self::is_logged()) {
+        if (self::isLogged()) {
             return $_SESSION['auth'];
         }
         return false;
@@ -89,22 +89,16 @@ class Auth extends BaseModel {
 
         if (!empty($data)) {
             if ($data['active'] == 1) {
-                if ($this->check_pwd($username, $password, $data) == true) {
+                if ($this->checkPwd($username, $password, $data) == true) {
                     if ($login) {
-                        $_SESSION['auth'] = $username;
-                        $_SESSION['logok'] = true;
-                        $_SESSION['login_start'] = time();
-                        $_SESSION['login_expire'] = $_SESSION['login_start'] + SessionInstance::timeout;
-                        $_SESSION['login_warning'] = SessionInstance::warning;
-                        $_SESSION['username'] = $username;
-                        $_SESSION['status'] = $data['status'];
+                        SessionInstance::startLoggedSession($username, $data['status']);
                     }
                     $result['msg'] = "Hi {$data['firstname']},<br> welcome back!";
                     $result['status'] = true;
                 } else {
                     $_SESSION['logok'] = false;
                     $result['status'] = false;
-                    $attempt = $this->check_attempt($data);
+                    $attempt = $this->checkAttempt($data);
                     if ($attempt == false) {
                         $result['msg'] = "Wrong password. You have exceeded the maximum number
                             of possible attempts, hence your account has been deactivated for security reasons.
@@ -133,7 +127,8 @@ class Auth extends BaseModel {
      * @param array $data
      * @return int
      */
-    private function check_attempt(array $data) {
+    private function checkAttempt(array $data)
+    {
         // Get attempt information
         $auth_inf = $this->get(array('username'=>$data['username']));
 
@@ -182,10 +177,12 @@ class Auth extends BaseModel {
      * @param array $data
      * @return bool
      */
-    private function check_pwd($username, $password, array $data) {
+    private function checkPwd($username, $password, array $data)
+    {
         if (validate_password($password, $data['password']) == 1) {
             if ($this->is_exist(array('username'=>$username))) {
-                return $this->update(array(
+                return $this->update(
+                    array(
                         'attempt'=>0,
                         'last_login'=>date('Y-m-d H:i:s'),
                     ),
@@ -210,16 +207,9 @@ class Auth extends BaseModel {
      * @param $password
      * @return string
      */
-    public static function crypt_pwd($password) {
+    public static function cryptPwd($password)
+    {
         $hash = create_hash($password);
         return $hash;
-    }
-
-    /**
-     * Check if user is logged in
-     * @return bool
-     */
-    public static function is_logged() {
-        return SessionInstance::is_started() && isset($_SESSION['auth']) && $_SESSION['logok'] == true;
     }
 }

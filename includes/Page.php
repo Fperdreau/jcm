@@ -103,7 +103,7 @@ class Page extends BaseModel {
     public function check_login() {
         $split = explode('\\', $this->name);
         $page_level = (in_array($split[0], array_keys(self::$levels))) ? $split[0] : 'none';
-        if (!Auth::is_logged()) {
+        if (!SessionInstance::isLogged()) {
             if (self::$levels[$page_level] > -1) {
                 $result['msg'] = self::login_required();
                 $result['status'] = false;

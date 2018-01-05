@@ -26,7 +26,7 @@ class Vote extends BaseModel {
      */
     public function add(array $post) {
         $result = array('status'=>false, 'msg'=>null);
-        if (Auth::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
+        if (SessionInstance::isLogged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
                 'username'=>$_SESSION['username']))) {
             $post['date'] = date('Y-m-d');
             $post['username'] = $_SESSION['username'];
@@ -49,7 +49,7 @@ class Vote extends BaseModel {
      */
     public function delete(array $post) {
         $result = array('status'=>false, 'msg'=>null);
-        if (Auth::is_logged()) {
+        if (SessionInstance::isLogged()) {
             $id = array(
                 'ref_id'=>$post['ref_id'],
                 'ref_obj'=>$post['ref_obj'],

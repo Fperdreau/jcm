@@ -297,7 +297,7 @@ class Session extends BaseModel {
                 if ($edit) {
                     $content .= self::emptySlotEdit();
                 } else {
-                    $content .= self::emptySlot($data[0], Auth::is_logged());
+                    $content .= self::emptySlot($data[0], SessionInstance::isLogged());
                 }
             }
         }
@@ -333,7 +333,7 @@ class Session extends BaseModel {
                     $content .= self::mail_slotContainer(Presentation::inSessionSimple($data[$i]));
                 }
             } else {
-                $content .= self::emptySlot($data[0], Auth::is_logged());
+                $content .= self::emptySlot($data[0], SessionInstance::isLogged());
             }
         }
 
@@ -907,7 +907,7 @@ class Session extends BaseModel {
         }
 
         // Get user's availability and assignments
-        if (Auth::is_logged()) {
+        if (SessionInstance::isLogged()) {
             $username = $_SESSION['username'];
             $Availability = new Availability();
             $availabilities = array();

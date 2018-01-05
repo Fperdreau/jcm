@@ -30,7 +30,7 @@ class Bookmark extends BaseModel {
      * @return mixed
      */
     public function add(array $post) {
-        if (Auth::is_logged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
+        if (SessionInstance::isLogged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
             $post['username'] = $_SESSION['username'];
             $result['status'] = $this->db->insert($this->tablename, $this->parseData($post)) !== false;
             if ($result['status']) {
@@ -50,7 +50,7 @@ class Bookmark extends BaseModel {
      */
     public function delete(array $post) {
         $result = array();
-        if (Auth::is_logged()) {
+        if (SessionInstance::isLogged()) {
             $result['status'] = $this->db->delete($this->tablename, array('id'=>$post['id']));
         } else {
             $result['status'] = false;

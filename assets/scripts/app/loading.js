@@ -60,10 +60,9 @@ var tinymcesetup = function (selector) {
 var loadCalendarSessions = function() {
     $('#ui-datepicker-div').remove();
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Calendar&action=getParams',
         type: 'POST',
         async: true,
-        data: {get_calendar_param: true},
         success: function (data) {
             var result = jQuery.parseJSON(data);
             inititdatepicker(result);
@@ -77,10 +76,9 @@ var loadCalendarSessions = function() {
 var loadCalendarSubmission = function() {
     $('#ui-datepicker-div').remove();
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Calendar&action=getParams',
         type: 'POST',
         async: true,
-        data: {get_calendar_param: true},
         success: function (data) {
             var result = jQuery.parseJSON(data);
             init_submission_calendar(result);
@@ -96,10 +94,9 @@ var loadCalendarAvailability = function() {
     if (formid.length>0 && formid !== undefined) {
         formid.css({'position':'relative', 'min-height':'200px'});
         jQuery.ajax({
-            url: 'php/form.php',
+            url: 'php/router.php?controller=Calendar&action=getParams',
             type: 'POST',
             async: true,
-            data: {get_calendar_param: true},
             beforeSend: function () {
                 loadingDiv(formid);
             },

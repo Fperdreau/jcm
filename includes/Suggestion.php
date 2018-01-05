@@ -259,7 +259,7 @@ class Suggestion extends BaseModel {
         }
 
         $wish_list = is_null($wish_list) ? self::no_wish() : $wish_list;
-        $add_button = Auth::is_logged() ? self::add_button() : null;
+        $add_button = SessionInstance::isLogged() ? self::add_button() : null;
 
         return $add_button . $wish_list;
     }
@@ -309,7 +309,7 @@ class Suggestion extends BaseModel {
      */
     public function show_details($id=false, $view='body') {
         $data = $this->getInfo($id);
-        $user = Auth::is_logged() ? new Users($_SESSION['username']) : null;
+        $user = SessionInstance::isLogged() ? new Users($_SESSION['username']) : null;
         $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
                 || $data['username'] === $user->username);
         if ($data !== false) {
@@ -494,17 +494,21 @@ class Suggestion extends BaseModel {
 
     /**
      * Render suggestion in list
-     * @param stdClass $item
+     * @param \stdClass $item
      * @param null|string $vote
      * @param null|string $bookmark
      * @return string
      */
-    public static function inList(stdClass $item, $vote=null, $bookmark=null) {
+    public static function inList(\stdClass $item, $vote = null, $bookmark = null)
+    {
         $update = date('d M y', strtotime($item->up_date));
         $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id}";
         $keywords = self::keywords_list($item->keywords);
-        $leanModalUrl = Modal::buildUrl('Suggestion', 'show_details', array(
-            'view'=>'modal', 
+        $leanModalUrl = Modal::buildUrl(
+            'Suggestion',
+            'show_details',
+            array(
+            'view'=>'modal',
             'id'=> $item->id
             )
         );
@@ -515,7 +519,8 @@ class Suggestion extends BaseModel {
             </div>
             <div class='suggestion_details_container'>
                 <div class='suggestion_details'>
-                   <a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion' data-id='{$item->id}'>
+                   <a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion' 
+                   data-id='{$item->id}'>
                         <div style='font-size: 16px;'>{$item->title}</div>
                         <div style='font-style: italic; color: #000000; font-size: 12px;'>
                             Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span>
@@ -738,7 +743,7 @@ class Suggestion extends BaseModel {
         $type_in_body = $view !== 'modal' ? "<div class='pub_type'>{$type}</div>" : null;
 
         // Present button
-        $present_button = (Auth::is_logged()) ? "<div>
+        $present_button = (SessionInstance::isLogged()) ? "<div>
             <input type='submit' class='{$trigger}' value='Present it' data-controller='Suggestion' 
             data-action='get_form' data-params='{$view}' data-section='select_suggestion' data-id='{$data['id']}' 
             data-view='{$view}' data-destination='{$destination}' data-operation='select'/>

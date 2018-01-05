@@ -110,19 +110,6 @@ if (!empty($_POST['mod_plugins'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Get booked dates for DatePicker Calendar
-if (!empty($_POST['get_calendar_param'])) {
-    $Session = new Session();
-    $force_select = htmlspecialchars($_POST['get_calendar_param']) === 'edit';
-
-    try {
-        $result = $Session->getCalendarParams($force_select);
-    } catch (Exception $e) {
-    }
-
-    echo json_encode($result);
-    exit;
-}
 
 // Get booked dates for DatePicker Calendar
 if (!empty($_POST['update_user_availability'])) {
@@ -158,28 +145,6 @@ if (!empty($_POST['update_user_availability'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Logout
-if (!empty($_POST['logout'])) {
-    if (SessionInstance::destroy()) {
-        echo json_encode(App::getAppUrl());
-    }
-    exit;
-}
-
-// Check login status
-if (!empty($_POST['check_login'])) {
-    if (Auth::is_logged()) {
-        $result = array(
-            "start"=>$_SESSION['login_start'],
-            "expire"=>$_SESSION['login_expire'],
-            "warning"=>$_SESSION['login_warning']
-        );
-        echo json_encode($result);
-    } else {
-        echo json_encode(false);
-    }
-}
-
 // Registration
 if (!empty($_POST['register'])) {
     $user = new Users();

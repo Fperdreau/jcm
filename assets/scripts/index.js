@@ -549,9 +549,8 @@ function logout() {
     login_start = null;
     login_expire = null;
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=SessionInstance&action=destroy',
         type: 'POST',
-        data: {logout: true},
         async: true,
         success: function (data) {
             var json = jQuery.parseJSON(data);
@@ -583,8 +582,7 @@ function check_login() {
     if (login_start === null) {
         // Check login status
         jQuery.ajax({
-            url: 'php/form.php',
-            data: {check_login: true},
+            url: 'php/router.php?controller=SessionInstance&action=checkLogin',
             type: "post",
             async: true,
             success: function(data) {
@@ -622,7 +620,7 @@ function check_login() {
 function extend_session() {
     // Check login status
     jQuery.ajax({
-        url: 'php/router.php?controller=Auth&action=extend_login',
+        url: 'php/router.php?controller=SessionInstance&action=extendSession',
         type: "post",
         async: true,
         success: function(data) {
