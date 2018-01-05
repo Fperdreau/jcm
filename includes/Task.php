@@ -11,7 +11,8 @@ namespace includes;
 /**
  * Undocumented class
  */
-class Task {
+class Task
+{
 
     /**
      * @var string $name: Task's name
@@ -79,7 +80,8 @@ class Task {
     /**
      * Task constructor.
      */
-    public function __construct() {
+    public function __construct()
+    {
         // If time is default, set time to now
         $this->time = (is_null($this->time)) ? date('Y-m-d H:i:s', time()) : $this->time;
         $this->path = basename(__FILE__);
@@ -89,12 +91,13 @@ class Task {
      * Set task information
      * @param array $data
      */
-    public function setInfo(array $data) {
-        foreach ($data as $prop=>$value) {
+    public function setInfo(array $data)
+    {
+        foreach ($data as $prop => $value) {
             // Check if property exists and is static
             if (property_exists(get_class($this), $prop)) {
-                $property = new ReflectionProperty(get_class($this), $prop);
-                $new_value = ($prop == 'options') ? json_decode($value,true) : $value;
+                $property = new \ReflectionProperty(get_class($this), $prop);
+                $new_value = ($prop == 'options') ? json_decode($value, true) : $value;
                 if ($property->isStatic()) {
                     $this::$$prop = $new_value;
                 } else {
@@ -108,7 +111,8 @@ class Task {
      * Get task information
      * @return array
      */
-    public function getInfo() {
+    public function getInfo()
+    {
         return array(
             'name'=>$this->name,
             'version'=>$this->version,
@@ -121,7 +125,8 @@ class Task {
         );
     }
 
-    public function setOption($option, $value) {
+    public function setOption($option, $value)
+    {
         if (in_array($option, array_keys($this->options))) {
             $this->options[$option]['value'] = $value;
         }
@@ -131,8 +136,8 @@ class Task {
      * Execute task
      * @return mixed
      */
-    public function run() {
+    public function run()
+    {
         return array('status'=>true, 'msg'=>null);
     }
-
 }

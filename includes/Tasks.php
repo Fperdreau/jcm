@@ -27,6 +27,7 @@
 namespace includes;
 
 use includes\BaseModel;
+use includes\Logger;
 
 /**
  * Class Tasks
@@ -37,14 +38,15 @@ use includes\BaseModel;
  * - run
  *
  */
-class Tasks extends BaseModel {
+class Tasks extends BaseModel
+{
 
     /**
      * Scheduled tasks settings
      * @var array
      */
     protected $settings = array(
-        'notify_admin_task'=>'yes'
+        'notifyAdmin_task'=>'yes'
     );
 
     /**
@@ -69,10 +71,11 @@ class Tasks extends BaseModel {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->path = dirname(dirname(__FILE__) . DS);
-        self::get_logger();
+        self::getLogger();
 
         if ($this->db->tableExists($this->tablename)) {
             $this->loadAll();
@@ -83,20 +86,23 @@ class Tasks extends BaseModel {
      * Factory for logger
      * @return Logger
      */
-    public static function get_logger() {
+    public static function getLogger()
+    {
         self::$logger = Logger::getInstance(get_class());
         return self::$logger;
     }
 
     /**
      * Instantiate a task from class name
-     * 
+     *
      * @param string $name: task name (must be the same as the file name)
      * @return Task
      */
-    public function getTask($name) {
+    public function getTask($name)
+    {
         if (is_null($this->instances) || !in_array($name, array_keys($this->instances))) {
-            $this->instances[$name] = new $name();
+            $className = '\\Tasks\\' . $name;
+            $this->instances[$name] = new $className();
         }
         return $this->instances[$name];
     }
@@ -107,8 +113,11 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return array
      */
-    public function install($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function install($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         $result['status'] = $this->add($this->getTask($name)->getInfo());
         $result['status'] = $result['status'] !== false;
         $result['msg'] = $result['status'] === true ? $name . " has been installed" : "Oops, something went wrong";
@@ -121,8 +130,11 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return array
      */
-    public function uninstall($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function uninstall($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         $result['status'] = $this->delete(array('name'=>$name));
         $result['msg'] = $result['status'] ? $name . " has been uninstalled" : "Oops, something went wrong";
         return $result;
@@ -134,13 +146,16 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return array
      */
-    public function activate($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function activate($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         if ($this->isInstalled($name)) {
             $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
             $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
         } else {
-            $result['status'] = False;
+            $result['status'] = false;
             $result['msg'] = 'Sorry, you must install this module before activating it';
         }
         return $result;
@@ -152,13 +167,16 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return array
      */
-    public function deactivate($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function deactivate($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         if ($this->isInstalled($name)) {
             $result['status'] = $this->update(array('status'=>0), array('name'=>$name));
             $result['msg'] = $result['status'] ? $name . " has been deactivated" : "Oops, something went wrong";
         } else {
-            $result['status'] = False;
+            $result['status'] = false;
             $result['msg'] = 'Sorry, you must install this module before activating it';
         }
         return $result;
@@ -169,7 +187,8 @@ class Tasks extends BaseModel {
      * @param string $name: plugin name
      * @return bool
      */
-    public function isInstalled($name) {
+    public function isInstalled($name)
+    {
         return $this->isExist(array('name'=>$name));
     }
 
@@ -178,9 +197,10 @@ class Tasks extends BaseModel {
      * @param $name: task name
      * @return mixed
      */
-    public function updateOptions($name) {
+    public function updateOptions($name)
+    {
         if ($this->isInstalled($name)) {
-            foreach ($_POST as $key=>$setting) {
+            foreach ($_POST as $key => $setting) {
                 $this->getTask($name)->setOption($key, $setting);
             }
 
@@ -203,7 +223,8 @@ class Tasks extends BaseModel {
      * @return array
      * @throws Exception
      */
-    public function execute_all() {
+    public function executeAll()
+    {
         $runningCron = $this->getRunningJobs();
         $nbJobs = count($runningCron);
         $logs = array();
@@ -224,9 +245,12 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return array|mixed
      */
-    public function execute($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
-        self::get_logger();
+    public function execute($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
+        self::getLogger();
 
         /**
          * Instantiate job object
@@ -273,8 +297,11 @@ class Tasks extends BaseModel {
      * @param null|string $name: task name
      * @return mixed
      */
-    public function stop($name=null) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function stop($name = null)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         $result['status'] = $this->unlock($name);
         return $result;
     }
@@ -284,7 +311,8 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return bool
      */
-    public function lock($name) {
+    public function lock($name)
+    {
         $this->getTask($name)->running = 1;
         return $this->update(array('running'=>1), array('name'=>$name));
     }
@@ -294,7 +322,8 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return bool
      */
-    public function unlock($name) {
+    public function unlock($name)
+    {
         $this->getTask($name)->running = 0;
         return $this->update(array('running'=>0), array('name'=>$name));
     }
@@ -304,12 +333,13 @@ class Tasks extends BaseModel {
      * @param array $logs
      * @return mixed
      */
-    public function notify_admin(array $logs) {
-        $MailManager = new MailManager();
+    public function notifyAdmin(array $logs)
+    {
+        $MailManager = new includes\MailManager();
 
         // Convert array to string
         $string = "<p>{$logs['msg']}</p>";
-        foreach ($logs as $job=>$info) {
+        foreach ($logs as $job => $info) {
             if ($job == 'msg') {
                 continue;
             }
@@ -321,7 +351,9 @@ class Tasks extends BaseModel {
 
         // Get admins email
         $adminMails = $this->db->resultSet($this->db->tablesname['Users'],array('email'),array('status'=>"admin"));
-        if (!is_array($adminMails)) $adminMails = array($adminMails);
+        if (!is_array($adminMails)) {
+            $adminMails = array($adminMails);
+        }
         $content = self::logsEmailContent($string);
        
         if ($MailManager->send($content, $adminMails)) {
@@ -336,11 +368,14 @@ class Tasks extends BaseModel {
      * @param string $name: task name
      * @return bool
      */
-    public function getInfo($name) {
+    public function getInfo($name)
+    {
         $data = $this->get(array('name'=>$name));
-        if (empty($data)) return false;
+        if (empty($data)) {
+            return false;
+        }
 
-        foreach ($data as $prop=>$value) {
+        foreach ($data as $prop => $value) {
             $value = ($prop == "options") ? json_decode($value,true) : $value;
             $this->$prop = $value;
         }
@@ -353,7 +388,8 @@ class Tasks extends BaseModel {
      * @param array $frequency
      * @return string: updated running time
      */
-    private static function parseTime($time, array $frequency) {
+    private static function parseTime($time, array $frequency)
+    {
         $str_time = date('Y-m-d H:i:s', strtotime($time));
         $date = new DateTime($str_time);
         $date->add(new DateInterval("P{$frequency[0]}M{$frequency[1]}DT{$frequency[2]}H{$frequency[3]}M0S"));
@@ -367,7 +403,8 @@ class Tasks extends BaseModel {
      * @param string $frequency: months,days,hours,minutes
      * @return bool
      */
-    public function updateTime($name=null, $time=null, $frequency=null) {
+    public function updateTime($name = null, $time = null, $frequency = null)
+    {
         if (is_null($time)) {
             $name = $_POST['name'];
             $time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
@@ -389,7 +426,7 @@ class Tasks extends BaseModel {
             return $result;
         } catch (Exception $e) {
             Logger::getInstance(APP_NAME, __CLASS__)->error($e);
-            $result['status'] = False;
+            $result['status'] = false;
             return $result;
         }
     }
@@ -398,11 +435,12 @@ class Tasks extends BaseModel {
      * Get list of the scheduled tasks to run
      * @return array
      */
-    public function getRunningJobs() {
+    public function getRunningJobs()
+    {
         $now = strtotime(date('Y-m-d H:i:s'));
         $jobs = $this->loadAll();
         $running_jobs = array();
-        foreach ($jobs as $thisJob=>$info) {
+        foreach ($jobs as $thisJob => $info) {
             $jobTime = strtotime($info['time']);
             if ($info['installed'] && $info['status'] == 1 && $now >= $jobTime && $now<=($jobTime+(59*60))) {
                 $running_jobs[] = $thisJob;
@@ -416,8 +454,11 @@ class Tasks extends BaseModel {
      * @param string $name: plugin name
      * @return string: form
      */
-    public function getOptions($name=null) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function getOptions($name = null)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         return $this->displayOpt($name, $this->getTask($name)->options);
     }
 
@@ -425,11 +466,12 @@ class Tasks extends BaseModel {
      * Get list of scheduled tasks, their settings and status
      * @return array
      */
-    public function loadAll() {
+    public function loadAll()
+    {
         $cronList = scandir(PATH_TO_TASKS);
         $tasks = array();
-        foreach ($cronList as $key=>$plugin_name) {
-            if (!empty($plugin_name) && !in_array($plugin_name, array('.', '..', 'run.php'))) {
+        foreach ($cronList as $key => $plugin_name) {
+            if (!empty($plugin_name) && !in_array($plugin_name, array('.', '..', 'Autoloader.php', 'run.php'))) {
                 $split = explode('.', $plugin_name);
                 $tasks[$split[0]] = $this->load($split[0]);
             }
@@ -442,8 +484,8 @@ class Tasks extends BaseModel {
      * @param string $name
      * @return array
      */
-    public function load($name) {
-
+    public function load($name)
+    {
         // Get plugin info if installed
         $installed = $this->isInstalled($name);
 
@@ -473,7 +515,8 @@ class Tasks extends BaseModel {
      * @param array $options
      * @return string
      */
-    public function displayOpt($name, array $options) {
+    public function displayOpt($name, array $options)
+    {
         $content = "<h4 style='font-weight: 600;'>Options</h4>";
         if (!empty($options)) {
             $content .= "
@@ -491,12 +534,14 @@ class Tasks extends BaseModel {
         return $content;
     }
 
-    /** 
-     *  Display scheduled task's logs 
+    /**
+     * Display scheduled task's logs
+     *
      * @param string $name: Task's name
      * @return null|string: logs
      */
-    public static function showLog($name) {
+    public static function showLog($name)
+    {
         $logs = Logger::get_logs(get_class());
         if (empty($logs)) {
             return null;
@@ -508,7 +553,7 @@ class Tasks extends BaseModel {
             $content = file_get_contents($path);
             $pattern = "/[^\\n]*{$name}[^\\n]*/";
             preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
-            foreach ($matches[0] as $res=>$line) {
+            foreach ($matches[0] as $res => $line) {
                 $logs .= "<pre>{$line[0]}</pre>";
             }
         }
@@ -524,7 +569,8 @@ class Tasks extends BaseModel {
      * @param string $name: Task's name
      * @return null|string: logs
      */
-    public static function deleteLog($name=null) {
+    public static function deleteLog($name = null)
+    {
         $name = (is_null($name)) ? get_class() : $name;
         $result = false;
         foreach (Logger::get_logs($name) as $path) {
@@ -541,16 +587,17 @@ class Tasks extends BaseModel {
      * Render Tasks page
      * @return string
      */
-    public function index() {
-        return self::indexPage($this->show(), $this->settings['notify_admin_task']);
+    public function index()
+    {
+        return self::indexPage($this->show(), $this->settings['notifyAdmin_task']);
     }
     
     /**
      * Display jobs list
      * @return string
      */
-    public function show() {
-
+    public function show()
+    {
         $cronList = "";
         foreach ($this->loadAll() as $cronName => $info) {
             $cronList .= self::displayTask($info);
@@ -563,7 +610,8 @@ class Tasks extends BaseModel {
      * Run task
      * @return string: result message
      */
-    public function run() {
+    public function run()
+    {
         return "";
     }
 
@@ -576,11 +624,13 @@ class Tasks extends BaseModel {
      * @param bool $notify
      * @return string
      */
-    private static function indexPage($content, $notify) {
+    private static function indexPage($content, $notify)
+    {
         return "
             <div class='page_header'>
-            <p class='page_description'>Here you can install, activate or deactivate scheduled tasks and manage their settings.
-            Please note that in order to make these tasks running, you must have set a scheduled task pointing to 'cronjobs/run.php'
+            <p class='page_description'>Here you can install, activate or deactivate scheduled tasks 
+            and manage their settings. Please note that in order to make these tasks running, 
+            you must have set a scheduled task pointing to 'tasks/run.php'
             either via a Cron AppTable (Unix server) or via the Scheduled Tasks Manager (Windows server)</p>
             </div>    
             
@@ -590,7 +640,7 @@ class Tasks extends BaseModel {
                     <p>You have the possibility to receive logs by email every time a task is executed.</p>
                     <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateSettings'>
                         <div class='form-group' style='width: 300px;'>
-                            <select name='notify_admin_task'>
+                            <select name='notifyAdmin_task'>
                                 <option value='{$notify}' selected>{$notify}</option>
                                 <option value='yes'>Yes</option>
                                 <option value='no'>No</option>
@@ -620,16 +670,16 @@ class Tasks extends BaseModel {
      * @param array $info: task info
      * @return string
      */
-    private static function displayTask(array $info) {
-
+    private static function displayTask(array $info)
+    {
         // Task description
         $pluginDescription = (!empty($info['description'])) ? $info['description'] : null;
 
         // Task installation button
-        $install_btn = self::install_button($info['name'], $info['installed']);
+        $install_btn = self::installButton($info['name'], $info['installed']);
 
         // Task activation/deactivation button
-        $activate_btn = self::activate_button($info['name'], $info['status']);
+        $activate_btn = self::activateButton($info['name'], $info['status']);
 
         // Icon showing if task is currently being executed
         $css_running = ($info['running'] == 1) ? 'is_running' : 'not_running';
@@ -658,7 +708,9 @@ class Tasks extends BaseModel {
                     </div>
                     <div class='optBar'>
                         <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' 
-                        data-action='getOptions' data-destination='.plugOpt#{$info['name']}' data-name='{$info['name']}'></div>
+                        data-action='getOptions' data-destination='.plugOpt#{$info['name']}' 
+                        data-name='{$info['name']}'>
+                        </div>
                         {$install_btn}
                         {$activate_btn}
                         {$runBtn}
@@ -718,10 +770,12 @@ class Tasks extends BaseModel {
     
                         <div class='plugOpt' id='{$info['name']}'></div>
                         <div>
-                            <a href='php/router.php?controller=Logger&action=getManager&log_name=Tasks&search={$info['name']}' 
-                            class='loadContent' data-destination='.log_target_container#{$info['name']}' id='{$info['name']}'>
-                            <input type='submit' value='Show logs'/>
-                            </a>
+                        <a 
+                        href='php/router.php?controller=Logger&action=getManager&log_name=Tasks&search={$info['name']}' 
+                        class='loadContent' data-destination='.log_target_container#{$info['name']}' 
+                        id='{$info['name']}'>
+                        <input type='submit' value='Show logs'/>
+                        </a>
                         </div>
 
                         <div class='log_target_container' id='{$info['name']}' style='display: none'></div>
@@ -739,12 +793,15 @@ class Tasks extends BaseModel {
      * @param string $logs: logs
      * @return array: array('content'=>html, 'subject'=>string)
      */
-    private static function logsEmailContent($logs) {
+    private static function logsEmailContent($logs)
+    {
         $content['body'] = "
             <p>Hello, </p>
             <p>Please find below the logs of the scheduled tasks.</p>
-            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; 
+            background-color: rgba(255,255,255,1);'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+                font-weight: 500; font-size: 1.2em;'>
                     Logs
                 </div>
                 <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
@@ -755,12 +812,19 @@ class Tasks extends BaseModel {
         return $content;
     }
 
-    private static function renderOptions(array $options) {
+    /**
+     * Render Task options
+     *
+     * @param array $options
+     * @return string
+     */
+    private static function renderOptions(array $options)
+    {
         $opt = '';
-        foreach ($options as $optName=>$settings) {
+        foreach ($options as $optName => $settings) {
             if (isset($settings['options']) && !empty($settings['options'])) {
                 $options = "";
-                foreach ($settings['options'] as $prop=>$value) {
+                foreach ($settings['options'] as $prop => $value) {
                     $options .= "<option value='{$value}'>{$prop}</option>";
                 }
                 $optProp = "<select name='{$optName}'>{$options}</select>";
@@ -780,26 +844,31 @@ class Tasks extends BaseModel {
 
     /**
      * Render install/uninstall button
+     *
      * @param string $name: task name
      * @param bool $installed: installation status
      * @return string
      */
-    private static function install_button($name, $installed) {
+    private static function installButton($name, $installed)
+    {
         if ($installed) {
-            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' data-action='uninstall' data-name='{$name}'></div>";
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' 
+            data-action='uninstall' data-name='{$name}'></div>";
         } else {
-            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' data-action='install' data-name='{$name}'></div>";
+            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' 
+            data-action='install' data-name='{$name}'></div>";
         }
     }
 
     /**
      * Render activate/deactivate button
-     * 
+     *
      * @param string $name: task name
      * @param string $status: task activation status ('0' or '1')
      * @return string
      */
-    private static function activate_button($name, $status) {
+    private static function activateButton($name, $status)
+    {
         if ($status === '1') {
             return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='{$name}'></div>";
         } else {
