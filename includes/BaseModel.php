@@ -69,13 +69,14 @@ abstract class BaseModel
 
     /**
      * Constructor
-     * @param bool $plugin
+     * @param bool|string $plugin: plugin name
      */
     public function __construct($plugin = false)
     {
         $this->db = Db::getInstance();
         if ($plugin !== false) {
-            $this->tablename = $this->db->config['dbprefix'] . '_' . $plugin;
+            $split = explode('\\', $plugin);
+            $this->tablename = $this->db->config['dbprefix'] . '_' . end($split);
         } else {
             $this->tablename = $this->getTableName();
         }
