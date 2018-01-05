@@ -163,7 +163,7 @@ var showpostform = function (postid) {
  * @param txt_btn: text of confirmation button
  * @param callback: callback function (called if user has confirmed)
  */
-function confirmation_box(el, txt, txt_btn, callback) {
+function confirmationBox(el, txt, txt_btn, callback) {
     trigger_modal(el, false);
 
     var container = $('.modalContainer');
@@ -176,7 +176,7 @@ function confirmation_box(el, txt, txt_btn, callback) {
     // Render section
     jQuery.ajax({
         'type': 'post',
-        'url': 'php/router.php?controller=Modal&action=get_box&type=confirmation',
+        'url': 'php/router.php?controller=Modal&action=getBox&type=confirmation',
         'data': {
             button_txt: txt_btn,
             text: txt
@@ -218,7 +218,7 @@ function confirmation_box(el, txt, txt_btn, callback) {
  * @param title: dialog title
  * @param callback: callback function (optional)
  */
-function dialog_box(el, txt, title, callback) {
+function dialogBox(el, txt, title, callback) {
     trigger_modal(el, false);
 
     if (title === undefined) {
@@ -228,14 +228,14 @@ function dialog_box(el, txt, title, callback) {
     var container = $('.modalContainer');
 
     // Remove confirmation section if it already exist
-    if (container.find('.modal_section#confirmation_box').length > 0) {
-        container.find('.modal_section#confirmation_box').remove();
+    if (container.find('.modal_section#confirmationBox').length > 0) {
+        container.find('.modal_section#confirmationBox').remove();
     }
 
     // Render section
     jQuery.ajax({
         'type': 'post',
-        'url': 'php/router.php?controller=Modal&action=get_box&type=dialog',
+        'url': 'php/router.php?controller=Modal&action=getBox&type=dialog',
         'data': {
             text: txt,
             title: title
@@ -251,9 +251,9 @@ function dialog_box(el, txt, title, callback) {
 
             var modal = el.modalTrigger('getWindow');
 
-            modal.modalWindow('show_section', 'confirmation_box');
+            modal.modalWindow('show_section', 'confirmationBox');
 
-            var section = $('.modal_section#confirmation_box');
+            var section = $('.modal_section#confirmationBox');
 
             // User has confirmed
             section.find(".callback_trigger").click(function() {
@@ -508,7 +508,7 @@ function sendToRecipients(el) {
         trigger_modal($(this));
         var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
             'published as a news.' + ' Do you want to continue?';
-        confirmation_box($(this), msg, 'Continue', callback);
+        confirmationBox($(this), msg, 'Continue', callback);
     } else {
         callback();
     }
@@ -684,7 +684,7 @@ function process_email() {
         trigger_modal($(this));
         var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
             'published as a news.' + ' Do you want to continue?';
-        confirmation_box($(this), msg, 'Continue', callback);
+        confirmationBox($(this), msg, 'Continue', callback);
     } else {
         callback();
         close_modal();
@@ -1088,7 +1088,7 @@ $(document).ready(function () {
             var callback = function(json) {
                 var result = jQuery.parseJSON(json);
                 trigger_modal($(this), false);
-                dialog_box($(this), result, 'Modify event');
+                dialogBox($(this), result, 'Modify event');
             };
             processAjax(form, data, callback , "php/form.php");
         })
@@ -1410,7 +1410,7 @@ $(document).ready(function () {
                             "<input type='submit' value='Modify this occurrence only' class='callback_trigger' data-operation='present'/>" +
                             "<input type='submit' value='Modify all future occurrences' class='callback_trigger' data-operation='future'/>" +
                             "<input type='submit' value='Modify all occurrences' class='callback_trigger' data-operation='all'/>";
-                        dialog_box(input, msg, 'Modify event', function(el) {
+                        dialogBox(input, msg, 'Modify event', function(el) {
                             process(el.data('operation'));
                         });
                     } else {
@@ -1456,11 +1456,11 @@ $(document).ready(function () {
                             "<input type='submit' value='Delete this occurrence only' class='callback_trigger' data-operation='present'/>" +
                             "<input type='submit' value='Delete all future occurrences' class='callback_trigger' data-operation='future'/>" +
                             "<input type='submit' value='Delete all occurrences' class='callback_trigger' data-operation='all'/>";
-                        dialog_box(input, msg, 'Delete event', function(el) {
+                        dialogBox(input, msg, 'Delete event', function(el) {
                             process(el.data('operation'));
                         });
                     } else {
-                        confirmation_box(input, 'Are you sure you want to delete this session?', 'Delete', function () {
+                        confirmationBox(input, 'Are you sure you want to delete this session?', 'Delete', function () {
                             process('present');
                         });
                     }
@@ -1659,7 +1659,7 @@ $(document).ready(function () {
             var action = (el.data('action') !== undefined) ? el.data('action') : 'delete';
             var url = (el.data('controller') !== undefined) ?
                 'php/router.php?controller=' + el.data('controller') + '&action=' + action : el.attr('href');
-            confirmation_box(el, 'Are you sure you want to delete this item?', 'Delete', function () {
+            confirmationBox(el, 'Are you sure you want to delete this item?', 'Delete', function () {
                 jQuery.ajax({
                     url: url,
                     type: 'post',
@@ -1693,7 +1693,7 @@ $(document).ready(function () {
                 data: {'get_delete_account_form': true},
                 success: function(data) {
                     var json = jQuery.parseJSON(data);
-                    confirmation_box(el, json.content, null, function () {
+                    confirmationBox(el, json.content, null, function () {
                         var data = el.data();
                         data['delete'] = true;
                         jQuery.ajax({
