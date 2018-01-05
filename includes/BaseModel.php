@@ -34,7 +34,8 @@
  * Used by any class that needs to store information in database. Handle creation of tables, updates and retrieval of
  * information from the database.
  */
-abstract class BaseModel {
+abstract class BaseModel
+{
 
     /**
      * @var Db
@@ -70,14 +71,15 @@ abstract class BaseModel {
      * Constructor
      * @param bool $plugin
      */
-    public function __construct($plugin=False) {
+    public function __construct($plugin = false)
+    {
         $this->db = Db::getInstance();
-        if ($plugin !== False) {
+        if ($plugin !== false) {
             $this->tablename = $this->db->config['dbprefix'] . '_' . $plugin;
         } else {
             $this->tablename = $this->getTableName();
         }
-        $this->table_data = $this->get_table_data(strtolower(get_class($this)));
+        $this->table_data = $this->getTableData(strtolower(get_class($this)));
 
         // Load settings
         $this->loadSettings();
@@ -89,13 +91,14 @@ abstract class BaseModel {
      * @param array $exclude
      * @return array
      */
-    protected function parseData($post=array(), $exclude=array()) {
+    protected function parseData($post = array(), $exclude = array())
+    {
         $class_vars = get_class_vars(get_called_class());
         $post_keys = array_keys($post);
         $content = array();
-        foreach ($post as $name=>$value) {
-            if (in_array($name, array_keys($class_vars)) && !in_array($name, $exclude) && !in_array($name,
-                    self::$default_exclude)) {
+        foreach ($post as $name => $value) {
+            if (in_array($name, array_keys($class_vars)) && !in_array($name, $exclude)
+            && !in_array($name, self::$default_exclude)) {
                 $value = in_array($name, $post_keys) ? $post[$name]: $this->$name;
                 $this->$name = $value;
                 $value = (is_array($value)) ? json_encode($value) : $value;
@@ -109,7 +112,8 @@ abstract class BaseModel {
      * Load Settings instance
      * @return Settings
      */
-    protected function loadSettings() {
+    protected function loadSettings()
+    {
         if (!is_null($this->settings) && is_null($this->Settings)) {
             $this->Settings = new Settings(get_called_class(), $this->settings);
             $this->settings = $this->Settings->settings;
@@ -123,7 +127,8 @@ abstract class BaseModel {
      * @return mixed
      * @throws Exception
      */
-    public function getSettings($setting=null) {
+    public function getSettings($setting = null)
+    {
         if (!is_null($this->settings)) {
             $this->loadSettings()->load();
 
@@ -144,7 +149,8 @@ abstract class BaseModel {
      * @param array $data
      * @return bool
      */
-    private function setSettings(array $data) {
+    private function setSettings(array $data)
+    {
         if (!is_null($this->settings)) {
             foreach ($data as $key => $value) {
                 if (key_exists($key, $this->settings)) {
@@ -183,12 +189,12 @@ abstract class BaseModel {
      */
     public function installDb($op = false)
     {
-        if (is_null($this->get_table_data(get_class($this)))) {
+        if (is_null($this->getTableData(get_class($this)))) {
             return array('status'=>true, 'msg'=>null);
         }
 
         try {
-            if ($this->db->makeorupdate($this->getTableName(), $this->get_table_data(get_class($this)), $op)) {
+            if ($this->db->makeorupdate($this->getTableName(), $this->getTableData(get_class($this)), $op)) {
                 $result['status'] = true;
                 $result['msg'] = "'{$this->tablename}' table created";
                 Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
@@ -210,8 +216,10 @@ abstract class BaseModel {
      * This function returns database table name from class name
      * @return string
      */
-    protected function getTableName() {
+    protected function getTableName()
+    {
         $split = explode('\\', get_class($this));
+        var_dump(end($split));
         return Db::getInstance()->gen_name(end($split));
     }
 
@@ -220,7 +228,8 @@ abstract class BaseModel {
      * @param string $tableName
      * @return array
      */
-    protected static function get_table_data($tableName) {
+    protected static function getTableData($tableName)
+    {
         $tableName = strtolower($tableName);
         $tables_data = require(PATH_TO_APP . 'config' . DS . 'schema.php');
         if (key_exists($tableName, $tables_data)) {
@@ -235,8 +244,9 @@ abstract class BaseModel {
      * @param array $post
      * @return mixed
      */
-    public function sanitize(array $post) {
-        foreach ($post as $key=>$value) {
+    public function sanitize(array $post)
+    {
+        foreach ($post as $key => $value) {
             if (!is_array($value)) {
                 $post[$key] = htmlspecialchars($value);
             }
@@ -250,7 +260,8 @@ abstract class BaseModel {
      * @param array $filter
      * @return array|mixed
      */
-    public function all(array $ref=array(), array $filter=null) {
+    public function all(array $ref = array(), array $filter = null)
+    {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir : null;
         $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT `{$filter['limit']}` " : null;
@@ -263,8 +274,9 @@ abstract class BaseModel {
      * @param array $ref
      * @return bool
      */
-    public function update(array $data, array $ref) {
-        return $this->db->update($this->tablename,  $data, $ref);
+    public function update(array $data, array $ref)
+    {
+        return $this->db->update($this->tablename, $data, $ref);
     }
 
     /**
@@ -272,7 +284,8 @@ abstract class BaseModel {
      * @param array $ref
      * @return bool
      */
-    public function delete(array $ref) {
+    public function delete(array $ref)
+    {
         return $this->db->delete($this->tablename, $ref);
     }
 
@@ -281,7 +294,8 @@ abstract class BaseModel {
      * @param array $post
      * @return mixed
      */
-    public function add(array $post) {
+    public function add(array $post)
+    {
         return $this->db->insert($this->tablename, $post);
     }
 
@@ -290,7 +304,8 @@ abstract class BaseModel {
      * @param array $ref
      * @return array
      */
-    public function get(array $ref) {
+    public function get(array $ref)
+    {
         return $this->db->single($this->tablename, array('*'), $ref);
     }
 
@@ -298,7 +313,8 @@ abstract class BaseModel {
      * Get id of last inserted row
      * @return int
      */
-    public function getLastID() {
+    public function getLastID()
+    {
         $data = $this->db->send_query("SELECT max(id) from {$this->tablename}");
         return (int)$data->fetch_row()[0];
     }
@@ -307,9 +323,10 @@ abstract class BaseModel {
      * @param $ref
      * @return array
      */
-    public function search($ref) {
+    public function search($ref)
+    {
         $search = array();
-        foreach ($ref as $field=>$value) {
+        foreach ($ref as $field => $value) {
             $search[] = "{$field}='{$value}'";
         }
         $search = implode('AND ', $search);
@@ -327,9 +344,10 @@ abstract class BaseModel {
      * @param $data
      * @return $this
      */
-    protected function map($data) {
+    protected function map($data)
+    {
         $class_name = get_class($this);
-        foreach ($data as $var_name=>$value) {
+        foreach ($data as $var_name => $value) {
             if (property_exists($class_name, $var_name)) {
                 $prop = new \ReflectionProperty($class_name, $var_name);
                 if (!$prop->isStatic()) {
@@ -346,7 +364,8 @@ abstract class BaseModel {
      * @param null $tablename
      * @return bool
      */
-    public function is_exist(array $ref, $tablename=null) {
+    public function isExist(array $ref, $tablename = null)
+    {
         $table_name = (is_null($tablename)) ? $this->tablename : $tablename;
         return !empty($this->db->single($table_name, array('*'), $ref));
     }
@@ -357,15 +376,15 @@ abstract class BaseModel {
      * @return string
      * @throws Exception
      */
-    public function generateID($refId) {
-        $id = date('Ymd').rand(1,10000);
+    public function generateID($refId)
+    {
+        $id = date('Ymd').rand(1, 10000);
 
         // Check if random ID does not already exist in our database
         $prev_id = $this->db->column($this->tablename, $refId);
         while (in_array($id, $prev_id)) {
-            $id = date('Ymd').rand(1,10000);
+            $id = date('Ymd').rand(1, 10000);
         }
         return $id;
     }
-
 }
