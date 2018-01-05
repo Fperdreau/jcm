@@ -145,24 +145,6 @@ if (!empty($_POST['update_user_availability'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Delete user
-if (!empty($_POST['delete_user'])) {
-    $username = htmlspecialchars($_POST['username']);
-    $Auth = new Auth();
-    $login_ok = $Auth->login(false);
-    if ($login_ok['status'] == true) {
-        $result = $user->delete_user($username, $_SESSION['username']);
-        if ($result['status']) {
-            $_SESSION['logok'] = false;
-        }
-    } else {
-        $result['msg'] = 'Wrong username/password combination';
-        $result['status'] = false;
-    }
-    echo json_encode($result);
-    exit;
-}
-
 if (!empty($_POST['get_delete_account_form'])) {
     echo json_encode(Users::delete_account_form_modal());
 }
