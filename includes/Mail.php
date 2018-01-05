@@ -206,7 +206,6 @@ class Mail
 
         // SMTP information
         $mail->SMTPDebug = $this->settings['SMTP_debug'];     // enables SMTP debug information (for testing)
-        $mail->SMTPDebug = 3;
         $mail->Debugoutput = 'html'; //Ask for HTML-friendly debug output
         $mail->Host = $this->settings['mail_host'];
         $mail->Port = $this->settings['mail_port'];

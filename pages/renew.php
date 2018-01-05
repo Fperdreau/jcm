@@ -23,4 +23,4 @@
 use includes\Users;
 
 $user = new Users();
-echo $user->get_password_form();
+echo $user->getPasswordForm($pageParameters['hash'], $pageParameters['email']);

@@ -1098,14 +1098,13 @@ $(document).ready(function () {
             e.preventDefault();
             var input = $(this);
             var form = input.length > 0 ? $(input[0].form) : $();
-            if (!checkform(form)) {return false;}
-            var data = form.serialize();
             var callback = function (result) {
                 if (result.status === true) {
                     setTimeout(logout,2000);
                 }
             };
-            processAjax(form, data, callback, "php/form.php");
+            
+            processForm(form, callback, form.attr('action'));
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

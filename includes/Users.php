@@ -461,7 +461,7 @@ class Users extends BaseModel {
 
             $MailManager = new MailManager();
             $body = $MailManager->formatmail(
-                self::password_request_email($this->fullname, $this->hash, $this->username)
+                self::password_request_email($this->fullname, $this->hash, $this->email)
             );
             if ($MailManager->send(array('body'=>$body, 'subject'=>'Change password request'), array($email))) {
                 $result['msg'] = "An email has been sent to your address with further instructions";
@@ -481,14 +481,19 @@ class Users extends BaseModel {
      * Get password modification form
      * @return string
      */
-    public function get_password_form() {
+    public function getPasswordForm($hash, $email, $view='body')
+    {
         // Modify user password
-        if (!empty($_POST['hash']) && !empty($_POST['email'])) {
-            $hash = htmlspecialchars($_POST['hash']);
-            $email = htmlspecialchars($_POST['email']);
+        if (!empty($hash) && !empty($email)) {
+            $hash = htmlspecialchars($hash);
+            $email = htmlspecialchars($email);
             $data = $this->get(array('email'=>$email));
-            if ($data['hash'] === $hash) {
-                $result = self::password_form($data);
+            if ($data) {
+                if ($hash === $hash) {
+                    $result = self::password_form($data, $view);
+                } else {
+                    $result = self::incorrect_hash();
+                }
             } else {
                 $result = self::incorrect_hash();
             }
@@ -506,7 +511,7 @@ class Users extends BaseModel {
      */
     public function password_change($username, $password) {
         if ($this->isExist(array('username'=>$username))) {
-            if ($this->update(array('password' => Auth::crypt_pwd($password)), array('username' => $username))) {
+            if ($this->update(array('password' => Auth::cryptPwd($password)), array('username' => $username))) {
                 $result['msg'] = "Your password has been changed!";
                 $result['status'] = true;
             } else {
@@ -1017,14 +1022,14 @@ class Users extends BaseModel {
      * @param array $data
      * @return string
      */
-    private static function password_form(array $data) {
+    private static function password_form(array $data, $view) {
         return "
             <section>
                 <div class='section_content'>
                     <h2>Change password</h2>
-                    <form action='' method='post'>
+                    <form action='php/router.php?controller=Users&action=password_change' method='post'>
                         <input type='hidden' name='password_change' value='true'/>
-                        <input type='hidden' name='username' value='{$data[0]['username']}' id='ch_username'/>
+                        <input type='hidden' name='username' value='{$data['username']}' id='ch_username'/>
                         <div class='form-group'>
                             <input type='password' name='password' class='passwordChecker' value='' required/>
                             <label for='password'>New Password</label>
@@ -1112,12 +1117,11 @@ class Users extends BaseModel {
      */
     private static function password_request_email($full_name, $hash, $email) {
         $reset_url = URL_TO_APP . "index.php?page=renew&hash={$hash}&email={$email}";
-
         return "
             Hello {$full_name},<br>
             <p>You requested us to change your password.</p>
             <p>To reset your password, click on this link:
-            <br><a href='$reset_url'>$reset_url</a></p>
+            <br><a href='{$reset_url}'>{$reset_url}</a></p>
             <br>
             <p>If you did not request this change, please ignore this email.</p>
             ";
