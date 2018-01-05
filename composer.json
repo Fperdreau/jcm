@@ -3,8 +3,7 @@
     "phpmailer/phpmailer": "~6.0",
     "soundasleep/html2text": "~0.2",
     "ckeditor/ckeditor": "4.*",
-    "components/jquery": "*",
-    "squizlabs/php_codesniffer": "*"
+    "components/jquery": "*"
   },
 
   "config": {
