@@ -631,11 +631,11 @@ class Presentation extends BaseModel {
 
     /**
      * Render presentation in list
-     * @param stdClass $presentation
+     * @param \stdClass $presentation
      * @param $speakerDiv
      * @return string
      */
-    public static function show_in_list(stdClass $presentation, $speakerDiv) {
+    public static function show_in_list(\stdClass $presentation, $speakerDiv) {
         $date = date('d M y', strtotime($presentation->date));
         $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
             'view'=>'modal',
