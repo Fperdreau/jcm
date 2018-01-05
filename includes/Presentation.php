@@ -637,7 +637,10 @@ class Presentation extends BaseModel {
      */
     public static function show_in_list(\stdClass $presentation, $speakerDiv) {
         $date = date('d M y', strtotime($presentation->date));
-        $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
+        $leanModalUrl = Modal::buildUrl(
+            get_class(),
+            'show_details',
+            array(
             'view'=>'modal',
             'operation'=>'edit',
             'id'=>$presentation->id_pres)
