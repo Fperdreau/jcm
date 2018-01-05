@@ -9,11 +9,13 @@
 namespace includes;
 
 use includes\BaseModel;
+use includes\Logger;
 
 /**
  * Plugin class
  */
-class Plugin extends BaseModel {
+class Plugin extends BaseModel
+{
 
     public $name = null;
     public $version = null;
@@ -42,16 +44,21 @@ class Plugin extends BaseModel {
 
     protected static $model;
 
-    public function __construct() {
+    /**
+     * Class constructor
+     */
+    public function __construct()
+    {
         parent::__construct(get_class($this));
     }
 
-    public function setInfo(array $data) {
-        foreach ($data as $prop=>$value) {
+    public function setInfo(array $data)
+    {
+        foreach ($data as $prop => $value) {
             // Check if property exists and is static
             if (property_exists(get_class($this), $prop)) {
-                $property = new ReflectionProperty(get_class($this), $prop);
-                $new_value = ($prop == 'options') ? json_decode($value,true) : $value;
+                $property = new \ReflectionProperty(get_class($this), $prop);
+                $new_value = ($prop == 'options') ? json_decode($value, true) : $value;
                 if ($property->isStatic()) {
                     $this::$$prop = $new_value;
                 } else {
@@ -65,7 +72,8 @@ class Plugin extends BaseModel {
      * Get plugin information
      * @return array
      */
-    public function getInfo() {
+    public function getInfo()
+    {
         return array(
             'name'=>$this->name,
             'version'=>$this->version,
@@ -76,7 +84,15 @@ class Plugin extends BaseModel {
         );
     }
 
-    public function setOption($option, $value) {
+    /**
+     * Set plugin options
+     *
+     * @param string $option: setting name
+     * @param mixed $value: new value
+     * @return void
+     */
+    public function setOption($option, $value)
+    {
         if (in_array($option, array_keys($this->options))) {
             $this->options[$option]['value'] = $value;
         }
@@ -86,19 +102,20 @@ class Plugin extends BaseModel {
      * Create or update table
      * @return array
      */
-    public function install() {
+    public function install()
+    {
         try {
             if ($this->db->makeorupdate($this->tablename, $this->schema)) {
-                $result['status'] = True;
+                $result['status'] = true;
                 $result['msg'] = "'{$this->tablename}' table created";
                 Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
-                $result['status'] = False;
+                $result['status'] = false;
                 $result['msg'] = "'{$this->tablename}' table not created";
                 Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
             }
             return $result;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             Logger::getInstance(APP_NAME, get_class($this))->critical($e);
             $result['status'] = false;
             $result['msg'] = $e;
@@ -110,19 +127,20 @@ class Plugin extends BaseModel {
      * Uninstall plugin: drop all tables related to this plugin
      * @return mixed
      */
-    public function uninstall() {
+    public function uninstall()
+    {
         try {
             if ($this->db->deletetable($this->tablename)) {
-                $result['status'] = True;
+                $result['status'] = true;
                 $result['msg'] = "'{$this->tablename}' table deleted";
                 Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
-                $result['status'] = False;
+                $result['status'] = false;
                 $result['msg'] = "'{$this->tablename}' table could not be deleted";
                 Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
             }
             return $result;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             Logger::getInstance(APP_NAME, get_class($this))->critical($e);
             $result['status'] = false;
             $result['msg'] = $e;
@@ -133,6 +151,7 @@ class Plugin extends BaseModel {
     /**
      * @return string
      */
-    public function show() {}
-
+    public function show()
+    {
+    }
 }
