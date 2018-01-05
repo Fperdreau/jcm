@@ -93,7 +93,7 @@ class Page extends BaseModel {
      * Check if this plugin is registered to the db
      */
     public function isInstalled() {
-        return $this->is_exist(array('name'=>$this->name));
+        return $this->isExist(array('name'=>$this->name));
     }
 
     /**
@@ -302,7 +302,7 @@ class Page extends BaseModel {
                 $element = $split[0];
                 $page_name = (is_null($parent)) ? $element: $parent . DS . $element;
                 $url = (is_null($parent)) ? URL_TO_APP . $element : URL_TO_APP . $parent . DS . $element;
-                if (!$this->is_exist(array('name'=>$page_name))) {
+                if (!$this->isExist(array('name'=>$page_name))) {
                     if ($element == "admin" || $parent == "admin") {
                         $status = 2;
                     } elseif ($element == "organizer" || $parent == "organizer") {

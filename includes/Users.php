@@ -137,8 +137,8 @@ class Users extends BaseModel {
         $post['active'] = ($post['status'] == "admin") ? 1 : 0; // Automatically activate the account if the user has an
         // admin level
 
-        if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1))
-        && !$this->is_exist(array('email'=>$post['email']))) {
+        if (!$this->isExist(array('username'=>$post['username'], 'active'=>1))
+        && !$this->isExist(array('email'=>$post['email']))) {
             // Add user information to Db
             if ($this->db->insert($this->tablename, $this->parseData($post))) {
                 $result = $this->sendAccountCreationEmail($this->status, $post);
@@ -454,7 +454,7 @@ class Users extends BaseModel {
      * @return array: array('status'=>bool, 'msg"=>string)
      */
     public function request_password_change($email) {
-        if ($this->is_exist(array('email'=>$email))) {
+        if ($this->isExist(array('email'=>$email))) {
 
             $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
             $this->getUser($username[0]['username']);
@@ -503,7 +503,7 @@ class Users extends BaseModel {
      * @return mixed
      */
     public function password_change($username, $password) {
-        if ($this->is_exist(array('username'=>$username))) {
+        if ($this->isExist(array('username'=>$username))) {
             if ($this->update(array('password' => Auth::crypt_pwd($password)), array('username' => $username))) {
                 $result['msg'] = "Your password has been changed!";
                 $result['status'] = true;

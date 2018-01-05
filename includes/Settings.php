@@ -149,7 +149,7 @@ class Settings extends BaseModel {
             $new_value = isset($post[$varName]) ? $post[$varName] : $value;
             if (is_array($value)) $new_value = json_encode($new_value);
 
-            if ($this->is_exist(array("variable"=>$varName, "object"=>$this->object))) {
+            if ($this->isExist(array("variable"=>$varName, "object"=>$this->object))) {
                 $result = $this->db->update(
                     $this->tablename,
                     array("value"=>$new_value),

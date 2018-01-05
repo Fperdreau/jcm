@@ -26,7 +26,7 @@ class Vote extends BaseModel {
      */
     public function add(array $post) {
         $result = array('status'=>false, 'msg'=>null);
-        if (SessionInstance::isLogged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
+        if (SessionInstance::isLogged() && !$this->isExist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj'],
                 'username'=>$_SESSION['username']))) {
             $post['date'] = date('Y-m-d');
             $post['username'] = $_SESSION['username'];
@@ -86,7 +86,7 @@ class Vote extends BaseModel {
         $data = $this->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
         return array(
             'count' => !empty($data) ? count($data) : 0,
-            'status' => $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
+            'status' => $this->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
         );
     }
 
@@ -113,7 +113,7 @@ class Vote extends BaseModel {
         $self = new self();
         $data = $self->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
         $vote = !empty($data) ? count($data) : 0;
-        $status = $self->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
+        $status = $self->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
         return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$vote), $status);
     }
 

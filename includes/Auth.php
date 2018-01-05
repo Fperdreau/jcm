@@ -180,7 +180,7 @@ class Auth extends BaseModel {
     private function checkPwd($username, $password, array $data)
     {
         if (validate_password($password, $data['password']) == 1) {
-            if ($this->is_exist(array('username'=>$username))) {
+            if ($this->isExist(array('username'=>$username))) {
                 return $this->update(
                     array(
                         'attempt'=>0,

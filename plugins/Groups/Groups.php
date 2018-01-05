@@ -116,17 +116,16 @@ class Groups extends Plugin
      */
     public function run()
     {
-        $next_session = $this->get_next_session();
+        $next_session = $this->getNextSession();
 
         // 1: Check if group has not been made yet for the next session
         if ($next_session !== false && $next_session[0]['type'] !== 'none'
-        && !$this->group_exist($next_session[0]['date'])) {
+        && !$this->groupExist($next_session[0]['date'])) {
             // 2: Clear the group table
             $this->clearTable();
 
             // 3: Assign groups
             $result = $this->makegroups($next_session); // Make groups
-
         } else {
             $result['status'] = false;
             $result['msg'] = 'Either there is no session plan on the next journal club day, or groups have already been 
@@ -140,7 +139,7 @@ class Groups extends Plugin
      * @param $session_date: next session date
      * @return bool
      */
-    private function group_exist($session_date)
+    private function groupExist($session_date)
     {
         $sql = "SELECT date FROM {$this->tablename}";
         $req = $this->db->send_query($sql);
@@ -156,7 +155,7 @@ class Groups extends Plugin
      * Get information about next session
      * @return array
      */
-    private function get_next_session()
+    private function getNextSession()
     {
         $nextSession = self::getSession()->getUpcoming(1);
         if ($nextSession !== false) {

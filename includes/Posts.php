@@ -79,7 +79,7 @@ class Posts extends BaseModel
      * @return bool|string
      */
     public function add(array $post){
-        if ($this->is_exist(array('title'=>$post['title'])) === false) {
+        if ($this->isExist(array('title'=>$post['title'])) === false) {
 
             //$post['postid'] = $this->generateID('postid');
             $post['date'] = date('Y-m-d H:i:s');

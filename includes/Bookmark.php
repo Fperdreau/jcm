@@ -30,7 +30,7 @@ class Bookmark extends BaseModel {
      * @return mixed
      */
     public function add(array $post) {
-        if (SessionInstance::isLogged() && !$this->is_exist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
+        if (SessionInstance::isLogged() && !$this->isExist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
             $post['username'] = $_SESSION['username'];
             $result['status'] = $this->db->insert($this->tablename, $this->parseData($post)) !== false;
             if ($result['status']) {
@@ -55,7 +55,7 @@ class Bookmark extends BaseModel {
         } else {
             $result['status'] = false;
         }
-        $result['state'] = $this->is_exist(array('id'=>$post['id']));
+        $result['state'] = $this->isExist(array('id'=>$post['id']));
         return $result;
     }
 
@@ -68,7 +68,7 @@ class Bookmark extends BaseModel {
      */
     public function get_summary($id, $ref_obj, $username) {
         return array(
-            'status' => $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
+            'status' => $this->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
         );
     }
 
@@ -82,7 +82,7 @@ class Bookmark extends BaseModel {
     public function getIcon($id, $ref_obj, $username) {
         return self::show(
             array('ref_id'=>$id, 'ref_obj'=>$ref_obj),
-            $this->is_exist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
+            $this->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
         );
     }
 

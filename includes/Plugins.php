@@ -124,7 +124,7 @@ class Plugins extends BaseModel {
      * @return bool
      */
     public function isInstalled($name) {
-        return $this->is_exist(array('name'=>$name));
+        return $this->isExist(array('name'=>$name));
     }
 
     /**
@@ -163,8 +163,11 @@ class Plugins extends BaseModel {
      * @param string $name: plugin name
      * @return string: form
      */
-    public function getOptions($name=null) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function getOptions($name = null)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         return $this->displayOpt($name, $this->getPlugin($name)->options);
     }
 
@@ -173,10 +176,11 @@ class Plugins extends BaseModel {
      * @param null|string $page
      * @return array
      */
-    public function loadAll($page=null) {
+    public function loadAll($page = null)
+    {
         $plugins = array();
-        foreach ($this->getPluginsList($page) as $key=>$plugin_name) {
-            if (!empty($plugin_name) && !in_array($plugin_name,array('.','..'))) {
+        foreach ($this->getPluginsList($page) as $key => $plugin_name) {
+            if (!empty($plugin_name) && !in_array($plugin_name, array('.','..'))) {
                 $plugins[$plugin_name] = $this->load($plugin_name, $page);
             }
         }
@@ -189,8 +193,8 @@ class Plugins extends BaseModel {
      * @param null $page
      * @return array
      */
-    public function load($name, $page=null) {
-
+    public function load($name, $page = null)
+    {
         // Get plugin info if installed
         $installed = $this->isInstalled($name);
 

@@ -66,7 +66,7 @@ class Reminder extends BaseModel {
         $result = array('status'=>true, 'msg'=>null);
         $counter = 0;
         foreach (self::getSession()->getNext() as $key=>$item) {
-            if (!($this->is_exist(array('ref_id'=>$item['id'])))) {
+            if (!($this->isExist(array('ref_id'=>$item['id'])))) {
                 if ($result['status'] = $this->add(array('ref_id'=>$item['id'], 'reminded'=>0))) {
                     $counter++;
                     $result['msg'] = "{$counter} items have been added to Reminder";

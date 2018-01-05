@@ -837,7 +837,7 @@ class Session extends BaseModel {
         if ($this->db->isColumn($this->tablename, 'time')) {
             $req = $this->db->send_query("SELECT date,jc_time FROM " . $this->db->getAppTables('Presentation'));
             while ($row = $req->fetch_assoc()) {
-                if (!$this->is_exist(array('date'=>$row['date']))) {
+                if (!$this->isExist(array('date'=>$row['date']))) {
                     $result = $this->make(array('date'=>$row['date'],'time'=>$row['jc_time']));
                     if (!$result['status']) {
                         $result['msg'] = "<p class='sys_msg warning'>'" . $this->tablename . "' not updated</p>";

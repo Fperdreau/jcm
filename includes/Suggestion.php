@@ -69,7 +69,7 @@ class Suggestion extends BaseModel {
      * @throws Exception
      */
     public function add_suggestion(array $post){
-        if ($this->is_exist(array('title'=>$post['title'])) === false) {
+        if ($this->isExist(array('title'=>$post['title'])) === false) {
 
             //$post['id'] = $this->generateID('id');
             $post['up_date'] = date('Y-m-d h:i:s');

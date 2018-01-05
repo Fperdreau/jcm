@@ -170,7 +170,7 @@ class Tasks extends BaseModel {
      * @return bool
      */
     public function isInstalled($name) {
-        return $this->is_exist(array('name'=>$name));
+        return $this->isExist(array('name'=>$name));
     }
 
     /**
