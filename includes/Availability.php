@@ -10,7 +10,8 @@ use includes\BaseModel;
  * Date: 15/04/2016
  * Time: 19:24
  */
-class Availability extends BaseModel {
+class Availability extends BaseModel
+{
 
     /**
      * @var string $date
@@ -25,7 +26,8 @@ class Availability extends BaseModel {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -33,7 +35,8 @@ class Availability extends BaseModel {
      * @param $post
      * @return bool|mysqli_result
      */
-    public function add(array $post) {
+    public function add(array $post)
+    {
         return $this->db->insert($this->tablename, $this->parseData($post, array('session')));
     }
 
@@ -41,8 +44,9 @@ class Availability extends BaseModel {
      * @param array $id
      * @return bool|mysqli_result
      */
-    public function edit(array $id) {
-        if ($this->isexist($id)) {
+    public function edit(array $id)
+    {
+        if ($this->isExist($id)) {
             return $this->db->delete($this->tablename, $id);
         } else {
             return $this->add($id);
@@ -50,12 +54,15 @@ class Availability extends BaseModel {
     }
 
     /**
+     * Check if date exist
+     *
      * @param array $id
      * @return bool
      */
-    public function isexist(array $id) {
+    public function isExist(array $id, $tablename = null)
+    {
         $where = array();
-        foreach ($id as $field=>$value) {
+        foreach ($id as $field => $value) {
             $where[] = "{$field}='{$value}'";
         }
         $where = implode(' AND ', $where);
