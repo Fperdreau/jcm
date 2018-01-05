@@ -574,43 +574,47 @@ function logout() {
  * Check login status and expiration
  */
 function check_login() {
+    jQuery.ajax({
+        url: 'php/router.php?controller=SessionInstance&action=checkLogin',
+        type: "post",
+        async: true,
+        success: function(data) {
+            var json = jQuery.parseJSON(data);
+            if (json !== false) {
+                login_start = json.start;
+                login_expired = json.expired;
+                login_warning = json.warning;
+                login_remaining = json.remaining;
+
+                if (login_remaining <= login_warning && login_remaining > 0) {
+                    displaySessionTimeOut(login_remaining);
+                } else if (login_remaining < 0) {
+                    logout();
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Display warning message with time until logout
+ * 
+ * @param login_remaining Time until logout 
+ */
+function displaySessionTimeOut(login_remaining) {
     if (logoutContainer.length === 0) {
         $('body').append(logoutTemplate);
         logoutContainer = $('.logoutWarning');
     }
 
-    if (login_start === null) {
-        // Check login status
-        jQuery.ajax({
-            url: 'php/router.php?controller=SessionInstance&action=checkLogin',
-            type: "post",
-            async: true,
-            success: function(data) {
-                var json = jQuery.parseJSON(data);
-                if (json !== false) {
-                    login_start = json.start;
-                    login_expire = json.expire;
-                    login_warning = json.warning;
-                }
-            }
-        });
-
-    } else {
-        var currentTime = Math.floor(new Date().getTime() / 1000);
-        var remainingTime = login_expire - currentTime; // Seconds before expiration
-        if (remainingTime <= login_warning && remainingTime > 0) {
-            var ms = 1000*Math.round(remainingTime); // round to nearest second
-            var d = new Date(ms);
-            var minutes = (d.getUTCMinutes() < 10) ? '0'+d.getUTCMinutes(): d.getUTCMinutes();
-            var secondes = (d.getUTCSeconds() < 10) ? '0'+d.getUTCSeconds(): d.getUTCSeconds();
-            logoutContainer.find('.logout_msg').html('You will be automatically logged out in ' + minutes + ':' + secondes + ' due to inactivity');
-            logoutContainer.find('.logout_button').addClass('extend_session').html('Extend');
-            if (!logoutContainer.is(':visible')) {
-                logoutContainer.fadeIn(200);
-            }
-        } else if (remainingTime < 0) {
-            logout();
-        }
+    var ms = 1000*Math.round(login_remaining); // round to nearest second
+    var d = new Date(ms);
+    var minutes = (d.getUTCMinutes() < 10) ? '0'+d.getUTCMinutes(): d.getUTCMinutes();
+    var secondes = (d.getUTCSeconds() < 10) ? '0'+d.getUTCSeconds(): d.getUTCSeconds();
+    logoutContainer.find('.logout_msg').html('You will be automatically logged out in ' + minutes + ':' + secondes + ' due to inactivity');
+    logoutContainer.find('.logout_button').addClass('extend_session').html('Extend');
+    if (!logoutContainer.is(':visible')) {
+        logoutContainer.fadeIn(200);
     }
 }
 

@@ -40,7 +40,7 @@ class SessionInstance
     protected static $instance;
 
     /**
-     * Maximum duration of session
+     * Maximum duration of session (in seconds)
      */
     const TIMEOUT = 3600;
 
@@ -148,10 +148,14 @@ class SessionInstance
     public static function checkLogin()
     {
         if (self::isLogged()) {
+            $elapsed = time() - $_SESSION['login_start'];
+            $remaining = $_SESSION['login_expire'] - time();
             $result = array(
                 "start"=>$_SESSION['login_start'],
                 "expire"=>$_SESSION['login_expire'],
-                "warning"=>$_SESSION['login_warning']
+                "warning"=>$_SESSION['login_warning'],
+                "remaining"=>$remaining,
+                "expired"=>$elapsed >= self::TIMEOUT
             );
         } else {
             $result = false;
