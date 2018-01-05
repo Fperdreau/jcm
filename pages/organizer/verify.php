@@ -20,6 +20,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Template;
+use includes\Users;
+
 if (!empty($_POST['hash']) && !empty($_POST['email']) && !empty($_POST['result'])) {
     $hash = htmlspecialchars($_POST['hash']);
     $email = htmlspecialchars($_POST['email']);

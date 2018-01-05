@@ -20,6 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Session;
+
 if (!empty($_POST['id'])) {
     $Session = new Session();
     $content = $Session->showNextSession(true);

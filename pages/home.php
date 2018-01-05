@@ -20,11 +20,11 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$last_news = new Posts();
-$sessions = new Session();
-$suggestions = new Suggestion();
+$last_news = new includes\Posts();
+$sessions = new includes\Session();
+$suggestions = new includes\Suggestion();
 
-$submitMenu = Auth::is_logged() ? Presentation::submitMenu('modal') : null;
+$submitMenu = includes\Auth::is_logged() ? includes\Presentation::submitMenu('modal') : null;
 
 $result = "
 

@@ -20,6 +20,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Posts;
+use includes\Users;
+
 // Show an empty form
 $post = new Posts();
 $options = $post->get_selection_list(new Users($_SESSION['username']));

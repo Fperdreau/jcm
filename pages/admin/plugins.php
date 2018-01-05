@@ -20,6 +20,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ use includes\Template;
+ use includes\Plugins;
+
 // Plugins
 $plugins = new Plugins();
 $plugin_list = $plugins->show();

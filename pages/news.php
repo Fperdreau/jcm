@@ -20,7 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$news = new Posts();
+$news = new includes\Posts();
 
 if (!empty($_POST['show'])) {
     echo $news->show(htmlspecialchars($_POST['show']));

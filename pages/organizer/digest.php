@@ -20,6 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\DigestMaker;
+
 // Declare classes
 $DigestMaker = new DigestMaker();
 echo $DigestMaker->index();

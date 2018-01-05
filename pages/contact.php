@@ -20,7 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$Users = new Users();
+
+$Users = new includes\Users();
 
 $mail_option = "";
 $msg = "";
@@ -34,8 +35,8 @@ foreach ($Users->getAdmin() as $key=>$item) {
     }
 }
 
-$Lab = new Lab();
-$Session = new Session();
+$Lab = new includes\Lab();
+$Session = new includes\Session();
 $admin_contact = "$organizers";
 $jc_day = ucfirst($Session->getSettings('jc_day'));
 // Lab information

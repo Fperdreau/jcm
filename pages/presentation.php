@@ -20,6 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Presentation;
+
 $Presentation = new Presentation();
 $id = isset($_POST['id']) ? $_POST['id'] : null;
 echo $Presentation->index($id);

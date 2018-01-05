@@ -20,6 +20,10 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ use includes\Users;
+ use includes\Presentation;
+ use includes\Suggestion;
+ 
 $username = (isset($_POST['Users'])) ? $_POST['Users'] : $_SESSION['username'];
 $user = new Users($username);
 

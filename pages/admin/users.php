@@ -17,6 +17,9 @@ You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+use includes\Users;
+use includes\Template;
+
 // Declare classes
 $user = new Users($_SESSION['username']);
 

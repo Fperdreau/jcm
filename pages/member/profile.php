@@ -20,6 +20,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Users;
+use includes\Presentation;
+
 // Declare classes
 $user = new Users($_SESSION['username']);
 $Presentation = new Presentation();

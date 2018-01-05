@@ -20,6 +20,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\MailManager;
+
 // Get contact form
 $recipients_list = isset($_POST['recipients_list']) ? $_POST['recipients_list'] : null;
 $MailManager = new MailManager();

@@ -20,5 +20,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Tasks;
+
 $Tasks = new Tasks();
 echo $Tasks->index();

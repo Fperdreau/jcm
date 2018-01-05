@@ -20,6 +20,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Assignment;
+use includes\Template;
+
 // Declare classes
 $Assignment = new Assignment();
 $Assignment->check();

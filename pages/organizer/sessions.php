@@ -20,6 +20,10 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes\Session;
+use includes\Presentation;
+use includes\Template;
+
 // Declare classes
 $Session = new Session();
 $Presentation = new Presentation();
