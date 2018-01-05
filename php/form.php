@@ -145,14 +145,6 @@ if (!empty($_POST['update_user_availability'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Registration
-if (!empty($_POST['register'])) {
-    $user = new Users();
-    $result = $user->make($_POST);
-    echo json_encode($result);
-    exit;
-}
-
 // Delete user
 if (!empty($_POST['delete_user'])) {
     $username = htmlspecialchars($_POST['username']);
