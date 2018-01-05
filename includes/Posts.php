@@ -233,7 +233,9 @@ class Posts extends BaseModel
         }
 
         // Add news section
-        $news .= self::formSection(self::editor());
+        if (Auth::is_logged()) {
+            $news .= self::formSection(self::editor());
+        }
 
         return $news;
     }
