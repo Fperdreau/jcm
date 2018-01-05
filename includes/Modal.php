@@ -29,40 +29,35 @@ namespace includes;
 /**
  * Class Modal
  *
- * Handles templates for modal windows and content router
+ * Handles templates for modal windows
  */
-class Modal {
-
-    public function __construct() {}
+class Modal
+{
 
     /**
-     * Get modal content
-     * @param array $post
-     * @return bool|string
+     * Render section
+     *
+     * @param array $data: section content
+     * @return string
      */
-    public static function get_modal(array $post) {
-        $controllerName = htmlspecialchars($post['controller']);
-        $action = htmlspecialchars($post['action']);
-        $params = isset($post['params']) ? explode(',', htmlspecialchars($post['params'])) : array();
-        if (class_exists($controllerName, true)) {
-            $Controller = new $controllerName();
-            if (method_exists($controllerName, $action)) {
-                $content = call_user_func_array(array($Controller, $action), $params);
-                if (isset($post['section'])) $content['id'] = $post['section'];
-                return self::section($content);
-            }
-        }
-        return false;
-    }
-
-    public static function render(array $data) {
+    public static function render(array $data)
+    {
         return self::section($data);
     }
 
-    public static function buildUrl($controller, $action, array $params=null) {
+    /**
+     * Build URL to get section content
+     *
+     * @param string $controller
+     * @param string $action
+     * @param array $params
+     * @return string
+     */
+    public static function buildUrl($controller, $action, array $params = null)
+    {
         $paramStr = '';
         if (!is_null($params)) {
-            foreach ($params as $key=>$value) {
+            foreach ($params as $key => $value) {
                 $paramStr .= "&{$key}={$value}";
             }
         }
@@ -71,26 +66,19 @@ class Modal {
 
     /**
      * Get dialog box
+     *
      * @param $type
      * @return mixed
      * @throws Exception
      */
-    public static function get_box($type) {
-        $action = $type . '_box';
-        if (method_exists("Modal", $action)) {
-            return Modal::$action($_POST);
+    public static function getBox($type)
+    {
+        $action = $type . 'Box';
+        if (method_exists(get_class(), $action)) {
+            return self::$action($_POST);
         } else {
-            throw new Exception("'{$action}' method does not exist for class Modal'");
+            throw new \Exception("'{$action}' method does not exist for class Modal'");
         }
-    }
-
-    /**
-     * Set modal content
-     * @param array $post
-     * @return bool|string
-     */
-    public static function set_modal(array $post) {
-        return self::section($post);
     }
 
     /**
@@ -99,7 +87,8 @@ class Modal {
      * @param $title
      * @return string
      */
-    public static function template($content=null, $title=null) {
+    public static function template($content = null, $title = null)
+    {
         return "         
         <div id='modal' class='modalContainer' style='display:none;'>
             <div class='popupBody' style='display:inline-block'>
@@ -119,7 +108,8 @@ class Modal {
      * @param array $data
      * @return string
      */
-    public static function section(array $data) {
+    public static function section(array $data)
+    {
         return "
             <section class='modal_section' id='{$data['id']}'>
                 <div class='popupHeader'>{$data['title']}</div>
@@ -134,7 +124,8 @@ class Modal {
      * @param $data
      * @return string
      */
-    public static function confirmation_box($data) {
+    public static function confirmationBox($data)
+    {
         $title = !empty($data['title']) ? $data['title'] : "Confirmation";
         $buttons_confirm = !empty($data['button_txt']) ? "
             <input type='submit' name='confirmation' value='{$data['button_txt']}'>
@@ -163,7 +154,8 @@ class Modal {
      * @param $data
      * @return string
      */
-    public static function dialog_box($data) {
+    public static function dialogBox($data)
+    {
         $buttons = "
                 <div class='one_half'>
                     <input type='submit' name='cancel' class='fa-angle-double-left' value='Cancel'>
