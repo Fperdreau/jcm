@@ -123,7 +123,7 @@ function getPage(page, urlparam) {
     if (page === undefined) {
         page = (params.page === undefined) ? 'home' : params.page;
     }
-
+    
     urlparam = (urlparam === undefined) ? parseurl() : urlparam;
     urlparam = (urlparam === false || urlparam === "") ? false : urlparam;
 
@@ -132,7 +132,6 @@ function getPage(page, urlparam) {
 
     jQuery.ajax({
         url: 'php/router.php?controller=Page&action=getPage&page=' + page,
-        data: params,
         type: 'POST',
         async: true,
         beforeSend: function () {
