@@ -145,10 +145,6 @@ if (!empty($_POST['update_user_availability'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-if (!empty($_POST['get_delete_account_form'])) {
-    echo json_encode(Users::delete_account_form_modal());
-}
-
 // Send password change request if email exists in database
 if (!empty($_POST['request_password_change'])) {
     $user = new Users();
@@ -593,25 +589,5 @@ if (!empty($_POST['process_vote'])) {
     $Operation = $_POST['operation'];
     $Controller = new $controller_name();
     echo json_encode($Controller->$Operation($_POST));
-    exit;
-}
-
-if (!empty($_POST['loadContent'])) {
-    $controllerName = htmlspecialchars($_POST['controller']);
-    $action = htmlspecialchars($_POST['action']);
-    $params = isset($_POST['params']) ? explode(',', htmlspecialchars($_POST['params'])) : array();
-    if (class_exists($controllerName, true)) {
-        $Controller = new $controllerName();
-        if (method_exists($controllerName, $action)) {
-            echo json_encode(call_user_func_array(array($Controller,$action), $params));
-        }
-    }
-    exit;
-}
-
-if (!empty($_POST['set_modal'])) {
-    $Modal = new Modal();
-    $result = $Modal->set_modal($_POST);
-    echo json_encode($result);
     exit;
 }
