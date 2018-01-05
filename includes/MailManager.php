@@ -498,7 +498,7 @@ class MailManager extends BaseModel {
         foreach (self::get_mailinglist($type) as $fullname=>$data) {
             $to[] = $data['email'];
         }
-        if ($this->send($to,$subject,$body,$attachment)) {
+        if ($this->send($to, $subject, $body, $attachment)) {
             return true;
         } else {
             return false;
@@ -515,7 +515,8 @@ class MailManager extends BaseModel {
      * @param boolean $auto: was this email sent by the system or by an user
      * @return string
      */
-    private static function template($content, $lab_name, $show_in_browser, $auto) {
+    private static function template($content, $lab_name, $show_in_browser, $auto)
+    {
         $profile_url = URL_TO_APP . 'index.php?page=member/profile';
 
         $css_title = "
@@ -529,22 +530,26 @@ class MailManager extends BaseModel {
         ";
 
         return "
-            <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
+            <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; 
+            color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
-                    <div style='padding: 10px 20px;  margin: 2% auto; width: 100%; background-color: rgba(68, 68, 68, 1);
-                     border: 1px solid #e0e0e0; font-size: 2em; text-align: center;'>
+                    <div style='padding: 10px 20px;  margin: 2% auto; width: 100%; 
+                    background-color: rgba(68, 68, 68, 1); border: 1px solid #e0e0e0; 
+                    font-size: 2em; text-align: center;'>
                         <div style='{$css_title}'>
                             <span style='font-size: 30px; font-weight: 400;'>JCM</span>
                             <span style='font-size: 25px; color: rgba(200,200,200,.8);'>anager</span>
-                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>" . $lab_name . "</div>
+                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>
+                            " . $lab_name . "</div>
                         </div>
                     </div>
 
-                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; border: 1px solid #e0e0e0; text-align: justify;'>
+                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; 
+                    border: 1px solid #e0e0e0; text-align: justify;'>
                         {$content}
                     </div>
 
-                    " . self::footer_template($show_in_browser, $profile_url, $auto) . "
+                    " . self::footer($show_in_browser, $profile_url, $auto) . "
                 </div>
             </div>";
     }
@@ -555,9 +560,10 @@ class MailManager extends BaseModel {
      * @param array $attachements: list of files name attached to this email
      * @return string
      */
-    public static function showEmail(array $email, array $attachements=array()) {
+    public static function showEmail(array $email, array $attachements = array())
+    {
         $file_list = "";
-        foreach ($attachements as $key=>$file) {
+        foreach ($attachements as $key => $file) {
             $file_list .= "<div class='email_file'><a href='{$file['path']}'>{$file['name']}</a></div>";
         }
         $content = htmlspecialchars_decode($email['content']);
@@ -575,18 +581,24 @@ class MailManager extends BaseModel {
      * @param bool $auto: has this email been sent automatically
      * @return string
      */
-    public static function footer_template($url_browser, $profile_url, $auto=True) {
+    public static function footer($url_browser, $profile_url, $auto = true)
+    {
         $auto_msg = ($auto) ? "
-            <div style='border-top: 1px solid #e0e0e0;'>This email has been sent automatically. You can choose to no longer receive email 
+            <div style='border-top: 1px solid #e0e0e0;'>
+                This email has been sent automatically. You can choose to no longer receive email 
                 notifications by going to your
-                <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >profile</a> page.
+                <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >
+                profile</a> page.
             </div>
         " : null;
         return "
-        <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
+        <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; 
+        height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
             <div style='text-align: center;'>{$url_browser}</div>
             {$auto_msg}
-            <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by <a href='" . App::repository . "' style='color: #CF5151; text-decoration: none;'>" . App::app_name . " " . App::copyright . "</a></div>
+            <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by 
+            <a href='" . App::REPOSITORY . "' style='color: #CF5151; text-decoration: none;'>
+            " . App::APP_NAME . " " . App::COPYRIGHT . "</a></div>
         </div>
         ";
     }
