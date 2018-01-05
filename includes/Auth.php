@@ -57,7 +57,8 @@ class Auth extends BaseModel {
     /**
      * Auth constructor.
      */
-    function __construct(){
+    public function __construct()
+    {
         parent::__construct();
         $this->Users = new Users();
         $this->config = $this->Settings->settings;
@@ -67,8 +68,9 @@ class Auth extends BaseModel {
      * Get id of logged user
      * @return bool
      */
-    public static function getUserId(){
-        if(self::is_logged()){
+    public static function getUserId()
+    {
+        if (self::is_logged()) {
             return $_SESSION['auth'];
         }
         return false;
@@ -79,7 +81,8 @@ class Auth extends BaseModel {
      * @param bool $login: log user in
      * @return mixed
      */
-    public function login($login=true) {
+    public function login($login = true)
+    {
         $password = htmlspecialchars($_POST['password']);
         $username = htmlspecialchars($_POST['username']);
         $data = $this->Users->get(array('username'=>$username));
@@ -121,24 +124,6 @@ class Auth extends BaseModel {
             $result['msg'] = "Wrong username";
         }
         return $result;
-    }
-
-    /**
-     * Extend user session
-     */
-    public function extend_login() {
-        // Extend session duration
-        if (self::is_logged()) {
-            $_SESSION['login_expire'] = time() + SessionInstance::timeout;
-            $result = array(
-                "start"=>$_SESSION['login_start'],
-                "expire"=>$_SESSION['login_expire'],
-                "warning"=>$_SESSION['login_warning']
-            );
-            return $result;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -237,5 +222,4 @@ class Auth extends BaseModel {
     public static function is_logged() {
         return SessionInstance::is_started() && isset($_SESSION['auth']) && $_SESSION['logok'] == true;
     }
-
 }
