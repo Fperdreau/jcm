@@ -115,8 +115,12 @@ class Users extends BaseModel {
      * @param array $post
      * @return bool|string
      */
-    public function make(array $post=null) {
-        if (is_null($post)) $post = $_POST;
+    public function make(array $post = null)
+    {
+        if (is_null($post)) {
+            $post = $_POST;
+        }
+
         $post = self::sanitize($post); // Escape $_POST content
 
         $post['date'] = date("Y-m-d H:i:s"); // Date of creation (today)
@@ -129,18 +133,18 @@ class Users extends BaseModel {
         }
 
         $post['hash'] = $this->make_hash(); // Create an unique hash for this user
-        $post['password']= Auth::crypt_pwd($post['password']); // Encrypt password
+        $post['password']= Auth::cryptPwd($post['password']); // Encrypt password
         $post['active'] = ($post['status'] == "admin") ? 1 : 0; // Automatically activate the account if the user has an
         // admin level
 
-        if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1)) && !$this->is_exist(array('email'=>$post['email']))) {
-
+        if (!$this->is_exist(array('username'=>$post['username'], 'active'=>1))
+        && !$this->is_exist(array('email'=>$post['email']))) {
             // Add user information to Db
             if ($this->db->insert($this->tablename, $this->parseData($post))) {
                 $result = $this->sendAccountCreationEmail($this->status, $post);
             } else {
                 $result['status'] = false;
-                $result['msg'] = "Oops, something went wrong";;
+                $result['msg'] = "Oops, something went wrong";
             }
 
             Logger::getInstance(APP_NAME, get_class($this))->log($result);
