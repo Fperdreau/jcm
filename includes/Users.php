@@ -702,10 +702,11 @@ class Users extends BaseModel {
      * @param array $item
      * @return string
      */
-    private static function ageOfSubscription(array $item) {
+    private static function ageOfSubscription(array $item)
+    {
         if ($item['active'] == 1) {
-            $to   = new DateTime(date('Y-m-d'));
-            $from = new DateTime(date("Y-m-d",strtotime($item['date'])));
+            $to   = new \DateTime(date('Y-m-d'));
+            $from = new \DateTime(date("Y-m-d", strtotime($item['date'])));
             $diff = $to->diff($from);
 
             $cur_trage = "$diff->d days ago";
