@@ -24,6 +24,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace cronjobs;
+ 
+use includes\Task;
 
 /**
  * Class MakeGroup

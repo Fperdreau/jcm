@@ -6,6 +6,13 @@
  * Time: 09:53
  */
 
+namespace includes;
+
+use includes\BaseModel;
+
+/**
+ * Plugin class
+ */
 class Plugin extends BaseModel {
 
     public $name = null;

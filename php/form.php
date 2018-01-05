@@ -108,61 +108,6 @@ if (!empty($_POST['mod_plugins'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Pages Management
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Get Pages
-if (!empty($_POST['getPage'])) {
-    $page = htmlspecialchars($_POST['getPage']);
-    if (strpos($page, "#")) {
-        // Remove hashtags
-        $page = substr($page, 0, strpos($page, "#"));
-    }
-    $split = explode('/', $page);
-
-    // Get page id
-    $page_id = end($split);
-
-    $page_name = implode('\\\\', $split);
-
-    $Page = new Page($page_name);
-    $Plugins = new Plugins();
-
-    $content = array();
-    $content['Plugins'] = $Plugins->loadAll($page_id);
-    $content['pageName'] = $page_id;
-    $content['parent'] = $split[0];
-    $content['title'] = (!empty($Page->meta_title)) ? $Page->meta_title : $page_id;
-    $content['keywords'] = $Page->meta_keywords;
-    $content['description'] = $Page->meta_description;
-    $content['content'] = null;
-    $content['AppStatus'] = App::getInstance()->getSetting('status');
-    $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk_40x40.png')) ? $content['pageName']: $content['parent'];
-    $status = $Page->check_login();
-    if (strtolower($content['AppStatus']) == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
-        if ($status['status'] == false) {
-            $result = $status['msg'];
-        } else {
-            if (!Page::exist($page)) {
-                $result = Page::notFound();
-            } else {
-                $result['content'] = Page::render($page);
-                $result['header'] = Page::header($page_id, $content['icon']);
-            }
-        }
-    } else {
-        $result = Page::maintenance();
-    }
-
-    // Update content
-    foreach ($result as $key=>$value) {
-        $content[$key] = $value;
-    }
-
-    echo json_encode($content);
-    exit;
-}
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Datepicker (calendar)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Get booked dates for DatePicker Calendar

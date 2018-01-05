@@ -1,5 +1,9 @@
 <?php
 
+namespace includes;
+
+use includes\BaseModel;
+
 /**
  * Created by PhpStorm.
  * User: Florian
@@ -441,17 +445,18 @@ class Suggestion extends BaseModel {
 
     /**
      * Render "Add" button
+     * 
      * @return string
      */
-    private static function add_button() {
-        $leanModalUrl = Modal::buildUrl('Suggestion', 'get_form', array(
-            'view'=>'modal',
-            'operation'=>'edit')
+    private static function add_button() 
+    {
+        $leanModalUrl = Modal::buildUrl(
+            'Suggestion', 'get_form', array('view'=>'modal', 'operation'=>'edit')
         );
         return "
             <div>
                 <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
-                            class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion'>
+                    class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion'>
                     <input type='submit' value='Add' />
                 </a>
             </div>

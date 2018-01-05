@@ -27,7 +27,7 @@
 * Add files - OK
 * Publish as news if "all" is selected - OK
 * Hide recipients - OK
-* Display email in browser - Failed
+* Display email in browser - OK
 
 ## Account
 
@@ -35,9 +35,9 @@
 * Activation from invitation email sent to user - OK
 * Deactivation of account from admin interface - OK
 * Modify account type - OK
-* Prevent modification of account type for admin account if no other admin account is defined - ?
+* Prevent modification of account type for admin account if no other admin account is defined - OK
 * Suppression of account from admin inteface - OK
-* Prevent suppression of admin account if no other admin account exists - ?
+* Prevent suppression of admin account if no other admin account exists - OK
 
 ## Plugins
 

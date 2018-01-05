@@ -6,6 +6,7 @@
  * Time: 15:14
  */
 
+namespace includes;
 
 /**
  * Class Router
@@ -121,7 +122,9 @@ class Router {
      */
     private static function getController() {
         if (isset(self::$data['controller'])) {
-            self::$controllerName = self::$data['controller'];
+            //$controllerName = "\\App\\Controller\\" . $admin . ucfirst($this->controller) . 'Controller';
+
+            self::$controllerName = "\\includes\\" . self::$data['controller'];
             unset(self::$data['controller']);
             return true;
         }

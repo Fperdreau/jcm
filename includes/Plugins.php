@@ -24,8 +24,12 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
+
+use includes\BaseModel;
+
 /**
- * Class AppPlugins
+ * Class Plugins
  *
  * Handle plugins settings and routines (installation, running, ect.)
  */

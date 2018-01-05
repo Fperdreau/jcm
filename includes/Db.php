@@ -24,13 +24,14 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
+
 /**
  * Class AppDb
  *
  * Handle communication routines with the database (writing, reading, updating)
  * and environmental information (list of tables associated to the application,...).
  */
-
 class Db {
 
     /**

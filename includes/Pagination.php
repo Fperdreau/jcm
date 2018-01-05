@@ -21,6 +21,7 @@
  * along with DropCMS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
 
 /**
  * Class Pagination

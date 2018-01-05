@@ -29,6 +29,9 @@
  * @return array
  */
 
+use includes\App;
+use includes\Tasks;
+
 include('../includes/App.php');
 
 App::boot(true);

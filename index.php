@@ -20,12 +20,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use includes;
 
 /**
  * BOOTING PART
  */
 include('includes/App.php');
-App::boot(true);
+includes\App::boot(true);
 
 // Render page
-echo Template::layout();
+echo includes\Template::layout();

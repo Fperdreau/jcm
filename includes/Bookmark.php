@@ -1,5 +1,9 @@
 <?php
 
+namespace includes;
+
+use includes\BaseModel;
+
 /**
  * Created by PhpStorm.
  * User: Florian

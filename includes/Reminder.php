@@ -8,12 +8,13 @@
 
 namespace includes;
 
+use includes\BaseModel;
 
 /**
  * Class Reminder
  * @package includes
  */
-class Reminder extends \BaseModel {
+class Reminder extends BaseModel {
 
     /**
      * @var string $controller: controller name

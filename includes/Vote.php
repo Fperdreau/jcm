@@ -6,6 +6,11 @@
  * Date: 23/02/2017
  * Time: 08:19
  */
+
+namespace includes;
+
+use includes\BaseModel;
+
 class Vote extends BaseModel {
 
     public $id;

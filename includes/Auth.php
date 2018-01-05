@@ -21,6 +21,9 @@
  * along with DropCMS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
+
+use includes\BaseModel;
 
 require 'PasswordHash.php';
 

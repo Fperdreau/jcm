@@ -21,6 +21,8 @@
  * along with DropCMS.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
+
 /**
  * Class Config
  * This class handles application configuration

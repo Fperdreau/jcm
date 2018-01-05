@@ -1,14 +1,24 @@
 <?php
+
+namespace includes;
+
 /**
- * Created by PhpStorm.
- * User: Florian
- * Date: 07/08/2017
- * Time: 10:43
+ * Page Template class
+ *
+ * @package Includes
+ * @author  Florian Perdreau <fp@florianperdreau.fr>
+ * @license AGPL
  */
+class Template
+{
 
-class Template {
-
-    public static function layout() {
+    /**
+     * Render page layout
+     *
+     * @return string
+     */
+    public static function layout()
+    {
         $menu = Page::menu();
 
         return "
@@ -17,8 +27,7 @@ class Template {
                 <head>
                     <META http-equiv='Content-Type' content='text/html; charset=utf-8' />
                     <META NAME='viewport' CONTENT='width=device-width, initial-scale=1.0, user-scalable=yes'>
-                    <META NAME='description' CONTENT='Journal Club Manager - an efficient way of organizing journal clubs'>
-                    <META NAME='keywords' CONTENT='Journal Club, application, science, tools, research, lab, management'>
+                    <META NAME='description' CONTENT='" . APP::DESCRIPTION . "'>
 
                     <!-- Stylesheets -->
                     " . self::cssScripts() . "
@@ -71,10 +80,10 @@ class Template {
                     <!-- Footer section -->
                     <footer id='footer'>
                         <div id='colBar'></div>
-                        <div id='appTitle'>" . App::app_name . "</div>
-                        <div id='appVersion'>Version " . App::version . "</div>
+                        <div id='appTitle'>" . App::APP_NAME . "</div>
+                        <div id='appVersion'>Version " . App::VERSION . "</div>
                         <div id='sign'>
-                            <a href='". App::repository . "' target='_blank'>" . App::copyright . "</a>
+                            <a href='". App::REPOSITORY . "' target='_blank'>" . App::COPYRIGHT . "</a>
                         </div>
                     </footer>
 
@@ -82,19 +91,52 @@ class Template {
                 </body>
             </html>
             " . self::jsScripts();
-
     }
 
-    private static function loginMenu() {
+    /**
+     * Render Login menu
+     *
+     * @return string
+     */
+    private static function loginMenu()
+    {
         if (!Auth::is_logged()) {
+            $leanModalUrlLogin = Modal::buildUrl(
+                'Users',
+                'get_view',
+                array(
+                    'view'=>'login_form', 'destination'=>'modal'
+                    )
+            );
+            $leanModalUrlRegistration = Modal::buildUrl(
+                'Users',
+                'get_view',
+                array(
+                    'view'=>'registration_form', 'destination'=>'modal'
+                    )
+            );
             $showlogin = "
-            <div class='leanModal' data-url='php/router.php?controller=Users&action=get_view&view=login_form&destination=modal' data-section='login_form'><img src='assets/images/login_bk.png' alt='login'></div>
-            <div class='leanModal' data-controller='Users' data-action='get_view' data-params='registration_form,modal' data-section='registration_form'><img src='assets/images/signup_bk.png' alt='signup'></div>
+            <div class='leanModal' data-url='{$leanModalUrlLogin}' 
+            data-section='login_form'>
+                <img src='assets/images/login_bk.png' alt='login'>
+            </div>
+            <div class='leanModal' data-url='{$leanModalUrlRegistration}' 
+            data-section='registration_form'>
+                <img src='assets/images/signup_bk.png' alt='signup'>
+            </div>
             ";
         } else {
             $showlogin = "
-            <div class='menu-section'><a href='index.php?page=member/profile' id='profile'><img src='assets/images/profile_bk_25x25.png' alt='profile'></a></div>
-            <div class='menu-section'><a href='#' class='menu-section' id='logout'><img src='assets/images/logout_bk.png' alt='logout'></a></div>";
+            <div class='menu-section'>
+                <a href='index.php?page=member/profile' id='profile'>
+                    <img src='assets/images/profile_bk_25x25.png' alt='profile'>
+                </a>
+            </div>
+            <div class='menu-section'>
+                <a href='#' class='menu-section' id='logout'>
+                    <img src='assets/images/logout_bk.png' alt='logout'>
+                </a>
+            </div>";
         }
         return $showlogin;
     }
@@ -104,15 +146,23 @@ class Template {
      *
      * @return void
      */
-    private static function cssScripts() {
+    private static function cssScripts()
+    {
         return "
             <link type='text/css' rel='stylesheet' href='assets/styles/stylesheet.css'/>
             <link type='text/css' rel='stylesheet' href='assets/styles/uploader.min.css'/>
-            <link  type='text/css' rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
+            <link  type='text/css' rel='stylesheet' 
+            href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
         ";
     }
     
-    private static function jsScripts() {
+    /**
+     * List of js scripts that must be loaded
+     *
+     * @return void
+     */
+    private static function jsScripts()
+    {
         return "
         <!-- JQuery -->
         <script type='text/javascript' src='assets/scripts/lib/jquery-1.11.1.min.js'></script>
@@ -137,12 +187,14 @@ class Template {
 
     /**
      * Render Section
-     * @param array $content
-     * @param null $id
+     *
+     * @param array $content: section content
+     * @param null $id: section
+     *
      * @return string
      */
-    public static function section(array $content, $id=null) {
-
+    public static function section(array $content, $id = null)
+    {
         return "
             <section id='{$id}'>
                 <h2>{$content['title']}</h2>
@@ -152,5 +204,4 @@ class Template {
             </section>
         ";
     }
-
 }

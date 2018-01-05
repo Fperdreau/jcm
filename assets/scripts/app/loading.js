@@ -134,7 +134,7 @@ function getPage(page, urlparam) {
     params['getPage'] = page;
 
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Page&action=getPage&page=' + page,
         data: params,
         type: 'POST',
         async: true,

@@ -6,6 +6,11 @@
  * Date: 05/05/2017
  * Time: 22:03
  */
+namespace includes;
+
+/**
+ * Undocumented class
+ */
 class Patcher {
 
     /**

@@ -24,6 +24,8 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ namespace includes;
+ 
 /**
  * Class AppTable
  *
@@ -155,11 +157,12 @@ abstract class BaseModel {
 
     /**
      * Update controller settings
-     * 
+     *
      * @param array $data: post data
      * @return array
      */
-    public function updateSettings(array $data) {
+    public function updateSettings(array $data)
+    {
         if ($this->setSettings($data)) {
             if ($this->Settings->update($this->settings, array('object'=>__CLASS__))) {
                 return array('status'=>true, 'msg'=>'Settings updated');
@@ -176,16 +179,19 @@ abstract class BaseModel {
      * @param bool $op
      * @return array
      */
-    public function install_db($op=False) {
-        if (is_null($this->get_table_data(get_class($this)))) return array('status'=>true, 'msg'=>null);
+    public function installDb($op = false)
+    {
+        if (is_null($this->get_table_data(get_class($this)))) {
+            return array('status'=>true, 'msg'=>null);
+        }
 
         try {
             if ($this->db->makeorupdate($this->getTableName(), $this->get_table_data(get_class($this)), $op)) {
-                $result['status'] = True;
+                $result['status'] = true;
                 $result['msg'] = "'{$this->tablename}' table created";
                 Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
             } else {
-                $result['status'] = False;
+                $result['status'] = false;
                 $result['msg'] = "'{$this->tablename}' table not created";
                 Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
             }

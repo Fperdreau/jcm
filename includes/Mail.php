@@ -24,7 +24,9 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- use PHPMailer\PHPMailer\PHPMailer;
+namespace includes;
+
+use PHPMailer\PHPMailer\PHPMailer;
 
 /**
  * Class Mail

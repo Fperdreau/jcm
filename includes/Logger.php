@@ -25,6 +25,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
 
 /**
  * Class AppLogger

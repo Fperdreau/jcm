@@ -22,6 +22,8 @@
  * along with DropMVC.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ namespace includes;
+
 /**
  * Class Autoloader
  * Loads class automatically
@@ -31,7 +33,8 @@ class Autoloader {
     /**
      * register autoloader
      */
-    static function register() {
+    public static function register()
+    {
         spl_autoload_register(array(__CLASS__, 'autoload'));
     }
 
@@ -39,28 +42,45 @@ class Autoloader {
      * Load called class
      * @param $class_name string
      */
-    static function autoload($class_name) {
-        // For composer
+    public static function autoload($class_name) {
         require PATH_TO_APP . 'vendor/autoload.php';
 
-        // For App
-        $filename = PATH_TO_INCLUDES . $class_name . '.php';
-        if (is_file($filename)) {
-            require_once $filename;
+        if (strpos($class_name, __NAMESPACE__ .'\\') === 0) {
+            $class_name = str_replace(__NAMESPACE__ . '\\', '', $class_name);
+            $class_name = str_replace('\\', '/', $class_name);
+            $filename = __DIR__ . DIRECTORY_SEPARATOR .$class_name . '.php';
+            if (is_file($filename)) {
+                require $filename;
+            }
         }
-
-        // For Scheduled Tasks
-        $filename = PATH_TO_TASKS . $class_name . '.php';
-        if (is_file($filename)) {
-            require_once $filename;
-        }
-
-        // For Plugins
-        $filename = PATH_TO_PLUGINS . $class_name . DS . $class_name . '.php';
-        if (is_file($filename)) {
-            require_once $filename;
-        }
-
     }
+
+    // /**
+    //  * Load called class
+    //  * @param $class_name string
+    //  */
+    // static function autoload($class_name) {
+    //     // For composer
+    //     require PATH_TO_APP . 'vendor/autoload.php';
+
+    //     // For App
+    //     $filename = PATH_TO_INCLUDES . $class_name . '.php';
+    //     if (is_file($filename)) {
+    //         require_once $filename;
+    //     }
+
+    //     // For Scheduled Tasks
+    //     $filename = PATH_TO_TASKS . $class_name . '.php';
+    //     if (is_file($filename)) {
+    //         require_once $filename;
+    //     }
+
+    //     // For Plugins
+    //     $filename = PATH_TO_PLUGINS . $class_name . DS . $class_name . '.php';
+    //     if (is_file($filename)) {
+    //         require_once $filename;
+    //     }
+
+    // }
 
 }

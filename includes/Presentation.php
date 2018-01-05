@@ -24,6 +24,11 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace includes;
+
+use includes\BaseModel;
+use includes\Modal;
+
 /**
  * class Presentations.
  *
