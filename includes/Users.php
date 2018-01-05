@@ -27,6 +27,7 @@
 namespace includes;
 
 use includes\BaseModel;
+use includes\MailManager;
 
 /**
  * Class Users
@@ -396,7 +397,7 @@ class Users extends BaseModel {
      * @throws phpmailerException
      */
     public function send_verification_mail($hash, $user_mail, $username) {
-        $Users = new Users();
+        $Users = new self();
         $admins = $Users->getadmin('admin');
         $to = array();
         foreach ($admins as $key=>$admin) {
@@ -455,12 +456,13 @@ class Users extends BaseModel {
      */
     public function request_password_change($email) {
         if ($this->isExist(array('email'=>$email))) {
-
             $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
-            $this->getUser($username[0]['username']);
+            $this->getUser($username['username']);
 
             $MailManager = new MailManager();
-            $body = $MailManager->formatmail(self::password_request_email($this->fullname, $this->hash, $this->username));
+            $body = $MailManager->formatmail(
+                self::password_request_email($this->fullname, $this->hash, $this->username)
+            );
             if ($MailManager->send(array('body'=>$body, 'subject'=>'Change password request'), array($email))) {
                 $result['msg'] = "An email has been sent to your address with further instructions";
                 $result['status'] = true;
@@ -802,6 +804,20 @@ class Users extends BaseModel {
      * @return string|array
      */
     public static function login_form_body() {
+        $leanModalUrlPwd = Modal::buildUrl(
+            'Users',
+            'get_view',
+            array(
+            'destination'=>'modal',
+            'view'=>'change_password_form')
+        );
+        $leanModalUrlReg = Modal::buildUrl(
+            'Users',
+            'get_view',
+            array(
+            'destination'=>'modal',
+            'view'=>'registration_form')
+        );
         return "
             <form id='login_form' method='post' action='" . URL_TO_APP . 'php/router.php?controller=Auth&action=login' . "'>
                 <input type='hidden' name='login' value='true'/>
@@ -818,13 +834,13 @@ class Users extends BaseModel {
                         <input type='submit' id='login_form' value='Log In' class='processform reload'/>
                     </div>
                     <div class='last_half' style='text-align: right;'>
-                        <input type='button' class='go_to_section' data-controller='Users' data-action='get_view' 
-                        data-params='registration_form,modal' data-section='registration_form' value='Sign Up'>
+                        <input type='button' class='go_to_section' data-url='{$leanModalUrlReg}' 
+                        data-section='registration_form' value='Sign Up'>
                     </div>
                 </div>
             </form>
-            <div class='forgot_password'><a href='' class='go_to_section' data-controller='Users' data-action='get_view' 
-            data-params='change_password_form,modal' data-section='change_password_form'>I forgot my password</a></div>
+            <div class='forgot_password'><a href='' class='go_to_section' data-url='{$leanModalUrlPwd}' 
+            data-section='change_password_form'>I forgot my password</a></div>
         ";
     }
 
@@ -951,8 +967,8 @@ class Users extends BaseModel {
         return "
         <!-- Change password section -->
         <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
-        <form id='modal_change_pwd' method='post' action='" . URL_TO_APP . 'php/form.php?request_password_change=true' . "'>
-            <input type='hidden' name='request_password_change' value='true'>
+        <form id='modal_change_pwd' method='post' 
+        action='" . URL_TO_APP . "php/router.php?controller=Users&action=request_password_change" . "'>
             <div class='form-group'>
                 <input type='email' name='email' value='' required/>
                 <label for='email'>Email</label>
