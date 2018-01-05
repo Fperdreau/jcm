@@ -132,8 +132,10 @@ class Plugins extends BaseModel {
      * @param: class name (must be the same as the file name)
      * @return Plugin
      */
-    public function getPlugin($pluginName) {
+    public function getPlugin($pluginName)
+    {
         if (empty($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
+            $pluginName = '\\Plugins\\' . $pluginName;
             $this->instances[$pluginName] = new $pluginName();
         }
         return $this->instances[$pluginName];

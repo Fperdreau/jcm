@@ -1,6 +1,6 @@
 <?php
 /**
- * File for class Mailing
+ * File for class MakeGroup
  *
  * PHP version 5
  *
@@ -24,45 +24,65 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace cronjobs;
+namespace Tasks;
  
 use includes\Task;
 
 /**
- * Class Mailing
+ * Class MakeGroup
  *
- * Scheduled task that send email notifications (digests) to the users with information about the next sessions and
- * recent news.
+ * Scheduled task that creates users groups according to the number of presentations for a particular session
+ * (1 group/presentation)
  */
-class Mailing extends Task {
+class GroupMaker extends Task {
 
-    public $name='Mailing';
-    public $status='Off';
-    public $installed=False;
-    public $dayName='Monday';
-    public $description = "Sends notifications (digests) to JCM members.";
+    public $name= 'GroupMaker';
+    public $options = array(
+        'send'=>array(
+            'options'=>array('Yes'=>1,'No'=>0),
+            'value'=>0)
+    );
+    public $description = "Creates groups of members for the upcoming session with one group per presentation. 
+    This task is calling the Group plugin that must be installed. You can choose to notify users in GroupMaker's settings";
 
     /**
      * Run scheduled task
      * @return mixed
      */
     public function run() {
+        $Plugins = new Plugins();
+        $Plugins->isInstalled('Groups');
+        if (!$Plugins->isInstalled('Groups')) {
+            return array('status'=>false, 'msg'=>'You must install the Group plugin first!');
+        }
+
+        $groups = new Groups();
+        $result = $groups->run();
+        if ($result['status'] && $this->options['send']['value'] == 1) {
+            $result['msg'] .= $this->notify();
+        }
+        return $result;
+    }
+
+    /**
+     * Run scheduled task
+     * @return string
+     */
+    public function notify() {
         $MailManager = new MailManager();
-        $DigestMaker = new DigestMaker();
+        $Group = new Groups();
 
         // Count number of users
         $users = $MailManager->get_mailinglist("notification");
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username=>$user) {
-            $content = $DigestMaker->makeDigest($user['username']);
+            $content = $Group->makeMail($user['username']);
             if ($MailManager->send($content, array($user['email']))) {
                 $sent += 1;
             }
         }
-        return array('status'=>true, 'msg'=> "message sent successfully to {$sent}/{$nusers} users.");
+        return "Message sent successfully to {$sent}/{$nusers} users.";
     }
-    
 }
-
 

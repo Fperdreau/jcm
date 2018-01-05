@@ -25,7 +25,7 @@
  */
 
  
-namespace cronjobs;
+namespace Tasks;
  
 use includes\Task;
 

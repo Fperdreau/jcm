@@ -153,6 +153,14 @@ class App
         // Set web paths to application
         self::setWebPaths();
 
+        // Register Plugins autoloader
+        require PATH_TO_PLUGINS . 'Autoloader.php';
+        \Plugins\Autoloader::register();
+
+        // Register Plugins autoloader
+        require PATH_TO_TASKS . 'Autoloader.php';
+        \Tasks\Autoloader::register();
+
         // Register session and App url if not running in command line
         if (php_sapi_name() !== "cli") {
             SessionInstance::initsession();
@@ -210,7 +218,7 @@ class App
             define('PATH_TO_CONFIG', PATH_TO_APP . DS . 'config' . DS);
         }
         if (!defined('PATH_TO_TASKS')) {
-            define('PATH_TO_TASKS', PATH_TO_APP . DS . 'cronjobs' . DS);
+            define('PATH_TO_TASKS', PATH_TO_APP . DS . 'tasks' . DS);
         }
         if (!defined('PATH_TO_PLUGINS')) {
             define('PATH_TO_PLUGINS', PATH_TO_APP . DS . 'plugins' . DS);

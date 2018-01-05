@@ -24,7 +24,7 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- namespace plugins;
+ namespace Plugins;
 
  use includes\Plugin;
  use includes\Session;
