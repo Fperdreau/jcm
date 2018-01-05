@@ -24,18 +24,26 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ namespace plugins;
+
+ use includes\Plugin;
+ use includes\Session;
+ use includes\Assignment;
+ use includes\Users;
+ use includes\Presentation;
 
 /**
  * Class autoAssignment
- * 
+ *
  * Plugins that handles speaker assignment routines
  */
-class autoAssignment extends Plugin {
+class AutoAssignment extends Plugin
+{
 
     /**
      * @var string
      */
-    public $name = "autoAssignment";
+    public $name = "AutoAssignment";
 
     /**
      * @var string
@@ -72,7 +80,8 @@ class autoAssignment extends Plugin {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
 
         self::getSession();
@@ -82,7 +91,8 @@ class autoAssignment extends Plugin {
     /**
      * Get session instance
      */
-    public static function getSession() {
+    public static function getSession()
+    {
         if (is_null(self::$session)) {
             self::$session = new Session();
         }
@@ -93,7 +103,8 @@ class autoAssignment extends Plugin {
      * Get assignment instance
      * @return Assignment
      */
-    private static function getAssignement() {
+    private static function getAssignement()
+    {
         if (is_null(self::$Assignment)) {
             self::$Assignment = new Assignment();
         }
@@ -102,11 +113,12 @@ class autoAssignment extends Plugin {
 
     /**
      * Get new speaker
-     * 
+     *
      * @param Session $session
      * @return string
      */
-    private function getSpeaker(Session $session) {
+    private function getSpeaker(Session $session)
+    {
         set_time_limit(10);
 
         // Prettify session type
@@ -126,12 +138,12 @@ class autoAssignment extends Plugin {
         }
 
         $usersList = array();
-        foreach ($assignable_users as $key=>$user) {
+        foreach ($assignable_users as $key => $user) {
             $usersList[] = $user['username'];
         }
 
         // exclude the already assigned speakers for this session from the list of possible speakers
-        $assignable = array_values(array_diff($usersList,$speakers));
+        $assignable = array_values(array_diff($usersList, $speakers));
 
         if (empty($assignable)) {
             // If there are no users registered yet, the speaker is to be announced.
@@ -158,7 +170,8 @@ class autoAssignment extends Plugin {
      * @param null|int $nb_session: number of sessions
      * @return mixed
      */
-    public function assign($nb_session=null) {
+    public function assign($nb_session = null)
+    {
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         $result = array('status'=>true, 'msg'=>null, 'content'=>null);
@@ -185,17 +198,18 @@ class autoAssignment extends Plugin {
         
         // Loop over sessions
         foreach ($jc_days as $day) {
-
             // If session does not exist yet, we create a new one
             $session = new Session($day);
 
             // Do nothing if nothing is planned on that day
-            if ($session->type === "none") continue;
+            if ($session->type === "none") {
+                continue;
+            }
 
             // If a session is planned for this day, we assign 1 speaker by slot
             for ($p=0; $p<self::$session->slots; $p++) {
-
-                // If there is already a presentation planned for this day, check if the speaker is a real member, otherwise
+                // If there is already a presentation planned for this day,
+                // check if the speaker is a real member, otherwise
                 // we will assign a new one
                 if (isset($session->presids[$p])) {
                     $Presentation = new Presentation($session->presids[$p]);
@@ -207,7 +221,9 @@ class autoAssignment extends Plugin {
                     $new = true;
                 }
 
-                if (!$doAssign) { continue; }
+                if (!$doAssign) {
+                    continue;
+                }
 
                 // Get & assign new speaker
                 if (!$Newspeaker = $this->getSpeaker($session)) {
@@ -247,7 +263,7 @@ class autoAssignment extends Plugin {
                 
                 // Notify assigned user
                 $info = array(
-                    'speaker'=>$speaker->username, 
+                    'speaker'=>$speaker->username,
                     'type'=>$data[0]['type'],
                     'presid'=>$Presentation->id_pres,
                     'date'=>$data[0]['date']->date

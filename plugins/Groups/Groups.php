@@ -21,6 +21,13 @@
  * along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+namespace plugins;
+
+use includes\DigestMaker;
+use includes\ReminderMaker;
+use includes\Session;
+use includes\Presentation;
+use includes\Users;
 
 /**
  * Class Groups
@@ -28,7 +35,8 @@
  * Plugin that assign users to different groups according to the number of presentations in a session. Display the
  * user's group on his/her profile page
  */
-class Groups extends Plugin {
+class Groups extends Plugin
+{
 
     protected $schema = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT", false),
@@ -44,9 +52,9 @@ class Groups extends Plugin {
     public $name = "Groups";
     public $version = "1.1.0";
     public $description = "Automatically creates groups of users based on the number of presentations scheduled 
-    for the upcoming session. Users will be notified by email about their group's information. If the different groups are
-    meeting in different rooms, then the rooms can be specified in the plugin's settings (rooms must be comma-separated).";
-
+    for the upcoming session. Users will be notified by email about their group's information. If the different groups
+    are meeting in different rooms, then the rooms can be specified in the plugin's settings 
+    (rooms must be comma-separated).";
 
     public $page = 'profile';
     public $options = array(
@@ -63,7 +71,8 @@ class Groups extends Plugin {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->registerDigest();
         $this->registerReminder();
@@ -72,7 +81,8 @@ class Groups extends Plugin {
     /**
      * Register into DigestMaker table
      */
-    private function registerDigest() {
+    private function registerDigest()
+    {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register($this->name);
     }
@@ -80,7 +90,8 @@ class Groups extends Plugin {
     /**
      * Register into Reminder table
      */
-    private function registerReminder() {
+    private function registerReminder()
+    {
         $reminder = new ReminderMaker();
         $reminder->register($this->name);
     }
@@ -89,7 +100,8 @@ class Groups extends Plugin {
      * Session instance factory
      * @return Session
      */
-    private static function getSession() {
+    private static function getSession()
+    {
         if (is_null(self::$session)) {
             self::$session = new Session();
         }
@@ -101,11 +113,13 @@ class Groups extends Plugin {
      * Run scheduled task: Assign users to groups and send them an email with their assigned group and presentation
      * @return array|string
      */
-    public function run() {
+    public function run()
+    {
         $next_session = $this->get_next_session();
 
         // 1: Check if group has not been made yet for the next session
-        if ($next_session !== false && $next_session[0]['type'] !== 'none' && !$this->group_exist($next_session[0]['date'])) {
+        if ($next_session !== false && $next_session[0]['type'] !== 'none'
+        && !$this->group_exist($next_session[0]['date'])) {
             // 2: Clear the group table
             $this->clearTable();
 
@@ -125,7 +139,8 @@ class Groups extends Plugin {
      * @param $session_date: next session date
      * @return bool
      */
-    private function group_exist($session_date) {
+    private function group_exist($session_date)
+    {
         $sql = "SELECT date FROM {$this->tablename}";
         $req = $this->db->send_query($sql);
         while ($row = mysqli_fetch_assoc($req)) {
@@ -140,7 +155,8 @@ class Groups extends Plugin {
      * Get information about next session
      * @return array
      */
-    private function get_next_session() {
+    private function get_next_session()
+    {
         $nextSession = self::getSession()->getUpcoming(1);
         if ($nextSession !== false) {
             reset($nextSession);
@@ -154,7 +170,8 @@ class Groups extends Plugin {
      * Clear the group table
      * @return bool|mysqli_result
      */
-    private function clearTable() {
+    private function clearTable()
+    {
         return $this->db->clearTable($this->tablename);
     }
 
@@ -163,7 +180,8 @@ class Groups extends Plugin {
      * @param array $session: next session
      * @return array|bool
      */
-    public function makegroups(array $session) {
+    public function makegroups(array $session)
+    {
 
         $rooms = explode(',', $this->options['room']['value']);
 
@@ -178,13 +196,13 @@ class Groups extends Plugin {
         // Get users list
         $Users = new Users();
         $users = array();
-        foreach ($Users->all() as $key=>$user) {
+        foreach ($Users->all() as $key => $user) {
             $users[] = $user['username'];
         }
 
         $nusers = count($users); // total nb of users
 
-        if ( ($nusers-$ngroups) < $ngroups || $session[0]['type'] == "none") {
+        if (($nusers-$ngroups) < $ngroups || $session[0]['type'] == "none") {
             $result['status'] = false;
             $result['msg'] = "Not enough members to create groups";
             return $result;
@@ -192,7 +210,7 @@ class Groups extends Plugin {
 
         $excludedusers = array();
         $pregroups = array();
-        for ($i=0;$i<$ngroups;$i++) {
+        for ($i=0; $i<$ngroups; $i++) {
             $speaker = (isset($session->speakers[$i])) ? $session[$i]['speakers'] : 'TBA';
             $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
             $excludedusers[] = $speaker;
@@ -208,7 +226,7 @@ class Groups extends Plugin {
 
         // Assign presentation
         $assigned_groups = array();
-        for ($i=0;$i<$ngroups;$i++) {
+        for ($i=0; $i<$ngroups; $i++) {
             $room = (!empty($rooms[$i])) ? $rooms[$i] : 'TBA';
             $presid = (isset($session->presids[$i])) ? $session[$i]['presids'] : 'TBA';
             $group = $pregroups[$i];
@@ -219,7 +237,7 @@ class Groups extends Plugin {
 
             // Add to the table
             foreach ($group as $mbr) {
-                if(!$this->db->insert($this->tablename, array(
+                if (!$this->db->insert($this->tablename, array(
                     'groups' => $i,
                     'username' => $mbr['member'],
                     'role' => $mbr['role'],
@@ -242,7 +260,8 @@ class Groups extends Plugin {
      * @param null $username
      * @return mixed
      */
-    public function makeMail($username=null) {
+    public function makeMail($username = null)
+    {
         $data = $this->getGroup($username);
         if ($data !== false) {
             $data['group'] = $this->showList($username);
@@ -262,7 +281,8 @@ class Groups extends Plugin {
      * @param null $username
      * @return array
      */
-    public function makeReminder($username=null) {
+    public function makeReminder($username = null)
+    {
         $data = $this->getGroup($username);
         if ($data !== false) {
             $data['group'] = $this->showList($username);
@@ -282,15 +302,19 @@ class Groups extends Plugin {
      * @param array $data
      * @return string
      */
-    public static function renderSection(array $data) {
+    public static function renderSection(array $data)
+    {
         return "
         <p>Here is your group assignment for the session held on <b>{$data['date']}</b>.</p>
         <p>Your group will meet in room {$data['room']}.</p>
-        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
+        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; 
+        background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
             {$data['group']}
         </div>
-        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; 
+        background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+            font-weight: 500; font-size: 1.2em;'>
                 Your group presentation
             </div>
             <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
@@ -306,7 +330,8 @@ class Groups extends Plugin {
      * @param array $data
      * @return mixed
      */
-    public static function renderMail($data, Users $user) {
+    public static function renderMail($data, Users $user)
+    {
         $result['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello <span style='font-weight: 600;'>{$user->firstname}/span>,</p>
@@ -314,10 +339,12 @@ class Groups extends Plugin {
                 {$data['date']} in room <b> {$data['room']}</b>.</p>
     
                 <div style='display: block; vertical-align: top; margin: auto;'>
-                    <div style='display: inline-block; padding: 10px; margin: 0 30px 20px 0;background-color: rgba(255,255,255,1);'>
+                    <div style='display: inline-block; padding: 10px; 
+                    margin: 0 30px 20px 0;background-color: rgba(255,255,255,1);'>
                         " . $data['group'] . "
                     </div>
-                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; max-width: 60%; background-color: rgba(255,255,255,1);'>
+                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; 
+                    max-width: 60%; background-color: rgba(255,255,255,1);'>
                          " . $data['publication'] . "
                     </div>
                 </div>
@@ -332,7 +359,8 @@ class Groups extends Plugin {
      * @param $username
      * @return bool|array
      */
-    public function getGroup($username) {
+    public function getGroup($username)
+    {
         $data = $this->get(array('username'=>$username));
 
         $groupusrs['members'] = array();
@@ -341,15 +369,13 @@ class Groups extends Plugin {
         $groupusrs['presid'] = $data['presid'];
 
         if (!empty($data)) {
-            foreach ($this->get(array('groups'=>$data['group'])) as $key=>$row) {
+            foreach ($this->get(array('groups'=>$data['group'])) as $key => $row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
             return $groupusrs;
-
         } else {
             return false;
         }
-
     }
 
     /**
@@ -357,8 +383,9 @@ class Groups extends Plugin {
      * @param bool $username
      * @return string
      */
-    public function showList($username=False) {
-        if ($username === False) {
+    public function showList($username = false)
+    {
+        if ($username === false) {
             $username = $_SESSION['username'];
         }
         $group = $this->getGroup($username);
@@ -367,8 +394,10 @@ class Groups extends Plugin {
         } else {
             $u = 0;
             $content = "";
-            foreach($group['members'] as $grpmember=>$info) {
-                if ($grpmember == 'TBA') continue; // We do not send emails to fake users
+            foreach ($group['members'] as $grpmember => $info) {
+                if ($grpmember == 'TBA') {
+                    continue; // We do not send emails to fake users
+                }
                 $role = $info['role'];
                 $grpuser = new Users($grpmember);
                 $fullname = ucfirst(strtolower($grpuser->firstname))." ".ucfirst(strtolower($grpuser->lastname));
@@ -386,7 +415,8 @@ class Groups extends Plugin {
             }
         }
         return "
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+                font-weight: 500; font-size: 1.2em;'>
                     Group members
                 </div>
                 <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
@@ -399,15 +429,18 @@ class Groups extends Plugin {
      * Display user's group (profile page or in email)
      * @return string
      */
-    public function show() {
+    public function show()
+    {
         $username = $_SESSION['username'];
         $data = $this->getGroup($username);
         $content = $this->showList($username);
         
         if (!empty($data['members'])) {
             $ids = array();
-            foreach($data['members'] as $grpmember=>$info) {
-                if ($grpmember == 'TBA') continue; // We do not send emails to fake users
+            foreach ($data['members'] as $grpmember => $info) {
+                if ($grpmember == 'TBA') {
+                    continue; // We do not send emails to fake users
+                }
                 $member = new Users($grpmember);
                 $ids[] = $member->id;
             }
@@ -431,7 +464,4 @@ class Groups extends Plugin {
                 </div>
             ";
     }
-
 }
-
-
