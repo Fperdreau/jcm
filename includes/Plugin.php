@@ -52,6 +52,12 @@ class Plugin extends BaseModel
         parent::__construct(get_class($this));
     }
 
+    /**
+     * Set object information
+     *
+     * @param array $data
+     * @return void
+     */
     public function setInfo(array $data)
     {
         foreach ($data as $prop => $value) {
