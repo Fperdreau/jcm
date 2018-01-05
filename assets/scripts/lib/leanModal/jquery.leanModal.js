@@ -263,12 +263,11 @@
         },
 
         /**
-         * Render modal content
+         * load data from provided url
          */
-        _renderModalContent: function(data, json, obj, modalContainer) {
+        _loadData: function(sectionData, obj, modalContainer, callback) {
             jQuery.ajax({
-                url: 'php/router.php?controller=Modal&action=render',
-                data: json,
+                url: sectionData.url,
                 type: 'post',
                 async: true,
                 beforeSend: function () {
@@ -278,9 +277,39 @@
                     obj._removeLoading();
                 },
                 success: function(json) {
+                    // modal content
                     var result = jQuery.parseJSON(json);
+
+                    // Render modal content
+                    callback(sectionData.section, result, obj, modalContainer);
+                    
+                },
+                error: function () {
+                    obj._removeLoading();
+                }
+            });
+        },
+
+        /**
+         * Render modal content
+         */
+        _renderModalContent: function(section, result, obj, modalContainer) {
+            jQuery.ajax({
+                url: 'php/router.php?controller=Modal&action=render',
+                data: result,
+                type: 'post',
+                async: true,
+                beforeSend: function () {
+                    obj._animate_before();
+                },
+                complete: function() {
+                    obj._removeLoading();
+                },
+                success: function(jsonObj) {
+                    console.log('hello');
+                    var result = jQuery.parseJSON(jsonObj);
                     modalContainer.append(result);
-                    obj.show_section(data.section, obj.options.modal_id);
+                    obj.show_section(section, obj.options.modal_id);
 
                     // Call callback function if specified
                     if (obj.options.callback !== null) {
@@ -292,34 +321,6 @@
                 }
             });
         }, 
-
-        /**
-         * load data from provided url
-         */
-        _loadData: function(data, obj, modalContainer, callback) {
-            jQuery.ajax({
-                url: data.url,
-                data: data,
-                type: 'post',
-                async: true,
-                beforeSend: function () {
-                    obj._animate_before();
-                },
-                complete: function() {
-                    obj._removeLoading();
-                },
-                success: function(json) {
-                    var result = jQuery.parseJSON(json);
-
-                    // Call callback function if specified
-                    callback(data, result, obj, modalContainer);
-                    
-                },
-                error: function () {
-                    obj._removeLoading();
-                }
-            });
-        },
 
         /**
          * Render loading layout on top of modal window

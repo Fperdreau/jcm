@@ -330,11 +330,18 @@ class Suggestion extends BaseModel {
      * @return mixed
      * @throws Exception
      */
-    public function get_form($view='body') {
+    public function get_form($view='body', $operation='edit', $id=null) {
         if ($view === "body") {
-            return self::format_section($this->editor($_POST));
+            return self::format_section($this->editor(array(
+                'operation'=>$operation, 
+                'id'=>$id
+            )));
         } else {
-            $content = $this->editor($_POST);
+            $content = $this->editor(array(
+                'operation'=>$operation, 
+                'id'=>$id
+            ));
+            
             return array(
                 'content'=>$content['content'],
                 'id'=>'suggestion',
@@ -437,11 +444,14 @@ class Suggestion extends BaseModel {
      * @return string
      */
     private static function add_button() {
+        $leanModalUrl = Modal::buildUrl('Suggestion', 'get_form', array(
+            'view'=>'modal',
+            'operation'=>'edit')
+        );
         return "
             <div>
                 <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
-                            class='leanModal' data-controller='Suggestion' data-action='get_form'
-                            data-params='modal' data-operation='edit' data-section='suggestion'>
+                            class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion'>
                     <input type='submit' value='Add' />
                 </a>
             </div>
@@ -488,7 +498,11 @@ class Suggestion extends BaseModel {
         $update = date('d M y', strtotime($item->up_date));
         $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id}";
         $keywords = self::keywords_list($item->keywords);
-
+        $leanModalUrl = Modal::buildUrl('Suggestion', 'show_details', array(
+            'view'=>'modal', 
+            'id'=> $item->id
+            )
+        );
         return "
         <div class='suggestion_container' id='{$item->id}''>
             <div class='suggestion_date'>
@@ -496,10 +510,11 @@ class Suggestion extends BaseModel {
             </div>
             <div class='suggestion_details_container'>
                 <div class='suggestion_details'>
-                   <a href='$url' class='leanModal' data-controller='Suggestion' data-action='show_details' 
-                   data-section='suggestion' data-params='{$item->id},modal' data-id='{$item->id}'>
+                   <a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion' data-id='{$item->id}'>
                         <div style='font-size: 16px;'>{$item->title}</div>
-                        <div style='font-style: italic; color: #000000; font-size: 12px;'>Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span></div>
+                        <div style='font-style: italic; color: #000000; font-size: 12px;'>
+                            Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span>
+                        </div>
                    </a>
                 </div>
                 {$keywords}
@@ -693,16 +708,19 @@ class Suggestion extends BaseModel {
         $file_div = $show ? $dl_menu['menu'] : null;
         $destination = $view === 'modal' ? '#suggestion' : '#suggestion_container';
         $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
-
+        $leanModalUrl = Modal::buildUrl(get_class(), 'get_form', array(
+            'view'=>$view,
+            'operation'=>'edit',
+            'id'=>$data['id'])
+        );
         // Add a delete media (only for admin and organizers or the authors)
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Suggestion' data-action='delete'>
                 <img src='" . URL_TO_IMG . "trash.png'></a>
                 </div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}' data-controller='Suggestion' 
-                data-action='get_form' data-section='suggestion' data-params='{$view}' data-id='{$data['id']}' 
-                data-operation='edit' data-destination='{$destination}'>
+            $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}' data-url='{$leanModalUrl}' 
+            data-section='suggestion' data-destination='{$destination}'>
                 <img src='" . URL_TO_IMG . "edit.png'></a>
                 </div>";
         } else {

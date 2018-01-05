@@ -238,13 +238,21 @@ class Presentation extends BaseModel {
     /**
      * Get submission form
      * @param string $view
-     * @return string|mixed
+     * @return mixed
+     * @throws Exception
      */
-    public function get_form($view='body') {
+    public function get_form($view='body', $operation='edit', $id=null) {
         if ($view === "body") {
-            return Presentation::format_section($this->editor($_POST));
+            return self::format_section($this->editor(array(
+                'operation'=>$operation, 
+                'id'=>$id
+            )));
         } else {
-            $content = $this->editor($_POST);
+            $content = $this->editor(array(
+                'operation'=>$operation, 
+                'id'=>$id
+            ));
+            
             return array(
                 'content'=>$content['content'],
                 'id'=>'presentation',
@@ -624,6 +632,11 @@ class Presentation extends BaseModel {
      */
     public static function show_in_list(stdClass $presentation, $speakerDiv) {
         $date = date('d M y', strtotime($presentation->date));
+        $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
+            'view'=>'modal',
+            'operation'=>'edit',
+            'id'=>$presentation->id_pres)
+        );
         return "
             <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
@@ -633,8 +646,7 @@ class Presentation extends BaseModel {
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
                     <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id_pres}" . "' 
-                    class='leanModal' data-controller='Presentation' data-action='show_details' 
-                    data-section='submission' data-params='{$presentation->id_pres},modal'>
+                    class='leanModal' data-url='{$leanModalUrl}' data-section='submission'>
                         $presentation->title
                     </a>
                 </div>
@@ -665,8 +677,12 @@ class Presentation extends BaseModel {
      * @return array
      */
     public static function inSessionEdit(array $data) {
-        $view_button = "<a href='#' class='leanModal pub_btn icon_btn' data-controller='Presentation' 
-            data-action='show_details' data-params='{$data['id']},modal' data-section='submission' 
+        $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
+            'view'=>'modal',
+            'operation'=>'edit',
+            'id'=>$data['id'])
+        );
+        $view_button = "<a href='#' class='leanModal pub_btn icon_btn' data-url='{$leanModalUrl}' data-section='submission' 
             data-title='Submission'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
@@ -688,8 +704,12 @@ class Presentation extends BaseModel {
      */
     private static function RenderTitle(array $data) {
         $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
-        return "<a href='{$url}' class='leanModal' data-controller='Presentation' 
-            data-action='show_details' data-params='{$data['id_pres']},modal' data-section='submission' 
+        $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
+            'view'=>'modal',
+            'operation'=>'edit',
+            'id'=>$data['id_pres'])
+        );
+        return "<a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='submission' 
             data-title='Submission'>{$data['title']}</a>";
     }
 
@@ -775,15 +795,18 @@ class Presentation extends BaseModel {
         $file_div = $show ? $dl_menu['menu'] : null;
         $destination = $view === 'modal' ? '#presentation' : '#presentation_container';
         $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
-
+        $leanModalUrl = Modal::buildUrl(get_class(), 'get_form', array(
+            'view'=>$view,
+            'operation'=>'edit',
+            'id'=>$data['id'])
+        );
         // Add a delete link (only for admin and organizers or the authors)
         if ($show) {
             $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
                 data-controller='Presentation' data-action='delete_pres'>
                 <img src='" . URL_TO_IMG . "trash.png'></a></div>";
             $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}'
-                data-controller='Presentation' data-section='presentation' data-action='get_form' data-params='{$view}' 
-                data-id='{$data['id']}' data-operation='edit' data-date='{$data['date']}' data-destination='{$destination}'>
+                data-controller='Presentation' data-url='{$leanModalUrl}' data-section='presentation' data-date='{$data['date']}'>
                 <img src='" . URL_TO_IMG . "edit.png'></a></div>";
         } else {
             $delete_button = "<div style='width: 100px'></div>";
@@ -1164,13 +1187,22 @@ class Presentation extends BaseModel {
      */
     public static function submitMenu($destination='body', $style='submitMenu_fixed') {
         $modal = $destination == 'body' ? 'loadContent' : "leanModal";
+        $leanModalUrl_presentation = Modal::buildUrl('Presentation', 'get_form', array(
+            'view'=>'modal',
+            'operation'=>'edit')
+        );
+        $leanModalUrl_suggestion = Modal::buildUrl('Suggestion', 'get_form', array(
+            'view'=>'modal',
+            'operation'=>'edit')
+        );
+        $leanModalUrl_select = Modal::buildUrl('Suggestion', 'get_suggestion_list', array('view'=>'modal')
+        );
         return "
             <div class='{$style}'>
                 <div class='submitMenuContainer'>
                     <div class='submitMenuSection'>
                         <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=edit' . "' 
-                        class='{$modal}' data-url='php/router.php?controller=Presentation&action=get_form&view={$destination}' 
-                        data-destination='.submission_container' data-operation='edit'>
+                        class='{$modal}' data-url='{$leanModalUrl_presentation}' data-destination='.submission_container'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'add_paper.png' . "'></div>
                                 <div class='text'>Submit</div>
@@ -1179,8 +1211,7 @@ class Presentation extends BaseModel {
                     </div>
                     <div class='submitMenuSection'>
                         <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=suggest' . "' 
-                        class='{$modal}' data-url='php/router.php?controller=Suggestion&action=get_form&view={$destination}' 
-                        data-destination='.submission_container' data-operation='edit'>
+                        class='{$modal}' data-url='{$leanModalUrl_suggestion}' data-destination='.submission_container'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'wish_paper.png' . "'></div>
                                 <div class='text'>Add a wish</div>
@@ -1189,8 +1220,7 @@ class Presentation extends BaseModel {
                     </div>
                     <div class='submitMenuSection'>
                         <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=wishpick' . "' 
-                        class='{$modal}' data-url='php/router.php?controller=Suggestion&action=get_suggestion_list&view={$destination}' 
-                        data-destination='.submission_container'>
+                        class='{$modal}' data-url={$leanModalUrl_select}' data-destination='.submission_container'>
                             <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'select_paper.png'. "'></div>
                                 <div class='text'>Select a wish</div>
