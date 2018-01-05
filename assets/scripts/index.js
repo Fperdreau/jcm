@@ -1686,51 +1686,25 @@ $(document).ready(function () {
         .on('click', '.user_delete', function(e) {
             e.preventDefault();
             var el = $(this);
-            el.data('action', 'delete');
-            jQuery.ajax({
-                'url': 'php/form.php',
-                'type': 'post',
-                data: {'get_delete_account_form': true},
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    confirmationBox(el, json.content, null, function () {
-                        var data = el.data();
-                        data['delete'] = true;
-                        jQuery.ajax({
-                            url: 'php/form.php',
-                            type: 'post',
-                            data: data,
-                            success: function(ajax) {
-                                var result = jQuery.parseJSON(ajax);
-                                if (result === true) {
-                                    showfeedback("<div class='sys_msg success'>Account successfully deleted. You are going to be logged out.</div>", '.confirmation_text');
-                                    setTimeout(function() {
-                                        close_modal();
-                                        location.reload();
-                                    }, 2000);
-                                } else {
-                                    showfeedback("<div class='sys_msg warning'>Sorry, we could not delete your account. Please, try later.</div>", '.confirmation_text', false);
-                                }
-                            }
-                        });
-                    });
-                }
+            confirmationBox(el, 'Are you sure you want to delete your account?', 'Delete my account', function () {
+                jQuery.ajax({
+                    url: 'php/router.php?controller=Users&action=delete_user&username=' + el.data('username'),
+                    type: 'post',
+                    async: true,
+                    success: function(ajax) {
+                        var result = jQuery.parseJSON(ajax);
+                        if (result === true || (result.hasOwnProperty('status') && result.status === true)) {
+                            showfeedback("<div class='sys_msg success'>Account successfully deleted. You are going to be logged out.</div>", '.confirmation_text');
+                            setTimeout(function() {
+                                el.modalTrigger('close');
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            showfeedback("<div class='sys_msg warning'>Sorry, we could not delete your account. Please, try later.</div>", '.confirmation_text', false);
+                        }
+                    }
+                });
             });
-
-        })
-
-        // Delete user account confirmation form
-        .on('click',".confirmdeleteuser",function (e) {
-            e.preventDefault();
-            var input = $(this);
-            var form = input.length > 0 ? $(input[0].form) : $();
-            var callback = function (result) {
-                if (result.status === true) {
-                    logout();
-                }
-            };
-            processForm(form, callback);
-            e.stopImmediatePropagation();
         })
 
         // Login form

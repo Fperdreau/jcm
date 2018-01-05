@@ -944,59 +944,6 @@ class Users extends BaseModel {
     }
 
     /**
-     * Render dialog window to delete account
-     * @return string
-     */
-    public static function delete_account_form_body() {
-        return "
-            <div>Please, confirm your identity.</div>
-            <form id='confirmdeleteuser' method='post' action='" . URL_TO_APP . 'php/form.php' . "' autocomplete='off'>
-                <div><input type='hidden' name='delete_user' value='true'></div>
-                <div class='form-group'>
-                    <input type='text' id='del_username' name='username' value='' required autocomplete='off'/>
-                    <label for='del_username'>Username</label>
-                </div>
-                <div class='form-group'>
-                    <input type='password' id='del_password' name='password' value='' required autocomplete='off'/>
-                    <label for='del_password'>Password</label>
-                </div>
-                <div class='action_btns'>
-                    <input type='submit' class='confirmdeleteuser' value='Delete my account'>
-                </div>
-            </form>
-        ";
-    }
-
-    /**
-     * Render registration form for modal windows
-     * @return array
-     */
-    public static function delete_account_form_modal() {
-        return array(
-            'id'=>'user_delete',
-            'content'=>"
-                <div>Please, confirm your identity.</div>
-                <form id='confirmdeleteuser' method='post' action='" . URL_TO_APP . 'php/form.php' . "' autocomplete='off'>
-                    <div><input type='hidden' name='delete_user' value='true'></div>
-                    <div class='form-group'>
-                        <input type='text' id='del_username' name='username' value='' required autocomplete='off'/>
-                        <label for='del_username'>Username</label>
-                    </div>
-                    <div class='form-group'>
-                        <input type='password' id='del_password' name='password' value='' required autocomplete='off'/>
-                        <label for='del_password'>Password</label>
-                    </div>
-                    <div class='action_btns'>
-                        <input type='submit' class='confirmdeleteuser' value='Delete my account'>
-                    </div>
-                </form>
-            ",
-            'title'=>'Delete account',
-            'buttons'=>"Delete my account"
-        );
-    }
-
-    /**
      * Render change password form
      * @return string
      */
