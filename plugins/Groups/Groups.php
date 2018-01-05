@@ -28,6 +28,7 @@ use includes\ReminderMaker;
 use includes\Session;
 use includes\Presentation;
 use includes\Users;
+use includes\Plugin;
 
 /**
  * Class Groups
