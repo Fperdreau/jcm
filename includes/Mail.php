@@ -27,13 +27,15 @@
 namespace includes;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use Html2Text;
 
 /**
  * Class Mail
  *
  * requirement: PHPMailer, HTML2TEXT
  */
-class Mail {
+class Mail
+{
 
     /**
      * @var array $settings
