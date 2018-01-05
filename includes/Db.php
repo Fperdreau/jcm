@@ -26,20 +26,24 @@
 
 namespace includes;
 
+use includes\Config;
+use includes\Logger;
+
 /**
  * Class AppDb
  *
  * Handle communication routines with the database (writing, reading, updating)
  * and environmental information (list of tables associated to the application,...).
  */
-class Db {
+class Db
+{
 
     /**
      * Link to the database
      *
      * @var mysqli
      */
-    private $bdd = NULL;
+    private $bdd = null;
 
     /**
      * @var array $config
@@ -101,7 +105,8 @@ class Db {
      * Get db config
      * @return array
      */
-    public static function get_config() {
+    public static function get_config()
+    {
         return Config::getInstance()->getAll();
     }
 
@@ -126,7 +131,7 @@ class Db {
                 if (!$this->bdd = @mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw'])) {
                     throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
                 }
-            } catch(Exception $e) {
+            } catch (Exception $e) {
                 $result['status'] = false;
                 $result['msg'] = $e->getMessage();
                 Logger::getInstance(APP_NAME)->critical($result['msg']);
@@ -149,7 +154,7 @@ class Db {
         }
 
         return $this->bdd;
-	}
+    }
 
     /**
      * Test credentials and throws exceptions
@@ -179,7 +184,7 @@ class Db {
     /**
      * @return mixed
      */
-    function getCharSet() {
+    public function getCharSet() {
         return $this->bdd->get_charset();
     }
 
