@@ -39,7 +39,6 @@ class Modal {
      * @return bool|string
      */
     public static function get_modal(array $post) {
-        var_dump($post);
         $controllerName = htmlspecialchars($post['controller']);
         $action = htmlspecialchars($post['action']);
         $params = isset($post['params']) ? explode(',', htmlspecialchars($post['params'])) : array();
@@ -56,6 +55,16 @@ class Modal {
 
     public static function render(array $data) {
         return self::section($data);
+    }
+
+    public static function buildUrl($controller, $action, array $params=null) {
+        $paramStr = '';
+        if (!is_null($params)) {
+            foreach ($params as $key=>$value) {
+                $paramStr .= "&{$key}={$value}";
+            }
+        }
+        return "php/router.php?controller={$controller}&action={$action}{$paramStr}";
     }
 
     /**
