@@ -24,12 +24,14 @@
 namespace includes;
 
 use includes\BaseModel;
+use includes\Template;
 
 /**
  * Class Settings
  * @package Core
  */
-class Settings extends BaseModel {
+class Settings extends BaseModel
+{
 
     /**
      * Object name
@@ -54,7 +56,8 @@ class Settings extends BaseModel {
      * @param string $class_name : object name
      * @param null|array $settings : object's settings
      */
-    public function __construct($class_name=null, $settings=null) {
+    public function __construct($class_name = null, $settings = null)
+    {
         parent::__construct();
         $this->object = $class_name;
         $this->settings = $settings;
@@ -66,10 +69,11 @@ class Settings extends BaseModel {
     /**
      * Get application settings
      */
-    public function load() {
+    public function load()
+    {
         $this->loadAll();
         if (!is_null($this->settings) && !is_null($this->all)) {
-            foreach ($this->settings as $setting=>$value) {
+            foreach ($this->settings as $setting => $value) {
                 if (key_exists($this->object, $this->all) and key_exists($setting, $this->all[$this->object])) {
                     $new_value = $this->all[$this->object][$setting];
                     if (is_array($value)) {
@@ -81,18 +85,26 @@ class Settings extends BaseModel {
         }
     }
 
-    private function getDefaults() {
+    /**
+     * Get Default settings
+     *
+     * @return void
+     */
+    private function getDefaults()
+    {
         $includeList = scandir(PATH_TO_INCLUDES);
         $result = array();
         foreach ($includeList as $includeFile) {
-            if (!in_array($includeFile, array('.', '..', 'Autoloader.php', 'BaseModel.php'))) {
-                $class_name = explode('.', $includeFile);
-                if (class_exists($class_name[0], true)) {
-                    if (property_exists($class_name[0], 'settings')) {
+            if (!in_array($includeFile, array('.', '..', 'PasswordHash.php', 'Autoloader.php', 'BaseModel.php'))) {
+                $split = explode('.', $includeFile);
+                $className = $split[0];
+                $instClassName = '\\includes\\' . $className;
+                if (class_exists($instClassName, true)) {
+                    if (property_exists($instClassName, 'settings')) {
                         try {
-                            $result[$class_name[0]]= $class_name[0]::settings;
+                            $result[$className]= $instClassName::settings;
                         } catch (Exception $e) {
-                            Logger::getInstance(APP_NAME)->error("Calling {$class_name[0]}->install_db()");
+                            Logger::getInstance(APP_NAME)->error("Calling {$instClassName[0]}->settings");
                             return null;
                         }
                     }
@@ -104,9 +116,10 @@ class Settings extends BaseModel {
     /**
      * Load all settings and group them by controller
      */
-    private function loadAll() {
-        foreach ($this->getAll() as $object=>$item) {
-            foreach ($item as $setting=>$value) {
+    private function loadAll()
+    {
+        foreach ($this->getAll() as $object => $item) {
+            foreach ($item as $setting => $value) {
                 $this->all[$object][$setting] = $value;
             }
         }
@@ -119,9 +132,9 @@ class Settings extends BaseModel {
      * @param null $setting
      * @return null|mixed
      */
-    public function getByObject($object, $setting=null) {
-        $this->loadAll();
-        if (key_exists($object, $this->all)) {
+    public function getByObject($object, $setting = null)
+    {
+        if (key_exists($object, $this->loadAll())) {
             if (!is_null($setting)) {
                 if (key_exists($setting, $this->all[$object])) {
                     return $this->all[$object][$setting];
@@ -142,12 +155,15 @@ class Settings extends BaseModel {
      * @param array $id
      * @return bool
      */
-    public function update(array $post, array $id) {
+    public function update(array $post, array $id)
+    {
         // Sanitize posted data
         $result = true;
-        foreach ($this->settings as $varName=>$value) {
+        foreach ($this->settings as $varName => $value) {
             $new_value = isset($post[$varName]) ? $post[$varName] : $value;
-            if (is_array($value)) $new_value = json_encode($new_value);
+            if (is_array($value)) {
+                $new_value = json_encode($new_value);
+            }
 
             if ($this->isExist(array("variable"=>$varName, "object"=>$this->object))) {
                 $result = $this->db->update(
@@ -168,7 +184,8 @@ class Settings extends BaseModel {
     /**
      * Get all settings grouped by controller from Db
      */
-    private function getAll() {
+    private function getAll()
+    {
         $results_array = array();
         if ($this->db->tableExists($this->tablename)) {
             $sql = "SELECT * FROM {$this->tablename}";
@@ -184,18 +201,21 @@ class Settings extends BaseModel {
      * Render Settings index page
      * @return string|null
      */
-    public function index() {
+    public function index()
+    {
         $includeList = scandir(PATH_TO_INCLUDES);
         $result = null;
         foreach ($includeList as $includeFile) {
-            if (!in_array($includeFile, array('.', '..', 'Autoloader.php', 'BaseModel.php'))) {
-                $class_name = explode('.', $includeFile);
-                if (class_exists($class_name[0], true)) {
-                    if (method_exists($class_name[0], 'SettingsForm')) {
+            if (!in_array($includeFile, array('.', '..', 'PasswordHash.php', 'Autoloader.php', 'BaseModel.php'))) {
+                $split = explode('.', $includeFile);
+                $className = $split[0];
+                $instClassName = '\\includes\\' . $className;
+                if (class_exists($instClassName, true)) {
+                    if (method_exists($instClassName, 'SettingsForm')) {
                         try {
-                            $result .= Template::section($class_name[0]::settingsForm($this->getByObject($class_name[0])));
-                        } catch (Exception $e) {
-                            Logger::getInstance(APP_NAME)->error("Calling {$class_name[0]}->install_db()");
+                            $result .= Template::section($instClassName::settingsForm($this->getByObject($className)));
+                        } catch (\Exception $e) {
+                            Logger::getInstance(APP_NAME)->error("Calling {$instClassName[0]}->SettingsForm()");
                             return null;
                         }
                     }
@@ -204,5 +224,4 @@ class Settings extends BaseModel {
         }
         return $result;
     }
-
 }
