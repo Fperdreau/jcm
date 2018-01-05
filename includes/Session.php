@@ -626,7 +626,7 @@ class Session extends BaseModel {
      */
     public function clean_duplicates() {
         $sql = "SELECT * FROM {$this->tablename}";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
@@ -835,7 +835,7 @@ class Session extends BaseModel {
      */
     public function checkDb() {
         if ($this->db->isColumn($this->tablename, 'time')) {
-            $req = $this->db->send_query("SELECT date,jc_time FROM " . $this->db->getAppTables('Presentation'));
+            $req = $this->db->sendQuery("SELECT date,jc_time FROM " . $this->db->getAppTables('Presentation'));
             while ($row = $req->fetch_assoc()) {
                 if (!$this->isExist(array('date'=>$row['date']))) {
                     $result = $this->make(array('date'=>$row['date'],'time'=>$row['jc_time']));
@@ -983,7 +983,7 @@ class Session extends BaseModel {
                         ON u.username=p.username
                  {$search['cond']} {$param} {$limit}";
 
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         if ($req !== false) {
             while ($row = $req->fetch_assoc()) {
@@ -1005,7 +1005,7 @@ class Session extends BaseModel {
                 INNER JOIN " . Db::getInstance()->getAppTables('Users'). " u
                 ON p.username=u.username                
             WHERE p.session_id='{$data['id']}'";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data['presids'] = array();
         $data['speakers'] = array();
         while ($row = $req->fetch_assoc()) {
@@ -1023,7 +1023,7 @@ class Session extends BaseModel {
     public function get_repeated() {
         $sql = "SELECT * FROM {$this->tablename}
                   WHERE to_repeat=1 and repeated=0 and end_date>date";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
@@ -1040,7 +1040,7 @@ class Session extends BaseModel {
         $sql = "SELECT id,date FROM {$this->tablename} WHERE date>=CURDATE() ORDER BY date ASC";
 
         $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
 
         $sessions = array();
         while ($row = $req->fetch_assoc()) {
@@ -1070,7 +1070,7 @@ class Session extends BaseModel {
         $sql = "SELECT * FROM {$this->tablename} WHERE date>CURDATE() ORDER BY date ASC";
 
         $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
 
         $sessions = array();
         while ($row = $req->fetch_assoc()) {
@@ -1116,7 +1116,7 @@ class Session extends BaseModel {
         }
         $overlap = null;
         $sql = "SELECT * FROM {$this->tablename} WHERE date='{$session_data['date']}'{$overlap}";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->db->sendQuery($sql)->fetch_assoc();
         return is_null($data);
     }
 

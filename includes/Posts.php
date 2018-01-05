@@ -164,7 +164,7 @@ class Posts extends BaseModel
      */
     public function getlastnews($limit=3) {
         $sql = "SELECT id from {$this->tablename} ORDER BY date DESC LIMIT 0, {$limit}";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row['id'];
@@ -185,7 +185,7 @@ class Posts extends BaseModel
             SELECT id
             FROM {$this->tablename}
             ORDER BY {$order} LIMIT $page, $pp";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row{'id'};
@@ -199,7 +199,7 @@ class Posts extends BaseModel
      * @return int
      */
     public function getCount($id=null) {
-        $req = $this->db->send_query("SELECT * FROM {$this->tablename}");
+        $req = $this->db->sendQuery("SELECT * FROM {$this->tablename}");
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
@@ -552,7 +552,7 @@ class Posts extends BaseModel
     public static function patch_table () {
         $self = new self();
         $sql = "SELECT * FROM {$self->tablename}";
-        $req = $self->db->send_query($sql);
+        $req = $self->db->sendQuery($sql);
         $user = new Users();
         while ($row = mysqli_fetch_assoc($req)) {
             $data = $user->get(array('fullname'=>$row['username']));

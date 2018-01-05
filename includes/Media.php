@@ -128,7 +128,7 @@ class Media extends BaseModel{
             // Delete Db entry if the file does not exit on the server
             if (!in_array($filename, $files)) {
                 $sql = "SELECT id FROM {$this->tablename} WHERE filename='{$filename}'";
-                $data = $this->db->send_query($sql)->fetch_assoc();
+                $data = $this->db->sendQuery($sql)->fetch_assoc();
                 if  (!$this->db->delete($this->tablename, array('id'=>$data['id']))) {
                     Logger::getInstance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
                     return False;

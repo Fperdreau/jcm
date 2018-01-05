@@ -61,11 +61,11 @@ class Backup {
             //cycle through
             foreach($allTables as $table)
             {
-                $result = $db->send_query('SELECT * FROM '.$table);
+                $result = $db->sendQuery('SELECT * FROM '.$table);
                 $num_fields = mysqli_num_fields($result);
 
                 $return.= 'DROP TABLE '.$table.';';
-                $row = $db->send_query('SHOW CREATE TABLE '.$table);
+                $row = $db->sendQuery('SHOW CREATE TABLE '.$table);
                 $row2 = mysqli_fetch_row($row);
                 $return.= "\n\n".$row2[1].";\n\n";
 

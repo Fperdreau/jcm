@@ -523,7 +523,7 @@ class Presentation extends BaseModel {
         // Get presentations dates
         $sql = "SELECT date,id FROM $this->tablename";
         if ($excluded !== false) $sql .= " WHERE type!='$excluded'";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $dates = array();
         while ($row = mysqli_fetch_assoc($req)) {
             $dates[$row['date']][] = $row['id'];
@@ -590,7 +590,7 @@ class Presentation extends BaseModel {
                 LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
                     ON u.username=p.username
                 WHERE p.id='{$id}'";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->db->sendQuery($sql)->fetch_assoc();
 
         if (!empty($data)) {
             $this->map($data);

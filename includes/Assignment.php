@@ -201,7 +201,7 @@ class Assignment extends BaseModel {
     public function getPresentations() {
         // Step 1: get users' presentations sorted by session type
         $sql = "SELECT * FROM " . $this->db->gen_name('Presentation');
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $list = array();
 
         while ($row = $req->fetch_assoc()) {
@@ -298,7 +298,7 @@ class Assignment extends BaseModel {
 
         if ($source === 'db') {
             // Get list of users currently registered into the assignment table
-            $req = $this->db->send_query("SELECT username FROM {$this->tablename}");
+            $req = $this->db->sendQuery("SELECT username FROM {$this->tablename}");
             $data = array();
             while ($row = $req->fetch_assoc()) {
                 $data[] = $row;
@@ -332,7 +332,7 @@ class Assignment extends BaseModel {
                 FROM {$this->tablename} p
                 LEFT JOIN {$this->db->gen_name('Users')} u
                 ON p.username=u.username";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $data[] = $row;
@@ -349,7 +349,7 @@ class Assignment extends BaseModel {
      * @return mixed
      */
     public function getAssignable($session_type, $max, $date) {
-        $req = $this->db->send_query("
+        $req = $this->db->sendQuery("
             SELECT * 
             FROM {$this->tablename} a
             INNER JOIN ".$this->db->tablesname['Users']." u
@@ -381,7 +381,7 @@ class Assignment extends BaseModel {
      */
     public function getMax($session_type) {
         $sql = "SELECT MAX($session_type) as maximum FROM $this->tablename";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->db->sendQuery($sql)->fetch_assoc();
         return (int)$data['maximum'];
     }
 
@@ -395,7 +395,7 @@ class Assignment extends BaseModel {
     public function updateTable($session_type, $speaker, $add=true) {
         if ($session_type === 'none') return true;
         $inc = ($add) ? 1:-1; // increase or decrease number of presentations
-        $value = $this->db->send_query("SELECT {$session_type} 
+        $value = $this->db->sendQuery("SELECT {$session_type} 
                                         FROM {$this->tablename} 
                                         WHERE username='{$speaker}'")->fetch_array();
         $value = ((int)$value > 0) ? (int)$value[$session_type] + $inc: 0; // Assignment number can be negative

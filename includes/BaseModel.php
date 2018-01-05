@@ -219,8 +219,7 @@ abstract class BaseModel
     protected function getTableName()
     {
         $split = explode('\\', get_class($this));
-        var_dump(end($split));
-        return Db::getInstance()->gen_name(end($split));
+        return Db::getInstance()->genName(end($split));
     }
 
     /**
@@ -315,7 +314,7 @@ abstract class BaseModel
      */
     public function getLastID()
     {
-        $data = $this->db->send_query("SELECT max(id) from {$this->tablename}");
+        $data = $this->db->sendQuery("SELECT max(id) from {$this->tablename}");
         return (int)$data->fetch_row()[0];
     }
 
@@ -331,7 +330,7 @@ abstract class BaseModel
         }
         $search = implode('AND ', $search);
         $sql = "SELECT * FROM {$this->tablename} WHERE {$search}";
-        $req = $this->db->send_query($sql);
+        $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = mysqli_fetch_assoc($req)) {
             $data[] = $row;

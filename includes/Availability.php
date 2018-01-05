@@ -60,7 +60,7 @@ class Availability extends BaseModel {
         }
         $where = implode(' AND ', $where);
         $sql = "SELECT * FROM {$this->tablename} WHERE {$where}";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->db->sendQuery($sql)->fetch_assoc();
         return !empty($data);
     }
 }

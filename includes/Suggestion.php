@@ -391,7 +391,7 @@ class Suggestion extends BaseModel {
                 LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
                     ON u.username=p.username
                 WHERE p.id='{$id_pres}'";
-        $data = $this->db->send_query($sql)->fetch_assoc();
+        $data = $this->db->sendQuery($sql)->fetch_assoc();
 
         if (!empty($data)) {
             $this->map($data);
@@ -424,7 +424,7 @@ class Suggestion extends BaseModel {
                   GROUP BY p.id
                   ORDER BY {$order} {$dir}" . $limit;
         $data = array();
-        if ($req = $this->db->send_query($sql)) {
+        if ($req = $this->db->sendQuery($sql)) {
             while ($row = $req->fetch_assoc()) {
                 $data[] = $row;
             }

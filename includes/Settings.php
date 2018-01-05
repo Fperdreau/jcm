@@ -172,7 +172,7 @@ class Settings extends BaseModel {
         $results_array = array();
         if ($this->db->tableExists($this->tablename)) {
             $sql = "SELECT * FROM {$this->tablename}";
-            $req = $this->db->send_query($sql);
+            $req = $this->db->sendQuery($sql);
             while ($row = $req->fetch_assoc()) {
                 $results_array[$row['object']][$row['variable']] = $row['value'];
             }

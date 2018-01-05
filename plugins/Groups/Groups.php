@@ -125,7 +125,7 @@ class Groups extends Plugin
             $this->clearTable();
 
             // 3: Assign groups
-            $result = $this->makegroups($next_session); // Make groups
+            $result = $this->makeGroups($next_session); // Make groups
         } else {
             $result['status'] = false;
             $result['msg'] = 'Either there is no session plan on the next journal club day, or groups have already been 
@@ -180,7 +180,7 @@ class Groups extends Plugin
      * @param array $session: next session
      * @return array|bool
      */
-    public function makegroups(array $session)
+    public function makeGroups(array $session)
     {
 
         $rooms = explode(',', $this->options['room']['value']);
