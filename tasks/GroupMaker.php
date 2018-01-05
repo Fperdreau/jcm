@@ -27,6 +27,9 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\Plugins;
+use includes\MailManager;
+use Plugins\Groups;
 
 /**
  * Class MakeGroup
@@ -34,7 +37,8 @@ use includes\Task;
  * Scheduled task that creates users groups according to the number of presentations for a particular session
  * (1 group/presentation)
  */
-class GroupMaker extends Task {
+class GroupMaker extends Task
+{
 
     public $name= 'GroupMaker';
     public $options = array(
@@ -49,7 +53,8 @@ class GroupMaker extends Task {
      * Run scheduled task
      * @return mixed
      */
-    public function run() {
+    public function run()
+    {
         $Plugins = new Plugins();
         $Plugins->isInstalled('Groups');
         if (!$Plugins->isInstalled('Groups')) {
@@ -68,7 +73,8 @@ class GroupMaker extends Task {
      * Run scheduled task
      * @return string
      */
-    public function notify() {
+    public function notify()
+    {
         $MailManager = new MailManager();
         $Group = new Groups();
 
@@ -76,7 +82,7 @@ class GroupMaker extends Task {
         $users = $MailManager->get_mailinglist("notification");
         $nusers = count($users);
         $sent = 0;
-        foreach ($users as $username=>$user) {
+        foreach ($users as $username => $user) {
             $content = $Group->makeMail($user['username']);
             if ($MailManager->send($content, array($user['email']))) {
                 $sent += 1;
@@ -85,4 +91,3 @@ class GroupMaker extends Task {
         return "Message sent successfully to {$sent}/{$nusers} users.";
     }
 }
-

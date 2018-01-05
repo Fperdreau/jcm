@@ -27,6 +27,9 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\MailManager;
+use includes\ReminderMaker;
+use includes\Session;
 
 /**
  * Class Reminder
@@ -37,7 +40,7 @@ class Reminder extends Task {
 
     public $name = 'Reminder';
     public $status = 'Off';
-    public $installed = False;
+    public $installed = false;
     public $description = "Sends a reminder regarding the upcoming session to members who agreed upon receiving 
     email notifications and reminders (which can be set on their profile page).";
 
@@ -51,7 +54,8 @@ class Reminder extends Task {
      * Run scheduled task
      * @return mixed
      */
-    public function run() {
+    public function run()
+    {
         $Session = new Session();
         $data = $Session->getNext(1);
         if (!empty($data)) {
@@ -68,7 +72,8 @@ class Reminder extends Task {
      * Send digest email to users
      * @return array
      */
-    private static function sendDigest() {
+    private static function sendDigest()
+    {
         $MailManager = new MailManager();
         $ReminderMaker = new ReminderMaker();
 
@@ -76,7 +81,7 @@ class Reminder extends Task {
         $users = $MailManager->get_mailinglist("reminder");
         $nusers = count($users);
         $sent = 0;
-        foreach ($users as $username=>$user) {
+        foreach ($users as $username => $user) {
             $content = $ReminderMaker->makeDigest($user['username']);
             if ($MailManager->send($content, array($user['email']))) {
                 $sent += 1;
@@ -90,7 +95,8 @@ class Reminder extends Task {
      * @param callable $callback
      * @return mixed
      */
-    private function check($callback) {
+    private function check($callback)
+    {
         $Session = new Session();
         $data = $Session->getNext(1);
         if (!empty($data)) {
@@ -101,7 +107,6 @@ class Reminder extends Task {
             }
         }
         return array('status'=>false, 'msg'=>'Nothing to send');
-
     }
 
     /**
@@ -109,7 +114,8 @@ class Reminder extends Task {
      * @param $fullname
      * @return mixed
      */
-    public function makeMail($fullname) {
+    public function makeMail($fullname)
+    {
         $session = new Session();
         $date = $session->getNextDates(1)[0];
         $sessioncontent = $session->showNextSession();
@@ -120,8 +126,10 @@ class Reminder extends Task {
                 <p>This is a reminder for the next Journal Club session.</p>
             </div>
 
-            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+            <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; 
+            background-color: rgba(255,255,255,1);'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+                font-weight: 500; font-size: 1.2em;'>
                     Session Information
                 </div>
                 <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>

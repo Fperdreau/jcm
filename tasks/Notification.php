@@ -27,24 +27,27 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\MailManager;
 
 /**
  * Class Notification
  *
  * Scheduled tasks that send a notification email including the last submissions
  */
-class Notification extends Task {
+class Notification extends Task
+{
 
     public $name = 'Notification';
     public $status = 'Off';
-    public $installed = False;
+    public $installed = false;
     public $description = "Sends a email notification to members with the list of the last submitted presentations";
 
     /**
      * Run scheduled task: send an email with the last submissions
      * @return mixed
      */
-    public function run() {
+    public function run()
+    {
         $MailManager = new MailManager();
 
         // Number of users
@@ -57,17 +60,15 @@ class Notification extends Task {
 
         if (!empty($presentationList)) {
             $result = false;
-            foreach ($mailing_list as $fullname=>$data) {
+            foreach ($mailing_list as $fullname => $data) {
                 $content = $this->makeMail($presentationList, $fullname);
 
                 if ($result = $MailManager->send($content, array($data['email']))) {
-
                     // Tell to the db that notifications have been sent about the new presentations
                     foreach ($presentationList as $presid) {
                         $pres = new Presentation();
                         $pres->update(array('notified'=>1), array('id_pres'=>$presid));
                     }
-
                 } else {
                     $result = false;
                 }
@@ -85,7 +86,8 @@ class Notification extends Task {
      * @param string $fullname
      * @return mixed
      */
-    public function makeMail($presentationList, $fullname) {
+    public function makeMail($presentationList, $fullname)
+    {
         // Get latest submitted presentation
         $nb_pres = count($presentationList);
         $list = "";
@@ -99,8 +101,10 @@ class Notification extends Task {
             <p>New presentations have been recently submitted!</p>
         </div>
 
-        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; 
+        border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+            font-weight: 500; font-size: 1.2em;'>
                 New submissions
             </div>
             <div style='padding: 5px; background-color: rgba(255,255,255,.5); display: block;'>
@@ -108,7 +112,8 @@ class Notification extends Task {
             </div>
         </div>
         ";
-        $content['subject'] = $nb_pres > 1 ? "{$nb_pres} new presentations have been submitted!" : "{$nb_pres} new presentation has been submitted!";;
+        $content['subject'] = $nb_pres > 1 ? "{$nb_pres} new presentations have been submitted!" :
+        "{$nb_pres} new presentation has been submitted!";
         return $content;
     }
 }

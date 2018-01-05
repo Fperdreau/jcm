@@ -27,17 +27,18 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\Session;
 
 /**
  * Class SessionMaker
  *
  * Automatically repeatAll and create sessions based on user defined rules
  */
-class SessionMaker extends Task {
-
+class SessionMaker extends Task
+{
     public $name = 'SessionMaker';
     public $status = 'Off';
-    public $installed = False;
+    public $installed = false;
     public $options = array(
         'session_to_plan'=>array(
             'options'=>array(),
@@ -50,7 +51,8 @@ class SessionMaker extends Task {
      * @param null|string $max_date: date until which session should be repeated
      * @return mixed
      */
-    public function run($max_date=null) {
+    public function run($max_date = null)
+    {
         $logs = null;
         $Sessions = new Session();
 
@@ -58,7 +60,4 @@ class SessionMaker extends Task {
         $result['logs'] = $logs;
         return $result;
     }
-
 }
-
-

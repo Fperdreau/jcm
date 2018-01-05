@@ -28,6 +28,7 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\Backup;
 
 /**
  * Class FullBackup
@@ -35,7 +36,8 @@ use includes\Task;
  * Scheduled task that creates full backups of the web-site (files & database) and store the corresponding archives
  * in backup/complete.
  */
-class FullBackup extends Task {
+class FullBackup extends Task
+{
     /**
      * Assign chairmen for the next n sessions
      * @return bool
@@ -43,7 +45,7 @@ class FullBackup extends Task {
 
     public $name = 'FullBackup';
     public $status = 'Off';
-    public $installed = False;
+    public $installed = false;
     public $options = array(
         'nb_version'=>array(
             'options'=>array(),
@@ -57,7 +59,8 @@ class FullBackup extends Task {
      * Execute schedule task: make a full back up of the application (files and Db) and send copy by email to admin
      * @return mixed
      */
-    public function run() {
+    public function run()
+    {
         // db backup
         $backupFile = Backup::backupDb($this->options['nb_version']['value']); // backup database
         Backup::mail_backup($backupFile); // Send backup file to admins

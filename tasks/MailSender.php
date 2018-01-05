@@ -27,11 +27,13 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\MailManager;
 
 /**
  * Class MailSender
  */
-class MailSender extends Task {
+class MailSender extends Task
+{
 
     /**
      * @var string: Task name
@@ -59,7 +61,8 @@ class MailSender extends Task {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         self::getMailer();
     }
@@ -68,7 +71,8 @@ class MailSender extends Task {
      * Factory
      * @return MailManager
      */
-    private function getMailer() {
+    private function getMailer()
+    {
         if (is_null(self::$Manager)) {
             self::$Manager = new MailManager();
         }
@@ -78,10 +82,11 @@ class MailSender extends Task {
     /**
      * Sends emails
      */
-    public function run() {
+    public function run()
+    {
 
         // Process emails
-        $result = $this->process_mails();
+        $result = $this->processMails();
 
         // Clean DB
         $this->clean();
@@ -93,13 +98,14 @@ class MailSender extends Task {
      * Attempt to send emails that haven't been successfully sent in the past
      * @return string
      */
-    public function process_mails() {
+    public function processMails()
+    {
         // Get Mail API
         $this->getMailer();
 
         $sent = 0;
         $to_be_sent = count(self::getMailer()->all(array('status'=>0)));
-        foreach (self::getMailer()->all(array('status'=>0)) as $key=>$email) {
+        foreach (self::getMailer()->all(array('status'=>0)) as $key => $email) {
             $recipients = explode(',', $email['recipients']);
             $email['body'] = $email['content'];
             if ($email['attachments'] == '') {
@@ -121,14 +127,15 @@ class MailSender extends Task {
      * @param int|null $day
      * @return bool
      */
-    public function clean($day=null) {
+    public function clean($day = null)
+    {
         $day = (is_null($day)) ? $this->options['nb_version']['value']: $day;
         $date_limit = date('Y-m-d',strtotime("now - $day day"));
         $data = self::getMailer()->all(array('date <='=>$date_limit, 'status'=>1));
 
         $to_delete = count($data);
         $count = 0;
-        foreach ($data as $key=>$email) {
+        foreach ($data as $key => $email) {
             if (!self::getMailer()->delete(array('mail_id'=>$email['mail_id']))) {
                 Tasks::get_logger()->log("Could not delete email '{$email['mail_id']}'");
 

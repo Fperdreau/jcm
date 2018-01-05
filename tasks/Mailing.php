@@ -27,6 +27,8 @@
 namespace Tasks;
  
 use includes\Task;
+use includes\MailManager;
+use includes\DigestMaker;
 
 /**
  * Class Mailing
@@ -34,11 +36,12 @@ use includes\Task;
  * Scheduled task that send email notifications (digests) to the users with information about the next sessions and
  * recent news.
  */
-class Mailing extends Task {
+class Mailing extends Task
+{
 
     public $name='Mailing';
     public $status='Off';
-    public $installed=False;
+    public $installed=false;
     public $dayName='Monday';
     public $description = "Sends notifications (digests) to JCM members.";
 
@@ -46,7 +49,8 @@ class Mailing extends Task {
      * Run scheduled task
      * @return mixed
      */
-    public function run() {
+    public function run()
+    {
         $MailManager = new MailManager();
         $DigestMaker = new DigestMaker();
 
@@ -54,7 +58,7 @@ class Mailing extends Task {
         $users = $MailManager->get_mailinglist("notification");
         $nusers = count($users);
         $sent = 0;
-        foreach ($users as $username=>$user) {
+        foreach ($users as $username => $user) {
             $content = $DigestMaker->makeDigest($user['username']);
             if ($MailManager->send($content, array($user['email']))) {
                 $sent += 1;
@@ -62,7 +66,4 @@ class Mailing extends Task {
         }
         return array('status'=>true, 'msg'=> "message sent successfully to {$sent}/{$nusers} users.");
     }
-    
 }
-
-
