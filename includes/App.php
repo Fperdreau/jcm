@@ -163,7 +163,7 @@ class App
 
         // Register session and App url if not running in command line
         if (php_sapi_name() !== "cli") {
-            SessionInstance::initsession();
+            SessionInstance::getInstance();
         }
     }
 
