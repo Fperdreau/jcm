@@ -586,9 +586,9 @@ function check_login() {
                 login_warning = json.warning;
                 login_remaining = json.remaining;
 
-                if (login_remaining <= login_warning && login_remaining > 0) {
+                if (!login_expired & login_remaining <= login_warning && login_remaining > 0) {
                     displaySessionTimeOut(login_remaining);
-                } else if (login_remaining < 0) {
+                } else if (login_expired || login_remaining < 0) {
                     logout();
                 }
             }
@@ -981,7 +981,7 @@ function process_submission(el, e) {
     };
 
     // AJAX call
-    processAjax(el.closest('.form_container'), data, callback, "php/form.php");
+    processAjax(el.closest('.form_container'), data, callback, form.attr('action'));
 
     e.stopImmediatePropagation();
 }
