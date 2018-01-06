@@ -270,6 +270,7 @@
                 url: sectionData.url,
                 type: 'post',
                 async: true,
+                data: sectionData,
                 beforeSend: function () {
                     obj._animate_before();
                 },
@@ -306,7 +307,6 @@
                     obj._removeLoading();
                 },
                 success: function(jsonObj) {
-                    console.log('hello');
                     var result = jQuery.parseJSON(jsonObj);
                     modalContainer.append(result);
                     obj.show_section(section, obj.options.modal_id);
