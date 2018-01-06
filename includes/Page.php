@@ -262,7 +262,8 @@ class Page extends BaseModel {
      * @param $page
      * @return mixed|string
      */
-    public static function render($page, array $variables) {
+    public static function render($page, array $variables = array())
+    {
         // Start buffering
         ob_start("ob_gzhandler");
 
@@ -274,7 +275,6 @@ class Page extends BaseModel {
 
         // End of buffering
         return ob_get_clean();
-
     }
 
     /**
