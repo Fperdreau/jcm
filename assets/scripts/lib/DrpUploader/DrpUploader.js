@@ -266,7 +266,7 @@ function AnimateBack(el) {
 
             // Hide previous message
             self._upl_errors.hide();
-
+            
             jQuery.ajax({
                 type:'POST',
                 url:'php/upload.php?controller=' + self._controller,
@@ -341,20 +341,20 @@ function AnimateBack(el) {
          */
         _delUpload: function(el) {
             var self = this;
-            var data = {del_upl: true, id: el.attr('id')};
+            var data = {id: el.attr('id')};
 
             /**
              * Callback function
              * @param result: associate array:
              *      {
              *          status: boolean,  success or failure
-             *          uplname: string   id of uploaded file
+             *          id: string   id of uploaded file
              *      }
              */
             var callback = function(result) {
                 if (result.status === true) {
-                    $('.upl_info#upl_' + result.uplname).remove();
-                    $('.upl_link#' + result.uplname).remove();
+                    $('.upl_info#upl_' + result.id).remove();
+                    $('.upl_link#' + result.id).remove();
                 } else {
                     self._upl_errors
                         .html(result.msg)
@@ -363,7 +363,7 @@ function AnimateBack(el) {
                 }
             };
 
-            this._callAjax(data, callback);
+            this._callAjax(data, callback, 'php/router.php?controller=Media&action=delete');
         }
 
     });

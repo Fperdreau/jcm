@@ -24,6 +24,9 @@
  * Processing of uploads (called by Myupload.js)
  */
 
+ use includes\Media;
+ use includes\App;
+ 
 // Bootstrap
 include('../includes/App.php');
 App::boot(true);

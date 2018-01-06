@@ -183,6 +183,16 @@ if (!empty($_POST['add_upload'])) {
     exit;
 }
 
+//  delete files
+if (!empty($_POST['del_upl'])) {
+    $file_id = htmlspecialchars($_POST['id']);
+    $up = new Media();
+    $result = $up->delete(array('id'=>$file_id));
+    $result['uplname'] = $file_id;
+    echo json_encode($result);
+    exit;
+}
+
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Process submissions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -197,101 +207,6 @@ if (!empty($_POST['getfiles'])) {
     }
     $result .= "</div>";
     echo json_encode($result);
-    exit;
-}
-
-//  delete files
-if (!empty($_POST['del_upl'])) {
-    $file_id = htmlspecialchars($_POST['id']);
-    $up = new Media();
-    $result = $up->delete(array('id'=>$file_id));
-    $result['uplname'] = $file_id;
-    echo json_encode($result);
-    exit;
-}
-
-//  delete presentation
-if (!empty($_POST['del_pub'])) {
-    $controller = htmlspecialchars($_POST['controller']);
-
-    /**
-     * @var Suggestion|Presentation $Controller
-     */
-    $Controller = new $controller();
-    $id_Presentation = htmlspecialchars($_POST['del_pub']);
-    if ($Controller->delete_pres($id_Presentation)) {
-        $result['msg'] = "Item has been deleted!";
-        $result['status'] = true;
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
-    exit;
-}
-
-// Submit a new presentation
-if (!empty($_POST['process_submission'])) {
-    $controllerName = $_POST['controller'];
-    $action = $_POST['operation'];
-    if (class_exists($controllerName, true)) {
-        $Controller = new $controllerName();
-        if (method_exists($controllerName, $action)) {
-            try {
-                echo json_encode(call_user_func_array(array($Controller,$action), array($_POST)));
-            } catch (Exception $e) {
-                Logger::getInstance(APP_NAME)->error($e);
-                echo json_encode(array('status'=>false));
-            }
-        }
-    }
-    exit;
-}
-
-// Add a suggestion
-if (isset($_POST['suggest'])) {
-    $pres = new Suggestion();
-    $created = $pres->add_suggestion($_POST);
-    if ($created !== false && $created !== "exist") {
-        $result['status'] = true;
-        $result['msg'] = "Thank you for your suggestion.";
-    } elseif ($created == "exist") {
-        $result['status'] = false;
-        $result['msg'] = "This suggestion already exist in our database.";
-    } else {
-        $result['status'] = false;
-    }
-    echo json_encode($result);
-    exit;
-}
-
-if (!empty($_POST['getFormContent'])) {
-    $type = htmlspecialchars($_POST['getFormContent']);
-    $controller_name = htmlspecialchars($_POST['controller']);
-
-    /**
-     * @var $Controller Presentation|Suggestion
-     */
-    $Controller = new $controller_name();
-    if ($_POST['id'] !== 'false') {
-        $Controller->getInfo($_POST['id']);
-    }
-    echo json_encode(Presentation::get_form_content($Controller, $type));
-    exit;
-}
-
-// Display modification form
-if (!empty($_POST['mod_pub'])) {
-    $id_Presentation = $_POST['mod_pub'];
-    $user = new Users($_SESSION['username']);
-    $pub = new Presentation($id_Presentation);
-    echo json_encode(Presentation::form($user, $pub, 'update'));
-    exit;
-}
-
-if (!empty($_POST['getform'])) {
-    $pub = new Presentation();
-    $user = new Users($_SESSION['username']);
-    echo json_encode(Presentation::form($user, $pub, 'submit'));
     exit;
 }
 

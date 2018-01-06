@@ -77,8 +77,12 @@ class Media extends BaseModel{
      * @param string $controller: reference controller name
      * @return bool
      */
-    public function delete_files($obj_id, $controller) {
-        foreach ($this->all(array('obj_id'=>$obj_id, 'obj'=>$controller)) as $key=>$item) {
+    public function delete_files($obj_id, $controller)
+    {
+        foreach ($this->all(
+            array('obj_id'=>$obj_id,
+            'obj'=>$controller)
+        ) as $key => $item) {
             $result = $this->delete(array('id'=>$item['id']));
             if (!$result['status']) {
                 return false;
@@ -88,14 +92,19 @@ class Media extends BaseModel{
     }
 
     /**
-     * Get uploades associated to a presentation
-     * @param $obj_id: presentation id
+     * Get uploades associated to an object
+     * @param $obj_id: object id
      * @param $obj_name: object name
      * @return array
      */
-    public function get_uploads($obj_id, $obj_name) {
+    public function getUploads($obj_id, $obj_name)
+    {
         $uploads = array();
-        foreach ($this->db->resultSet($this->tablename, array('*'), array('obj_id'=>$obj_id, 'obj'=>$obj_name)) as $key=> $item) {
+        foreach ($this->db->resultSet(
+            $this->tablename,
+            array('*'),
+            array('obj_id'=>$obj_id, 'obj'=>$obj_name)
+        ) as $key => $item) {
             $uploads[$item['id']] = $item;
         }
         return $uploads;
@@ -108,11 +117,14 @@ class Media extends BaseModel{
      * @param $obj_name: reference object name (e.g. 'Presentation', 'Suggestion')
      * @return bool
      */
-    public function add_upload(array $file_names, $id, $obj_name=null) {
-        if (is_null($obj_name)) $obj_name = get_called_class();
+    public function addUpload(array $file_names, $id, $obj_name = null)
+    {
+        if (is_null($obj_name)) {
+            $obj_name = get_called_class();
+        }
         foreach ($file_names as $filename) {
             if ($this->add_objId($filename, $id, $obj_name) !== true) {
-                return False;
+                return false;
             }
         }
         return true;
@@ -240,22 +252,22 @@ class Media extends BaseModel{
                 "Could not associate id ({$obj_name}: {$obj_id}) to file ({$file_id}) because this file does not exist in our database");
             return false;
         }
-
     }
 
     /**
      * Delete a file corresponding to the actual presentation
-     * @param array $id
+     * @param array $data
      * @return bool|string
      */
-    public function delete(array $id) {
-        $data = $this->get($id);
+    public function delete(array $data) {
+        $data = $this->get($data);
         if (!empty($data)) {
             if (is_file($this->directory . $data['filename'])) {
                 if (unlink($this->directory . $data['filename'])) {
-                    if ($this->db->delete($this->tablename, $id)) {
+                    if ($this->db->delete($this->tablename, $data)) {
                         $result['status'] = true;
                         $result['msg'] = "File [name: {$data['filename']}] Deleted";
+                        $result['id'] = $data['id'];
                         Logger::getInstance(APP_NAME, __CLASS__)->info($result['msg']);
                     } else {
                         $result['status'] = false;
