@@ -346,7 +346,7 @@ class MailManager extends BaseModel {
         $sender = array('mail_from'=>$sender_obj->email, 'mail_from_name'=>$sender_obj->fullname);
 
         // Upload
-        $uploader = Media::uploader(__CLASS__, array(), 'email_form');
+        $uploader = Media::uploader('MailManager', array(), 'email_form');
         return self::contactForm($uploader, $mailing_list, $recipients_list, $sender);
     }
 
