@@ -78,7 +78,8 @@ class Posts extends BaseModel
      * @param array $post
      * @return bool|string
      */
-    public function add(array $post){
+    public function add(array $post)
+    {
         if ($this->isExist(array('title'=>$post['title'])) === false) {
 
             //$post['postid'] = $this->generateID('postid');
@@ -91,7 +92,7 @@ class Posts extends BaseModel
                 // Associates this presentation to an uploaded file if there is one
                 if (!empty($post['link'])) {
                     $media = new Media();
-                    $media->add_upload(explode(',', $post['link']), $post['id'], __CLASS__);
+                    $media->addUpload(explode(',', $post['link']), $post['id'], __CLASS__);
                 }
 
                 return $id;
@@ -141,7 +142,7 @@ class Posts extends BaseModel
             $this->map($data);
             $this->day = date('Y-m-d',strtotime($this->date));
             $this->time = date('H:i',strtotime($this->date));
-            $data['link'] = $this->get_uploads();
+            $data['link'] = $this->getUploads();
             return $data;
         } else {
             return false;
@@ -151,9 +152,9 @@ class Posts extends BaseModel
     /**
      * Get associated files
      */
-    private function get_uploads() {
+    private function getUploads() {
         $upload = new Media();
-        $link = $upload->get_uploads($this->id, __CLASS__);
+        $link = $upload->getUploads($this->id, __CLASS__);
         return $link;
     }
 
