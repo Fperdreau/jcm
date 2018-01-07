@@ -108,41 +108,6 @@ if (!empty($_POST['mod_plugins'])) {
 }
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Datepicker (calendar)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
-// Get booked dates for DatePicker Calendar
-if (!empty($_POST['update_user_availability'])) {
-    $username = $_SESSION['username'];
-    $date = $_POST['date'];
-    $Availability = new Availability();
-    $Presentation = new Presentation();
-
-    $result['status'] = $Availability->edit(array('date'=>$date, 'username'=>$username));
-    if ($result['status']) {
-        // Check whether user has a presentation planned on this day, if yes, then we delete it and notify the user that
-        // this presentation has been canceled
-        $data = $Presentation->get(array('date'=>$date, 'orator'=>$username));
-        if (!empty($data)) {
-            $speaker = new Users($username);
-            $Assignment = new Assignment();
-            $session = new Session($date);
-            $Presentation = new Presentation($data['id']);
-            $info['type'] = $session->type;
-            $info['date'] = $session->date;
-            $info['presid'] = $data['id'];
-            $result['status'] = $Presentation->delete_pres($data['id']);
-            if ($result['status']) {
-                $result['status'] = $Assignment->updateAssignment($speaker, $info, false, true);
-            }
-        }
-    }
-    echo json_encode($result);
-    exit;
-}
-
-
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Login/Sign up
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 // Send password change request if email exists in database
@@ -316,21 +281,6 @@ if (!empty($_POST['del_type'])) {
         }
     }
 
-    echo json_encode($result);
-    exit;
-}
-
-// Show sessions
-if (!empty($_POST['show_session'])) {
-    $date = htmlspecialchars($_POST['show_session']);
-    $status = htmlspecialchars($_POST['status']);
-    $view = htmlspecialchars($_POST['view']);
-    $Session = new Session();
-    if ($status == 'admin') {
-        $result = $Session->getSessionEditor($date);
-    } else {
-        $result = $Session->getSessionViewer($date);
-    }
     echo json_encode($result);
     exit;
 }
