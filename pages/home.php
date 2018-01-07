@@ -27,7 +27,6 @@ $suggestions = new includes\Suggestion();
 $submitMenu = includes\SessionInstance::isLogged() ? includes\Presentation::submitMenu('modal') : null;
 
 $result = "
-
     <section>
         <h2>Last News</h2>
         <div class='section_content'>
@@ -46,7 +45,7 @@ $result = "
         <section>
             <h2>Last Suggestions</h2>
             <div class='section_content'>
-                " . $suggestions->getWishList(10) . "
+                " . $suggestions->getSuggestionSection(10) . "
             </div>
         </section>
     </div>
