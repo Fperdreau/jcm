@@ -259,30 +259,38 @@ class Media extends BaseModel{
      * @param array $data
      * @return bool|string
      */
-    public function delete(array $data) {
-        $data = $this->get($data);
+    public function delete(array $data)
+    {
+        $result = array('status'=>true, 'msg'=>null);
+        $objData = $this->get($data);
         if (!empty($data)) {
-            if (is_file($this->directory . $data['filename'])) {
-                if (unlink($this->directory . $data['filename'])) {
-                    if ($this->db->delete($this->tablename, $data)) {
-                        $result['status'] = true;
-                        $result['msg'] = "File [name: {$data['filename']}] Deleted";
-                        $result['id'] = $data['id'];
-                        Logger::getInstance(APP_NAME, __CLASS__)->info($result['msg']);
-                    } else {
-                        $result['status'] = false;
-                        $result['msg'] = "Could not remove file entry from database [name: {$data['filename']}]";
-                        Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
-                    }
+            // Delete file from disk
+            if (is_file($this->directory . $objData['filename'])) {
+                if (unlink($this->directory . $objData['filename'])) {
+                    $result['status'] = true;
                 } else {
                     $result['status'] = false;
-                    $result['msg'] = "Could not delete file [name: {$data['filename']}]";
+                    $result['msg'] = "Could not delete file [name: {$objData['filename']}]";
                     Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
                 }
             } else {
-                $result['status'] = false;
-                $result['msg'] = "File does not exist [name: {$data['filename']}]";
+                $result['status'] = true;
+                $result['msg'] = "File does not exist [name: {$objData['filename']}]";
                 Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
+            }
+
+            // Delete file from DB
+            if ($result['status']) {
+                if ($this->db->delete($this->tablename, $data)) {
+                    $result['status'] = true;
+                    $result['msg'] = "File [name: {$objData['filename']}] Deleted";
+                    $result['id'] = $data['id'];
+                    Logger::getInstance(APP_NAME, __CLASS__)->info($result['msg']);
+                } else {
+                    $result['status'] = false;
+                    $result['msg'] = "Could not remove file entry from database [name: {$objData['filename']}]";
+                    Logger::getInstance(APP_NAME, __CLASS__)->error($result['msg']);
+                }
             }
         } else {
             $result['status'] = false;
