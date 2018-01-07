@@ -157,7 +157,8 @@ class Session extends BaseModel {
      * @param string $date: selected date
      * @return string
      */
-    public function getSessionEditor($date) {
+    public function getSessionEditor($date)
+    {
         if ($this->is_available(array('date'=>$date))) {
             return Session::dayContainer(array('date'=>$date, 'content'=>Session::no_session()));
         } else {
