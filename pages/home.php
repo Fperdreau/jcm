@@ -24,8 +24,6 @@ $last_news = new includes\Posts();
 $sessions = new includes\Session();
 $suggestions = new includes\Suggestion();
 
-$submitMenu = includes\SessionInstance::isLogged() ? includes\Presentation::submitMenu('modal') : null;
-
 $result = "
     <section>
         <h2>Last News</h2>
