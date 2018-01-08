@@ -80,7 +80,7 @@ if (isset($_POST['op'])) {
 }
 
 // Submission menu
-$submitMenu = Presentation::submitMenu('body');
+$submitMenu = Presentation::menu('body');
 
 $form_section = null;
 if (!is_null($section_content)) {
