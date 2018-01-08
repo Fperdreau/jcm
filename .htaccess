@@ -37,13 +37,16 @@ AddType text/javascript .js
 #
 # URL: http://httpd.apache.org/docs/2.2/mod/mod_headers.html
 #
+FileETag None
 <IfModule mod_headers.c>
     <FilesMatch "\\.(ico|jpe?g|png|gif|swf|css|js)$">
         Header set Cache-Control "max-age=2692000, public"
     </FilesMatch>
     <FilesMatch "\\.(x?html?|php)$">
-        Header set Cache-Control "max-age=600, private, must-revalidate"
-    </FilesMatch>
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+	</FilesMatch>
     Header unset ETag
     Header unset Last-Modified
 </IfModule>
