@@ -9,9 +9,9 @@ class SubmissionForms
 {
 
     /**
-     * Undocumented function
+     * Get form for submission type
      *
-     * @param string $formType
+     * @param string $type: submission type
      * @param Submission|Presentation|Suggestion $obj
      * @return string
      */
@@ -21,10 +21,9 @@ class SubmissionForms
             $type = 'paper';
         }
 
-        $methodName = $type . 'Form';
-        if (method_exists(__CLASS__, $methodName)) {
+        if (method_exists(__CLASS__, $type)) {
             try {
-                return self::$methodName($obj);
+                return self::$type($obj);
             } catch (\Exception $e) {
                 return self::notFound($type);
             }
@@ -41,38 +40,38 @@ class SubmissionForms
      */
     private static function notFound($type)
     {
-        return "The selected type ['{$type}'] is not available";
+        return "<div class='sys_msg warning'>The selected type ['{$type}'] is not available</div>";
     }
 
     /**
-     * Render form for wishes
+     * Render form for presentation about methodology
+     *
      * @param Suggestion|Presentation $Presentation
      * @return string
      */
-    private static function suggestForm($Presentation)
+    private static function methodology($Presentation)
     {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
+        return self::paper($Presentation);
+    }
 
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='$Presentation->title' required/>
-            <label>Title</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
-            <label>Authors</label>
-        </div>
-        ";
+    /**
+     * Render form for presentation about one's research
+     *
+     * @param Suggestion|Presentation $Presentation
+     * @return string
+     */
+    private static function research($Presentation)
+    {
+        return self::paper($Presentation);
     }
 
     /**
      * Render form for research article
+     *
      * @param Suggestion|Presentation $Presentation
      * @return string
      */
-    private static function paperForm($Presentation)
+    private static function paper($Presentation)
     {
         return "
         <div class='form_description'>
@@ -95,7 +94,7 @@ class SubmissionForms
      * @param Suggestion|Presentation $Presentation
      * @return string
      */
-    private static function guestForm($Presentation)
+    private static function guest($Presentation)
     {
         return "
         <div class='form_description'>
@@ -123,7 +122,7 @@ class SubmissionForms
      * @param Suggestion|Presentation $Presentation
      * @return string
      */
-    private static function minuteForm($Presentation)
+    private static function minute($Presentation)
     {
         return "
         <div class='form_description'>
