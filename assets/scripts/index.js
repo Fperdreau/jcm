@@ -111,29 +111,32 @@ function actionOnSelect(el, final_callback) {
     }
 
     // Destination DOM element
-    var destination = (el.data('destination') === undefined) ? el.closest('section') : $(el.data('destination'));
+    var destination = $(el.data('destination'));
+    var container = (destination.length === 0) ? el.closest('section') : destination;
     
     // Get target url
     var url = (el.data('url') !== undefined) ? el.data('url') : form.attr('action');
 
     var callback = function (result) {
-        var html = result.content === undefined ? result : result.content;
-        destination
-            .html(html)
-            .css('visibility', 'visible')
-            .fadeIn(200);
+        if (destination !== undefined) {
+            var html = result.content === undefined ? result : result.content;
+            destination
+                .html(html)
+                .css('visibility', 'visible')
+                .fadeIn(200);
+    
+            // Load WYSIWYG editor
+            loadWYSIWYGEditor();
+    
+            // Load JCM calendar
+            loadCalendarSubmission();
 
-        // Load WYSIWYG editor
-        loadWYSIWYGEditor();
-
-        // Load JCM calendar
-        loadCalendarSubmission();
-
-        if (final_callback !== undefined) {
-            final_callback(result);
+            if (final_callback !== undefined) {
+                final_callback(result);
+            }
         }
     };
-    processAjax(destination, data, callback, url);
+    processAjax(container, data, callback, url);
 }
 
 /**
