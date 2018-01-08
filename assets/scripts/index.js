@@ -103,34 +103,36 @@ function loadContent(el, final_callback) {
  */
 function actionOnSelect(el, final_callback) {
     var form = el.length > 0 ? $(el[0].form) : $();
-    var data = getData(form);
+    if (form.length > 0) {
+        var data = getData(form);
+    } else {
+        data = {};
+        data[el.attr('name')] = el.val();
+    }
 
+    // Destination DOM element
     var destination = (el.data('destination') === undefined) ? el.closest('section') : $(el.data('destination'));
-
+    
     // Get target url
-    var url = form.attr('action');
+    var url = (el.data('url') !== undefined) ? el.data('url') : form.attr('action');
 
     var callback = function (result) {
-        if (result.content !== undefined) {
-            var html = result.content === undefined ? result : result.content;
-            destination
-                .html(html)
-                .css('visibility', 'visible')
-                .fadeIn(200);
-    
-            // Load WYSIWYG editor
-            loadWYSIWYGEditor();
-    
-            // Load JCM calendar
-            loadCalendarSubmission();
-    
-            if (final_callback !== undefined) {
-                final_callback(result);
-            }
+        var html = result.content === undefined ? result : result.content;
+        destination
+            .html(html)
+            .css('visibility', 'visible')
+            .fadeIn(200);
+
+        // Load WYSIWYG editor
+        loadWYSIWYGEditor();
+
+        // Load JCM calendar
+        loadCalendarSubmission();
+
+        if (final_callback !== undefined) {
+            final_callback(result);
         }
-
     };
-
     processAjax(destination, data, callback, url);
 }
 
@@ -333,13 +335,9 @@ var initAvailabilityCalendar = function (data_availability) {
             selected = $(this).datepicker('getDate').getTime();
 
             jQuery.ajax({
-                url: "php/form.php",
+                url: "php/router.php?controller=Calendar&action=updateUserAvailability&date=" + dateText,
                 type: "post",
                 async: true,
-                data: {
-                    update_user_availability: true,
-                    date: dateText
-                },
                 success: function() {
                     loadCalendarAvailability();
                 }
@@ -1346,7 +1344,7 @@ $(document).ready(function () {
                     .html(result)
                     .fadeIn(200);
             };
-            processAjax(div, data, callback, "php/form.php");
+            processAjax(div, data, callback, "php/router.php?controller=Session&action=getSessionEditor&date="+nbsession);
         })
 
         // Modify speaker
@@ -1546,7 +1544,8 @@ $(document).ready(function () {
                 $('.special_inputs_container').html(result);
             };
             var data = {getFormContent: type, controller: controller, id: pres_id};
-            processAjax($('.special_inputs_container'), data, callback, "php/form.php");
+            processAjax($('.special_inputs_container'), data, callback, "php/router.php?controller=" 
+            + controller + "&action=getFormContent&type=" + type + "&id=" + pres_id);
          })
              
         // Submit a presentation
