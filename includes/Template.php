@@ -103,16 +103,16 @@ class Template
         if (!SessionInstance::isLogged()) {
             $leanModalUrlLogin = Modal::buildUrl(
                 'Users',
-                'get_view',
+                'getForm',
                 array(
-                    'view'=>'login_form', 'destination'=>'modal'
+                    'type'=>'login_form', 'view'=>'modal'
                     )
             );
             $leanModalUrlRegistration = Modal::buildUrl(
                 'Users',
-                'get_view',
+                'getForm',
                 array(
-                    'view'=>'registration_form', 'destination'=>'modal'
+                    'type'=>'registration_form', 'view'=>'modal'
                     )
             );
             $showlogin = "
