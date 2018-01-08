@@ -26,7 +26,7 @@
 
  namespace includes;
  
- use includes\Db;
+ use Exception;
 
 /**
  * Class AppTable
@@ -63,7 +63,7 @@ abstract class BaseModel
     protected $table_data; // Table's data (array)
 
     /**
-     * @var static array $default_exclude
+     * @var array $default_exclude
      */
     private static $default_exclude = array("id", "db", "tablename", "table_data", "logger", 'Settings', 'settings');
 
@@ -244,7 +244,7 @@ abstract class BaseModel
      * @param array $post
      * @return mixed
      */
-    public function sanitize(array $post)
+    protected function sanitize(array $post)
     {
         foreach ($post as $key => $value) {
             if (!is_array($value)) {
@@ -374,7 +374,6 @@ abstract class BaseModel
      * Create specific ID for new item
      * @param $refId
      * @return string
-     * @throws Exception
      */
     public function generateID($refId)
     {
@@ -386,5 +385,20 @@ abstract class BaseModel
             $id = date('Ymd').rand(1, 10000);
         }
         return $id;
+    }
+
+    /**
+     * Get class name without namespace
+     *
+     * @param string $className
+     * @return string
+     */
+    protected static function getClassName($className = null)
+    {
+        if (is_null($className)) {
+            $className = get_called_class();
+        }
+        $reflect = new \ReflectionClass($className);
+        return $reflect->getShortName();
     }
 }
