@@ -650,15 +650,19 @@ class Users extends BaseModel {
     }
 
     /**
-     * View getter
-     * @param string $view: requested view name
-     * @param string $destination: view's destination (body or modal)
-     * @return string|array
+     * Getter for login/registration forms
+     *
+     * @param string $type: form type (login, registration)
+     * @param string $view: view type (modal, body)
+     * @param string $section: destination DOM element id
+     * 
+     * @return string
      */
-    public function get_view($view, $destination='body') {
-        $method_name = $view . '_' . $destination;
-        if (method_exists($this, $method_name)) {
-            return self::$method_name();
+    public function getForm($type, $view = 'body', $section = null)
+    {
+        $methodName = $type . '_' . $view;
+        if (method_exists($this, $methodName)) {
+            return self::$methodName();
         } else {
             return Page::notFound();
         }
@@ -816,17 +820,17 @@ class Users extends BaseModel {
     public static function login_form_body() {
         $leanModalUrlPwd = Modal::buildUrl(
             'Users',
-            'get_view',
+            'getForm',
             array(
-            'destination'=>'modal',
-            'view'=>'change_password_form')
+            'view'=>'modal',
+            'type'=>'change_password_form')
         );
         $leanModalUrlReg = Modal::buildUrl(
             'Users',
-            'get_view',
+            'getForm',
             array(
-            'destination'=>'modal',
-            'view'=>'registration_form')
+            'view'=>'modal',
+            'type'=>'registration_form')
         );
         return "
             <form id='login_form' method='post' action='" . URL_TO_APP . 'php/router.php?controller=Auth&action=login' . "'>
@@ -873,6 +877,13 @@ class Users extends BaseModel {
      * @return string
      */
     public static function registration_form_body() {
+        $leanModalUrlLogin = Modal::buildUrl(
+            'Users',
+            'getForm',
+            array(
+            'view'=>'modal',
+            'type'=>'login_form')
+        );
         return  "
             <form method='post' action='" . URL_TO_APP . 'php/router.php?controller=Users&action=make' . "'>
                 <input type='hidden' name='register' value='true'>
@@ -912,8 +923,8 @@ class Users extends BaseModel {
                     <label>Position</label>    
                 </div>
                 <div class='action_btns'>
-                    <div class='first_half'><input type='button' class='go_to_section' data-controller='Users' data-action='get_view' 
-                        data-params='login_form,modal' data-section='login_form' value='Log in'></div>
+                    <div class='first_half'><input type='button' class='go_to_section' data-url='{$leanModalUrlLogin}'
+                     data-section='login_form' value='Log in'></div>
                     <div class='last_half'><input type='submit' class='processform' value='Sign up'></div>
                 </div>
             </form>
