@@ -26,25 +26,15 @@
 
 namespace includes;
 
-use includes\BaseModel;
-use includes\Modal;
+use Exception;
 
 /**
  * class Presentations.
  *
  * Handle methods to display presentations list (archives, homepage, wish list)
  */
-class Presentation extends BaseModel {
-
-    /**
-     * Presentation settings
-     * @var array
-     */
-    protected $settings = array(
-        'default_type'=>"paper",
-        'defaults'=>array("paper", "research", "methodology", "guest", "minute"),
-        'types'=>array("paper", "research", "methodology", "guest", "minute")
-    );
+class Presentation extends BaseSubmission
+{
 
     public $id;
     public $type;
@@ -64,77 +54,16 @@ class Presentation extends BaseModel {
 
     private static $default = array();
 
-    /**
-     * Constructor
-     * @param null $id_pres
-     */
-    function __construct($id_pres=null){
-        parent::__construct();
-
-        // Set types to defaults before loading custom information
-        $this->settings['types'] = $this->settings['defaults'];
-
-        if (!is_null($id_pres)) {
-            $this->getInfo($id_pres);
-        }
-    }
-
     // CONTROLLER
-    /**
-     * Render suggestion index page
-     * @param null $id
-     * @return string
-     */
-    public function index($id=null) {
-        if (!is_null($id)) {
-            if (isset($_SESSION['username'])) {
-                $user = new Users($_SESSION['username']);
-            } elseif (!empty($_POST['Users'])) {
-                $user = new Users($_POST['Users']);
-            } else {
-                $user = false;
-            }
-
-            $data = $this->getInfo(htmlspecialchars($_POST['id']));
-            $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
-            if ($show && isset($_POST['operation']) && $_POST['operation'] === 'edit') {
-                $content = $this->get_form('body');
-            } else {
-                $content = $this->show_details($_POST['id'], 'body');
-            }
-        } else {
-            $content = "Nothing to show here";
-        }
-
-        return self::container($content);
-
-    }
-
-    /**
-     * Get default presentation settings
-     * @return array: default settings
-     */
-    private function getDefaults() {
-        self::$default = array(
-            'date'=>self::getJcDates($this->settings['jc_day'],1)[0],
-            'frequency'=>null,
-            'slot'=>$this->settings['max_nb_session'],
-            'type'=>$this->settings['default_type'],
-            'types'=>$this->getTypes(),
-            'start_time'=>$this->settings['jc_time_from'],
-            'end_time'=>$this->settings['jc_time_to'],
-            'room'=>$this->settings['room']
-        );
-        return self::$default;
-    }
-
+    
     /**
      * Add a presentation to the database
      * @param array $data
      * @return bool|string
      * @throws Exception
      */
-    public function make(array $data){
+    public function make(array $data)
+    {
         $is_full = Session::isBooked($data['session_id']);
         if ($is_full === false) {
             if ($this->pres_exist($data['title']) === false) {
@@ -154,7 +83,7 @@ class Presentation extends BaseModel {
                 // Associates this presentation to an uploaded file if there is one
                 if (!empty($data['media'])) {
                     $media = new Media();
-                    if (!$media->add_upload(explode(',', $data['media']), $data['id'], __CLASS__)) {
+                    if (!$media->addUpload(explode(',', $data['media']), $data['id'], __CLASS__)) {
                         return false;
                     }
                 }
@@ -164,105 +93,6 @@ class Presentation extends BaseModel {
             }
         } else {
             return $is_full;
-        }
-    }
-
-    /**
-     * Update information
-     * @param array $data
-     * @param array $id
-     * @return bool
-     */
-    public function update(array $data, array $id) {
-        // Associates this presentation to an uploaded file if there is one
-        if (!empty($data['media'])) {
-            $media = new Media();
-            if (!$media->add_upload(explode(',', $data['media']), $data['id'], __CLASS__)) {
-                return false;
-            }
-        }
-        return $this->db->update($this->tablename, $this->parseData($data, array("media","chair")), $id);
-    }
-
-    /**
-     * Edit Presentation
-     * @param array $data
-     * @return mixed
-     * @throws Exception
-     */
-    public function edit(array $data) {
-        // check entries
-        $id_pres = htmlspecialchars($data['id']);
-
-        // IF not a guest presentation, the one who posted is the planned speaker
-        if ($data['type'] !== "guest") {
-            $data['orator'] = $_SESSION['username'];
-        }
-
-        if ($id_pres !== "false") {
-            $created = $this->update($data, array('id'=>$id_pres));
-        } else {
-            $created = $this->make($data);
-        }
-
-        $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'), true);
-
-        if ($created === false || $result['status'] === false) {
-            $result['msg'] = 'Oops, something went wrong';
-        } elseif ($created === 'exist') {
-            $result['msg'] = "Sorry, a presentation with a similar title already exists in our database.";
-        } elseif ($created === 'booked') {
-            $result['msg'] = "Sorry, the selected session is already full.";
-        } elseif ($created === 'no_session') {
-            $result['msg'] = "Sorry, there is no session planned on this date.";
-        } else {
-            $result['msg'] = "Thank you for your submission!";
-        }
-
-        return $result;
-    }
-
-    /**
-     * Show suggestion details
-     * @param bool $id: suggestion unique id
-     * @param string $view: requested view
-     * @return string: view
-     */
-    public function show_details($id=false, $view='body') {
-        $data = $this->getInfo($id);
-        $user = SessionInstance::isLogged() ? new Users($_SESSION['username']) : null;
-        $show = !is_null($user) && (in_array($user->status, array('organizer', 'admin'))
-                || $data['username'] === $user->username);
-        if ($data !== false) {
-            return self::details($data, $show, $view);
-        } else {
-            return self::not_found();
-        }
-    }
-
-    /**
-     * Get submission form
-     * @param string $view
-     * @return mixed
-     * @throws Exception
-     */
-    public function get_form($view='body', $operation='edit', $id=null) {
-        if ($view === "body") {
-            return self::format_section($this->editor(array(
-                'operation'=>$operation, 
-                'id'=>$id
-            )));
-        } else {
-            $content = $this->editor(array(
-                'operation'=>$operation, 
-                'id'=>$id
-            ));
-            
-            return array(
-                'content'=>$content['content'],
-                'id'=>'presentation',
-                'buttons'=>null,
-                'title'=>$content['title']);
         }
     }
 
@@ -289,14 +119,6 @@ class Presentation extends BaseModel {
     private function get_session_id($date) {
         $session = new Session($date);
         return $session->id;
-    }
-
-    /**
-     * Register into DigestMaker table
-     */
-    public static function registerDigest() {
-        $DigestMaker = new DigestMaker();
-        $DigestMaker->register('Presentations');
     }
 
     /**
@@ -333,76 +155,15 @@ class Presentation extends BaseModel {
     }
 
     /**
-     * Update a presentation (new info)
-     * @param array $post
-     * @param null $id
-     * @return bool
-     */
-    public function modify($post=array(), $id=null) {
-        if (null!=$id) {
-            $this->id = $id;
-        } elseif (array_key_exists('id',$post)) {
-            $this->id = $_POST['id'];
-        }
-
-        // Associate the new uploaded file (if there is one)
-        if (array_key_exists("media", $post)) {
-            $media = new Media();
-            $media->add_upload(explode(',', $post['media']), $post['id'], 'Presentation');
-        }
-
-        // Get presentation's type
-        $this->type = (array_key_exists("type", $post)) ? $post['type']:$this->type;
-
-        // Update table
-        if ($this->db->update(
-            $this->tablename,
-            $this->parseData($post, array('media', 'chair')),
-            array('id'=>$this->id))) {
-
-            Logger::getInstance(APP_NAME, get_class($this))->info("Presentation ({$this->id}) updated");
-            return true;
-        } else {
-            Logger::getInstance(APP_NAME, get_class($this))->error("Could not update presentation ({$this->id})");
-            return false;
-        }
-    }
-
-    /**
-     * Get associated files
-     */
-    private function get_uploads() {
-        $upload = new Media();
-        $links = $upload->get_uploads($this->id, 'Presentation');
-        $this->media = $links;
-        return $links;
-    }
-
-    /**
-     * Delete a presentation
-     * @param int $id
-     * @return bool
-     */
-    public function delete_pres($id) {
-        // Delete corresponding file
-        $uploads = new Media();
-        if ($uploads->delete_files($id, __CLASS__)) {
-            // Delete corresponding entry in the publication table
-            return $this->delete(array('id'=>$id));
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * Check if presentation exists in the database
      * @param $title
      * @return bool
      * @throws Exception
      */
-    private function pres_exist($title) {
+    private function pres_exist($title)
+    {
         $titlelist = $this->db->column($this->tablename, 'title');
-        return in_array($title,$titlelist);
+        return in_array($title, $titlelist);
     }
 
     /**
@@ -439,7 +200,7 @@ class Presentation extends BaseModel {
     public static function presentation_type($default_type, array $exclude=null) {
         $prestype = "";
         $options = null;
-        foreach (AppConfig::getInstance()->pres_type as $type) {
+        foreach (Settings::getInstance()->pres_type as $type) {
             if (!is_null($exclude) && in_array($type, $exclude)) continue;
 
             $prestype .= self::render_type($type, 'pres');
@@ -579,30 +340,6 @@ class Presentation extends BaseModel {
         return $years;
     }
 
-    /**
-     * Get publication's information from the database
-     * @param int $id: presentation id
-     * @return bool|array
-     */
-    public function getInfo($id) {
-        $sql = "SELECT p.*, u.fullname as fullname 
-                FROM {$this->tablename} p
-                LEFT JOIN ". Db::getInstance()->getAppTables('Users') . " u
-                    ON u.username=p.username
-                WHERE p.id='{$id}'";
-        $data = $this->db->sendQuery($sql)->fetch_assoc();
-
-        if (!empty($data)) {
-            $this->map($data);
-
-            // Get associated files
-            $data['media'] = $this->get_uploads();
-            return $data;
-        } else {
-            return false;
-        }
-    }
-
     // VIEW
 
     /**
@@ -639,7 +376,7 @@ class Presentation extends BaseModel {
         $date = date('d M y', strtotime($presentation->date));
         $leanModalUrl = Modal::buildUrl(
             get_class(),
-            'show_details',
+            'showDetails',
             array(
             'view'=>'modal',
             'operation'=>'edit',
@@ -685,7 +422,7 @@ class Presentation extends BaseModel {
      * @return array
      */
     public static function inSessionEdit(array $data) {
-        $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
+        $leanModalUrl = Modal::buildUrl(get_class(), 'showDetails', array(
             'view'=>'modal',
             'operation'=>'edit',
             'id'=>$data['id'])
@@ -712,7 +449,7 @@ class Presentation extends BaseModel {
      */
     private static function RenderTitle(array $data) {
         $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
-        $leanModalUrl = Modal::buildUrl(get_class(), 'show_details', array(
+        $leanModalUrl = Modal::buildUrl(get_class(), 'showDetails', array(
             'view'=>'modal',
             'operation'=>'edit',
             'id'=>$data['id_pres'])
@@ -791,114 +528,12 @@ class Presentation extends BaseModel {
     }
 
     /**
-     * Display presentation details.
-     * @param array $data : presentation information
-     * @param bool $show : show buttons (true)
-     * @param string $view: requested view ('modal' or 'body')
-     * @return string
-     */
-    public static function details(array $data, $show=false, $view='modal') {
-        $dl_menu = Media::download_menu($data['media'], $show);
-
-        $file_div = $show ? $dl_menu['menu'] : null;
-        $destination = $view === 'modal' ? '#presentation' : '#presentation_container';
-        $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
-        $leanModalUrl = Modal::buildUrl(get_class(), 'get_form', array(
-            'view'=>$view,
-            'operation'=>'edit',
-            'id'=>$data['id'])
-        );
-        // Add a delete link (only for admin and organizers or the authors)
-        if ($show) {
-            $delete_button = "<div class='pub_btn icon_btn'><a href='#' data-id='{$data['id']}' class='delete'
-                data-controller='Presentation' data-action='delete_pres'>
-                <img src='" . URL_TO_IMG . "trash.png'></a></div>";
-            $modify_button = "<div class='pub_btn icon_btn'><a href='#' class='{$trigger}'
-                data-controller='Presentation' data-url='{$leanModalUrl}' data-section='presentation' data-date='{$data['date']}'>
-                <img src='" . URL_TO_IMG . "edit.png'></a></div>";
-        } else {
-            $delete_button = "<div style='width: 100px'></div>";
-            $modify_button = "<div style='width: 100px'></div>";
-        }
-
-        // Presentation type
-        $type = ucfirst($data['type']);
-
-        // Action buttons
-        $buttons = "
-            <div class='first_half'>
-            </div>
-            <div class='last_half'>
-                {$delete_button}
-                {$modify_button}
-            </div>
-        ";
-
-        $buttons_body = $view !== 'modal' ? "
-           <div class='first_half'>
-           </div>
-            <div class='last_half'>
-                {$delete_button}
-                {$modify_button}
-            </div>" : null;
-
-        // Header
-        $header = "
-            <span style='color: #222; font-weight: 900;'>Presentation</span>
-            <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
-            <span style='color: #777; font-weight: 600;'>{$type}</span>
-        ";
-
-        $type_in_body = $view !== 'modal' ? "<div class='pub_type'>{$type}</div>" : null;
-
-        $result = "
-        <div class='pub_caps' itemscope itemtype='http://schema.org/ScholarlyArticle'>
-            <div class='pub_title' itemprop='name'>{$data['title']}</div>
-            {$type_in_body}
-            <div class='pub_authors' itemprop='author'>{$data['authors']}</div>
-
-            <div class='pub_header_table'>
-                <div class='pub_date'>
-                    <span class='pub_label'>Date: </span>" . date('d M Y', strtotime($data['date'])) . "
-                </div>
-                
-                <div class='pub_orator'>
-                    <span class='pub_label'>Presented by: </span>{$data['fullname']}
-                </div>
-            </div>
-
-        </div>
-
-        <div class='pub_abstract'>
-            <span class='pub_label'>Abstract: </span>
-            {$data['summary']}
-        </div>
-        
-        {$file_div}
-
-        <div class='pub_action_btn'>
-            {$buttons_body}
-        </div>
-        ";
-
-        if ($view === 'body') {
-            return $result;
-        } else {
-            return array(
-                'content'=>$result,
-                'title'=>$header,
-                'buttons'=>$buttons,
-                'id'=>'submission'
-            );
-        }
-    }
-
-    /**
      * Render submission editor
      * @param array|null $post
      * @return array
      */
-    public function editor(array $post=null) {
+    public function editor(array $post = null)
+    {
         $post = (is_null($post)) ? $_POST : $post;
         $Session = new Session();
 
@@ -938,40 +573,19 @@ class Presentation extends BaseModel {
     }
 
     /**
-     * @param array $content
-     * @return string
-     */
-    public static function format_section(array $content) {
-        return "
-        <section id='presentation_form'>
-            <h2>{$content['title']}</h2>
-            <p class='page_description'>{$content['description']}</p>       
-            <div class='section_content'>{$content['content']}</div>
-        </section>
-        ";
-    }
-
-    /**
-     * View for modal windows
-     * @param string $content
-     * @return string
-     */
-    public static function format_modal($content) {
-        return "<div class='section_content'>{$content}</div>";
-    }
-
-    /**
      * Submission form instruction
      * @return string
      */
-    public static function description() {
+    public static function description()
+    {
         return "
-        Book a Journal Club session to present a paper, your research, or a
+            Book a Journal Club session to present a paper, your research, or a
             methodology topic. <br>
             Fill in the form below, select a date (only available dates can be selected) and it's all done!
             Your submission will be automatically added to our database.<br>
-            If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
-                ";
+            If you want to edit or delete your submission, you can find it on your 
+            <a href='index.php?page=member/profile'>profile page</a>!
+        ";
     }
 
     /**
@@ -984,12 +598,13 @@ class Presentation extends BaseModel {
      * @return array
      * @internal param bool $date
      */
-    public static function form(Users $user, $Presentation=null, $submit="edit", $type=null, array $data=null) {
+    public static function form(Users $user, $Presentation = null, $submit = "edit", $type = null, array $data = null)
+    {
         if (is_null($Presentation)) {
             $Presentation = new self();
             $date = !is_null($data) && isset($data['date']) ? $data['date'] : null;
             $session_id = !is_null($data) && isset($data['session_id']) ? $data['session_id'] : null;
-        } elseif (isset($data['date'])) {
+        } elseif (array_key_exists('date', $data)) {
             $date = !is_null($data) && isset($data['date']) ? $data['date'] : null;
             $session_id = !is_null($data) && isset($data['session_id']) ? $data['session_id'] : null;
         } else {
@@ -998,7 +613,7 @@ class Presentation extends BaseModel {
         }
 
         // Get class of instance
-        $controller = !empty($data['controller']) ? $data['controller'] : get_class($Presentation);
+        $controller = !empty($data['controller']) ? $data['controller'] : self::getClassName();
 
         // Submission date
         $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker_submission' name='date' 
@@ -1006,7 +621,9 @@ class Presentation extends BaseModel {
 
         // Submission type
         $type = (is_null($type)) ? $type : $Presentation->type;
-        if (empty($type)) $type = 'paper';
+        if (empty($type)) {
+            $type = 'paper';
+        }
 
         // Presentation ID
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
@@ -1025,10 +642,11 @@ class Presentation extends BaseModel {
                     <div class='form_description'>
                         Upload files attached to this presentation
                     </div>
-                    " . Media::uploader(__CLASS__, $links, 'presentation_form') . "
+                    " . Media::uploader('Presentation', $links, 'presentation_form') . "
                 </div>
                 
-                <form method='post' action='php/form.php' enctype='multipart/form-data' id='presentation_form'>
+                <form method='post' action='php/router.php?controller=Presentation&action={$submit}' 
+                enctype='multipart/form-data' id='presentation_form'>
                     
                     <div class='form_aligned_block matched_bg'>
                         
@@ -1049,18 +667,17 @@ class Presentation extends BaseModel {
                 
                     <div class='form_lower_container'>
                         <div class='special_inputs_container'>
-                        " . self::get_form_content($Presentation, $type) . "
+                        " . SubmissionForms::get($type, $Presentation) . "
                         </div>
                         <div class='form-group'>
                             <label>Abstract</label>
-                            <textarea name='summary' class='wygiwym' id='summary' placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>$Presentation->summary</textarea>
+                            <textarea name='summary' class='wygiwym' id='summary' 
+                            placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>
+                            $Presentation->summary</textarea>
                         </div>
                     </div>
                     <div class='submit_btns'>
                         <input type='submit' name='$submit' class='submit_pres'>
-                        <input type='hidden' name='controller' value='{$controller}'>
-                        <input type='hidden' name='operation' value='{$submit}'/>
-                        <input type='hidden' name='process_submission' value='true'/>
                         <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
                         <input type='hidden' name='session_id' value='{$session_id}'/>
                         <input type='hidden' name='username' value='$user->username'/>
@@ -1085,166 +702,12 @@ class Presentation extends BaseModel {
     }
 
     /**
-     * Get form content based on selected presentation type
-     * @param Suggestion|Presentation $Presentation
-     * @param string $type: Presentation type
-     * @return string
-     */
-    public static function get_form_content($Presentation, $type) {
-        $form_name = $type . "_form";
-        if (method_exists(__CLASS__, $form_name)) {
-            return self::$form_name($Presentation);
-        } else {
-            return self::paper_form($Presentation);
-        }
-    }
-
-    /**
-     * Render form for wishes
-     * @param Suggestion|Presentation $Presentation
-     * @return string
-     */
-    private static function suggest_form($Presentation) {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
-
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='$Presentation->title' required/>
-            <label>Title</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
-            <label>Authors</label>
-        </div>
-        ";
-    }
-
-    /**
-     * Render form for research article
-     * @param Suggestion|Presentation $Presentation
-     * @return string
-     */
-    private static function paper_form($Presentation) {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
-
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='$Presentation->title' required/>
-            <label>Title</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
-            <label>Authors</label>
-        </div>
-        ";
-    }
-
-    /**
-     * Render form for guest speakers
-     * @param Suggestion|Presentation $Presentation
-     * @return string
-     */
-    private static function guest_form($Presentation) {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
-
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='$Presentation->title' required/>
-            <label>Title</label>
-        </div>
-        <div class='form-group'>
-            <input type='text' id='authors' name='authors' value='$Presentation->authors' required>
-            <label>Authors </label>
-        </div>
-        <div class='form-group' id='guest'>
-            <input type='text' id='orator' name='orator' required>
-            <label>Speaker</label>
-        </div>
-        ";
-    }
-
-    /**
-     * Render form for guest speakers
-     * @param Suggestion|Presentation $Presentation
-     * @return string
-     */
-    private static function minute_form($Presentation) {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
-
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='Minutes for session held on {$Presentation->date}' disabled/>
-            <label>Title</label>
-        </div>
-        ";
-    }
-
-    /**
-     * Submission menu
-     * @param string $destination : body or modal
-     * @param string $style: submitMenuFloat or submitMenu_fixed
-     * @return string
-     */
-    public static function submitMenu($destination='body', $style='submitMenu_fixed') {
-        $modal = $destination == 'body' ? 'loadContent' : "leanModal";
-        $leanModalUrl_presentation = Modal::buildUrl('Presentation', 'get_form', array(
-            'view'=>'modal',
-            'operation'=>'edit')
-        );
-        $leanModalUrl_suggestion = Modal::buildUrl('Suggestion', 'get_form', array(
-            'view'=>'modal',
-            'operation'=>'edit')
-        );
-        $leanModalUrl_select = Modal::buildUrl('Suggestion', 'get_suggestion_list', array('view'=>'modal')
-        );
-        return "
-            <div class='{$style}'>
-                <div class='submitMenuContainer'>
-                    <div class='submitMenuSection'>
-                        <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=edit' . "' 
-                        class='{$modal}' data-url='{$leanModalUrl_presentation}' data-destination='.submission_container'>
-                           <div class='icon_container'>
-                                <div class='icon'><img src='" . URL_TO_IMG . 'add_paper.png' . "'></div>
-                                <div class='text'>Submit</div>
-                            </div>
-                       </a>
-                    </div>
-                    <div class='submitMenuSection'>
-                        <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=suggest' . "' 
-                        class='{$modal}' data-url='{$leanModalUrl_suggestion}' data-destination='.submission_container'>
-                           <div class='icon_container'>
-                                <div class='icon'><img src='" . URL_TO_IMG . 'wish_paper.png' . "'></div>
-                                <div class='text'>Add a wish</div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class='submitMenuSection'>
-                        <a href='" . App::getAppUrl() . 'index.php?page=member/submission&op=wishpick' . "' 
-                        class='{$modal}' data-url={$leanModalUrl_select}' data-destination='.submission_container'>
-                            <div class='icon_container'>
-                                <div class='icon'><img src='" . URL_TO_IMG . 'select_paper.png'. "'></div>
-                                <div class='text'>Select a wish</div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-        </div>";
-    }
-
-    /**
      * Render years selection list
      * @param array $data
      * @return string
      */
-    private static function yearsSelectionList(array $data) {
+    private static function yearsSelectionList(array $data)
+    {
         $options = "<option value='all'>All</option>";
         foreach ($data as $year) {
             $options .= "<option value='$year'>$year</option>";
@@ -1257,15 +720,6 @@ class Presentation extends BaseModel {
                 <label>Filter by year</label>
             </div>
         ";
-    }
-
-    /**
-     * Render presentation container
-     * @param $content
-     * @return string
-     */
-    private static function container($content) {
-        return "<section><div class='section_content' id='presentation_container'>{$content}</div></section>";
     }
 
     /**
@@ -1286,53 +740,6 @@ class Presentation extends BaseModel {
                     </div>
                 </div>
             </section>
-            ";
-    }
-
-    /**
-     * Get session types
-     * @return array
-     */
-    public function getTypes() {
-        if (!empty($this->settings['types'])) {
-            return $this->settings['types'];
-        } else {
-            return $this->settings['defaults'];
-        }
-    }
-
-    /**
-     * Get session types
-     * @param array $types: list of default types
-     * @param $default_type : default session type
-     * @return array
-     */
-    public static function renderTypes(array $types, $default_type=null) {
-        $Sessionstype = "";
-        $opttypedflt = "";
-        foreach ($types as $type) {
-            $Sessionstype .= self::render_type($type);
-            $opttypedflt .= $type == $default_type ?
-                "<option value='$type' selected>$type</option>"
-                : "<option value='$type'>$type</option>";
-        }
-        return array(
-            'types'=>$Sessionstype,
-            "options"=>$opttypedflt
-        );
-    }
-
-    /**
-     * Render session/presentation type list
-     * @param $data
-     * @return string
-     */
-    private static function render_type($data) {
-        return "
-                <div class='type_div' id='session_$data'>
-                    <div class='type_name'>".ucfirst($data)."</div>
-                    <div class='type_del' data-type='$data' data-class='" . strtolower(__CLASS__). "'></div>
-                </div>
             ";
     }
 }

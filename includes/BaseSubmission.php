@@ -600,18 +600,22 @@ abstract class BaseSubmission extends BaseModel
     /**
      * Get session types
      * @param array $types: list of default types
-     * @param $default_type : default session type
+     * @param string $default_type : default session type
+     * @param array $exclude_types: list of excluded types
+     *
      * @return array
      */
-    public static function renderTypes(array $types, $default_type = null)
+    public static function renderTypes(array $types, $default_type = null, array $exclude_types=array())
     {
         $Sessionstype = "";
         $opttypedflt = "";
         foreach ($types as $type) {
-            $Sessionstype .= self::singleType($type);
-            $opttypedflt .= $type == $default_type ?
-                "<option value='$type' selected>$type</option>"
-                : "<option value='$type'>$type</option>";
+            if (!in_array($type, $exclude_types)) {
+                $Sessionstype .= self::singleType($type);
+                $opttypedflt .= $type == $default_type ?
+                    "<option value='$type' selected>$type</option>"
+                    : "<option value='$type'>$type</option>";
+            }
         }
         return array(
             'types'=>$Sessionstype,

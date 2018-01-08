@@ -2,7 +2,7 @@
 
 namespace includes;
 
-use includes\Submission;
+use includes\BaseSubmission;
 
 /**
  * Created by PhpStorm.
@@ -10,7 +10,8 @@ use includes\Submission;
  * Date: 23/02/2017
  * Time: 08:19
  */
-class Suggestion extends Submission {
+class Suggestion extends BaseSubmission
+{
 
     public $id;
     public $id_pres;
@@ -31,7 +32,7 @@ class Suggestion extends Submission {
      * @return bool|string
      * @throws Exception
      */
-    public function add_suggestion(array $post)
+    public function addSuggestion(array $post)
     {
         if ($this->isExist(array('title'=>$post['title'])) === false) {
             $post['up_date'] = date('Y-m-d h:i:s');
@@ -66,7 +67,7 @@ class Suggestion extends Submission {
         $Presentation = new Presentation();
         $result = $Presentation->edit($data);
         if ($result['status'] == true) {
-            $result['status'] = $this->delete_pres($id_pres);
+            $result['status'] = $this->deleteSubmission($id_pres);
         }
         return $result;
     }
@@ -74,19 +75,20 @@ class Suggestion extends Submission {
     /**
      * Render submission editor
      * @param array|null $post
-     * @param string $view
+     * @param string $view: requested view (body or modal)
+     * @param string $destination: id of destination modal window
      * @return array
      * @throws Exception
      */
-    public function editor(array $post = null, $view = 'body', $destination=null)
+    public function editor(array $post = null, $view = 'body', $destination = null)
     {
         $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
         $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
         $id = isset($post['id']) ? $post['id'] : false;
-        $destination = (!empty($post['destination'])) ? '#' . $post['destination'] : '#' . $destination;
+        $destination = (!empty($post['destination'])) ? $post['destination'] : '#' . $destination;
 
         if ($operation === 'selection_list') {
-            $result['content'] = $this->getSelectionList($destination, $view);
+            $result['content'] = $this->getSelectionMenu($destination, $view);
             $result['title'] = "Select a wish";
             $result['description'] = Suggestion::description("wishpick");
             return $result;
@@ -109,7 +111,7 @@ class Suggestion extends Submission {
             $this->getInfo($id);
             return Suggestion::form(new Users($_SESSION['username']), $this, $operation, $type);
         } else {
-            return self::not_found();
+            return self::notFound();
         }
     }
 
@@ -133,23 +135,24 @@ class Suggestion extends Submission {
             $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
 
-        $wish_list = is_null($wish_list) ? self::no_wish() : $wish_list;
-        $add_button = SessionInstance::isLogged() ? self::add_button() : null;
+        $wish_list = is_null($wish_list) ? self::emptyList() : $wish_list;
+        $addButton = SessionInstance::isLogged() ? self::addButton() : null;
 
-        return $add_button . $wish_list;
+        return $addButton . $wish_list;
     }
 
     /**
      * Alias for editor()
-     * @param $view
+     *
+     * @param string $view: requested view (modal or body)
+     * @param string $destination: id of destination modal section
      * @return array|string
-     * @throws Exception
      */
-    public function get_suggestion_list($view, $destination)
+    public function getSelectionList($view, $destination)
     {
         $data = array('destination'=>$destination, 'operation' => 'selection_list');
         if ($view === "body") {
-            return self::format_section($this->editor($data, $view));
+            return self::formatSection($this->editor($data, $view));
         } else {
             return $this->editor($data, $view);
         }
@@ -162,36 +165,13 @@ class Suggestion extends Submission {
      * @param string $destination: body or modal window
      * @return string
      */
-    public function selectionMenu($target = '.submission', $destination = 'body')
+    public function getSelectionMenu($destination = '.submission', $view = 'body')
     {
         $option = "<option disabled selected>Select a suggestion</option>";
         foreach ($this->getAll() as $key => $item) {
             $option .= "<option value='{$item['id']}'>{$item['authors']} | {$item['title']}</option>";
         }
-
-        return self::select_menu($option, $target, $destination);
-    }
-
-    /**
-     * Copy wishes from presentation table to suggestion table
-     * @return bool: success or failure
-     * @throws Exception
-     */
-    public static function patch()
-    {
-        $self = new self();
-        $Presentations = new Presentation();
-
-        foreach ($Presentations->all(array('type' => 'wishlist')) as $key => $item) {
-            $item['type'] = 'paper'; // Set type as paper by default
-            if ($self->add_suggestion($item) === false) {
-                return false;
-            } else {
-                $Presentations->delete(array('id'=>$item['id']));
-            }
-        }
-
-        return true;
+        return self::selectionMenu($option, $destination, $view);
     }
 
     /**
@@ -214,7 +194,8 @@ class Suggestion extends Submission {
      * @param string $dir
      * @return array
      */
-    public function getAll($limit=null, $order='count_vote', $dir='DESC') {
+    public function getAll($limit = null, $order = 'count_vote', $dir = 'DESC')
+    {
         $sql = "SELECT *, p.id as id, COUNT((v.ref_id)) as count_vote
                   FROM {$this->tablename} p 
                   LEFT JOIN " . Db::getInstance()->getAppTables('Users'). " u 
@@ -241,11 +222,11 @@ class Suggestion extends Submission {
      *
      * @return string
      */
-    private static function add_button()
+    private static function addButton()
     {
         $leanModalUrl = Modal::buildUrl(
             'Suggestion',
-            'get_form',
+            'getForm',
             array('view'=>'modal', 'operation'=>'edit')
         );
         return "
@@ -260,6 +241,7 @@ class Suggestion extends Submission {
 
     /**
      * Render suggestion in list
+     *
      * @param \stdClass $item
      * @param null|string $vote
      * @param null|string $bookmark
@@ -269,10 +251,10 @@ class Suggestion extends Submission {
     {
         $update = self::formatDate($item->up_date);
         $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id}";
-        $keywords = self::keywords_list($item->keywords);
+        $keywords = self::keywordsList($item->keywords);
         $leanModalUrl = Modal::buildUrl(
             'Suggestion',
-            'show_details',
+            'showDetails',
             array(
             'view'=>'modal',
             'id'=> $item->id
@@ -305,23 +287,15 @@ class Suggestion extends Submission {
     }
 
     /**
-     * Empty suggestion list
-     * @return string
-     */
-    private static function no_wish() {
-        return "<p>Were you looking for suggestions? Sorry, there is none yet.</p>";
-    }
-
-    /**
      * Render select menu
      * @param $option
      * @param string $target
      * @param string $destination
      * @return string
      */
-    private static function select_menu($option, $target = '.submission', $destination = 'body')
+    private static function selectionMenu($option, $target = '.submission', $destination = 'body')
     {
-        $url = "php/router.php?controller=Suggestion&action=get_form&operation=select&view={$destination}";
+        $url = "php/router.php?controller=Suggestion&action=getForm&operation=select&view={$destination}";
         return "
           <form method='post' action='{$url}'>
               <input type='hidden' name='page' value='presentations'/>
@@ -353,21 +327,21 @@ class Suggestion extends Submission {
         }
 
         // Get class of instance
-        $controller = get_class($Suggestion);
+        $controller = self::getClassName();
 
         // Presentation ID
-        $idPres = ($Suggestion->id != "") ? $Suggestion->id : 'false';
+        $idPres = !empty($Suggestion->id) ? $Suggestion->id : 'false';
 
         // Make submission's type selection list
-        $Presentation = new Presentation();
-        $type_options = $Presentation::renderTypes(
-            $Presentation->getSettings('types'),
-            $Presentation->getSettings('default_type'),
-            array('minute')
-        );
+        $type_options = self::renderTypes($Suggestion->getTypes(), $Suggestion->type, array('minute'));
 
         // Download medias
         $medias = !is_null($Suggestion->media) ? $Suggestion->media : array();
+        $url = Modal::buildUrl(
+            'Suggestion',
+            'getFormContent',
+            array('id'=>$idPres)
+        );
 
         // Text of the submit button
         $form = ($submit !== "wishpick") ? "
@@ -389,7 +363,8 @@ class Suggestion extends Submission {
                             Select a presentation type
                         </div>
                         <div class='form-group'>
-                            <select class='change_pres_type' name='type' id='{$controller}_{$idPres}' required>
+                            <select class='actionOnSelect' name='type' data-url='{$url}' 
+                            data-destination='.special_inputs_container' required>
                                 {$type_options['options']}
                             </select>
                             <label>Type</label>
@@ -399,7 +374,7 @@ class Suggestion extends Submission {
                 
                     <div class='form_lower_container'>
                         <div class='special_inputs_container'>
-                        " . Presentation::get_form_content($Suggestion, $type) . "
+                        " . SubmissionForms::get($type, $Suggestion) . "
                         </div>
                         
                         <div class='form-group'>
@@ -444,22 +419,27 @@ class Suggestion extends Submission {
      * @param $type
      * @return null|string
      */
-    public static function description($type) {
+    public static function description($type)
+    {
         $result = null;
         switch ($type) {
             case "suggest":
                 $result = "
                 Here you can suggest a paper that somebody else could present at a Journal Club session.
                 Fill in the form below and that's it! Your suggestion will immediately appear in the wishlist.<br>
-                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
+                If you want to edit or delete your submission, you can find it on your 
+                <a href='index.php?page=member/profile'>profile page</a>!
                 ";
                 break;
             case "wishpick":
                 $result = "
                 Here you can choose a suggested paper from the wishlist that you would like to present.<br>
-                The form below will be automatically filled in with the data provided by the user who suggested the selected paper.
-                Check that all the information is correct and modify it if necessary, choose a date to present and it's done!<br>
-                If you want to edit or delete your submission, you can find it on your <a href='index.php?page=member/profile'>profile page</a>!
+                The form below will be automatically filled in with the data provided by the user who 
+                suggested the selected paper.
+                Check that all the information is correct and modify it if necessary, choose a date to 
+                present and it's done!<br>
+                If you want to edit or delete your submission, you can find it on your 
+                <a href='index.php?page=member/profile'>profile page</a>!
                 ";
                 break;
             case "edit":
@@ -467,7 +447,6 @@ class Suggestion extends Submission {
                 Here you can edit a suggestion.
                 ";
                 break;
-
         }
         return $result;
     }
