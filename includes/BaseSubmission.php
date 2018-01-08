@@ -300,11 +300,12 @@ abstract class BaseSubmission extends BaseModel
     // VIEW
     /**
      * Submission menu
+     *
      * @param string $destination : body or modal
      * @param string $style: submitMenuFloat or submitMenu_fixed
      * @return string
      */
-    public static function submitMenu($destination = 'body', $style = 'submitMenu_fixed')
+    public static function menu($destination = 'body', $style = 'submitMenu_fixed')
     {
         $modal = $destination == 'body' ? 'loadContent' : "leanModal";
         $leanModalUrl_presentation = Modal::buildUrl(
@@ -335,7 +336,7 @@ abstract class BaseSubmission extends BaseModel
                         data-destination='.submission_container'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'add_paper.png' . "'></div>
-                                <div class='text'>Submit</div>
+                                <div class='text'>Add a presentation</div>
                             </div>
                        </a>
                     </div>
@@ -344,7 +345,7 @@ abstract class BaseSubmission extends BaseModel
                         class='{$modal}' data-url='{$leanModalUrl_suggestion}' data-destination='.submission_container'>
                            <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'wish_paper.png' . "'></div>
-                                <div class='text'>Add a wish</div>
+                                <div class='text'>Add a suggestion</div>
                             </div>
                         </a>
                     </div>
@@ -353,7 +354,7 @@ abstract class BaseSubmission extends BaseModel
                         class='{$modal}' data-url='{$leanModalUrl_select}' data-destination='.submission_container'>
                             <div class='icon_container'>
                                 <div class='icon'><img src='" . URL_TO_IMG . 'select_paper.png'. "'></div>
-                                <div class='text'>Select a wish</div>
+                                <div class='text'>Select a suggestion</div>
                             </div>
                         </a>
                     </div>
