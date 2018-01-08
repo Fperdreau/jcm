@@ -118,6 +118,7 @@ return array(
         "date" => array("DATE", false),
         "jc_time" => array("CHAR(15)", false),
         "title" => array("CHAR(150)", false),
+        "keywords" => array("CHAR(255)", false),
         "authors" => array("CHAR(150)", false),
         "summary" => array("TEXT(5000)", false),
         "orator" => array("CHAR(50)", false),
