@@ -46,25 +46,6 @@ class Modal
     }
 
     /**
-     * Build URL to get section content
-     *
-     * @param string $controller
-     * @param string $action
-     * @param array $params
-     * @return string
-     */
-    public static function buildUrl($controller, $action, array $params = null)
-    {
-        $paramStr = '';
-        if (!is_null($params)) {
-            foreach ($params as $key => $value) {
-                $paramStr .= "&{$key}={$value}";
-            }
-        }
-        return "php/router.php?controller={$controller}&action={$action}{$paramStr}";
-    }
-
-    /**
      * Get dialog box
      *
      * @param $type

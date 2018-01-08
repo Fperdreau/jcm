@@ -101,14 +101,14 @@ class Template
     private static function loginMenu()
     {
         if (!SessionInstance::isLogged()) {
-            $leanModalUrlLogin = Modal::buildUrl(
+            $leanModalUrlLogin = Router::buildUrl(
                 'Users',
                 'getForm',
                 array(
                     'type'=>'login_form', 'view'=>'modal'
                     )
             );
-            $leanModalUrlRegistration = Modal::buildUrl(
+            $leanModalUrlRegistration = Router::buildUrl(
                 'Users',
                 'getForm',
                 array(

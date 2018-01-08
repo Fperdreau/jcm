@@ -374,8 +374,8 @@ class Presentation extends BaseSubmission
      */
     public static function show_in_list(\stdClass $presentation, $speakerDiv) {
         $date = date('d M y', strtotime($presentation->date));
-        $leanModalUrl = Modal::buildUrl(
-            get_class(),
+        $leanModalUrl = Router::buildUrl(
+            self::getClassName(),
             'showDetails',
             array(
             'view'=>'modal',
@@ -421,14 +421,19 @@ class Presentation extends BaseSubmission
      * @param array $data
      * @return array
      */
-    public static function inSessionEdit(array $data) {
-        $leanModalUrl = Modal::buildUrl(get_class(), 'showDetails', array(
+    public static function inSessionEdit(array $data)
+    {
+        $leanModalUrl = Router::buildUrl(
+            self::getClassName(),
+            'showDetails',
+            array(
             'view'=>'modal',
             'operation'=>'edit',
             'id'=>$data['id'])
         );
-        $view_button = "<a href='#' class='leanModal pub_btn icon_btn' data-url='{$leanModalUrl}' data-section='submission' 
-            data-title='Submission'><img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
+        $view_button = "<a href='#' class='leanModal pub_btn icon_btn' 
+        data-url='{$leanModalUrl}' data-section='submission' data-title='Submission'>
+        <img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
                 <div style='display: block !important;'>{$data['title']}</div>
@@ -447,9 +452,13 @@ class Presentation extends BaseSubmission
      * @param array $data
      * @return string
      */
-    private static function RenderTitle(array $data) {
+    private static function RenderTitle(array $data)
+    {
         $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
-        $leanModalUrl = Modal::buildUrl(get_class(), 'showDetails', array(
+        $leanModalUrl = Router::buildUrl(
+            self::getClassName(),
+            'showDetails',
+            array(
             'view'=>'modal',
             'operation'=>'edit',
             'id'=>$data['id_pres'])

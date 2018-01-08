@@ -818,14 +818,14 @@ class Users extends BaseModel {
      * @return string|array
      */
     public static function login_form_body() {
-        $leanModalUrlPwd = Modal::buildUrl(
+        $leanModalUrlPwd = Router::buildUrl(
             'Users',
             'getForm',
             array(
             'view'=>'modal',
             'type'=>'change_password_form')
         );
-        $leanModalUrlReg = Modal::buildUrl(
+        $leanModalUrlReg = Router::buildUrl(
             'Users',
             'getForm',
             array(
@@ -877,7 +877,7 @@ class Users extends BaseModel {
      * @return string
      */
     public static function registration_form_body() {
-        $leanModalUrlLogin = Modal::buildUrl(
+        $leanModalUrlLogin = Router::buildUrl(
             'Users',
             'getForm',
             array(

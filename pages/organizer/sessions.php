@@ -23,12 +23,18 @@
 use includes\Session;
 use includes\Presentation;
 use includes\Template;
+use includes\Router;
 
 // Declare classes
 $Session = new Session();
 $Presentation = new Presentation();
 $session_types = Session::renderTypes($Session->getSettings('types'), $Session->getSettings('default_type'));
 $presentation_types = Presentation::renderTypes($Presentation->getSettings('types'), $Presentation->getSettings('default_type'));
+
+$modSessionDftType = Router::buildUrl(
+    'Session',
+    'updateSettings'
+);
 
 $result = "
 <div class='page_header'>
@@ -43,7 +49,7 @@ $result = "
                     <h3>Sessions</h3>
                     <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
                         <div class='form-group'>
-                            <select name='default_type' class='type_default' id='session'>
+                            <select name='default_type' class='actionOnSelect' data-url='{$modSessionDftType}' id='session'>
                                 {$session_types['options']}
                             </select>
                             <label>Default session type</label>

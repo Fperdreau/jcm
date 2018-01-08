@@ -308,21 +308,21 @@ abstract class BaseSubmission extends BaseModel
     public static function menu($destination = 'body', $style = 'submitMenu_fixed')
     {
         $modal = $destination == 'body' ? 'loadContent' : "leanModal";
-        $leanModalUrl_presentation = Modal::buildUrl(
+        $leanModalUrl_presentation = Router::buildUrl(
             'Presentation',
             'getForm',
             array(
             'view'=>'modal',
             'operation'=>'edit')
         );
-        $leanModalUrl_suggestion = Modal::buildUrl(
+        $leanModalUrl_suggestion = Router::buildUrl(
             'Suggestion',
             'getForm',
             array(
             'view'=>'modal',
             'operation'=>'edit')
         );
-        $leanModalUrl_select = Modal::buildUrl(
+        $leanModalUrl_select = Router::buildUrl(
             'Suggestion',
             'getSelectionList',
             array('view'=>'modal')
@@ -389,7 +389,7 @@ abstract class BaseSubmission extends BaseModel
         $trigger = $view == 'modal' ? 'leanModal' : 'loadContent';
 
         // URL used by event handler to load content on button click
-        $leanModalUrl = Modal::buildUrl(
+        $leanModalUrl = Router::buildUrl(
             self::getClassName(),
             'getForm',
             array(
@@ -398,7 +398,7 @@ abstract class BaseSubmission extends BaseModel
             'id'=>$data['id'])
         );
 
-        $leanModalUrlPresent = Modal::buildUrl(
+        $leanModalUrlPresent = Router::buildUrl(
             'Suggestion',
             'getForm',
             array(

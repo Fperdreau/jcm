@@ -224,7 +224,7 @@ class Suggestion extends BaseSubmission
      */
     private static function addButton()
     {
-        $leanModalUrl = Modal::buildUrl(
+        $leanModalUrl = Router::buildUrl(
             'Suggestion',
             'getForm',
             array('view'=>'modal', 'operation'=>'edit')
@@ -252,7 +252,7 @@ class Suggestion extends BaseSubmission
         $update = self::formatDate($item->up_date);
         $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id}";
         $keywords = self::keywordsList($item->keywords);
-        $leanModalUrl = Modal::buildUrl(
+        $leanModalUrl = Router::buildUrl(
             'Suggestion',
             'showDetails',
             array(
@@ -337,7 +337,7 @@ class Suggestion extends BaseSubmission
 
         // Download medias
         $medias = !is_null($Suggestion->media) ? $Suggestion->media : array();
-        $url = Modal::buildUrl(
+        $url = Router::buildUrl(
             'Suggestion',
             'getFormContent',
             array('id'=>$idPres)
