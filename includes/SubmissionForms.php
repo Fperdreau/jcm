@@ -17,26 +17,31 @@ class SubmissionForms
      */
     public static function get($type, $obj = null)
     {
+        if (empty($type)) {
+            $type = 'paper';
+        }
+
         $methodName = $type . 'Form';
         if (method_exists(__CLASS__, $methodName)) {
             try {
                 return self::$methodName($obj);
             } catch (\Exception $e) {
-                return self::notFound();
+                return self::notFound($type);
             }
         } else {
-            return self::notFound();
+            return self::notFound($type);
         }
     }
 
     /**
      * Render not found message
      *
+     * @param string $type: selected type
      * @return string
      */
-    private static function notFound()
+    private static function notFound($type)
     {
-        return "This type of presentation is not available";
+        return "The selected type ['{$type}'] is not available";
     }
 
     /**
