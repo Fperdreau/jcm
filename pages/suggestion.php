@@ -22,6 +22,6 @@
 
 use includes\Suggestion;
 
-$suggestion = new Suggestion();
-$id = isset($_POST['id']) ? $_POST['id'] : null;
-echo $suggestion->index($id);
+$Suggestion = new Suggestion();
+$id = isset($pageParameters['id']) ? $pageParameters['id'] : null;
+echo $Suggestion->index($id);

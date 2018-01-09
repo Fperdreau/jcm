@@ -23,5 +23,5 @@
 use includes\Presentation;
 
 $Presentation = new Presentation();
-$id = isset($_POST['id']) ? $_POST['id'] : null;
+$id = isset($pageParameters['id']) ? $pageParameters['id'] : null;
 echo $Presentation->index($id);
