@@ -49,12 +49,12 @@ abstract class BaseSubmission extends BaseModel
                 $user = false;
             }
 
-            $data = $this->getInfo(htmlspecialchars($_POST['id']));
+            $data = $this->getInfo(htmlspecialchars($id));
             $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
             if ($show && isset($_POST['operation']) && $_POST['operation'] === 'edit') {
                 $content = $this->getForm('body');
             } else {
-                $content = $this->showDetails($_POST['id'], 'body');
+                $content = $this->showDetails($id, 'body');
             }
         } else {
             $content = "Nothing to show here";
