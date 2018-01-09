@@ -52,7 +52,7 @@ class Patcher {
     /**
      * Patching database tables for version older than 1.2.
      */
-    function patching() {
+    public function patching() {
         $db = Db::getInstance();
         $version = (float)$_SESSION['installed_version'];
         if ($version <= 1.2) {
