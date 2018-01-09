@@ -71,6 +71,7 @@ class Session extends BaseModel
     public $end_date;
     public $to_repeat;
     public $event_id;
+    public $recurrent;
     public $presids = array();
     public $speakers = array();
     private static $default = array();
@@ -152,7 +153,7 @@ class Session extends BaseModel
      */
     public function getSessionEditor($date)
     {
-        if ($this->is_available(array('date'=>$date))) {
+        if ($this->isAvailable(array('date'=>$date))) {
             return Session::dayContainer(array('date'=>$date, 'content'=>Session::no_session()));
         } else {
             return $this->getDayContent($this->all(array('s.date'=>$date)), $date, true);
@@ -166,7 +167,7 @@ class Session extends BaseModel
      */
     public function getSessionViewer($date)
     {
-        if ($this->is_available(array('date'=>$date))) {
+        if ($this->isAvailable(array('date'=>$date))) {
             return Session::dayContainer(array('date'=>$date, 'content'=>Session::no_session()));
         } else {
             return $this->getDayContent($this->all(array('s.date'=>$date)), $date, false);
@@ -181,7 +182,7 @@ class Session extends BaseModel
     {
         $date = self::getJcDates($this->settings['jc_day'], 1)[0];
         $form = self::add_session_form($this->getDefaults(), $this->settings['default_type']);
-        if ($this->is_available(array('date'=>$date))) {
+        if ($this->isAvailable(array('date'=>$date))) {
             return self::sessionManager(null, $form);
         } else {
             $sessionEditor = $this->getSessionEditor($date);
@@ -210,7 +211,7 @@ class Session extends BaseModel
         $data = $this->all(array('s.date'=>$date));
         $data = reset($data);
         if (!empty($data)) {
-            if ($this->is_available(array('date'=>$date))) {
+            if ($this->isAvailable(array('date'=>$date))) {
                 if (!$mail) {
                     return self::session_details($data[0], Session::no_session());
                 } else {
@@ -462,20 +463,38 @@ class Session extends BaseModel
     }
 
     /**
-     * Modify session type and notify speakers about the change
-     * @param Session $session
-     * @param $new_type
-     * @return bool|mixed
+     * Modify session type and change corresponding assignments
+     *
+     * @param string $id: session id
+     * @param string $type: new session type
+     * @return array
      */
-    public function set_session_type(Session $session, $new_type)
+    public function modifySessionType($id, $type)
+    {
+        if ($this->modifyAssignments($this->get(array('id'=>$id), $type))) {
+            $result = $this->update(array('type'=>$type), array('id'=>$id));
+            if ($result['status']) {
+                $result['msg'] = "Session's type has been set to {$value}";
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Modify session type and notify speakers about the change
+     * @param array $data
+     * @param $new_type
+     * @return bool
+     */
+    public function modifyAssignments(array $data, $new_type)
     {
         $assignment = new Assignment();
         $result = true;
 
-        $previous_type = $session->type;
+        $previous_type = $data['type'];
 
         // Loop over presentations scheduled for this session
-        foreach ($session->presids as $id_pres) {
+        foreach ($data['presids'] as $id_pres) {
             $pres = new Presentation($id_pres);
             $speaker = new Users($pres->orator);
 
@@ -484,7 +503,7 @@ class Session extends BaseModel
                 'speaker'=>$speaker->username,
                 'type'=>$previous_type,
                 'presid'=>$pres->id_pres,
-                'date'=>$session->date
+                'date'=>$data['date']
             );
 
             // Update assignment table with new session type
@@ -511,11 +530,6 @@ class Session extends BaseModel
 
             $result = $MailManager->send($content, array($speaker->email));
         }
-
-        // Update session information
-        if ($result) {
-            $result = $session->update(array('type'=>$new_type), array('id'=>$session->id));
-        }
         return $result;
     }
 
@@ -531,7 +545,7 @@ class Session extends BaseModel
         $post['start_date'] = $post['date'];
         $post['end_date'] = (!empty($post['to_repeat']) && $post['to_repeat'] == 1) ? $post['end_date'] : $post['date'];
 
-        if ($this->is_available($post)) {
+        if ($this->isAvailable($post)) {
             $content = $this->parseData($post, array('presids','speakers', 'max_nb_session', 'default'));
 
             // Add session to the database
@@ -715,7 +729,7 @@ class Session extends BaseModel
         } else {
             $max_date = (is_null($max_date)) ? $item['end_date'] : $max_date;
         }
-        $result = $this->recursive_repeat($item, $max_date);
+        $result = $this->recursiveRepeat($item, $max_date);
         $result['msg'] = "{$result['counter']} sessions have been created";
         return $result;
     }
@@ -806,7 +820,7 @@ class Session extends BaseModel
      * @param $id
      * @return bool
      */
-    public function is_recurrent($id)
+    public function isRecurrent($id)
     {
         $data = $this->get(array('id'=>$id));
         return count($this->all(array('event_id'=>$data['event_id']))) > 1;
@@ -819,7 +833,7 @@ class Session extends BaseModel
      * @param array|null $result
      * @return mixed
      */
-    private function recursive_repeat($item, $max_date, array $result = null)
+    private function recursiveRepeat($item, $max_date, array $result = null)
     {
         if (is_null($result)) {
             $result = array('status'=>true, 'msg'=>null, 'counter'=>0);
@@ -848,7 +862,7 @@ class Session extends BaseModel
             // Continue with next occurrences
             $data = $item;
             $data['date'] = date('Y-m-d', strtotime("{$item['date']} + {$item['frequency']} days"));
-            foreach ($this->recursive_repeat($data, $max_date, $result) as $key => $value) {
+            foreach ($this->recursiveRepeat($data, $max_date, $result) as $key => $value) {
                 $result[$key] = $value;
             }
         }
@@ -1071,7 +1085,7 @@ class Session extends BaseModel
      * @param $session_data: session information
      * @return bool: True if nothing is planned on this time slot
      */
-    public function is_available(array $session_data)
+    public function isAvailable(array $session_data)
     {
         if (isset($session_data['start_time']) && isset($session_data['end_time'])) {
             $overlap = " and (start_time>'{$session_data['start_time']}' and start_time<'{$session_data['end_time']}') 
@@ -1153,7 +1167,7 @@ class Session extends BaseModel
      * @param array $settings
      * @return string
      */
-    public static function default_settings_form(array $settings)
+    public static function defaultSettingsForm(array $settings)
     {
         return "
         <section>
@@ -1192,29 +1206,12 @@ class Session extends BaseModel
     }
 
     /**
-     * Generate session type selection list
-     * @param array $data
-     * @param $session_type
-     * @return string
-     */
-    public static function type_list(array $data, $session_type)
-    {
-        //$type_options = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>Delete</option>";
-        $type_options = '';
-        foreach ($data as $type) {
-            $selected = ($type == $session_type) ? 'selected' : null;
-            $type_options .= "<option value='{$type}' {$selected}>{$type}</option>";
-        }
-        return $type_options;
-    }
-
-    /**
      * Render session settings panel
      * @param array $session: session information
      * @param array $types: list of session types
      * @return string
      */
-    public static function session_settings(array $session, array $types)
+    public static function sessionSettings(array $session, array $types)
     {
         $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $session['renderTypes']);
         $repeat_options = null;
@@ -1559,7 +1556,7 @@ class Session extends BaseModel
             data-id='{$data['session_id']}'>
                 <div class='session_editor_core'>
                     <div class='session_settings'>
-                        ". self::session_settings($data, $session_type) ."
+                        ". self::sessionSettings($data, $session_type) ."
                     </div>
     
                     <div class='session_presentations'>
