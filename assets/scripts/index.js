@@ -1410,9 +1410,8 @@ $(document).ready(function () {
             };
 
             jQuery.ajax({
-                url: 'php/router.php?controller=Session&action=is_recurrent',
+                url: 'php/router.php?controller=Session&action=isRecurrent&id=' + session_id,
                 type: 'post',
-                data: {'id': session_id},
                 async: true,
                 success: function(data) {
                     if (jQuery.parseJSON(data) === true) {
@@ -1486,8 +1485,7 @@ $(document).ready(function () {
             var value = $(this).val();
             var sessionDiv = $(this).closest('.session_div');
             var sessionID = sessionDiv.data('id');
-            var data = {mod_session_type: true, session: sessionID, prop: prop, value: value};
-            processAjax(sessionDiv, data, null, "php/form.php");
+            processAjax(sessionDiv, data, null, "php/router.php?controller=Session&action=modifySessionType&id=" + sessionID + "type=" + value);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
