@@ -32,7 +32,7 @@ class Suggestion extends BaseSubmission
      * @return bool|string
      * @throws Exception
      */
-    public function addSuggestion(array $post)
+    public function make(array $post)
     {
         if ($this->isExist(array('title'=>$post['title'])) === false) {
             $post['up_date'] = date('Y-m-d h:i:s');
