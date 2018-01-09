@@ -298,7 +298,7 @@ class App
             return $result;
         }
 
-        $_POST['version'] = self::version;
+        $_POST['version'] = APP::VERSION;
         $_POST{"site_url"} = URL_TO_APP;
 
         // Load and update application settings
@@ -391,7 +391,7 @@ class App
 
     /**
      * Install application
-     * 
+     *
      * @param $op : do we make a new installation (overwriting pre-existent data)
      * @return array
      */
@@ -429,7 +429,8 @@ class App
                 $filename = $dir."/".$file;
                 if ($file != "." && $file != ".." && is_file($filename) && !in_array($filename, $filestoexclude)) {
                     $content[$dir][] = $filename;
-                } elseif ($file != "." && $file != ".." && is_dir($dir.$file) && !in_array($dir.$file, $foldertoexclude)) {
+                } elseif ($file != "." && $file != ".." && is_dir($dir.$file)
+                && !in_array($dir.$file, $foldertoexclude)) {
                     $content[$dir] = self::browsecontent($dir.$file, $foldertoexclude, $filestoexclude);
                 }
             }

@@ -25,6 +25,13 @@
  * BOOTING PART
  */
 
+use includes\App;
+use includes\Db;
+use includes\Posts;
+use includes\Config;
+use includes\MailManager;
+use includes\Template;
+
 include('includes' . DIRECTORY_SEPARATOR . 'App.php');
 App::boot(true);
 
@@ -152,7 +159,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         $_SESSION['step'] = $step;
         $next_step = $step + 1;
 
-        $new_version = App::version;
+        $new_version = App::VERSION;
         $operation = null;
         $title = null;
         $result = array();
@@ -181,17 +188,25 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             if ($version == false) {
                 $operation = "
                     <p>Hello</p>
-                    <p>It seems that <span class='appname'>" . App::app_name . "</span>  has never been installed here before.</p>
-                    <p>We are going to start from scratch... but do not worry, it is all automatic. We will guide you through the installation steps and you will only be required to provide us with some information regarding the hosting environment.</p>
+                    <p>It seems that <span class='appname'>" . App::APP_NAME . "</span> 
+                    has never been installed here before.</p>
+                    <p>We are going to start from scratch... but do not worry, it is all automatic. 
+                    We will guide you through the installation steps and you will only be required to
+                     provide us with some information regarding the hosting environment.</p>
                     <p>Click on the 'next' button once you are ready to start.</p>
-                    <p>Thank you for your interest in <span class='appname'>" . App::app_name . "</span> 
+                    <p>Thank you for your interest in <span class='appname'>" . App::APP_NAME . "</span> 
                     <p style='text-align: center'><input type='button' value='Start' class='start' data-op='new'></p>";
             } else {
                 $operation = "
                     <p>Hello</p>
-                    <p>The current version of <span class='appname'>" . App::app_name . "</span>  installed here is <span style='font-weight: 500'>{$version}</span>. You are about to install the version <span style='font-weight: 500'>{$new_version}</span>.</p>
-                    <p>You can choose to either do an entirely new installation by clicking on 'New installation' or to simply update your current version to the new one by clicking on 'Update'.</p>
-                    <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will completely erase all the data present in your <span class='appname'>" . App::app_name . "</span>  database!!</p>
+                    <p>The current version of <span class='appname'>" . App::APP_NAME . "</span> 
+                    installed here is <span style='font-weight: 500'>{$version}</span>. 
+                    You are about to install the version <span style='font-weight: 500'>{$new_version}</span>.</p>
+                    <p>You can choose to either do an entirely new installation by clicking on 'New installation' 
+                    or to simply update your current version to the new one by clicking on 'Update'.</p>
+                    <p class='sys_msg warning'>Please, be aware that choosing to perform a new installation will 
+                    completely erase all the data present in your <span class='appname'>" . App::APP_NAME . "</span>
+                     database!!</p>
                     <p style='text-align: center'>
                     <input type='button' value='New installation'  class='start' data-op='new'>
                     <input type='button' value='Update' class='start' data-op='update'>
@@ -199,13 +214,13 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             }
             $next_step = 2;
         } elseif ($step == 2) {
-            $config = $db->get_config();
+            $config = $db->getConfig();
             $db_prefix = str_replace('_', '', $config['dbprefix']);
 
             $title = "Step 1: Database configuration";
             $operation = "
                 <form action='install.php' method='post'>
-                    <input type='hidden' name='version' value='" . App::version. "'>
+                    <input type='hidden' name='version' value='" . App::VERSION . "'>
                     <input type='hidden' name='op' value='{$op}'/>
                     <input type='hidden' name='operation' value='db_info'/>
                     <div class='form-group'>
@@ -255,7 +270,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             $title = "Installation complete!";
             $operation = "
             <p class='sys_msg success'>Congratulations!</p>
-            <p class='sys_msg warning'> Now you can delete the 'install.php' file from the root folder of the application</p>
+            <p class='sys_msg warning'> Now you can delete the 'install.php' file 
+            from the root folder of the application</p>
             <p style='text-align: right'><input type='button' value='Finish' class='finish'></p>";
             $next_step = 5;
         }
@@ -264,7 +280,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         $result['title'] = $title;
         $result['content'] = "
             <section>
-                <div class='section_content' id='operation' data-action={$action} data-step={$step} data-next={$next_step}>{$operation}</div>
+                <div class='section_content' id='operation' data-action={$action} 
+                data-step={$step} data-next={$next_step}>{$operation}</div>
             </section>
         ";
         $result['step'] = $step;
@@ -295,7 +312,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     <script type="text/javascript" src="assets/scripts/install.js"></script>
     <script type="text/javascript" src="assets/scripts/lib/passwordchecker/passwordchecker.min.js"></script>
 
-    <title><?php echo App::app_name; ?>  - Installation</title>
+    <title><?php echo App::APP_NAME; ?>  - Installation</title>
 </head>
 
 <body>
@@ -303,8 +320,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     <!-- Header section -->
     <header>
         <div class="box" id="page_title">
-            <div id="appTitle"><?php echo App::app_name; ?></div>
-            <div id="appVersion">Version <?php echo App::version; ?></div>
+            <div id="appTitle"><?php echo App::APP_NAME; ?></div>
+            <div id="appVersion">Version <?php echo App::VERSION; ?></div>
         </div>
     </header>
 
@@ -323,10 +340,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
     </main>
 
     <footer>
-        <div id="appTitle"><?php echo App::app_name; ?></div>
-        <div id="appVersion">Version <?php echo App::version; ?></div>
+        <div id="appTitle"><?php echo App::APP_NAME; ?></div>
+        <div id="appVersion">Version <?php echo App::VERSION; ?></div>
         <div id="sign">
-            <a href="<?php echo App::repository?>" target='_blank'><?php echo App::copyright; ?></a>
+            <a href="<?php echo App::REPOSITORY?>" target='_blank'><?php echo App::COPYRIGHT; ?></a>
         </div>
     </footer>
 
