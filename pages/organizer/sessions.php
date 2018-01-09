@@ -56,7 +56,7 @@ $result = "
 </div>
 <div class='section_container'>
     <div class='section_left'>
-        " . Session::default_settings_form($Session->getSettings()) . "
+        " . Session::defaultSettingsForm($Session->getSettings()) . "
     
         " . Template::section(array('body'=>"
         <div id='session_types_options'>
