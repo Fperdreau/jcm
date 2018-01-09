@@ -1709,7 +1709,6 @@ h3 {
 }
 
 .pres_container {
-    margin-bottom: 5px;
     font-size: 0.9em;
     font-weight: 300;
     overflow: hidden;
@@ -3149,7 +3148,7 @@ div.loadBtn {
 }
 
 .session_content {
-    padding: 10px 20px 10px 10px;
+    padding: 10px 10px 10px 10px;
     background-color: rgba(239,239,239,.6);
     margin: 0 0 0 13px;
     border-left: 2px solid rgba(175,175,175,.8);
