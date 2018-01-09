@@ -222,68 +222,6 @@ if (!empty($_POST['config_modify'])) {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Session Management tools
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-// Add a session/presentation type
-if (!empty($_POST['add_type'])) {
-    $class = $_POST['add_type'];
-    $typename = $_POST['typename'];
-    $var_name = "types";
-    $div_id = $class . '_' . $typename;
-    $controller_name = ucfirst($class);
-
-    /**
-     * @var $controller Presentation|Session
-     */
-    $controller = new $controller_name();
-    $types = $controller->getSettings($var_name);
-    $types[] = $typename;
-
-    $result = $controller->updateSettings(array($var_name=>$types));
-    if ($result['status']) {
-        //Get session types
-        $session_types = $controller::renderTypes($controller->getSettings("types"), $controller->getSettings("default_type"));
-        $result = $session_types['types'];
-    } else {
-        $result = false;
-    }
-    echo json_encode($result);
-    exit;
-}
-
-// Delete a session/presentation type
-if (!empty($_POST['del_type'])) {
-    $class = ucfirst($_POST['del_type']);
-    $typename = $_POST['typename'];
-    $var_name = "types";
-    $defaults = 'defaults';
-    $div_id = strtolower($class) . '_' . str_replace(' ', '_', strtolower($typename));
-    $result['status'] = true;
-    $controller_name = ucfirst($class);
-
-    /**
-     * @var $controller Presentation|Session
-     */
-    $controller = new $controller_name();
-    $types = $controller->getSettings($var_name);
-
-    if (in_array($typename, $controller->getSettings($defaults))) {
-        $result['status'] = false;
-        $result['msg'] = "Default types cannot be deleted";
-    } else {
-        if(($key = array_search($typename, $types)) !== false) {
-            unset($types[$key]);
-        }
-        $new_types = array_values(array_diff($types, array($typename)));
-        $updated = $controller->updateSettings(array($var_name=>$new_types));
-        if ($result['status'] && $updated['status']) {
-            //Get session types
-            $session_types = $controller::renderTypes($new_types, $controller->getSettings("default_type"));
-            $result = $session_types['types'];
-        }
-    }
-
-    echo json_encode($result);
-    exit;
-}
 
 if (!empty($_POST['add_session'])) {
     $Session = new Session();
