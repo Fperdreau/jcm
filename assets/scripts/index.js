@@ -987,6 +987,80 @@ function process_submission(el, e) {
     e.stopImmediatePropagation();
 }
 
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Session/Submission types
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+/**
+ * Add Session/Submission type
+ *
+ * @param {*} el 
+ */
+function addType(el) {
+    var classname = el.attr('data-class');
+    var inputEl = $('input#new_' + classname.toLowerCase() + '_type');
+    var typename = inputEl.val();
+    var container = $('.type_list#' + classname.toLowerCase());
+
+    if (el.hasClass('wrongField')) {
+        el.removeClass('wrongField');
+    }
+    if (typename.length === 0) {
+        el.siblings('input').addClass('wrongField');
+        return true;
+    }
+    jQuery.ajax({
+        url: 'php/router.php?controller=TypesManager&action=addType&className=' + classname + '&type=' + typename,
+        type: 'POST',
+        async: true,
+        beforeSend: function() {
+            el.toggleClass('addBtn loadBtn');
+        },
+        complete: function() {
+            el.toggleClass('addBtn loadBtn');
+        },
+        success: function (data) {
+            var result = jQuery.parseJSON(data);
+            if (result.status == true) {
+                container.html(result.msg);
+                inputEl.empty();
+            } else {
+                validsubmitform(container, result);
+            }
+        }
+    });
+}
+
+/**
+ * Delete Session/Submission type
+ *
+ * @param {*} el 
+ */
+function deleteType(el) {
+    var typename = el.attr('data-type');
+    var classname = el.attr('data-class');
+    var container = $('.type_list#' + classname.toLowerCase());
+    jQuery.ajax({
+        url: 'php/router.php?controller=TypesManager&action=deleteType&className=' + classname + '&type=' + typename,
+        type: 'POST',
+        async: true,
+        beforeSend: function() {
+            el.addClass('loadBtn');
+        },
+        complete: function() {
+            el.removeClass('loadBtn');
+        },
+        success: function (data) {
+            var result = jQuery.parseJSON(data);
+            if (result.status !== false) {
+                container.html(result);
+            } else {
+                validsubmitform(container, result);
+            }
+        }
+    });
+}
+
 
 $(document).ready(function () {
     var previous;
@@ -1242,80 +1316,13 @@ $(document).ready(function () {
         // Add a session/presentation type
         .on('click','.type_add',function (e) {
             e.preventDefault();
-            var classname = $(this).attr('data-class');
-            var typename = $('input#new_' + classname + '_type').val();
-            if ($(this).hasClass('wrongField')) {
-                $(this).removeClass('wrongField');
-            }
-            if (typename.length === 0) {
-                $(this).siblings('input').addClass('wrongField');
-                return true;
-            }
-            var el = $(this);
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    add_type: classname,
-                    typename: typename
-                },
-                beforeSend: function() {
-                    el.toggleClass('addBtn loadBtn');
-                },
-                complete: function() {
-                    el.toggleClass('addBtn loadBtn');
-                },
-                success: function (data) {
-                    var result = jQuery.parseJSON(data);
-                    if (result !== false) {
-                        $('.type_list#'+classname).html(result);
-                        $('input#new_'+classname+'_type').empty();
-                    } else {
-                        showfeedback("<span class='sys_msg warning'>We could not add this new category", "feedback_" + classname);
-                    }
-                }
-            });
+            addType($(this));
         })
 
         // Delete a session/presentation type
         .on('click','.type_del',function (e) {
             e.preventDefault();
-            var typename = $(this).attr('data-type');
-            var classname = $(this).attr('data-class');
-            var el = $(this);
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    del_type: classname,
-                    typename: typename},
-                beforeSend: function() {
-                    el.addClass('loadBtn');
-                },
-                complete: function() {
-                    el.removeClass('loadBtn');
-                },
-                success: function (data) {
-                    var result = jQuery.parseJSON(data);
-                    if (result.status !== false) {
-                        $('.type_list#' + classname).html(result);
-                    } else {
-                        validsubmitform( $('.type_list#' + classname), data);
-                    }
-                }
-            });
-        })
-
-        // Change default session type
-        .on('change','.type_default',function (e) {
-            e.preventDefault();
-            var class_name = $(this).attr('id');
-            var div = $('#' + class_name + '_types_options');
-            var type = $(this).val();
-            var data = {type_default: type, class_name: class_name};
-            processAjax(div, data, false, "php/form.php");
+            deleteType($(this));
         })
 
         .on('change', '.repeated_session', function(e) {
