@@ -50,7 +50,8 @@ abstract class BaseSubmission extends BaseModel
             }
 
             $data = $this->getInfo(htmlspecialchars($id));
-            $show = $user !== false && (in_array($user->status, array('organizer', 'admin')) || $data['orator'] === $user->username);
+            $show = $user !== false && (in_array($user->status, array('organizer', 'admin'))
+            || $data['orator'] === $user->username);
             if ($show && isset($_POST['operation']) && $_POST['operation'] === 'edit') {
                 $content = $this->getForm('body');
             } else {
@@ -596,46 +597,5 @@ abstract class BaseSubmission extends BaseModel
     private static function emptyList()
     {
         return "<p>Were you looking for suggestions? Sorry, there is none yet.</p>";
-    }
-
-    /**
-     * Get session types
-     * @param array $types: list of default types
-     * @param string $default_type : default session type
-     * @param array $exclude_types: list of excluded types
-     *
-     * @return array
-     */
-    public static function renderTypes(array $types, $default_type = null, array $exclude_types=array())
-    {
-        $Sessionstype = "";
-        $opttypedflt = "";
-        foreach ($types as $type) {
-            if (!in_array($type, $exclude_types)) {
-                $Sessionstype .= self::singleType($type);
-                $opttypedflt .= $type == $default_type ?
-                    "<option value='$type' selected>$type</option>"
-                    : "<option value='$type'>$type</option>";
-            }
-        }
-        return array(
-            'types'=>$Sessionstype,
-            "options"=>$opttypedflt
-        );
-    }
-
-    /**
-     * Render session/presentation type list
-     * @param $data
-     * @return string
-     */
-    protected static function singleType($data)
-    {
-        return "
-                <div class='type_div' id='session_$data'>
-                    <div class='type_name'>".ucfirst($data)."</div>
-                    <div class='type_del' data-type='$data' data-class='" . strtolower(__CLASS__). "'></div>
-                </div>
-            ";
     }
 }

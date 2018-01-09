@@ -24,15 +24,29 @@ use includes\Session;
 use includes\Presentation;
 use includes\Template;
 use includes\Router;
+use includes\TypesManager;
 
 // Declare classes
 $Session = new Session();
 $Presentation = new Presentation();
-$session_types = Session::renderTypes($Session->getSettings('types'), $Session->getSettings('default_type'));
-$presentation_types = Presentation::renderTypes($Presentation->getSettings('types'), $Presentation->getSettings('default_type'));
+$session_types = TypesManager::renderTypes(
+    'Session',
+    $Session->getSettings('types'),
+    $Session->getSettings('default_type')
+);
+$presentation_types = TypesManager::renderTypes(
+    'Presentation',
+    $Presentation->getSettings('types'),
+    $Presentation->getSettings('default_type')
+);
 
 $modSessionDftType = Router::buildUrl(
     'Session',
+    'updateSettings'
+);
+
+$modSubmissionDftType = Router::buildUrl(
+    'Presentation',
     'updateSettings'
 );
 
@@ -49,14 +63,15 @@ $result = "
                     <h3>Sessions</h3>
                     <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
                         <div class='form-group'>
-                            <select name='default_type' class='actionOnSelect' data-url='{$modSessionDftType}' id='session'>
+                            <select name='default_type' class='actionOnSelect' data-url='{$modSessionDftType}'
+                             id='session'>
                                 {$session_types['options']}
                             </select>
                             <label>Default session type</label>
                         </div>
                     </div>
                     <div style='font-size: 0;'>
-                        <button class='type_add addBtn' data-class='session' value='+'/>
+                        <button class='type_add addBtn' data-class='Session' value='+'/>
                         <input id='new_session_type' type='text' placeholder='New Category'/>
                     </div>
                     <div class='feedback' id='feedback_session'></div>
@@ -67,14 +82,15 @@ $result = "
                     <h3>Presentations</h3>
                     <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
                         <div class='form-group'>
-                            <select name='default_type' class='type_default' id='presentation'>
+                            <select name='default_type' class='actionOnSelect' data-url='{$modSubmissionDftType}'
+                            id='presentation'>
                                 {$presentation_types['options']}
                             </select>
                             <label>Default presentation type</label>
                         </div>
                     </div>
                     <div  style='font-size: 0;'>
-                        <button class='type_add addBtn' data-class='presentation' value='+'/>
+                        <button class='type_add addBtn' data-class='Presentation' value='+'/>
                         <input id='new_presentation_type' type='text' placeholder='New Category'/>
                     </div>
                     <div class='feedback' id='feedback_pres'></div>

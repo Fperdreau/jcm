@@ -100,7 +100,7 @@ class Suggestion extends BaseSubmission
             return Presentation::form(
                 new Users($_SESSION['username']),
                 $Suggestion,
-                'select',
+                'edit',
                 $operation,
                 array(
                     'date'=>$next[0]['date'],
@@ -333,7 +333,7 @@ class Suggestion extends BaseSubmission
         $idPres = !empty($Suggestion->id) ? $Suggestion->id : 'false';
 
         // Make submission's type selection list
-        $type_options = self::renderTypes($Suggestion->getTypes(), $Suggestion->type, array('minute'));
+        $type_list = TypesManager::getTypeSelectInput('Presentation');
 
         // Download medias
         $medias = !is_null($Suggestion->media) ? $Suggestion->media : array();
@@ -365,7 +365,7 @@ class Suggestion extends BaseSubmission
                         <div class='form-group'>
                             <select class='actionOnSelect' name='type' data-url='{$url}' 
                             data-destination='.special_inputs_container' required>
-                                {$type_options['options']}
+                                {$type_list['options']}
                             </select>
                             <label>Type</label>
                         </div>

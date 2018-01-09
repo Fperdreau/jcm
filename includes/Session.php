@@ -31,7 +31,8 @@ use includes\BaseModel;
 /**
  * Class Session
  */
-class Session extends BaseModel {
+class Session extends BaseModel
+{
 
     /**
      * Session settings
@@ -78,7 +79,8 @@ class Session extends BaseModel {
      * Constructor
      * @param null $id: Session id
      */
-    public function __construct($id=null) {
+    public function __construct($id = null)
+    {
         parent::__construct();
 
         // Set types to defaults before loading custom information
@@ -97,7 +99,8 @@ class Session extends BaseModel {
     /**
      * Register into Reminder table
      */
-    public static function registerReminder() {
+    public static function registerReminder()
+    {
         $reminder = new ReminderMaker();
         $reminder->register(get_class());
     }
@@ -105,7 +108,8 @@ class Session extends BaseModel {
     /**
      * Register into DigestMaker table
      */
-    public static function registerDigest() {
+    public static function registerDigest()
+    {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register(get_class());
     }
@@ -115,36 +119,25 @@ class Session extends BaseModel {
      * @param null $username
      * @return mixed
      */
-    public function makeMail($username=null) {
+    public function makeMail($username = null)
+    {
         // Get future presentations
-        $content['body'] = $this->showNextSession(true);;
+        $content['body'] = $this->showNextSession(true);
         $content['title'] = 'Session Information';
         return $content;
-    }
-
-    /**
-     * Get session types
-     * @return array
-     */
-    public function getTypes() {
-        if (!empty($this->getSettings('types'))) {
-            return $this->getSettings('types');
-        } else {
-            return $this->settings['defaults'];
-        }
     }
 
     /**
      * Get default session settings
      * @return array: default settings
      */
-    private function getDefaults() {
+    private function getDefaults()
+    {
         self::$default = array(
-            'date'=>self::getJcDates($this->settings['jc_day'],1)[0],
+            'date'=>self::getJcDates($this->settings['jc_day'], 1)[0],
             'frequency'=>null,
             'slot'=>$this->settings['max_nb_session'],
             'type'=>$this->settings['default_type'],
-            'types'=>$this->getTypes(),
             'start_time'=>$this->settings['jc_time_from'],
             'end_time'=>$this->settings['jc_time_to'],
             'room'=>$this->settings['room']
@@ -171,7 +164,8 @@ class Session extends BaseModel {
      * @param string $date
      * @return string
      */
-    public function getSessionViewer($date) {
+    public function getSessionViewer($date)
+    {
         if ($this->is_available(array('date'=>$date))) {
             return Session::dayContainer(array('date'=>$date, 'content'=>Session::no_session()));
         } else {
@@ -183,12 +177,16 @@ class Session extends BaseModel {
      * Returns Session Manager
      * @return string
      */
-    public function getSessionManager() {
+    public function getSessionManager()
+    {
         $date = self::getJcDates($this->settings['jc_day'], 1)[0];
         $form = self::add_session_form($this->getDefaults(), $this->settings['default_type']);
-        if ($this->is_available(array('date'=>$date))) return self::sessionManager(null, $form);
-        $sessionEditor = $this->getSessionEditor($date);
-        return self::sessionManager($sessionEditor, $form);
+        if ($this->is_available(array('date'=>$date))) {
+            return self::sessionManager(null, $form);
+        } else {
+            $sessionEditor = $this->getSessionEditor($date);
+            return self::sessionManager($sessionEditor, $form);
+        }
     }
 
     /**
@@ -196,7 +194,8 @@ class Session extends BaseModel {
      * @param int $n: number of days to display
      * @return string
      */
-    public function getViewer($n) {
+    public function getViewer($n)
+    {
         return self::sessionViewerContainer($this->showCalendar($n));
     }
 
@@ -205,7 +204,8 @@ class Session extends BaseModel {
      * @param bool $mail
      * @return string
      */
-    public function showNextSession($mail=false) {
+    public function showNextSession($mail = false)
+    {
         $date = $this->getNextDates(1)[0];
         $data = $this->all(array('s.date'=>$date));
         $data = reset($data);
@@ -226,7 +226,6 @@ class Session extends BaseModel {
         } else {
             return self::noUpcomingSession();
         }
-
     }
 
     /**
@@ -234,8 +233,8 @@ class Session extends BaseModel {
      * @param int $nsession
      * @return string
      */
-    public function showCalendar($nsession = 4) {
-
+    public function showCalendar($nsession = 4)
+    {
         // Get next planned date
         if (!empty($this->all())) {
             $dates = $this->getNextDates(1);
@@ -255,7 +254,7 @@ class Session extends BaseModel {
             return $content;
         } else {
             return self::nothingPlannedYet();
-        }        
+        }
     }
 
     /**
@@ -265,11 +264,12 @@ class Session extends BaseModel {
      * @param bool $edit: get editor (true) or viewer (false)
      * @return string
      */
-    public function getDayContent(array $data, $day, $edit=false) {
+    public function getDayContent(array $data, $day, $edit = false)
+    {
         $date = date('d M Y', strtotime($day));
         $dayContent = null;
         if (!empty($data)) {
-            foreach ($data as $session_id=>$session_data) {
+            foreach ($data as $session_id => $session_data) {
                 $dayContent .= $this->getSessionContent($session_data, $date, $edit);
             }
         } else {
@@ -285,7 +285,8 @@ class Session extends BaseModel {
      * @param bool $edit: Get editor or viewer
      * @return string
      */
-    private function getSessionContent(array $data, $date, $edit=false) {
+    private function getSessionContent(array $data, $date, $edit = false)
+    {
         $content = null;
         for ($i=0; $i<$data[0]['slots']; $i++) {
             if (isset($data[$i]) && !is_null($data[$i]['id_pres'])) {
@@ -304,7 +305,7 @@ class Session extends BaseModel {
         }
 
         if ($edit) {
-            return self::sessionEditContainer($data[0], $content, $this->getTypes());
+            return self::sessionEditContainer($data[0], $content, TypesManager::getTypes(self::getClassName()));
         } else {
             return self::sessionContainer(array(
                 'date'=>$date,
@@ -324,7 +325,8 @@ class Session extends BaseModel {
      * @param bool $mail: Get mail view
      * @return string
      */
-    private function getSessionDetails(array $data, $date, $mail=false) {
+    private function getSessionDetails(array $data, $date, $mail = false)
+    {
         $content = null;
         for ($i=0; $i<$data[0]['slots']; $i++) {
             if (isset($data[$i]) && !is_null($data[$i]['id_pres'])) {
@@ -337,7 +339,6 @@ class Session extends BaseModel {
                 $content .= self::emptySlot($data[0], SessionInstance::isLogged());
             }
         }
-
         return $content;
     }
 
@@ -348,20 +349,25 @@ class Session extends BaseModel {
      * @param bool $assigned
      * @return mixed
      */
-    public function notify_session_update(Users $user, array $info, $assigned=true) {
+    public function notify_session_update(Users $user, array $info, $assigned = true)
+    {
         $MailManager = new MailManager();
         $sessionType = $info['type'];
         $date = $info['date'];
-        $dueDate = date('Y-m-d',strtotime($date.' - 1 week'));
+        $dueDate = date('Y-m-d', strtotime($date.' - 1 week'));
         $contactURL = URL_TO_APP."index.php?page=contact";
         $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
-                <p>You have been automatically invited to present at a <span style='font-weight: 500'>$sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
-                <p>Please, submit your presentation on the Journal Club Manager before the <span style='font-weight: 500'>$dueDate</span>.</p>
-                <p>If you think you will not be able to present on the assigned date, please <a href='$contactURL'>contact</a> the organizers as soon as possible.</p>
+                <p>You have been automatically invited to present at a 
+                <span style='font-weight: 500'>$sessionType</span> 
+                session on the <span style='font-weight: 500'>$date</span>.</p>
+                <p>Please, submit your presentation on the Journal Club Manager before the 
+                <span style='font-weight: 500'>$dueDate</span>.</p>
+                <p>If you think you will not be able to present on the assigned date, please 
+                <a href='$contactURL'>contact</a> the organizers as soon as possible.</p>
                 <div>
                     You can edit your presentation from this link: <a href='{$editUrl}'>{$editUrl}</a>
                 </div>
@@ -372,7 +378,8 @@ class Session extends BaseModel {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $user->fullname,</p>
-                <p>Your presentation planned on {$date} has been manually canceled. You are no longer required to give a presentation on this day.</p>
+                <p>Your presentation planned on {$date} has been manually canceled. 
+                You are no longer required to give a presentation on this day.</p>
                 <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
             </div>
             ";
@@ -393,7 +400,8 @@ class Session extends BaseModel {
      * @param array $info
      * @return mixed
      */
-    public function notify_organizers(Users $user, array $info) {
+    public function notify_organizers(Users $user, array $info)
+    {
         $MailManager = new MailManager();
         $date = $info['date'];
         $url = URL_TO_APP.'index.php?page=sessions';
@@ -402,8 +410,10 @@ class Session extends BaseModel {
             $content['body'] = "
                 <div style='width: 100%; margin: auto;'>
                     <p>Hello {$info['fullname']},</p>
-                    <p>This is to inform you that the presentation of <strong>{$user->fullname}</strong> planned on the <strong>{$date}</strong> has been canceled. 
-                    You can either manually assign another speaker on this day in the <a href='{$url}'>Admin>Session</a> section or let the automatic 
+                    <p>This is to inform you that the presentation of 
+                    <strong>{$user->fullname}</strong> planned on the <strong>{$date}</strong> has been canceled. 
+                    You can either manually assign another speaker on this day in the 
+                    <a href='{$url}'>Admin>Session</a> section or let the automatic 
                     assignment select a member for you.</p>
                 </div>
             ";
@@ -421,7 +431,8 @@ class Session extends BaseModel {
      * @param Session $session
      * @return bool
      */
-    public function cancelSession(Session $session) {
+    public function cancelSession(Session $session)
+    {
         $assignment = new Assignment();
         $result = true;
 
@@ -456,7 +467,8 @@ class Session extends BaseModel {
      * @param $new_type
      * @return bool|mixed
      */
-    public function set_session_type(Session $session, $new_type) {
+    public function set_session_type(Session $session, $new_type)
+    {
         $assignment = new Assignment();
         $result = true;
 
@@ -489,7 +501,9 @@ class Session extends BaseModel {
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
                 <p>Hello $speaker->fullname,</p>
-                <p>This is to inform you that the type of your session ({$date}) has been modified and will be a <strong>{$new_type}</strong> instead of a <strong>{$previous_type}</strong>.</p>
+                <p>This is to inform you that the type of your session ({$date}) 
+                has been modified and will be a <strong>{$new_type}</strong> instead of a 
+                <strong>{$previous_type}</strong>.</p>
                 <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
             </div>
             ";
@@ -511,7 +525,8 @@ class Session extends BaseModel {
      * @param bool $initial: creation of initial occurrence
      * @return array
      */
-    public function make($post=array(), $initial=true) {
+    public function make(array $post = array(), $initial = true)
+    {
         $post['date'] = (!empty($post['date'])) ? $post['date'] : $this->date;
         $post['start_date'] = $post['date'];
         $post['end_date'] = (!empty($post['to_repeat']) && $post['to_repeat'] == 1) ? $post['end_date'] : $post['date'];
@@ -535,7 +550,6 @@ class Session extends BaseModel {
                 }
                 $result['status'] = true;
                 $result['msg'] = 'Session successfully created!';
-
             } else {
                 Logger::getInstance(APP_NAME, get_class($this))->error("Could not create session on {$this->date}");
                 $result['status'] = false;
@@ -548,7 +562,8 @@ class Session extends BaseModel {
         return $result;
     }
 
-    public function updateSession() {
+    public function updateSession()
+    {
         $session_id = $_POST['id'];
         $operation = $_POST['operation'];
         unset($_POST['operation']);
@@ -576,7 +591,8 @@ class Session extends BaseModel {
      * Update session status
      * @return bool
      */
-    public function update_status() {
+    public function update_status()
+    {
         $this->nbpres = count($this->presids);
         if ($this->nbpres == 0) {
             $status = "Free";
@@ -593,7 +609,8 @@ class Session extends BaseModel {
      * @param int $session_id: session id
      * @return bool
      */
-    public static function isBooked($session_id) {
+    public static function isBooked($session_id)
+    {
         $session = new self();
         $data = $session->getInfo(array('id'=>$session_id));
         if ($data === false) {
@@ -610,7 +627,8 @@ class Session extends BaseModel {
      * @param array $id: session id
      * @return array|bool
      */
-    public function getInfo(array $id) {
+    public function getInfo(array $id)
+    {
         $data = $this->get($id);
 
         // Get the associated presentations
@@ -623,36 +641,13 @@ class Session extends BaseModel {
     }
 
     /**
-     * Removes duplicate sessions
-     */
-    public function clean_duplicates() {
-        $sql = "SELECT * FROM {$this->tablename}";
-        $req = $this->db->sendQuery($sql);
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
-        }
-
-        if (!empty($data)) {
-            foreach ($data as $key=>$info) {
-                $sessions = $this->db->resultSet($this->tablename, array('*'), array('date'=>$info['date']));
-                if (count($sessions) > 1) {
-                    $sessions = array_slice($sessions, 1);
-                    foreach ($sessions as $id=>$row) {
-                        $this->delete(array('id'=>$row['id']));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Show session details
      * @param bool $show
      * @param bool $prestoshow
      * @return string
      */
-    public function showsessiondetails(array $data, $show=true,$prestoshow=false) {
+    public function showsessiondetails(array $data, $show = true, $prestoshow = false)
+    {
         if ($this->type == 'none') {
             return "No journal club this day.";
         } elseif (count($this->presids) == 0) {
@@ -663,14 +658,17 @@ class Session extends BaseModel {
             <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
                 <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>{$data['date']}</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'>
+                <b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
             <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
             </div>";
 
         $presentations_list = '';
         $i = 0;
         foreach ($this->presids as $presid) {
-            if ($prestoshow != false && $presid != $prestoshow) continue;
+            if ($prestoshow != false && $presid != $prestoshow) {
+                continue;
+            }
 
             $pres = new Presentation($presid);
             $presentations_list .= $pres->mail_details($show);
@@ -678,7 +676,8 @@ class Session extends BaseModel {
         }
 
         $content .= "
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+            font-weight: 500; font-size: 1.2em;'>
             Presentations
             </div>
             {$presentations_list}
@@ -692,9 +691,10 @@ class Session extends BaseModel {
      * @param int $session_to_plan
      * @return mixed
      */
-    public function repeatAll($max_date=null, $session_to_plan=1) {
+    public function repeatAll($max_date = null, $session_to_plan = 1)
+    {
         $result = array('status'=>true, 'msg'=>'Nothing to plan');
-        foreach ($this->get_repeated() as $key=>$item) {
+        foreach ($this->get_repeated() as $key => $item) {
             $result = $this->repeat($item, $session_to_plan, $max_date);
         };
         return $result;
@@ -708,7 +708,8 @@ class Session extends BaseModel {
      *
      * @return mixed
      */
-    public function repeat(array $item, $session_to_plan=1, $max_date=null) {
+    public function repeat(array $item, $session_to_plan = 1, $max_date = null)
+    {
         if (is_null($max_date) && $item['end_date'] === "never") {
             $max_date =  date('Y-m-d', strtotime("now + {$session_to_plan} days"));
         } else {
@@ -726,19 +727,29 @@ class Session extends BaseModel {
      * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
      * @return bool
      */
-    public function updateAllEvents(array $post, $id, $what) {
+    public function updateAllEvents(array $post, $id, $what)
+    {
         // Get event id
         $data = $this->get(array('id'=>$id));
 
         $today = date('Y-m-d');
         if ($what === 'future') {
-            $all = $this->db->resultSet($this->tablename, array('*'), array('event_id'=>$data['event_id'], 'date >='=>$today));
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'],
+                'date >='=>$today)
+            );
         } else {
-            $all = $this->db->resultSet($this->tablename, array('*'), array('event_id'=>$data['event_id']));
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'])
+            );
         }
 
         if (!empty($all)) {
-            foreach ($all as $key=>$item) {
+            foreach ($all as $key => $item) {
                 if (!$this->update($post, array('id'=>$item['id']))) {
                     return false;
                 }
@@ -754,18 +765,28 @@ class Session extends BaseModel {
      * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
      * @return bool
      */
-    public function deleteAllEvents($id, $what) {
+    public function deleteAllEvents($id, $what)
+    {
         // Get event id
         $data = $this->get(array('id'=>$id));
         $today = date('Y-m-d');
         if ($what === 'future') {
-            $all = $this->db->resultSet($this->tablename, array('*'), array('event_id'=>$data['event_id'], 'date >='=>$today));
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'],
+                'date >='=>$today)
+            );
         } else {
-            $all = $this->db->resultSet($this->tablename, array('*'), array('event_id'=>$data['event_id']));
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'])
+            );
         }
 
         if (!empty($all)) {
-            foreach ($all as $key=>$item) {
+            foreach ($all as $key => $item) {
                 if (!$this->delete(array('id'=>$item['id']))) {
                     Logger::getInstance(APP_NAME, get_class($this))->error("Could not delete session {$item['id']}");
                     return false;
@@ -785,7 +806,8 @@ class Session extends BaseModel {
      * @param $id
      * @return bool
      */
-    public function is_recurrent($id) {
+    public function is_recurrent($id)
+    {
         $data = $this->get(array('id'=>$id));
         return count($this->all(array('event_id'=>$data['event_id']))) > 1;
     }
@@ -797,19 +819,22 @@ class Session extends BaseModel {
      * @param array|null $result
      * @return mixed
      */
-    private function recursive_repeat($item, $max_date, array $result=null) {
-        if (is_null($result)) $result = array('status'=>true, 'msg'=>null, 'counter'=>0);
+    private function recursive_repeat($item, $max_date, array $result = null)
+    {
+        if (is_null($result)) {
+            $result = array('status'=>true, 'msg'=>null, 'counter'=>0);
+        }
 
         if (new DateTime($item['date']) <= new DateTime($max_date)) {
-
-            if (new DateTime($item['date']) == new DateTime($max_date) && new DateTime($item['date']) < new DateTime($item['end_date'])){
+            if (new DateTime($item['date']) == new DateTime($max_date)
+            && new DateTime($item['date']) < new DateTime($item['end_date'])) {
                 $item['repeated'] = 0;
             } else {
                 $item['repeated'] = 1;
             }
 
             // Add new occurrence
-            foreach($this->make($item, false) as $key=>$value) {
+            foreach ($this->make($item, false) as $key => $value) {
                 $result[$key] = $value;
             }
 
@@ -823,7 +848,7 @@ class Session extends BaseModel {
             // Continue with next occurrences
             $data = $item;
             $data['date'] = date('Y-m-d', strtotime("{$item['date']} + {$item['frequency']} days"));
-            foreach($this->recursive_repeat($data, $max_date, $result) as $key=>$value) {
+            foreach ($this->recursive_repeat($data, $max_date, $result) as $key => $value) {
                 $result[$key] = $value;
             }
         }
@@ -834,7 +859,8 @@ class Session extends BaseModel {
      * Check consistency between presentations and sessions table
      * @return array
      */
-    public function checkDb() {
+    public function checkDb()
+    {
         if ($this->db->isColumn($this->tablename, 'time')) {
             $req = $this->db->sendQuery("SELECT date,jc_time FROM " . $this->db->getAppTables('Presentation'));
             while ($row = $req->fetch_assoc()) {
@@ -852,108 +878,29 @@ class Session extends BaseModel {
     }
 
     /**
-     * Patch session table and update start and end time/date if not specified yet
-     * @return bool
+     * Removes duplicate sessions
      */
-    public static function patch_time() {
-        $Session = new self();
-        if (Db::getInstance()->isColumn($Session->tablename, 'time')) {
-            foreach ($Session->all() as $key=>$item) {
-                if (is_null($item['start_time'])) {
-                    $time = explode(',', $item['time']);
-                    $new_data = array();
-                    $new_data['start_time'] = date('H:i:s', strtotime($time[0]));
-                    $new_data['end_time'] = date('H:i:s', strtotime($time[1]));
-                    $new_data['start_date'] = $item['date'];
-                    $new_data['end_date'] = $item['date'];
-                    if (!$Session->update($new_data, array('id'=>$item['id']))) {
-                        Logger::getInstance(APP_NAME, __CLASS__)->info("Session {$item['id']} could not be updated");
-                        return false;
+    public function clean_duplicates()
+    {
+        $sql = "SELECT * FROM {$this->tablename}";
+        $req = $this->db->sendQuery($sql);
+        $data = array();
+        while ($row = $req->fetch_assoc()) {
+            $data[] = $row;
+        }
+
+        if (!empty($data)) {
+            foreach ($data as $key => $info) {
+                $sessions = $this->db->resultSet($this->tablename, array('*'), array('date'=>$info['date']));
+                if (count($sessions) > 1) {
+                    $sessions = array_slice($sessions, 1);
+                    foreach ($sessions as $id => $row) {
+                        $this->delete(array('id'=>$row['id']));
                     }
                 }
             }
-            return Db::getInstance()->delete_column($Session->tablename, 'time');
-        } else {
-            return true;
         }
     }
-
-    /**
-     * Get calendar data
-     *
-     * @param bool $force_select
-     * @return array
-     * @throws Exception
-     */
-    public function getCalendarParams($force_select=True) {
-        $formatdate = array();
-        $nb_pres = array();
-        $type = array();
-        $status = array();
-        $slots = array();
-        $session_ids = array();
-
-        foreach($this->all() as $session_id=>$session_data) {
-            // Count how many presentations there are for this day
-            $nb = 0;
-            foreach ($session_data as $key=>$data) {
-                $nb += !is_null($data['id_pres']) ? 1 : 0;
-            }
-            $type[] = $session_data[0]['type'];
-            $status[] = $session_data[0]['status'];
-            $slots[] = $session_data[0]['slots'];
-            $formatdate[] = date('d-m-Y', strtotime($session_data[0]['date']));
-            $nb_pres[] = $nb;
-            $session_ids[] = $session_id;
-        }
-
-        // Get user's availability and assignments
-        if (SessionInstance::isLogged()) {
-            $username = $_SESSION['username'];
-            $Availability = new Availability();
-            $availabilities = array();
-            foreach ($Availability->all(array('username'=>$username)) as $info) {
-                // Format date
-                $fdate = explode("-", $info['date']);
-                $day = $fdate[2];
-                $month = $fdate[1];
-                $year = $fdate[0];
-                $availabilities[] = "$day-$month-$year";
-            }
-
-            // Get user's assignments
-            $Presentation = new Presentation();
-            $assignments = array();
-            foreach ($Presentation->getList($username) as $row=>$info) {
-                // Format date
-                $fdate = explode("-", $info['date']);
-                $day = $fdate[2];
-                $month = $fdate[1];
-                $year = $fdate[0];
-                $assignments[] = "$day-$month-$year";
-            }
-
-        } else {
-            $assignments = array();
-            $availabilities = array();
-        }
-
-        return array(
-            "Assignments"=>$assignments,
-            "Availability"=>$availabilities,
-            "max_nb_session"=>$this->getSettings('max_nb_session'),
-            "jc_day"=>$this->getSettings('jc_day'),
-            "today"=>date('d-m-Y'),
-            "booked"=>$formatdate,
-            "nb"=>$nb_pres,
-            "status"=>$status,
-            "slots"=>$slots,
-            "renderTypes"=>$type,
-            "force_select"=>$force_select,
-            "session_id"=>$session_ids
-        );
-    }
-
 
     /* MODEL */
 
@@ -963,9 +910,11 @@ class Session extends BaseModel {
      * @param array $filter
      * @return array|mixed
      */
-    public function all(array $id=null, array $filter=null) {
+    public function all(array $id = null, array $filter = null)
+    {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
-        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY {$filter['order']} " . $dir : "ORDER BY start_time ASC";
+        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY {$filter['order']} " . $dir
+        : "ORDER BY start_time ASC";
         $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT {$filter['limit']} " : null;
 
         if (!is_null($id)) {
@@ -977,7 +926,9 @@ class Session extends BaseModel {
         $sql = "SELECT *, id as session_id, type as renderTypes
                 FROM {$this->tablename} s
                  LEFT JOIN 
-                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id as id_pres, title, orator, username  FROM ". $this->db->getAppTables('Presentation').") p
+                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id as id_pres, 
+                    title, orator, username  
+                    FROM " . $this->db->getAppTables('Presentation') . ") p
                         ON s.id=p.p_session_id
                  LEFT JOIN 
                     (SELECT username, fullname FROM " . $this->db->getAppTables('Users'). ") u
@@ -988,7 +939,9 @@ class Session extends BaseModel {
         $data = array();
         if ($req !== false) {
             while ($row = $req->fetch_assoc()) {
-                if (!isset($data[$row['session_id']])) $data[$row['session_id']] = array();
+                if (!isset($data[$row['session_id']])) {
+                    $data[$row['session_id']] = array();
+                }
                 $data[$row['session_id']][] = $row;
             }
         }
@@ -1000,7 +953,8 @@ class Session extends BaseModel {
      * @param array $data: session information
      * @return array $data: updated session information
      */
-    private function getPresids(array $data) {
+    private function getPresids(array $data)
+    {
         $sql = "SELECT p.id_pres,u.fullname 
             FROM " . Db::getInstance()->getAppTables('Presentation') . " p
                 INNER JOIN " . Db::getInstance()->getAppTables('Users'). " u
@@ -1021,7 +975,8 @@ class Session extends BaseModel {
      * Get list of sessions to repeatAll
      * @return array: list of sessions to be repeated
      */
-    public function get_repeated() {
+    public function get_repeated()
+    {
         $sql = "SELECT * FROM {$this->tablename}
                   WHERE to_repeat=1 and repeated=0 and end_date>date";
         $req = $this->db->sendQuery($sql);
@@ -1037,7 +992,8 @@ class Session extends BaseModel {
      * @param null|int $limit
      * @return array|bool
      */
-    public function getNextDates($limit=null) {
+    public function getNextDates($limit = null)
+    {
         $sql = "SELECT id,date FROM {$this->tablename} WHERE date>=CURDATE() ORDER BY date ASC";
 
         $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
@@ -1047,7 +1003,9 @@ class Session extends BaseModel {
         while ($row = $req->fetch_assoc()) {
             $sessions[] = $row['date'];
         }
-        if (empty($sessions)) {$sessions = false;}
+        if (empty($sessions)) {
+            $sessions = false;
+        }
         return $sessions;
     }
 
@@ -1056,7 +1014,8 @@ class Session extends BaseModel {
      * @param null $limit
      * @return array|bool|mixed
      */
-    public function getUpcoming($limit=null) {
+    public function getUpcoming($limit = null)
+    {
         $today = date('Y-m-d');
         $data = $this->all(array('date >'=>$today), array('order'=>'date', 'dir'=>'ASC', 'limit'=>$limit));
         return (empty($data)) ? false : $data;
@@ -1067,7 +1026,8 @@ class Session extends BaseModel {
      * @param null|int $limit
      * @return array|bool
      */
-    public function getNext($limit=null) {
+    public function getNext($limit = null)
+    {
         $sql = "SELECT * FROM {$this->tablename} WHERE date>CURDATE() ORDER BY date ASC";
 
         $sql .= (!is_null($limit)) ? " LIMIT {$limit}": null;
@@ -1077,7 +1037,9 @@ class Session extends BaseModel {
         while ($row = $req->fetch_assoc()) {
             $sessions[] = $row;
         }
-        if (empty($sessions)) {$sessions = false;}
+        if (empty($sessions)) {
+            $sessions = false;
+        }
         return $sessions;
     }
 
@@ -1088,7 +1050,8 @@ class Session extends BaseModel {
      * @param bool $from
      * @return array
      */
-    public static function getJcDates($jc_day, $nb_session=20, $from=null) {
+    public static function getJcDates($jc_day, $nb_session = 20, $from = null)
+    {
         $start_date = is_null($from) ? date('Y-m-d', strtotime('now')) : date('Y-m-d', strtotime($from));
         $jc_days = array();
         if (!empty($jc_day)) {
@@ -1108,7 +1071,8 @@ class Session extends BaseModel {
      * @param $session_data: session information
      * @return bool: True if nothing is planned on this time slot
      */
-    public function is_available(array $session_data) {
+    public function is_available(array $session_data)
+    {
         if (isset($session_data['start_time']) && isset($session_data['end_time'])) {
             $overlap = " and (start_time>'{$session_data['start_time']}' and start_time<'{$session_data['end_time']}') 
                   or (end_time>'{$session_data['start_time']}' and end_time<'{$session_data['end_time']}')";
@@ -1128,7 +1092,8 @@ class Session extends BaseModel {
      * @param string $sessions: list of sessions
      * @return string
      */
-    public static function sessionViewerContainer($sessions) {
+    public static function sessionViewerContainer($sessions)
+    {
         return "
         <div class='section_content'>
             <div class='form-group'>
@@ -1146,13 +1111,15 @@ class Session extends BaseModel {
      * @param $form: edit form
      * @return string
      */
-    public static function sessionManager($sessionEditor, $form) {
+    public static function sessionManager($sessionEditor, $form)
+    {
         return "
             <div class='section_content'>
                 <div class='session_viewer_container'>
                     <h3>Edit a session</h3>
                     <div class='form-group'>
-                        <input type='date' class='selectSession datepicker' name='date' data-status='admin' data-view='edit' />
+                        <input type='date' class='selectSession datepicker' name='date' data-status='admin' 
+                        data-view='edit' />
                         <label>Session to show</label>
                     </div>
                     <div id='sessionlist'>{$sessionEditor}</div>
@@ -1170,7 +1137,8 @@ class Session extends BaseModel {
      * @param $jc_day: week day of journal club
      * @return null|string
      */
-    private static function dayList($jc_day) {
+    private static function dayList($jc_day)
+    {
         $days = array('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
         $list = null;
         foreach ($days as $day) {
@@ -1185,7 +1153,8 @@ class Session extends BaseModel {
      * @param array $settings
      * @return string
      */
-    public static function default_settings_form(array $settings) {
+    public static function default_settings_form(array $settings)
+    {
         return "
         <section>
             <h2>Default Session Settings</h2>
@@ -1214,7 +1183,8 @@ class Session extends BaseModel {
                         <input type='number' name='max_nb_session' value='" . $settings['max_nb_session'] . "'/>
                         <label>Slots/Session</label>
                     </div>
-                    <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' class='processform'/></p>
+                    <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' 
+                    class='processform'/></p>
                 </form>
             </div>
         </section>
@@ -1227,7 +1197,8 @@ class Session extends BaseModel {
      * @param $session_type
      * @return string
      */
-    public static function type_list(array $data, $session_type) {
+    public static function type_list(array $data, $session_type)
+    {
         //$type_options = "<option value='none' style='background-color: rgba(200,0,0,.5); color:#fff;'>Delete</option>";
         $type_options = '';
         foreach ($data as $type) {
@@ -1243,10 +1214,11 @@ class Session extends BaseModel {
      * @param array $types: list of session types
      * @return string
      */
-    public static function session_settings(array $session, array $types) {
-        $type_list = self::type_list($types, $session['renderTypes']);
+    public static function session_settings(array $session, array $types)
+    {
+        $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $session['renderTypes']);
         $repeat_options = null;
-        foreach (array('Yes'=>1, 'No'=>0) as $label=>$value) {
+        foreach (array('Yes'=>1, 'No'=>0) as $label => $value) {
             $selected = (int)$session['to_repeat'] === $value ? 'selected' : null;
             $repeat_options .= "<option value={$value} {$selected}>{$label}</option>";
         }
@@ -1258,7 +1230,7 @@ class Session extends BaseModel {
                 <div class='renderTypes'>
                     <div class='form-group field_small inline_field' style='width: 100%;'>
                         <select name='type'>
-                        {$type_list}
+                        {$type_list['options']}
                         </select>
                         <label>Type</label>
                     </div>
@@ -1300,7 +1272,8 @@ class Session extends BaseModel {
                 <div class='submit_btns'>
                     <input type='hidden' name='id' value='{$session['id']}' />
                     <input type='submit' class='modify_session' value='Modify' />
-                    <input type='submit' value='Delete' class='delete_session' data-controller='Session' data-action='delete' data-id='{$session['id']}'/>
+                    <input type='submit' value='Delete' class='delete_session' data-controller='Session' 
+                    data-action='delete' data-id='{$session['id']}'/>
                 </div>
             </form>";
     }
@@ -1311,11 +1284,13 @@ class Session extends BaseModel {
      * @param string $presentations
      * @return string
      */
-    public static function sessionViewer(Session $session, $presentations) {
+    public static function sessionViewer(Session $session, $presentations)
+    {
         return "
             <div style='display: block; margin: 10px auto 0 auto;'>
                 <!-- header -->
-                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
+                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: 
+                justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
                     <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
                         <span style='color: #222; font-weight: 900;'>{$session->date}</span>
                         <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
@@ -1332,10 +1307,11 @@ class Session extends BaseModel {
 
     /**
      * Message displayed when there is no upcoming session planned
-     * 
+     *
      * @return string
      */
-    public static function noUpcomingSession() {
+    public static function noUpcomingSession()
+    {
         return "
             There is no upcoming session.
         ";
@@ -1343,10 +1319,11 @@ class Session extends BaseModel {
 
     /**
      * Message to display when there is no session  planned yet
-     * 
+     *
      * @return string
      */
-    public static function nothingPlannedYet() {
+    public static function nothingPlannedYet()
+    {
         $url = URL_TO_APP . 'index.php?page=organizer/sessions';
         return "
             <div class='sys_msg status'>
@@ -1362,15 +1339,23 @@ class Session extends BaseModel {
      * @param $default_type
      * @return string
      */
-    public static function add_session_form(array $data, $default_type) {
+    public static function add_session_form(array $data, $default_type)
+    {
+        $url = Router::buildUrl(
+            self::getClassName(),
+            'make'
+        );
+        $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $default_type);
         return "
-        <form action='php/form.php' method='post'>
+        <form action='{$url}' method='post'>
             <div class='form-group'>
-                <select name='type'> ". self::type_list($data['types'], $default_type) . "</select>
+                <select name='type'>
+                {$type_list['options']}</select>
                 <label>Type</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='date' name='date' class='datepicker' data-view='edit' data-status='false' value='{$data['date']}' />
+                <input type='date' name='date' class='datepicker' data-view='edit' data-status='false' 
+                value='{$data['date']}' />
                 <label>Date</label>
             </div>
             <div class='form-group field_small inline_field'>
@@ -1407,7 +1392,6 @@ class Session extends BaseModel {
                 </div>
                 <div class='submit_btns'>
                     <input type='hidden' name='start_date' value='{$data['date']}' />
-                    <input type='hidden' name='add_session' value='true'/>
                     <input type='submit' value='Add' class='processform'/>
                 </div>
             <div>
@@ -1416,48 +1400,11 @@ class Session extends BaseModel {
     }
 
     /**
-     * Get session types
-     * @param array $types: List of presentation types
-     * @param $default_type : default session type
-     * @param array $exclude : list of excluded types
-     * @return array
-     */
-    public static function renderTypes(array $types, $default_type=null, array $exclude=array()) {
-        $Sessionstype = "";
-        $opttypedflt = "";
-        foreach ($types as $type) {
-            if (in_array($type, $exclude)) continue;
-            $Sessionstype .= self::render_type($type);
-            $opttypedflt .= $type == $default_type ?
-                "<option value='$type' selected>$type</option>"
-                : "<option value='$type'>$type</option>";
-        }
-        return array(
-            'types'=>$Sessionstype,
-            "options"=>$opttypedflt
-        );
-    }
-
-    /**
-     * Render session/presentation type list
-     * @param $data
-     * @return string
-     */
-    private static function render_type($data) {
-        $div_id = strtolower(__CLASS__) .'_'. str_replace(' ', '_', strtolower($data));
-        return "
-                <div class='type_div' id='{$div_id}'>
-                    <div class='type_name'>".ucfirst($data)."</div>
-                    <div class='type_del' data-type='$data' data-class='" . strtolower(__CLASS__). "'></div>
-                </div>
-            ";
-    }
-
-    /**
      * Show session slot as empty
      * @return string
      */
-    public static function no_session() {
+    public static function no_session()
+    {
         return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
                     font-weight: 600; overflow: hidden;'>
                     No Journal Club this day</div>";
@@ -1469,12 +1416,20 @@ class Session extends BaseModel {
      * @param bool $show_button: display add button
      * @return string
      */
-    public static function emptySlot(array $data, $show_button=true) {
+    public static function emptySlot(array $data, $show_button = true)
+    {
         $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
+        $leanModalUrl = Router::buildUrl(
+            'Presentation',
+            'getForm',
+            array(
+                'view'=>'modal',
+                'operation'=>'edit',
+                'session_id'=>$data['id']
+            )
+        );
         $addButton = ($show_button) ? "
-            <a href='{$url}' class='leanModal' data-controller='Presentation' data-action='get_form'
-             data-params='modal' data-section='presentation' data-operation='edit' 
-            data-session_id='{$data['id']}'>
+            <a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='presentation'>
                 <div class='add-button'></div>
             </a>" : null;
 
@@ -1487,7 +1442,8 @@ class Session extends BaseModel {
      * Show presentation slot as empty
      * @return string
      */
-    public static function emptySlotEdit() {
+    public static function emptySlotEdit()
+    {
         return self::slotContainer(array('name'=>'Free slot', 'button'=>null, 'content'=>
             "<span style='font-size: 14px; font-weight: 500; color: #777;'>" . Presentation::speakerList() . "</span>
             "));
@@ -1499,7 +1455,8 @@ class Session extends BaseModel {
      * @param null $div_id
      * @return string
      */
-    public static function slotContainer(array $data, $div_id=null) {
+    public static function slotContainer(array $data, $div_id = null)
+    {
         return "
             <div class='pres_container ' id='{$div_id}' data-id='{$div_id}'>
                 <div class='pres_type'>
@@ -1518,17 +1475,21 @@ class Session extends BaseModel {
      * @param array $data
      * @return string
      */
-    public static function mail_slotContainer(array $data) {
+    public static function mail_slotContainer(array $data)
+    {
         return "
             <div class='pres_container '>
-                <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; color: #222222; vertical-align: middle; 
+                <div class='pres_type' style='display: inline-block; width: 50px; font-weight: 600; 
+                color: #222222; vertical-align: middle; 
                     text-transform: capitalize;'>
                     {$data['name']}
                 </div>
-                <div class='pres_info' style='display: inline-block; width: 210px; margin-left: 20px; vertical-align: middle;'>
+                <div class='pres_info' style='display: inline-block; width: 210px; 
+                margin-left: 20px; vertical-align: middle;'>
                     {$data['content']}
                 </div>
-                <div class='pres_btn' style='display: inline-block; width: 35px; vertical-align: middle;'>{$data['button']}</div>
+                <div class='pres_btn' style='display: inline-block; width: 35px; 
+                vertical-align: middle;'>{$data['button']}</div>
             </div>
             ";
     }
@@ -1539,7 +1500,8 @@ class Session extends BaseModel {
      * @param null $div_id
      * @return string
      */
-    public static function slotEditContainer(array $data, $div_id=null) {
+    public static function slotEditContainer(array $data, $div_id = null)
+    {
         return "
             <div class='pres_container' id='{$div_id}' data-section='submission_form' data-id='{$div_id}'>
                 <div class='pres_type'>
@@ -1558,7 +1520,8 @@ class Session extends BaseModel {
      * @param array $data
      * @return string
      */
-    public static function sessionContainer(array $data) {
+    public static function sessionContainer(array $data)
+    {
         return "
             <div class='session_container'>
                 <div class='session_header'>
@@ -1589,7 +1552,8 @@ class Session extends BaseModel {
      * @param $session_type: session type
      * @return string
      */
-    public static function sessionEditContainer(array $data, $presentations, $session_type) {
+    public static function sessionEditContainer(array $data, $presentations, $session_type)
+    {
         return "
             <div class='session_div session_editor_div' id='session_{$data['session_id']}' 
             data-id='{$data['session_id']}'>
@@ -1605,7 +1569,6 @@ class Session extends BaseModel {
                 </div>
             </div>
         ";
-
     }
 
     /**
@@ -1613,7 +1576,8 @@ class Session extends BaseModel {
      * @param array $data
      * @return string
      */
-    public static function dayContainer(array $data) {
+    public static function dayContainer(array $data)
+    {
         $date = date('d M Y', strtotime($data['date']));
         return "
             <div class='day_container'>
@@ -1638,10 +1602,12 @@ class Session extends BaseModel {
             <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
                 <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
                 <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>{$data['date']}</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'>
+                    <b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
                 <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
             </div>
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+            font-weight: 500; font-size: 1.2em;'>
             Presentations
             </div>
             {$presentations}
@@ -1654,8 +1620,9 @@ class Session extends BaseModel {
      * @param $presentations
      * @return string
      */
-    public static function mail_session_details(array $data, $presentations) {
-       return "
+    public static function mail_session_details(array $data, $presentations)
+    {
+        return "
         <div class='session_details_container'>
             <div class='session_details_header'>
                 <div style='margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; 

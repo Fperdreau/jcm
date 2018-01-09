@@ -67,7 +67,7 @@ class Presentation extends BaseSubmission
     {
         $is_full = Session::isBooked($data['session_id']);
         if ($is_full === false) {
-            if ($this->pres_exist($data['title']) === false) {
+            if ($this->isExist(array('title'=>$data['title'])) === false) {
                 // Create an unique ID
                 //$post['id_pres'] = $this->generateID('id_pres');
 
@@ -114,17 +114,6 @@ class Presentation extends BaseSubmission
     }
 
     /**
-     * Get session id from presentation date
-     * @param $date
-     * @return mixed
-     */
-    private function get_session_id($date)
-    {
-        $session = new Session($date);
-        return $session->id;
-    }
-
-    /**
      * Get user's publications list
      * @param string $username
      * @return array
@@ -149,11 +138,11 @@ class Presentation extends BaseSubmission
 
         $content = null;
         foreach ($year_pub as $year => $list) {
-            $year_content = null;
+            $yearContent = null;
             foreach ($list as $id) {
-                $year_content .= $this->show($id);
+                $yearContent .= $this->show($id);
             }
-            $content .= self::year_content($year, $year_content);
+            $content .= self::yearContent($year, $yearContent);
         }
         return $content;
     }
@@ -164,11 +153,11 @@ class Presentation extends BaseSubmission
      * @return bool
      * @throws Exception
      */
-    private function pres_exist($title)
-    {
-        $titlelist = $this->db->column($this->tablename, 'title');
-        return in_array($title, $titlelist);
-    }
+    // private function isExist($title)
+    // {
+    //     $titlelist = $this->db->column($this->tablename, 'title');
+    //     return in_array($title, $titlelist);
+    // }
 
     /**
      * Show this presentation (in archives)
@@ -185,7 +174,7 @@ class Presentation extends BaseSubmission
         } else {
             $speakerDiv = "";
         }
-        return self::show_in_list((object)$data, $speakerDiv);
+        return self::showInList((object)$data, $speakerDiv);
     }
 
     /**
@@ -194,33 +183,7 @@ class Presentation extends BaseSubmission
      */
     public function generateYearsList()
     {
-        return self::yearsSelectionList($this->get_years());
-    }
-
-    /**
-     * Get presentation types
-     * @param $default_type : Default presentation type
-     * @param array|null $exclude
-     * @return array
-     */
-    public static function presentation_type($default_type, array $exclude = null)
-    {
-        $prestype = "";
-        $options = null;
-        foreach (Settings::getInstance()->pres_type as $type) {
-            if (!is_null($exclude) && in_array($type, $exclude)) {
-                continue;
-            }
-
-            $prestype .= self::render_type($type, 'pres');
-            $options .= $type == $default_type ?
-                "<option value='$type' selected>$type</option>"
-                : "<option value='$type'>$type</option>";
-        }
-        return array(
-            'types'=>$prestype,
-            "options"=>$options
-        );
+        return self::yearsSelectionList($this->getYears());
     }
 
     // MODEL
@@ -262,7 +225,7 @@ class Presentation extends BaseSubmission
      * Collect years of presentations present in the database
      * @return array
      */
-    public function get_years()
+    public function getYears()
     {
         $dates = $this->db->column($this->tablename, 'date', array('type'=>'wishlist'), array('!='));
         if (is_array($dates)) {
@@ -320,7 +283,7 @@ class Presentation extends BaseSubmission
      * @param $data
      * @return string
      */
-    private static function year_content($year, $data)
+    private static function yearContent($year, $data)
     {
         return "
         <section>
@@ -345,7 +308,7 @@ class Presentation extends BaseSubmission
      * @param $speakerDiv
      * @return string
      */
-    public static function show_in_list(\stdClass $presentation, $speakerDiv)
+    public static function showInList(\stdClass $presentation, $speakerDiv)
     {
         $date = date('d M y', strtotime($presentation->date));
         $leanModalUrl = Router::buildUrl(
@@ -472,7 +435,7 @@ class Presentation extends BaseSubmission
      * @param bool $show : show list of attached files
      * @return string
      */
-    public static function mail_details(array $data, $show = false)
+    public static function mailDetails(array $data, $show = false)
     {
         // Make download menu if required
         $file_div = $show ? Media::download_menu_email($data['media'], App::getAppUrl()) : null;
@@ -536,7 +499,8 @@ class Presentation extends BaseSubmission
         if (!is_null($this->session_id)) {
             $post['session_id'] = $this->session_id;
         } else {
-            $post['session_id'] = (!empty($post['session_id']) && $post['session_id'] !== 'false') ? $post['session_id'] : null;
+            $post['session_id'] = (!empty($post['session_id'])
+            && $post['session_id'] !== 'false') ? $post['session_id'] : null;
         }
 
         // Get presentation date, and if not present, then automatically resultSet next planned session date.
@@ -618,7 +582,7 @@ class Presentation extends BaseSubmission
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
 
         // Make submission's type selection list
-        $type_options = self::renderTypes($Presentation->getTypes(), $type);
+        $type_list = TypesManager::getTypeSelectInput('Presentation');
 
         // Download links
         $links = !is_null($Presentation->media) ? $Presentation->media : array();
@@ -644,7 +608,7 @@ class Presentation extends BaseSubmission
                         </div>
                         <div class='form-group'>
                             <select class='change_pres_type' name='type' id='{$controller}_{$idPres}' required>
-                                {$type_options['options']}
+                                {$type_list['options']}
                             </select>
                             <label>Type</label>
                         </div>
@@ -715,26 +679,5 @@ class Presentation extends BaseSubmission
                 <label>Filter by year</label>
             </div>
         ";
-    }
-
-    /**
-     * Render error message (not found)
-     * @return string
-     */
-    public static function not_found() {
-        return "
-            <section>
-                <div class='section_content'>
-                    <div style='color: rgb(105,105,105); font-size: 50px; text-align: center; font-weight: 600; margin-bottom: 20px;'>Oops</div>
-                    <div style=\"color: rgb(105,105,105); text-align: center; font-size: 1.2em; font-weight: 400;\">
-                        If you were looking for the answer to the question:
-                        <p style='font-size: 1.4em; text-align: center;'>What is the universe?</p>
-                        We can tell you it is 42.
-                        <p>But since you were looking for a page that does not exist, then we must tell you:</p>
-                        <p style='font-size: 2em; text-align: center;'>ERROR 404!</p>
-                    </div>
-                </div>
-            </section>
-            ";
     }
 }
