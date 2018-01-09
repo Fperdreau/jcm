@@ -80,7 +80,7 @@ abstract class BaseModel
         } else {
             $this->tablename = $this->getTableName();
         }
-        $this->table_data = $this->getTableData(strtolower(get_class($this)));
+        $this->table_data = $this->getTableData(strtolower(self::getClassName()));
 
         // Load settings
         $this->loadSettings();
@@ -116,7 +116,7 @@ abstract class BaseModel
     protected function loadSettings()
     {
         if (!is_null($this->settings) && is_null($this->Settings)) {
-            $this->Settings = new Settings(get_called_class(), $this->settings);
+            $this->Settings = new Settings(self::getClassName(), $this->settings);
             $this->settings = $this->Settings->settings;
         }
         return $this->Settings;
@@ -132,7 +132,6 @@ abstract class BaseModel
     {
         if (!is_null($this->settings)) {
             $this->loadSettings()->load();
-
             if (is_null($setting)) {
                 return $this->Settings->settings;
             } elseif (!is_null($setting) && key_exists($setting, $this->Settings->settings)) {
@@ -173,7 +172,7 @@ abstract class BaseModel
     public function updateSettings(array $data)
     {
         if ($this->setSettings($data)) {
-            if ($this->Settings->update($this->settings, array('object'=>__CLASS__))) {
+            if ($this->Settings->update($this->settings, array('object'=>self::getClassName()))) {
                 return array('status'=>true, 'msg'=>'Settings updated');
             } else {
                 return array('status'=>false, 'msg'=>'Sorry, something went wrong!');
@@ -190,12 +189,12 @@ abstract class BaseModel
      */
     public function installDb($op = false)
     {
-        if (is_null($this->getTableData(get_class($this)))) {
+        if (is_null($this->getTableData(self::getClassName()))) {
             return array('status'=>true, 'msg'=>null);
         }
 
         try {
-            if ($this->db->makeorupdate($this->getTableName(), $this->getTableData(get_class($this)), $op)) {
+            if ($this->db->makeorupdate($this->getTableName(), $this->getTableData(self::getClassName()), $op)) {
                 $result['status'] = true;
                 $result['msg'] = "'{$this->tablename}' table created";
                 Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
@@ -219,8 +218,7 @@ abstract class BaseModel
      */
     protected function getTableName()
     {
-        $split = explode('\\', get_class($this));
-        return Db::getInstance()->genName(end($split));
+        return Db::getInstance()->genName(self::getClassName());
     }
 
     /**
