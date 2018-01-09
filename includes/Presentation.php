@@ -43,6 +43,7 @@ class Presentation extends BaseSubmission
     public $up_date;
     public $username;
     public $title;
+    public $keywords;
     public $authors;
     public $summary;
     public $media;
@@ -102,10 +103,11 @@ class Presentation extends BaseSubmission
      * @param string $filter: 'previous' or 'next'
      * @return null|string
      */
-    public function getUserPresentations($username, $filter='next') {
+    public function getUserPresentations($username, $filter = 'next')
+    {
         $content = null;
         $search = $filter == 'next' ? 'date >' : 'date <';
-        foreach ($this->all(array('username'=>$username, $search=>'CURDATE()')) as $key=>$item) {
+        foreach ($this->all(array('username'=>$username, $search=>'CURDATE()')) as $key => $item) {
             $content .= $this->show($item['id'], $username);
         }
         return $content;
@@ -116,7 +118,8 @@ class Presentation extends BaseSubmission
      * @param $date
      * @return mixed
      */
-    private function get_session_id($date) {
+    private function get_session_id($date)
+    {
         $session = new Session($date);
         return $session->id;
     }
@@ -126,7 +129,8 @@ class Presentation extends BaseSubmission
      * @param string $username
      * @return array
      */
-    public function getList($username) {
+    public function getList($username)
+    {
         return $this->all(array('username'=>$username));
     }
 
@@ -136,20 +140,20 @@ class Presentation extends BaseSubmission
      * @param null $user
      * @return string
      */
-    public function getAllList($filter = NULL, $user = NULL) {
-        $year_pub = $this->getByYears($filter,$user);
+    public function getAllList($filter = null, $user = null)
+    {
+        $year_pub = $this->getByYears($filter, $user);
         if (empty($year_pub)) {
             return "Sorry, there is nothing to display here.";
         }
 
         $content = null;
-        foreach ($year_pub as $year=>$list) {
+        foreach ($year_pub as $year => $list) {
             $year_content = null;
             foreach ($list as $id) {
                 $year_content .= $this->show($id);
             }
             $content .= self::year_content($year, $year_content);
-
         }
         return $content;
     }
@@ -172,7 +176,8 @@ class Presentation extends BaseSubmission
      * @param bool $profile : adapt the display for the profile page
      * @return string
      */
-    public function show($id, $profile=false) {
+    public function show($id, $profile = false)
+    {
         $data = $this->getInfo($id);
         if ($profile === false) {
             $speaker = new Users($this->orator);
@@ -187,7 +192,8 @@ class Presentation extends BaseSubmission
      * Generate years selection list
      * @return string
      */
-    public function generateYearsList() {
+    public function generateYearsList()
+    {
         return self::yearsSelectionList($this->get_years());
     }
 
@@ -197,11 +203,14 @@ class Presentation extends BaseSubmission
      * @param array|null $exclude
      * @return array
      */
-    public static function presentation_type($default_type, array $exclude=null) {
+    public static function presentation_type($default_type, array $exclude = null)
+    {
         $prestype = "";
         $options = null;
         foreach (Settings::getInstance()->pres_type as $type) {
-            if (!is_null($exclude) && in_array($type, $exclude)) continue;
+            if (!is_null($exclude) && in_array($type, $exclude)) {
+                continue;
+            }
 
             $prestype .= self::render_type($type, 'pres');
             $options .= $type == $default_type ?
@@ -214,62 +223,16 @@ class Presentation extends BaseSubmission
         );
     }
 
-    // PATCH
-    /**
-     * Add session id to presentation info
-     */
-    public function patch_presentation_id() {
-        foreach ($this->all() as $key=>$item) {
-            $pres_obj = new Presentation($item['presid']);
-            $pres_obj->update(array('session_id'=>$this->get_session_id($pres_obj->date)),
-                array('id'=>$item['presid']));
-        }
-    }
-
-    /**
-     * Patch upload table: add object name ('Presentation').
-     */
-    public static function patch_uploads() {
-        $Publications = new self();
-        $Media = new Media();
-        foreach ($Publications->all() as $key=>$item) {
-            if ($Media->isExist(array('presid'=>$item['id']))) {
-                if (!$Media->update(array('obj'=>'Presentation'), array('presid'=>$item['id']))) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Patch Presentation table by adding session ids if missing
-     * @return bool
-     */
-    public static function patch_session_id() {
-        $Publications = new self();
-        $Session = new Session();
-        foreach ($Publications->all() as $key=>$item) {
-            if ($Session->isExist(array('date'=>$item['date']))) {
-                $session_info = $Session->getInfo(array('date'=>$item['date']));
-                if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id'=>$item['id']))) {
-                    Logger::getInstance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     // MODEL
 
     /**
      * Get latest submitted presentations
      * @return array
      */
-    public function getLatest() {
+    public function getLatest()
+    {
         $publicationList = array();
-        foreach ($this->all(array('notified'=>0, 'title !='=>'TBA')) as $key=>$item) {
+        foreach ($this->all(array('notified'=>0, 'title !='=>'TBA')) as $key => $item) {
             $publicationList[] = $item['id'];
         }
         return $publicationList;
@@ -280,10 +243,13 @@ class Presentation extends BaseSubmission
      * @param bool $excluded
      * @return array
      */
-    public function getByDate($excluded=false) {
+    public function getByDate($excluded = false)
+    {
         // Get presentations dates
         $sql = "SELECT date,id FROM $this->tablename";
-        if ($excluded !== false) $sql .= " WHERE type!='$excluded'";
+        if ($excluded !== false) {
+            $sql .= " WHERE type!='$excluded'";
+        }
         $req = $this->db->sendQuery($sql);
         $dates = array();
         while ($row = mysqli_fetch_assoc($req)) {
@@ -296,17 +262,18 @@ class Presentation extends BaseSubmission
      * Collect years of presentations present in the database
      * @return array
      */
-    public function get_years() {
+    public function get_years()
+    {
         $dates = $this->db->column($this->tablename, 'date', array('type'=>'wishlist'), array('!='));
         if (is_array($dates)) {
             $years = array();
             foreach ($dates as $date) {
-                $formated_date = explode('-',$date);
+                $formated_date = explode('-', $date);
                 $years[] = $formated_date[0];
             }
             $years = array_unique($years);
         } else {
-            $formated_date = explode('-',$dates);
+            $formated_date = explode('-', $dates);
             $years[] = $formated_date[0];
         }
 
@@ -319,12 +286,17 @@ class Presentation extends BaseSubmission
      * @param null $username
      * @return array
      */
-    public function getByYears($filter = NULL, $username = NULL) {
+    public function getByYears($filter = null, $username = null)
+    {
         $search = array(
             'title !='=>'TBA',
             'type !='=>'wishlist');
-        if (!is_null($filter)) $search['YEAR(date)'] = $filter;
-        if (!is_null($username)) $search['username'] = $username;
+        if (!is_null($filter)) {
+            $search['YEAR(date)'] = $filter;
+        }
+        if (!is_null($username)) {
+            $search['username'] = $username;
+        }
 
         $data = $this->db->resultSet(
             $this->tablename,
@@ -334,7 +306,7 @@ class Presentation extends BaseSubmission
         );
 
         $years = array();
-        foreach ($data as $key=>$item) {
+        foreach ($data as $key => $item) {
             $years[$item['YEAR(date)']][] = $item['id'];
         }
         return $years;
@@ -348,7 +320,8 @@ class Presentation extends BaseSubmission
      * @param $data
      * @return string
      */
-    private static function year_content($year, $data) {
+    private static function year_content($year, $data)
+    {
         return "
         <section>
             <h2 class='section_header'>$year</h2>
@@ -363,27 +336,28 @@ class Presentation extends BaseSubmission
                 </div>
             </div>
         </section>";
-
     }
 
     /**
      * Render presentation in list
+     *
      * @param \stdClass $presentation
      * @param $speakerDiv
      * @return string
      */
-    public static function show_in_list(\stdClass $presentation, $speakerDiv) {
+    public static function show_in_list(\stdClass $presentation, $speakerDiv)
+    {
         $date = date('d M y', strtotime($presentation->date));
         $leanModalUrl = Router::buildUrl(
             self::getClassName(),
             'showDetails',
             array(
             'view'=>'modal',
-            'operation'=>'edit',
             'id'=>$presentation->id_pres)
         );
         return "
-            <div class='pub_container' style='display: table-row; position: relative; box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
+            <div class='pub_container' style='display: table-row; position: relative; 
+            box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
             padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 min-width: 50px; font-weight: bold;'>$date</div>
@@ -391,7 +365,7 @@ class Presentation extends BaseSubmission
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
                     <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id_pres}" . "' 
-                    class='leanModal' data-url='{$leanModalUrl}' data-section='submission'>
+                    class='leanModal' data-url='{$leanModalUrl}' data-section='presentation'>
                         $presentation->title
                     </a>
                 </div>
@@ -405,11 +379,12 @@ class Presentation extends BaseSubmission
      * @param string $cur_speaker: username of currently assigned speaker
      * @return string
      */
-    public static function speakerList($cur_speaker=null) {
+    public static function speakerList($cur_speaker = null)
+    {
         $Users = new Users();
         // Render list of available speakers
         $speakerOpt = (is_null($cur_speaker)) ? "<option selected disabled>Select a speaker</option>" : null;
-        foreach ($Users->getAll() as $key=>$speaker) {
+        foreach ($Users->getAll() as $key => $speaker) {
             $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
             $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
         }
@@ -428,18 +403,18 @@ class Presentation extends BaseSubmission
             'showDetails',
             array(
             'view'=>'modal',
-            'operation'=>'edit',
             'id'=>$data['id'])
         );
         $view_button = "<a href='#' class='leanModal pub_btn icon_btn' 
-        data-url='{$leanModalUrl}' data-section='submission' data-title='Submission'>
+        data-url='{$leanModalUrl}' data-section='presentation' data-title='Presentation'>
         <img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
         return array(
             "content"=>"  
                 <div style='display: block !important;'>{$data['title']}</div>
                 <div>
                     <span style='font-size: 12px; font-style: italic;'>Presented by </span>
-                    <span style='font-size: 14px; font-weight: 500; color: #777;'>" . self::speakerList($data['username']) ."</span>
+                    <span style='font-size: 14px; font-weight: 500; color: #777;'>
+                    " . self::speakerList($data['username']) ."</span>
                 </div>
                 ",
             "name"=>$data['pres_type'],
@@ -452,7 +427,7 @@ class Presentation extends BaseSubmission
      * @param array $data
      * @return string
      */
-    private static function RenderTitle(array $data)
+    private static function renderTitle(array $data)
     {
         $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
         $leanModalUrl = Router::buildUrl(
@@ -460,10 +435,9 @@ class Presentation extends BaseSubmission
             'showDetails',
             array(
             'view'=>'modal',
-            'operation'=>'edit',
             'id'=>$data['id_pres'])
         );
-        return "<a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='submission' 
+        return "<a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='presentation' 
             data-title='Submission'>{$data['title']}</a>";
     }
 
@@ -472,8 +446,9 @@ class Presentation extends BaseSubmission
      * @param array $data
      * @return array
      */
-    public static function inSessionSimple(array $data) {
-        $show_but = self::RenderTitle($data);
+    public static function inSessionSimple(array $data)
+    {
+        $show_but = self::renderTitle($data);
         $Bookmark = new Bookmark();
         return array(
             "name"=>$data['pres_type'],
@@ -486,7 +461,8 @@ class Presentation extends BaseSubmission
             "button"=>$Bookmark->getIcon(
                 $data['id'],
                 'Presentation',
-                SessionInstance::isLogged() ? $_SESSION['username'] : null)
+                SessionInstance::isLogged() ? $_SESSION['username'] : null
+            )
         );
     }
 
@@ -496,7 +472,8 @@ class Presentation extends BaseSubmission
      * @param bool $show : show list of attached files
      * @return string
      */
-    public static function mail_details(array $data, $show=false) {
+    public static function mail_details(array $data, $show = false)
+    {
         // Make download menu if required
         $file_div = $show ? Media::download_menu_email($data['media'], App::getAppUrl()) : null;
 
@@ -505,7 +482,8 @@ class Presentation extends BaseSubmission
 
         // Abstract
         $abstract = (!empty($data['summary'])) ? "
-            <div style='width: 95%; box-sizing: border-box; border-top: 3px solid rgba(207,81,81,.5); text-align: justify; margin: 5px auto; 
+            <div style='width: 95%; box-sizing: border-box; border-top: 3px solid rgba(207,81,81,.5); 
+            text-align: justify; margin: 5px auto; 
             padding: 10px;'>
                 <span style='font-style: italic; font-size: 13px;'>{$data['summary']}</span>
             </div>
@@ -513,8 +491,10 @@ class Presentation extends BaseSubmission
 
         // Build content
         $content = "
-        <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
-            <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
+        <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; 
+        background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+            <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; 
+            min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
                 <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
                     <span style='color: #222; font-weight: 900;'>{$type}</span>
                     <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
@@ -678,6 +658,12 @@ class Presentation extends BaseSubmission
                         <div class='special_inputs_container'>
                         " . SubmissionForms::get($type, $Presentation) . "
                         </div>
+
+                        <div class='form-group'>
+                            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords'>
+                            <label>Keywords (comma-separated)</label>
+                        </div>
+
                         <div class='form-group'>
                             <label>Abstract</label>
                             <textarea name='summary' class='wygiwym' id='summary' 
