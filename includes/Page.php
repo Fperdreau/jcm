@@ -144,8 +144,13 @@ class Page extends BaseModel {
         $params = array();
         if (strpos($paramsStr, '&')) {
             $paramList = explode("&", $paramsStr);
-            foreach ($paramList as $item) {
-                $paramTuple = explode("=", $item);
+        } else {
+            $paramList = array($paramsStr);
+        }
+
+        foreach ($paramList as $item) {
+            $paramTuple = explode("=", $item);
+            if (count($paramTuple)>1) {
                 $params[$paramTuple[0]] = $paramTuple[1];
             }
         }
@@ -162,7 +167,6 @@ class Page extends BaseModel {
     {
         // Convert params to array
         $pageParameters = self::paramsToArray($params);
-
         if (strpos($page, "#")) {
             // Remove hashtags
             $page = substr($page, 0, strpos($page, "#"));
