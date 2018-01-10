@@ -33,7 +33,8 @@ use includes\BaseModel;
  *
  * Class that handles speaker assignment routines
  */
-class Assignment extends BaseModel {
+class Assignment extends BaseModel
+{
 
     /**
      * @var Session
@@ -41,16 +42,10 @@ class Assignment extends BaseModel {
     private static $session;
 
     /**
-     * Constructor
-     */
-    public function __construct() {
-        parent::__construct();
-    }
-
-    /**
      * Setup
      */
-    public function setup() {
+    public function setup()
+    {
         $this->check();
         $this->getPresentations();
     }
@@ -58,36 +53,40 @@ class Assignment extends BaseModel {
     /**
      * Check correspondences between table
      */
-    public function check() {
+    public function check()
+    {
         if ($this->db->tableExists($this->tablename)) {
-            $this->get_session_instance();
-            $this->update_types();
-            $this->update_users();
+            $this->getSessionInstance();
+            $this->updateTypes();
+            $this->updateUsers();
         }
     }
 
     /**
      * Add missing session types and remove deleted ones
      */
-    private function update_types() {
-        $this->add_types();
+    private function updateTypes()
+    {
+        $this->addTypes();
 
-        $this->delete_types();
+        $this->deleteTypes();
     }
 
     /**
      * Add missing users and remove deleted user accounts
      */
-    private function update_users() {
-        $this->add_users();
+    private function updateUsers()
+    {
+        $this->addUsers();
 
-        $this->delete_users();
+        $this->deleteUsers();
     }
 
     /**
      * Register into DigestMaker table
      */
-    public static function registerDigest() {
+    public static function registerDigest()
+    {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register(get_class());
     }
@@ -95,7 +94,8 @@ class Assignment extends BaseModel {
     /**
      * Get session instance
      */
-    private function get_session_instance() {
+    private function getSessionInstance()
+    {
         if (is_null(self::$session)) {
             self::$session = new Session();
         }
@@ -108,7 +108,8 @@ class Assignment extends BaseModel {
      * @param bool $encode
      * @return mixed
      */
-    public static function prettyName($string, $encode=true) {
+    public static function prettyName($string, $encode = true)
+    {
         if ($encode) {
             return strtolower(str_replace(" ", "_", $string));
         } else {
@@ -121,10 +122,11 @@ class Assignment extends BaseModel {
      * @param array $types
      * @return bool
      */
-    private function add_type(array $types=array()) {
+    private function addType(array $types = array())
+    {
         if (!empty($types)) {
             foreach ($types as $type) {
-                if (!$this->db->add_column($this->tablename, $type, "INT NOT NULL DEFAULT '0'")) {
+                if (!$this->db->addColumn($this->tablename, $type, "INT NOT NULL DEFAULT '0'")) {
                     return false;
                 }
             }
@@ -137,10 +139,11 @@ class Assignment extends BaseModel {
      * @param array $types
      * @return bool
      */
-    private function delete_type(array $types=array()) {
+    private function deleteType(array $types = array())
+    {
         if (!empty($types)) {
             foreach ($types as $type) {
-                if (!$this->db->delete_column($this->tablename, $type)) {
+                if (!$this->db->deleteColumn($this->tablename, $type)) {
                     return false;
                 }
             }
@@ -152,25 +155,27 @@ class Assignment extends BaseModel {
      * Add missing session types to db
      * @return bool
      */
-    private function add_types() {
-        $missing_types = (array_diff($this->get_session_types('app'), $this->get_session_types('db')));
-        return $this->add_type($missing_types);
+    private function addTypes()
+    {
+        $missing_types = (array_diff($this->getSessionTypes('app'), $this->getSessionTypes('db')));
+        return $this->addType($missing_types);
     }
 
     /**
      * Add missing session types to db
      * @return bool
      */
-    private function delete_types() {
-        $types = $this->get_session_types('app');
+    private function deleteTypes()
+    {
+        $types = $this->getSessionTypes('app');
         // Get users present in assignment table but not in users table
         $to_remove = array();
-        foreach ($this->get_session_types('db') as $type) {
+        foreach ($this->getSessionTypes('db') as $type) {
             if (!in_array($type, $types)) {
                 $to_remove[] = $type;
             }
         }
-        return $this->delete_type($to_remove);
+        return $this->deleteType($to_remove);
     }
 
     /**
@@ -178,14 +183,15 @@ class Assignment extends BaseModel {
      * @param $source: information source
      * @return array
      */
-    private function get_session_types($source) {
+    private function getSessionTypes($source)
+    {
         if ($source === 'app') {
             // Get session types
             $session_types = array();
-            foreach ($this->get_session_instance()->getTypes() as $type) {
+            $types = \includes\TypesManager::getTypes('Session');
+            foreach ($types['types'] as $type) {
                 $session_types[] = self::prettyName($type, true);
             }
-
         } elseif ($source === 'db') {
             $reg_types = $this->db->getColumns($this->tablename);
             $session_types = array_values(array_diff($reg_types, array_keys($this->table_data)));
@@ -198,15 +204,18 @@ class Assignment extends BaseModel {
     /**
      * Update members' presentation number based on presentations registered in the Presentation table
      */
-    public function getPresentations() {
+    public function getPresentations()
+    {
         // Step 1: get users' presentations sorted by session type
-        $sql = "SELECT * FROM " . $this->db->gen_name('Presentation');
+        $sql = "SELECT * FROM " . $this->db->genName('Presentation');
         $req = $this->db->sendQuery($sql);
         $list = array();
 
         while ($row = $req->fetch_assoc()) {
             $Session = new Session($row['date']);
-            if ($Session->type === 'none' || empty($row['orator'])) continue;
+            if ($Session->type === 'none' || empty($row['orator'])) {
+                continue;
+            }
 
             if (!isset($list[$row['orator']][$Session->type])) {
                 $list[$row['orator']][$Session->type] = 1;
@@ -216,8 +225,8 @@ class Assignment extends BaseModel {
         }
 
         // Step 2: update table
-        foreach ($list as $username=>$info) {
-            foreach ($info as $type=>$value) {
+        foreach ($list as $username => $info) {
+            foreach ($info as $type => $value) {
                 $type = self::prettyName($type, true);
                 $this->db->update($this->tablename, array($type=>$value), array('username'=>$username));
             }
@@ -229,14 +238,15 @@ class Assignment extends BaseModel {
      *
      * @return bool
      */
-    public function add_users() {
+    public function addUsers()
+    {
         // Get users list
-        $usersList = $this->get_users_list('users');
-        $AssignUsers = $this->get_users_list('db');
+        $usersList = $this->getUsersList('users');
+        $AssignUsers = $this->getUsersList('db');
 
         // Add users to the assignment table if not present yet
         $diff = array_values(array_diff($usersList, $AssignUsers));
-        return $this->add_user($diff);
+        return $this->addUser($diff);
     }
 
     /**
@@ -244,20 +254,21 @@ class Assignment extends BaseModel {
      *
      * @return bool
      */
-    public function delete_users() {
+    public function deleteUsers()
+    {
         // Get users list
-        $usersList = $this->get_users_list('users');
+        $usersList = $this->getUsersList('users');
 
         // Get users present in assignment table but not in users table
         $to_remove = array();
-        foreach ($this->get_users_list('db') as $user) {
+        foreach ($this->getUsersList('db') as $user) {
             if (!in_array($user, $usersList)) {
                 $to_remove[] = $user;
             }
         }
 
         // Add users to the assignment table if not present yet
-        return $this->delete_user($to_remove);
+        return $this->deleteUser($to_remove);
     }
 
     /**
@@ -265,7 +276,8 @@ class Assignment extends BaseModel {
      * @param array $users
      * @return bool
      */
-    private function add_user(array $users=array()) {
+    private function addUser(array $users = array())
+    {
         foreach ($users as $user) {
             if (!$this->db->insert($this->tablename, array('username'=>$user))) {
                 return false;
@@ -279,7 +291,8 @@ class Assignment extends BaseModel {
      * @param array $users
      * @return bool
      */
-    private function delete_user(array $users=array()) {
+    private function deleteUser(array $users = array())
+    {
         foreach ($users as $user) {
             if (!$this->db->delete($this->tablename, array('username'=>$user))) {
                 return false;
@@ -290,10 +303,11 @@ class Assignment extends BaseModel {
 
     /**
      * Get list of users
-     * @param $source
+     * @param string $source
      * @return array
      */
-    private function get_users_list($source) {
+    private function getUsersList($source)
+    {
         $usersList = array();
 
         if ($source === 'db') {
@@ -304,13 +318,13 @@ class Assignment extends BaseModel {
                 $data[] = $row;
             }
 
-            foreach ($data as $key=>$user) {
+            foreach ($data as $key => $user) {
                 $usersList[] = $user['username'];
             }
         } elseif ($source === 'users') {
             // Get users list
             $Users = new Users();
-            foreach ($Users->getAll() as $key=>$user) {
+            foreach ($Users->getAll() as $key => $user) {
                 $usersList[] = $user['username'];
             }
         } else {
@@ -318,7 +332,6 @@ class Assignment extends BaseModel {
         }
 
         return $usersList;
-
     }
 
     /**
@@ -327,7 +340,8 @@ class Assignment extends BaseModel {
      * @param array $filter
      * @return array
      */
-    public function all(array $id=null, array $filter=null) {
+    public function all(array $id = null, array $filter = null)
+    {
         $sql = "SELECT p.*, u.fullname
                 FROM {$this->tablename} p
                 LEFT JOIN {$this->db->gen_name('Users')} u
@@ -348,7 +362,8 @@ class Assignment extends BaseModel {
      * @param $date: session date
      * @return mixed
      */
-    public function getAssignable($session_type, $max, $date) {
+    public function getAssignable($session_type, $max, $date)
+    {
         $req = $this->db->sendQuery("
             SELECT * 
             FROM {$this->tablename} a
@@ -363,7 +378,7 @@ class Assignment extends BaseModel {
         $data = array();
         while ($row = $req->fetch_assoc()) {
             $availability = array();
-            foreach ($Availability->get(array('username'=>$row['username'])) as $key=> $info) {
+            foreach ($Availability->get(array('username'=>$row['username'])) as $key => $info) {
                 $availability[] = $info['date'];
             }
             if (empty($availability) || !in_array($date, $availability)) {
@@ -379,7 +394,8 @@ class Assignment extends BaseModel {
      * @param $session_type
      * @return mixed
      */
-    public function getMax($session_type) {
+    public function getMax($session_type)
+    {
         $sql = "SELECT MAX($session_type) as maximum FROM $this->tablename";
         $data = $this->db->sendQuery($sql)->fetch_assoc();
         return (int)$data['maximum'];
@@ -392,8 +408,11 @@ class Assignment extends BaseModel {
      * @param bool $add: if true, then increase the number of presentations by 1, or decrease by 1 if false
      * @return bool
      */
-    public function updateTable($session_type, $speaker, $add=true) {
-        if ($session_type === 'none') return true;
+    public function updateTable($session_type, $speaker, $add = true)
+    {
+        if ($session_type === 'none') {
+            return true;
+        }
         $inc = ($add) ? 1:-1; // increase or decrease number of presentations
         $value = $this->db->sendQuery("SELECT {$session_type} 
                                         FROM {$this->tablename} 
@@ -410,13 +429,16 @@ class Assignment extends BaseModel {
      * @param bool $notify: notify user by email
      * @return bool
      */
-    public function updateAssignment(Users $user, array $info, $assign=true, $notify=false) {
+    public function updateAssignment(Users $user, array $info, $assign = true, $notify = false)
+    {
         $session = new Session($info['date']);
         if ($this->updateTable(self::prettyName($info['type'], true), $user->username, $assign)) {
             if ($notify) {
                 $session->notify_session_update($user, $info, $assign);
             }
-            Logger::getInstance(APP_NAME, get_class($this))->info("Assignments for {$user->username} have been updated");
+            Logger::getInstance(APP_NAME, get_class($this))->info(
+                "Assignments for {$user->username} have been updated"
+            );
             return true;
         } else {
             Logger::getInstance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
@@ -429,9 +451,10 @@ class Assignment extends BaseModel {
      * @param null $username
      * @return mixed
      */
-    public function makeMail($username=null) {
+    public function makeMail($username = null)
+    {
         $user = new Users($username);
-        $content['body'] = $user->getAssignments();;
+        $content['body'] = $user->getAssignments();
         $content['title'] = 'Your assignments';
         return $content;
     }
@@ -441,7 +464,8 @@ class Assignment extends BaseModel {
      * (used in admin>assignments page)
      * @return string
      */
-    public function showAll() {
+    public function showAll()
+    {
         $data = $this->all();
         return self::showList($data);
     }
@@ -451,10 +475,11 @@ class Assignment extends BaseModel {
      * @param array $data
      * @return string
      */
-    public static function showList(array $data) {
+    public static function showList(array $data)
+    {
         $content = "";
         $headers = array_diff(array_keys($data[0]), array('id', 'fullname', 'username'));
-        foreach ($data as $key=>$info) {
+        foreach ($data as $key => $info) {
             $content .= self::showSingle($info, $headers);
         }
         
@@ -480,7 +505,8 @@ class Assignment extends BaseModel {
      * @param array $session_types
      * @return string
      */
-    public static function showSingle(array $info, array $session_types) {
+    public static function showSingle(array $info, array $session_types)
+    {
         $session_type = "";
         foreach ($session_types as $heading) {
             $session_type .= "<div>{$info[$heading]}</div>";
@@ -491,5 +517,4 @@ class Assignment extends BaseModel {
                 {$session_type}
             </div>";
     }
-
 }
