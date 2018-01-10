@@ -234,35 +234,32 @@ class Session extends BaseModel
      * @param int $nsession
      * @return string
      */
-    public function showCalendar($nsession = 4)
+    public function showCalendar($nSession = 4)
     {
         // Get next planned date
-        if (!empty($this->all())) {
-            $dates = $this->getNextDates(1);
-
-            $dates = ($dates === false) ? false : $dates[0];
-    
-            // Get journal club days
-            $jc_days = $this->getJcDates($this->settings['jc_day'], $nsession, $dates);
-    
+        $today = date('Y-m-d', time());
+        if (!empty($dates = $this->getNextDates($nSession))) {
+        
             // Repeat sessions
-            $this->repeatAll(end($jc_days));
+            $this->repeatAll(end($dates));
     
             $content = "";
-            foreach ($jc_days as $day) {
+            foreach ($dates as $day) {
                 $content .= $this->getDayContent($this->all(array('s.date'=>$day)), $day, false);
             }
             return $content;
         } else {
-            return self::nothingPlannedYet();
+            return self::noUpcomingSession();
         }
     }
 
     /**
      * Get and render day content
-     * @param array $data: day information
+     *
+     * @param array  $data: day information
      * @param string $day : requested date (d-m-Y)
-     * @param bool $edit: get editor (true) or viewer (false)
+     * @param bool   $edit: get editor (true) or viewer (false)
+     *
      * @return string
      */
     public function getDayContent(array $data, $day, $edit = false)
@@ -1310,7 +1307,7 @@ class Session extends BaseModel
     public static function noUpcomingSession()
     {
         return "
-            There is no upcoming session.
+            <div class='sys_msg status'>There is no upcoming session.</div>
         ";
     }
 
