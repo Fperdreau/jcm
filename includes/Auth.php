@@ -25,13 +25,12 @@ namespace includes;
 
 use includes\BaseModel;
 
-require 'PasswordHash.php';
-
 /**
  * Class Auth
  * @package Core\Auth
  */
-class Auth extends BaseModel {
+class Auth extends BaseModel
+{
 
     /**
      * Settings
@@ -179,7 +178,7 @@ class Auth extends BaseModel {
      */
     private function checkPwd($username, $password, array $data)
     {
-        if (validate_password($password, $data['password']) == 1) {
+        if (PasswordHash::validatePassword($password, $data['password']) == 1) {
             if ($this->isExist(array('username'=>$username))) {
                 return $this->update(
                     array(
@@ -209,7 +208,7 @@ class Auth extends BaseModel {
      */
     public static function cryptPwd($password)
     {
-        $hash = create_hash($password);
+        $hash = PasswordHash::createHash($password);
         return $hash;
     }
 }
