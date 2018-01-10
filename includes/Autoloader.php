@@ -28,7 +28,8 @@
  * Class Autoloader
  * Loads class automatically
  */
-class Autoloader {
+class Autoloader
+{
 
     /**
      * register autoloader
@@ -42,7 +43,8 @@ class Autoloader {
      * Load called class
      * @param $class_name string
      */
-    public static function autoload($class_name) {
+    public static function autoload($class_name)
+    {
         require PATH_TO_APP . 'vendor/autoload.php';
 
         if (strpos($class_name, __NAMESPACE__ .'\\') === 0) {
@@ -54,33 +56,4 @@ class Autoloader {
             }
         }
     }
-
-    // /**
-    //  * Load called class
-    //  * @param $class_name string
-    //  */
-    // static function autoload($class_name) {
-    //     // For composer
-    //     require PATH_TO_APP . 'vendor/autoload.php';
-
-    //     // For App
-    //     $filename = PATH_TO_INCLUDES . $class_name . '.php';
-    //     if (is_file($filename)) {
-    //         require_once $filename;
-    //     }
-
-    //     // For Scheduled Tasks
-    //     $filename = PATH_TO_TASKS . $class_name . '.php';
-    //     if (is_file($filename)) {
-    //         require_once $filename;
-    //     }
-
-    //     // For Plugins
-    //     $filename = PATH_TO_PLUGINS . $class_name . DS . $class_name . '.php';
-    //     if (is_file($filename)) {
-    //         require_once $filename;
-    //     }
-
-    // }
-
 }
