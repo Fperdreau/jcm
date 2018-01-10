@@ -845,7 +845,7 @@ class Users extends BaseModel {
                 </div>
                 <div class='action_btns'>
                     <div class='first_half'>
-                        <input type='submit' id='login_form' value='Log In' class='processform reload'/>
+                        <input type='submit' value='Log In' class='processform reload'/>
                     </div>
                     <div class='last_half' style='text-align: right;'>
                         <input type='button' class='go_to_section' data-url='{$leanModalUrlReg}' 

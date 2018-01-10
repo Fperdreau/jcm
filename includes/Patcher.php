@@ -29,7 +29,8 @@ class Patcher {
      * Patch application
      * @return mixed
      */
-    public function patching() {
+    public function patching()
+    {
         $op = $_POST['op'] === "new";
         if ($op === false) {
             patching();
@@ -52,7 +53,8 @@ class Patcher {
     /**
      * Patching database tables for version older than 1.2.
      */
-    public function patching() {
+    public function patchingOld()
+    {
         $db = Db::getInstance();
         $version = (float)$_SESSION['installed_version'];
         if ($version <= 1.2) {

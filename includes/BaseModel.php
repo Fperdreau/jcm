@@ -189,12 +189,13 @@ abstract class BaseModel
      */
     public function installDb($op = false)
     {
-        if (is_null($this->getTableData(self::getClassName()))) {
+        $className = strtolower(self::getClassName());
+        if (is_null($this->getTableData($className))) {
             return array('status'=>true, 'msg'=>null);
         }
 
         try {
-            if ($this->db->makeorupdate($this->getTableName(), $this->getTableData(self::getClassName()), $op)) {
+            if ($this->db->makeorupdate($this->getTableName(), $this->getTableData($className), $op)) {
                 $result['status'] = true;
                 $result['msg'] = "'{$this->tablename}' table created";
                 Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
@@ -218,7 +219,7 @@ abstract class BaseModel
      */
     protected function getTableName()
     {
-        return Db::getInstance()->genName(self::getClassName());
+        return Db::getInstance()->genName(strtolower(self::getClassName()));
     }
 
     /**
