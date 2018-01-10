@@ -328,7 +328,6 @@ class App
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..', 'App.php', 'BaseModel.php'))) {
                 $class_name = explode('.', $includeFile);
-                Logger::getInstance(APP_NAME)->debug("Calling {$class_name[0]}->installDb()");
                 $result = self::call($class_name[0], 'installDb', $op);
                 if ($result['status'] === false) {
                     return $result;
@@ -352,7 +351,6 @@ class App
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..', 'App.php', 'BaseModel.php'))) {
                 $class_name = explode('.', $includeFile);
-                Logger::getInstance(APP_NAME)->debug("Calling {$class_name[0]}->setup()");
                 $result = self::call($class_name[0], 'setup', $op);
                 if ($result['status'] === false) {
                     return $result;
@@ -371,15 +369,18 @@ class App
     public static function call($class_name, $action, $param = null)
     {
         $result = array('status'=>true, 'msg'=>null);
-        if (class_exists($class_name, true)) {
-            $class = new ReflectionClass($class_name);
+        $className = "\\includes\\" . $class_name;
+
+        if (class_exists($className, true)) {
+            $class = new \ReflectionClass($className);
             if (!$class->isAbstract()) {
-                if (method_exists($class_name, $action)) {
-                    $obj = new $class_name();
+                if (method_exists($className, $action)) {
+                    Logger::getInstance(APP_NAME)->debug("Calling {$class_name}::{$action}()");
+                    $obj = new $className();
                     try {
                         $obj->$action($param);
-                    } catch (Exception $e) {
-                        $result['msg'] = "Something went wrong while calling {$class_name}->{$action}: {$e}";
+                    } catch (\Exception $e) {
+                        $result['msg'] = "Something went wrong while calling {$class_name}::{$action}: {$e}";
                         $result['status'] = false;
                         return $result;
                     }
