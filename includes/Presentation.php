@@ -569,7 +569,7 @@ class Presentation extends BaseSubmission
         $controller = !empty($data['controller']) ? $data['controller'] : self::getClassName();
 
         // Submission date
-        $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker_submission' name='date' 
+        $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker submissionCalendar' name='date' 
                     value='{$date}' data-view='view'><label>Date</label>" : null;
 
         // Submission type

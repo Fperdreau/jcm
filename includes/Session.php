@@ -146,6 +146,15 @@ class Session extends BaseModel
         return self::$default;
     }
 
+    public function showSessionCalendar($date, $view)
+    {
+        if ($view === 'edit') {
+            return $this->getSessionEditor($date);
+        } else {
+            return $this->getSessionViewer($date);
+        }
+    }
+
     /**
      * Get all sessions
      * @param string $date: selected date
@@ -239,8 +248,7 @@ class Session extends BaseModel
         // Get next planned date
         $today = date('Y-m-d', time());
         if (!empty($dates = $this->getNextDates($nSession))) {
-        
-            // Repeat sessions
+            // Repeat sessions$this->getDayContent
             $this->repeatAll(end($dates));
     
             $content = "";
@@ -1108,7 +1116,8 @@ class Session extends BaseModel
         return "
         <div class='section_content'>
             <div class='form-group'>
-                <input type='date' class='selectSession datepicker' data-status='false' data-view='edit' name='date' />
+                <input type='date' class='selectSession datepicker viewerCalendar' data-status='false' 
+                data-view='edit' name='date' />
                 <label>Filter</label>
             </div>
             <div id='sessionlist'>{$sessions}</div>
@@ -1129,8 +1138,8 @@ class Session extends BaseModel
                 <div class='session_viewer_container'>
                     <h3>Edit a session</h3>
                     <div class='form-group'>
-                        <input type='date' class='selectSession datepicker' name='date' data-status='admin' 
-                        data-view='edit' />
+                        <input type='date' class='selectSession datepicker viewerCalendar' 
+                        name='date' data-status='admin' data-view='edit'/>
                         <label>Session to show</label>
                     </div>
                     <div id='sessionlist'>{$sessionEditor}</div>
@@ -1348,7 +1357,7 @@ class Session extends BaseModel
                 <label>Type</label>
             </div>
             <div class='form-group field_small inline_field'>
-                <input type='date' name='date' class='datepicker' data-view='edit' data-status='false' 
+                <input type='date' name='date' class='datepicker viewerCalendar' data-view='edit' data-status='false' 
                 value='{$data['date']}' />
                 <label>Date</label>
             </div>

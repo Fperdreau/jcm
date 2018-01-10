@@ -125,8 +125,9 @@ $result = "
             <h2>My availability</h2>
             <div class='section_content'>
             <p class='description'>Select the dates on which you are not available.</p>
-            <div class='sys_msg warning'>Selecting a date on which you have been planned as speaker will automatically cancel this presentation!</div>
-            <div id='availability_calendar'></div>
+            <div class='sys_msg warning'>Selecting a date on which you have been planned as 
+            speaker will automatically cancel this presentation!</div>
+            <div class='datepicker' id='availabilityCalendar'></div>
             <div class='calendar_legend'>
                 <div class='not_available'>I am not available</div>
                 <div class='jcday'>JC day</div>

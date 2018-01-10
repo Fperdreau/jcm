@@ -22,98 +22,6 @@
  */
 
 /**
- * Set up tinyMCE (rich-text textarea)
- */
-var tinymcesetup = function (selector) {
-    if (selector === undefined) selector = "tinymce";
-    tinyMCE.remove();
-    window.tinymce.dom.Event.domLoaded = true;
-
-    tinymce.init({
-        mode: "textareas",
-        editor_selector : selector,
-        width: "100%",
-        height: 300,
-        plugins: [
-            "advlist autolink lists charmap print preview hr spellchecker",
-            "searchreplace wordcount visualblocks visualchars code fullscreen",
-            "save contextmenu directionality template paste textcolor"
-        ],
-        content_css: "vendor/tinymce/tinymce/skins/lightgray/content.min.css",
-        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | " +
-        "bullist numlist outdent indent | l      ink image | print preview media fullpage " +
-        "| forecolor backcolor emoticons"
-    });
-
-    // Attribute random unique ID to selector if does not have one yet
-    $('.' + selector).each(function() {
-        if ($(this).attr('id') === undefined || $(this).attr('id').length === 0) {
-            $(this).attr('id', 'tinymce_' + Math.round(new Date().getTime() + (Math.random() * 100)));
-        }
-        tinyMCE.execCommand("mceAddControl", true, $(this).attr('id'));
-    })
-};
-
-/**
- * Load JCM calendar
- */
-var loadCalendarSessions = function() {
-    $('#ui-datepicker-div').remove();
-    jQuery.ajax({
-        url: 'php/router.php?controller=Calendar&action=getCalendarParams',
-        type: 'POST',
-        async: true,
-        success: function (data) {
-            var result = jQuery.parseJSON(data);
-            inititdatepicker(result);
-        }
-    });
-};
-
-/**
- * Load JCM calendar
- */
-var loadCalendarSubmission = function() {
-    $('#ui-datepicker-div').remove();
-    jQuery.ajax({
-        url: 'php/router.php?controller=Calendar&action=getCalendarParams',
-        type: 'POST',
-        async: true,
-        success: function (data) {
-            var result = jQuery.parseJSON(data);
-            init_submission_calendar(result);
-        }
-    });
-};
-
-/**
- * Load JCM calendar
- */
-var loadCalendarAvailability = function() {
-    var formid = $('#availability_calendar');
-    if (formid.length>0 && formid !== undefined) {
-        formid.css({'position':'relative', 'min-height':'200px'});
-        jQuery.ajax({
-            url: 'php/router.php?controller=Calendar&action=getCalendarParams',
-            type: 'POST',
-            async: true,
-            beforeSend: function () {
-                loadingDiv(formid);
-            },
-            complete: function () {
-                removeLoading(formid);
-            },
-            success: function (data) {
-                if (formid.hasClass('hasDatepicker')) {
-                    formid.datepicker('destroy');
-                }
-                initAvailabilityCalendar(jQuery.parseJSON(data));
-            }
-        });
-    }
-};
-
-/**
  * Parse url and get page content accordingly
  * @param page
  * @param urlparam
@@ -153,25 +61,6 @@ function getPage(page, urlparam) {
     });
 }
 
-var Editor = "CKEditor";
-
-/**
- * Load WYSIWYG editor
- */
-function loadWYSIWYGEditor () {
-    var areas = $(document).find('textarea.wygiwym');
-    $.each(areas, function (i, area) {
-        if (CKEDITOR.instances[$(area).attr('id')]) {
-            CKEDITOR.instances[$(area).attr('id')].destroy();
-        }
-        CKEDITOR.replace(area);
-    });
-
-    /*tinyMCE.remove();
-    window.tinymce.dom.Event.domLoaded = true;
-    tinymcesetup();*/
-}
-
 /**
  * Load page content by clicking on a menu section
  *
@@ -190,13 +79,7 @@ var displayPage = function (page, data) {
     loadWYSIWYGEditor();
 
     // Load JCM calendar
-    loadCalendarSessions();
-
-    // Load availability calendar
-    loadCalendarAvailability();
-
-    // Load submission calendar
-    loadCalendarSubmission();
+    initCalendars();
 };
 
 /**

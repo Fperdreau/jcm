@@ -47,7 +47,7 @@ var get_submission_form = function (data) {
         loadWYSIWYGEditor();
 
         // Load JCM calendar
-        loadCalendarSubmission();
+        initCalendars();
     };
 
     processAjax(el, data, callback, "php/form.php");
@@ -85,7 +85,7 @@ function loadContent(el, final_callback) {
         loadWYSIWYGEditor();
 
         // Load JCM calendar
-        loadCalendarSubmission();
+        initCalendars();
 
         if (final_callback !== undefined) {
             final_callback(result);
@@ -129,7 +129,7 @@ function actionOnSelect(el, final_callback) {
             loadWYSIWYGEditor();
     
             // Load JCM calendar
-            loadCalendarSubmission();
+            initCalendars();
 
             if (final_callback !== undefined) {
                 final_callback(result);
@@ -274,6 +274,59 @@ function dialogBox(el, txt, title, callback) {
 }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ WYSIWYG editor
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+var Editor = "CKEditor";
+
+/**
+ * Load WYSIWYG editor
+ */
+function loadWYSIWYGEditor () {
+    var areas = $(document).find('textarea.wygiwym');
+    $.each(areas, function (i, area) {
+        if (CKEDITOR.instances[$(area).attr('id')]) {
+            CKEDITOR.instances[$(area).attr('id')].destroy();
+        }
+        CKEDITOR.replace(area);
+    });
+}
+
+
+/**
+ * Set up tinyMCE (rich-text textarea)
+ */
+var tinymcesetup = function (selector) {
+    if (selector === undefined) selector = "tinymce";
+    tinyMCE.remove();
+    window.tinymce.dom.Event.domLoaded = true;
+
+    tinymce.init({
+        mode: "textareas",
+        editor_selector : selector,
+        width: "100%",
+        height: 300,
+        plugins: [
+            "advlist autolink lists charmap print preview hr spellchecker",
+            "searchreplace wordcount visualblocks visualchars code fullscreen",
+            "save contextmenu directionality template paste textcolor"
+        ],
+        content_css: "vendor/tinymce/tinymce/skins/lightgray/content.min.css",
+        toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | " +
+        "bullist numlist outdent indent | l      ink image | print preview media fullpage " +
+        "| forecolor backcolor emoticons"
+    });
+
+    // Attribute random unique ID to selector if does not have one yet
+    $('.' + selector).each(function() {
+        if ($(this).attr('id') === undefined || $(this).attr('id').length === 0) {
+            $(this).attr('id', 'tinymce_' + Math.round(new Date().getTime() + (Math.random() * 100)));
+        }
+        tinyMCE.execCommand("mceAddControl", true, $(this).attr('id'));
+    });
+};
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  jQuery DataPicker
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 var selected = new Date().getTime();
@@ -282,57 +335,79 @@ function removeDatePicker() {
     jQuery('#ui-datepicker-div').remove();
 }
 
+
 /**
  * Initialize jQuery-UI calendar
+ *
  * @param data_availability: associative array providing journal club sessions and their information
  */
-var inititdatepicker = function (data_availability) {
+var initCalendars = function () {
+    removeDatePicker();
 
-    $('.datepicker').each(function() {
-        var force_select = $(this).data('view') !== undefined ? $(this).data('view') === 'edit' : false;
-        $(this).datepicker({
-            defaultDate: selected,
-            firstDay: 1,
-            dateFormat: 'yy-mm-dd',
-            inline: true,
-            showOtherMonths: true,
-            beforeShowDay: function(date) {
-                return renderCalendarCallback(date, data_availability, force_select);
-            }
-        });
+    jQuery.ajax({
+        url: 'php/router.php?controller=Calendar&action=getCalendarParams',
+        type: 'POST',
+        async: true,
+        success: function (data) {
+            var result = jQuery.parseJSON(data);
+            $('.datepicker').each(function() {
+                formid = $(this);
+                if (formid.hasClass('hasDatepicker')) {
+                    formid.datepicker('destroy');
+                }
+                //formid.css({'position':'relative', 'min-height':'200px'});
+                if ($(this).hasClass('submissionCalendar')) {
+                    initSubmissionCalendar($(this), result);
+                } else if ($(this).hasClass('viewerCalendar')) {
+                    initViewerCalendar($(this), result);
+                } else if ($(this).attr('id') == 'availabilityCalendar') {
+                    initAvailabilityCalendar($(this), result);
+                }
+            });
+        }
     });
+    
 };
 
-/**
- * Initialize jQuery-UI calendar
- * @param data_availability: associative array providing journal club sessions and their information
- */
-var init_submission_calendar = function (data_availability) {
-    $('.datepicker_submission').each(function() {
-        var force_select = $(this).data('view') !== undefined ? $(this).data('view') === 'edit' : false;
-        $(this).datepicker({
-            defaultDate: selected,
-            firstDay: 1,
-            dateFormat: 'yy-mm-dd',
-            inline: true,
-            showOtherMonths: true,
-            beforeShowDay: function(date) {
-                return renderCalendarCallback(date, data_availability, force_select);
-            },
-            onSelect: function(dateText, inst) {
-                refresh_date(inst, planned_sessions[dateText]);
-            }
-        });
+function initViewerCalendar(el, data_availability) {
+    el.datepicker({
+        defaultDate: selected,
+        firstDay: 1,
+        dateFormat: 'yy-mm-dd',
+        inline: true,
+        showOtherMonths: true,
+        beforeShowDay: function(date) {
+            return renderCalendarCallback(date, data_availability, true);
+        }
     });
-};
+}
+
+/**
+ * load calendar
+ */
+function initSubmissionCalendar(el, data_availability) {
+    el.datepicker({
+        defaultDate: selected,
+        firstDay: 1,
+        dateFormat: 'yy-mm-dd',
+        inline: true,
+        showOtherMonths: true,
+        beforeShowDay: function(date) {
+            return renderCalendarCallback(date, data_availability, false);
+        },
+        onSelect: function(dateText, inst) {
+            refresh_date(inst, planned_sessions[dateText]);
+        }
+    });
+}
 
 /**
  * Initialize jQuery-UI calendar
  * @param data_availability: associative array providing journal club sessions and their information
  */
-var initAvailabilityCalendar = function (data_availability) {
-    var formid = $('#availability_calendar');
-    formid.datepicker({
+var initAvailabilityCalendar = function (el, data_availability) {
+    el.css({'position':'relative', 'min-height':'200px'});
+    el.datepicker({
         defaultDate: selected,
         onSelect: function(dateText, inst) {
             selected = $(this).datepicker('getDate').getTime();
@@ -342,7 +417,10 @@ var initAvailabilityCalendar = function (data_availability) {
                 type: "post",
                 async: true,
                 success: function() {
-                    loadCalendarAvailability();
+                    if (el.hasClass('hasDatepicker')) {
+                        el.datepicker('destroy');
+                    }
+                    initAvailabilityCalendar();
                 }
             });
         },
@@ -351,10 +429,36 @@ var initAvailabilityCalendar = function (data_availability) {
         inline: true,
         showOtherMonths: true,
         beforeShowDay: function(date) {
-            return renderCalendarCallback(date, data_availability);
+            return renderCalendarCallback(date, data_availability, true);
         }
     });
+};
 
+/**
+ * Load JCM calendar
+ */
+var loadCalendarAvailability = function() {
+    var formid = $('#availability_calendar');
+    if (formid.length>0 && formid !== undefined) {
+        formid.css({'position':'relative', 'min-height':'200px'});
+        jQuery.ajax({
+            url: 'php/router.php?controller=Calendar&action=getCalendarParams',
+            type: 'POST',
+            async: true,
+            beforeSend: function () {
+                loadingDiv(formid);
+            },
+            complete: function () {
+                removeLoading(formid);
+            },
+            success: function (data) {
+                if (formid.hasClass('hasDatepicker')) {
+                    formid.datepicker('destroy');
+                }
+                initAvailabilityCalendar(jQuery.parseJSON(data));
+            }
+        });
+    }
 };
 
 var planned_sessions = {};
@@ -1344,17 +1448,17 @@ $(document).ready(function () {
         // Select session to show
         .on('change','.selectSession',function (e) {
             e.preventDefault();
-            var nbsession = $(this).val();
-            var status = ($(this).attr('data-status').length) ? $(this).data('status'):'admin';
+            var date = $(this).val();
+            var status = ($(this).attr('data-status').length) ? $(this).data('status') : 'admin';
             var view = ($(this).data('view') === undefined) ? 'simple' : $(this).data('view');
-            var data = {show_session: nbsession, status: status, view: view};
             var div = $('#sessionlist');
             var callback = function (result) {
-                $('#sessionlist')
+                div
                     .html(result)
                     .fadeIn(200);
             };
-            processAjax(div, data, callback, "php/router.php?controller=Session&action=getSessionEditor&date="+nbsession);
+            processAjax(div, [], callback, 
+                "php/router.php?controller=Session&action=showSessionCalendar&date=" + date + '&view=' + view);
         })
 
         // Modify speaker
@@ -1635,7 +1739,7 @@ $(document).ready(function () {
                 loadWYSIWYGEditor();
 
                 // Load JCM calendar
-                loadCalendarSubmission();
+                initCalendars();
             };
             trigger_modal($(this), true, callback);
         })
