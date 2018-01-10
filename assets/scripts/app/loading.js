@@ -60,7 +60,7 @@ var tinymcesetup = function (selector) {
 var loadCalendarSessions = function() {
     $('#ui-datepicker-div').remove();
     jQuery.ajax({
-        url: 'php/router.php?controller=Calendar&action=getParams',
+        url: 'php/router.php?controller=Calendar&action=getCalendarParams',
         type: 'POST',
         async: true,
         success: function (data) {
@@ -76,7 +76,7 @@ var loadCalendarSessions = function() {
 var loadCalendarSubmission = function() {
     $('#ui-datepicker-div').remove();
     jQuery.ajax({
-        url: 'php/router.php?controller=Calendar&action=getParams',
+        url: 'php/router.php?controller=Calendar&action=getCalendarParams',
         type: 'POST',
         async: true,
         success: function (data) {
@@ -94,7 +94,7 @@ var loadCalendarAvailability = function() {
     if (formid.length>0 && formid !== undefined) {
         formid.css({'position':'relative', 'min-height':'200px'});
         jQuery.ajax({
-            url: 'php/router.php?controller=Calendar&action=getParams',
+            url: 'php/router.php?controller=Calendar&action=getCalendarParams',
             type: 'POST',
             async: true,
             beforeSend: function () {
@@ -119,7 +119,7 @@ var loadCalendarAvailability = function() {
  * @param urlparam
  */
 function getPage(page, urlparam) {
-    var params = getParams();
+    var params = getUrlParams();
     if (page === undefined) {
         page = (params.page === undefined) ? 'home' : params.page;
     }
@@ -253,7 +253,7 @@ var parseurl = function () {
  * Get URL parameters ($_GET)
  * @returns {{}}
  */
-function getParams() {
+function getUrlParams() {
     var url = window.location.href;
     var splitted = url.split("?");
     if (splitted.length === 1) {

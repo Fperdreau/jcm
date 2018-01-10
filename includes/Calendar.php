@@ -30,7 +30,7 @@ class Calendar
      * @return array
      * @throws Exception
      */
-    private function getCalendarParams($force_select = true)
+    public function getCalendarParams($force_select = true)
     {
         $formatdate = array();
         $nb_pres = array();
@@ -99,21 +99,6 @@ class Calendar
         );
     }
 
-    /**
-     * Get calendar parameters
-     *
-     * @param boolean $force_select
-     * @return array
-     */
-    public function getParams($force_select = false)
-    {
-        try {
-            $result = $this->getCalendarParams($force_select);
-            return $result;
-        } catch (\Exception $e) {
-        }
-    }
-
     public function updateUserAvailability($date)
     {
         $username = $_SESSION['username'];
@@ -140,5 +125,10 @@ class Calendar
                 }
             }
         }
+    }
+
+    public function show()
+    {
+
     }
 }
