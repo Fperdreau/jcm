@@ -16,6 +16,8 @@ use \ReflectionMethod;
 class Router
 {
 
+    private static $namespace = 'includes';
+
     private static $data;
 
     private static $controller;
@@ -39,8 +41,11 @@ class Router
      *
      * @return void
      */
-    public static function route()
+    public static function route($namespace = null)
     {
+        if (!is_null($namespace)) {
+            self::$namespace = $namespace;
+        }
         self::addData($_POST);
         self::addData($_GET);
         self::addData($_REQUEST);
@@ -135,7 +140,7 @@ class Router
     private static function getController()
     {
         if (isset(self::$data['controller'])) {
-            self::$controllerName = "\\includes\\" . self::$data['controller'];
+            self::$controllerName = "\\" . self::$namespace . "\\" . self::$data['controller'];
             unset(self::$data['controller']);
             return true;
         }
