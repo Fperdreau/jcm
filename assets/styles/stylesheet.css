@@ -1716,14 +1716,20 @@ h3 {
     border-radius: 5px;
     box-sizing: border-box;
     padding: 5px;
+    margin: 0 auto 5px auto;
 }
 
 .pres_container > div {
-    display: inline-block;
     vertical-align: middle;
 }
 
+.pres_content {
+    display: table;
+    width: 100%;
+}
+
 .pres_type {
+    display: block !important;
     width: 50px;
     font-weight: 600;
     color: #222222;
@@ -1731,10 +1737,12 @@ h3 {
 }
 
 .pres_info {
+    display: table-cell;
     width: 250px;
 }
 
 .pres_btn {
+    display: table-cell;
     width: 30px;
 }
 
@@ -3646,9 +3654,9 @@ input.dateinput {
 
 /* Journal club day */
 .jc_day, .jc_day .ui-state-default {
-    background-color: #e2c9c9 !important;
+    background-color: #04819E !important;
     font-weight:bold;
-    color: black;
+    color: white;
 }
 
 .jc_day_rem, .jc_day_rem .ui-state-default{
@@ -3665,8 +3673,8 @@ input.dateinput {
 }
 
 .assigned, .assigned>.ui-state-default {
-    background: #61AE24;
-    color: white;
+    background: #3CAB00 !important;
+    color: white !important;
 }
 
 .activeday>.ui-state-hover {
@@ -3675,8 +3683,8 @@ input.dateinput {
 }
 
 .not_available, .not_available>.ui-state-default {
-    background: #E54028;
-    color: white;
+    background: #FF7F00 !important;
+    color: white !important;
 }
 
 .pastday>.ui-state-default{
