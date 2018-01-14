@@ -99,6 +99,12 @@ class Calendar
         );
     }
 
+    /**
+     * Update user's availability on the selected date
+     *
+     * @param string $date: selected date (Y-m-d)
+     * @return array
+     */
     public function updateUserAvailability($date)
     {
         $username = $_SESSION['username'];
@@ -107,28 +113,71 @@ class Calendar
         $Presentation = new Presentation();
 
         $result['status'] = $Availability->edit(array('date'=>$date, 'username'=>$username));
-        if ($result['status']) {
+        if ($result['status'] !== false) {
             // Check whether user has a presentation planned on this day, if yes, then we delete it and notify the user that
             // this presentation has been canceled
             $data = $Presentation->get(array('date'=>$date, 'orator'=>$username));
             if (!empty($data)) {
                 $speaker = new Users($username);
                 $Assignment = new Assignment();
-                $session = new Session($date);
+                $session = new Session($data['session_id']);
                 $Presentation = new Presentation($data['id']);
                 $info['type'] = $session->type;
-                $info['date'] = $session->date;
+                $info['date'] = $date;
                 $info['presid'] = $data['id'];
-                $result['status'] = $Presentation->delete_pres($data['id']);
+                $result['status'] = $Presentation->deleteSubmission($data['id']);
                 if ($result['status']) {
                     $result['status'] = $Assignment->updateAssignment($speaker, $info, false, true);
                 }
             }
         }
+        return $result;
     }
 
-    public function show()
+    /**
+     * Render day container
+     *
+     * @param array $data: day's data
+     *
+     * @return string
+     */
+    private static function day(array $data)
     {
+        $date = date('d M Y', strtotime($data['date']));
+        return "
+            <div class='day_container'>
+                <!-- Day header -->
+                <div class='day_header'>
+                    <div class='day_date'>{$date}</div>
+                </div>
+                
+                <!-- Day content -->
+                <div class='day_content'>{$data['content']}</div>
+            </div>";
+    }
 
+    /**
+     * Render event slot
+     *
+     * @param array $data: event's data
+     *
+     * @return string
+     */
+    private static function slot(array $data)
+    {
+        return "
+            <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
+                <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
+                <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>{$data['date']}</div>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'>
+                    <b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
+            </div>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+            font-weight: 500; font-size: 1.2em;'>
+            Presentations
+            </div>
+            {$data['presentations']}
+            ";
     }
 }
