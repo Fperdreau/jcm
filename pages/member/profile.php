@@ -130,7 +130,7 @@ $result = "
             <div class='datepicker' id='availabilityCalendar'></div>
             <div class='calendar_legend'>
                 <div class='not_available'>I am not available</div>
-                <div class='jcday'>JC day</div>
+                <div class='jc_day'>JC day</div>
                 <div class='assigned'>I am a speaker</div>
             </div>
             </div>
