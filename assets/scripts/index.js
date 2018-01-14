@@ -22,36 +22,8 @@
  */
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- GET FORMS
+ Actions handlers
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-/**
- * Show form to submit a presentation
- * @param data
- */
-var get_submission_form = function (data) {
-    if (data['id'] === undefined) {data['id'] = false; }
-    if (data['operation'] === undefined) {data['operation'] = "new"; }
-    if (data['date'] === undefined) {data['date'] = false; }
-    if (data['type'] === undefined) {data['type'] = false; }
-    if (data['view'] === undefined) data['view'] = 'body';
-    data['loadContent'] = true;
-    var el = (data['destination'] === undefined) ? $('.submission_container') : $(data['destination']);
-
-    // First we remove any existing submission form
-    var callback = function (result) {
-        el
-            .html(result)
-            .fadeIn(200)
-            .find('textarea').html(result.content);
-
-        loadWYSIWYGEditor();
-
-        // Load JCM calendar
-        initCalendars();
-    };
-
-    processAjax(el, data, callback, "php/form.php");
-};
 
 /**
  * Load content into target selector
@@ -139,6 +111,39 @@ function actionOnSelect(el, final_callback) {
     processAjax(container, data, callback, url);
 }
 
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Forms processing
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+/**
+ * Show form to submit a presentation
+ * @param data
+ */
+var get_submission_form = function (data) {
+    if (data['id'] === undefined) {data['id'] = false; }
+    if (data['operation'] === undefined) {data['operation'] = "new"; }
+    if (data['date'] === undefined) {data['date'] = false; }
+    if (data['type'] === undefined) {data['type'] = false; }
+    if (data['view'] === undefined) data['view'] = 'body';
+    data['loadContent'] = true;
+    var el = (data['destination'] === undefined) ? $('.submission_container') : $(data['destination']);
+
+    // First we remove any existing submission form
+    var callback = function (result) {
+        el
+            .html(result)
+            .fadeIn(200)
+            .find('textarea').html(result.content);
+
+        loadWYSIWYGEditor();
+
+        // Load JCM calendar
+        initCalendars();
+    };
+
+    processAjax(el, data, callback, "php/form.php");
+};
+
+
 /**
  * Display form to post a news
  * @param postid
@@ -160,6 +165,11 @@ var showpostform = function (postid) {
     };
     processAjax(el, data, callback, "php/router.php?controller=Posts&action=editor");
 };
+
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Dialog boxes
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 /**
  * Render a confirmation box
@@ -335,7 +345,6 @@ function removeDatePicker() {
     jQuery('#ui-datepicker-div').remove();
 }
 
-
 /**
  * Initialize jQuery-UI calendar
  *
@@ -417,10 +426,7 @@ var initAvailabilityCalendar = function (el, data_availability) {
                 type: "post",
                 async: true,
                 success: function() {
-                    if (el.hasClass('hasDatepicker')) {
-                        el.datepicker('destroy');
-                    }
-                    initAvailabilityCalendar();
+                    initCalendars();
                 }
             });
         },
@@ -474,18 +480,19 @@ function renderCalendarCallback(date, data, force_select) {
     var day = date.getDay();
     var cur_date = $.datepicker.formatDate('dd-mm-yy', date);
     var booked = $.inArray(cur_date, data.booked);
-    var css = null;
+    var css = [];
     var text = null;
     var clickable = force_select;
 
     // If there are sessions planned on this day
     if (booked > -1) {
-        css = [];
         planned_sessions[$.datepicker.formatDate('yy-mm-dd', date)] = data.session_id[booked];
         var rem = data.slots[booked] - data.nb[booked]; // Number of presentations available that day
         var type = data.renderTypes[booked];
         text = type + ": (" + rem + " slot(s) available)";
         clickable = rem > 0 || force_select;
+
+        // Planned session
         if (data.nb[booked] === 0) {
             css.push("jc_day");
         } else if (data.nb[booked] < data.slots[booked]) {
@@ -495,22 +502,30 @@ function renderCalendarCallback(date, data, force_select) {
             text = type + ": Booked out";
         }
 
-        var isAvailable = $.inArray(cur_date, data.Availability);
-        if (isAvailable > -1) {
-            css.push("not_available");
-            text = "You are not available this day";
-        }
-
+        // User assignment
         var isAssigned = $.inArray(cur_date, data.Assignments);
         if (isAssigned > -1) {
             css.push("assigned");
             text = "You are presenting this day";
         }
-        css = css.join(' ');
-        return [clickable, css, text];
     } else {
-        return [clickable, "", "No session planned on this day"];
+        text ="No session planned on this day";
     }
+
+    // User availability
+    var isAvailable = $.inArray(cur_date, data.Availability);
+    if (isAvailable > -1) {
+        css.push("not_available");
+        text = "You are not available this day";
+    }
+
+    if (css.length > 0) {
+        css = css.join(' ');
+    } else {
+        css = '';
+    }
+
+    return [clickable, css, text];
 }
 
 /**
