@@ -165,7 +165,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             }
         } elseif ($step == 4) {
             $title = "Step 3: Admin account creation";
-            $operation = Users::admin_creation_form();
+            $operation = \includes\Users::admin_creation_form();
             $next_step = 5;
         } elseif ($step == 5) {
             $title = "Installation complete!";
