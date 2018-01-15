@@ -135,6 +135,7 @@ class Session extends BaseModel
     private function getDefaults()
     {
         self::$default = array(
+            'id'=>null,
             'date'=>self::getJcDates($this->settings['jc_day'], 1)[0],
             'frequency'=>null,
             'slots'=>$this->settings['max_nb_session'],
@@ -196,24 +197,38 @@ class Session extends BaseModel
             $date = $data[0]['date'];
         }
 
-        // Add session form
-        $Addform = self::form($this->getDefaults(), $this->settings['default_type']);
-
-        if ($this->isAvailable(array('date'=>$date))) {
-            return self::sessionManager(null, $Addform, $date);
+        if (is_null($data)) {
+            return self::nothingPlannedYet();
+        } elseif ($this->isAvailable(array('date'=>$date))) {
+            return self::sessionManager(null, $this->editor(), $date);
         } else {
-            $sessionEditor = $this->getSessionEditor($date);
-            $session = $this->get(array('date'=>$date));
-            $slots = $this->getSlots($session['id']);
             return self::sessionManager(
-                self::form(
-                    $this->get(array('date'=>$date)),
-                    $this->getSlots($session['id'])
-                ),
+                $this->editor($date),
                 $Addform,
                 $date
             );
         }
+    }
+
+    /**
+     * Render session editor
+     *
+     * @param string $date: session date
+     * @return string
+     */
+    public function editor($date = null)
+    {
+        if (!is_null($date)) {
+            $data = $this->get(array('date'=>$date));
+        } else {
+            $data = $this->getDefaults();
+        }
+
+        return self::form(
+            $data,
+            $this->getSlots($data['id']),
+            $this->settings['default_type']
+        );
     }
 
     /**
@@ -652,14 +667,8 @@ class Session extends BaseModel
      * @param bool $prestoshow
      * @return string
      */
-    public function showsessiondetails(array $data, $show = true, $prestoshow = false)
+    public function showDetails(array $data, $show = true, $prestoshow = false)
     {
-        if ($this->type == 'none') {
-            return "No journal club this day.";
-        } elseif (count($this->presids) == 0) {
-            return "There is no presentation planned for this session yet.";
-        }
-
         $content = "
             <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
                 <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
@@ -677,7 +686,7 @@ class Session extends BaseModel
             }
 
             $pres = new Presentation($presid);
-            $presentations_list .= $pres->mail_details($show);
+            $presentations_list .= $pres->mailDetails($show);
             $i++;
         }
 
