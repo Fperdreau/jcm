@@ -109,6 +109,40 @@ class TypesManager
     }
 
     /**
+     * Render form
+     *
+     * @param string $className: controller name
+     * @param array $types: array('options'=>select input, 'types'=>types list)
+     * @return string
+     */
+    public static function form($className, array $types)
+    {
+        $url = Router::buildUrl(
+            'Session',
+            'updateSettings'
+        );
+        $lowerName = strtolower($className);
+        return "
+        <div id='session_types_options'>
+            <div id='renderTypes' style='position: relative; margin-bottom: 20px;'>
+                <div class='form-group'>
+                    <select name='default_type' class='actionOnSelect' data-url='{$url}' 
+                        id='{$lowerName}'>
+                        {$types['options']}
+                    </select>
+                    <label>Default type</label>
+                </div>
+            </div>
+            <div style='font-size: 0;'>
+                <button class='type_add addBtn' data-class='{$className}' value='+'/>
+                <input id='new_{$lowerName}_type' type='text' placeholder='New Category'/>
+            </div>
+            <div class='type_list' id='{$lowerName}'>{$types['types']}</div>
+        </div>
+        ";
+    }
+
+    /**
      * Get session types
      *
      * @param array $types: List of presentation types

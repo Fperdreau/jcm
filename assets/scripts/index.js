@@ -1461,12 +1461,11 @@ $(document).ready(function () {
         })
 
         // Select session to show
-        .on('change','.selectSession',function (e) {
+        .on('change', '.selectSession', function (e) {
             e.preventDefault();
             var date = $(this).val();
-            var status = ($(this).attr('data-status').length) ? $(this).data('status') : 'admin';
-            var view = ($(this).data('view') === undefined) ? 'simple' : $(this).data('view');
-            var div = $('#sessionlist');
+            var view = ($(this).data('view') === undefined) ? 'viewer' : $(this).data('view');
+            var div = ($(this).data('destination') === undefined) ? $('#sessionlist') : $($(this).data('destination'));
             var callback = function (result) {
                 div
                     .html(result)

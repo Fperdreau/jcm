@@ -137,11 +137,12 @@ class Session extends BaseModel
         self::$default = array(
             'date'=>self::getJcDates($this->settings['jc_day'], 1)[0],
             'frequency'=>null,
-            'slot'=>$this->settings['max_nb_session'],
+            'slots'=>$this->settings['max_nb_session'],
             'type'=>$this->settings['default_type'],
             'start_time'=>$this->settings['jc_time_from'],
             'end_time'=>$this->settings['jc_time_to'],
-            'room'=>$this->settings['room']
+            'room'=>$this->settings['room'],
+            'to_repeat'=>0
         );
         return self::$default;
     }
@@ -163,7 +164,7 @@ class Session extends BaseModel
     public function getSessionEditor($date)
     {
         if ($this->isAvailable(array('date'=>$date))) {
-            return Session::dayContainer(array('date'=>$date, 'content'=>Session::no_session()));
+            return Session::dayContainer(array('date'=>$date, 'content'=>Session::nothingPlannedThisDay()));
         } else {
             return $this->getDayContent($this->all(array('s.date'=>$date)), $date, true);
         }
@@ -177,7 +178,7 @@ class Session extends BaseModel
     public function getSessionViewer($date)
     {
         if ($this->isAvailable(array('date'=>$date))) {
-            return Session::dayContainer(array('date'=>$date, 'content'=>Session::no_session()));
+            return Session::dayContainer(array('date'=>$date, 'content'=>Session::nothingPlannedThisDay()));
         } else {
             return $this->getDayContent($this->all(array('s.date'=>$date)), $date, false);
         }
@@ -187,15 +188,31 @@ class Session extends BaseModel
      * Returns Session Manager
      * @return string
      */
-    public function getSessionManager()
+    public function getSessionManager($date = null)
     {
-        $date = self::getJcDates($this->settings['jc_day'], 1)[0];
-        $form = self::add_session_form($this->getDefaults(), $this->settings['default_type']);
+        // Get next session date if none is provided
+        if (is_null($date)) {
+            $data = $this->getNext(1);
+            $date = $data[0]['date'];
+        }
+
+        // Add session form
+        $Addform = self::form($this->getDefaults(), $this->settings['default_type']);
+
         if ($this->isAvailable(array('date'=>$date))) {
-            return self::sessionManager(null, $form);
+            return self::sessionManager(null, $Addform, $date);
         } else {
             $sessionEditor = $this->getSessionEditor($date);
-            return self::sessionManager($sessionEditor, $form);
+            $session = $this->get(array('date'=>$date));
+            $slots = $this->getSlots($session['id']);
+            return self::sessionManager(
+                self::form(
+                    $this->get(array('date'=>$date)),
+                    $this->getSlots($session['id'])
+                ),
+                $Addform,
+                $date
+            );
         }
     }
 
@@ -222,15 +239,15 @@ class Session extends BaseModel
         if (!empty($data)) {
             if ($this->isAvailable(array('date'=>$date))) {
                 if (!$mail) {
-                    return self::session_details($data[0], Session::no_session());
+                    return self::sessionDetailsBody($data[0], Session::nothingPlannedThisDay());
                 } else {
-                    return self::mail_session_details($data[0], Session::no_session());
+                    return self::sessionDetailsEmail($data[0], Session::nothingPlannedThisDay());
                 }
             } else {
                 if (!$mail) {
-                    return self::session_details($data[0], $this->getSessionDetails($data, $date, $mail));
+                    return self::sessionDetailsBody($data[0], $this->getSessionDetails($data, $date, $mail));
                 } else {
-                    return self::mail_session_details($data[0], $this->getSessionDetails($data, $date, $mail));
+                    return self::sessionDetailsEmail($data[0], $this->getSessionDetails($data, $date, $mail));
                 }
             }
         } else {
@@ -279,7 +296,7 @@ class Session extends BaseModel
                 $dayContent .= $this->getSessionContent($session_data, $date, $edit);
             }
         } else {
-            $dayContent .= Session::no_session();
+            $dayContent .= Session::nothingPlannedThisDay();
         }
         return Session::dayContainer(array('date'=>$date, 'content'=>$dayContent));
     }
@@ -297,7 +314,7 @@ class Session extends BaseModel
         for ($i=0; $i<$data[0]['slots']; $i++) {
             if (isset($data[$i]) && !is_null($data[$i]['id_pres'])) {
                 if (!$edit) {
-                    $content .= self::slotContainer(Presentation::inSessionSimple($data[$i]), $data[$i]['id_pres']);
+                    $content .= self::slotContainerBody(Presentation::inSessionSimple($data[$i]), $data[$i]['id_pres']);
                 } else {
                     $content .= self::slotEditContainer(Presentation::inSessionEdit($data[$i]), $data[$i]['id_pres']);
                 }
@@ -305,7 +322,7 @@ class Session extends BaseModel
                 if ($edit) {
                     $content .= self::emptySlotEdit();
                 } else {
-                    $content .= self::emptySlot($data[0], SessionInstance::isLogged());
+                    $content .= self::emptyPresentationSlot($data[0], SessionInstance::isLogged());
                 }
             }
         }
@@ -316,7 +333,7 @@ class Session extends BaseModel
             return self::sessionContainer(array(
                 'date'=>$date,
                 'content'=>$content,
-                'type'=>$data[0]['renderTypes'],
+                'type'=>$data[0]['session_type'],
                 'start_time'=>$data[0]['start_time'],
                 'end_time'=>$data[0]['end_time'],
                 'room'=>$data[0]['room']
@@ -337,12 +354,12 @@ class Session extends BaseModel
         for ($i=0; $i<$data[0]['slots']; $i++) {
             if (isset($data[$i]) && !is_null($data[$i]['id_pres'])) {
                 if (!$mail) {
-                    $content .= self::mail_slotContainer(Presentation::inSessionSimple($data[$i]));
+                    $content .= self::slotContainerEmail(Presentation::inSessionSimple($data[$i]));
                 } else {
-                    $content .= self::mail_slotContainer(Presentation::inSessionSimple($data[$i]));
+                    $content .= self::slotContainerEmail(Presentation::inSessionSimple($data[$i]));
                 }
             } else {
-                $content .= self::emptySlot($data[0], SessionInstance::isLogged());
+                $content .= self::emptyPresentationSlot($data[0], SessionInstance::isLogged());
             }
         }
         return $content;
@@ -351,53 +368,28 @@ class Session extends BaseModel
     /**
      * Renders email notifying presentation assignment
      * @param Users $user
-     * @param array $info: array('type'=>renderTypes,'date'=>session_date, 'presid'=>presentation_id)
+     * @param array $info: array('type'=>session_type,'date'=>session_date, 'presid'=>presentation_id)
      * @param bool $assigned
      * @return mixed
      */
     public function notify_session_update(Users $user, array $info, $assigned = true)
     {
         $MailManager = new MailManager();
-        $sessionType = $info['type'];
-        $date = $info['date'];
-        $dueDate = date('Y-m-d', strtotime($date.' - 1 week'));
-        $contactURL = URL_TO_APP."index.php?page=contact";
-        $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$info['presid']}&user={$user->username}";
         if ($assigned) {
-            $content['body'] = "
-            <div style='width: 100%; margin: auto;'>
-                <p>Hello $user->fullname,</p>
-                <p>You have been automatically invited to present at a 
-                <span style='font-weight: 500'>$sessionType</span> 
-                session on the <span style='font-weight: 500'>$date</span>.</p>
-                <p>Please, submit your presentation on the Journal Club Manager before the 
-                <span style='font-weight: 500'>$dueDate</span>.</p>
-                <p>If you think you will not be able to present on the assigned date, please 
-                <a href='$contactURL'>contact</a> the organizers as soon as possible.</p>
-                <div>
-                    You can edit your presentation from this link: <a href='{$editUrl}'>{$editUrl}</a>
-                </div>
-            </div>
-        ";
-            $content['subject'] = "Invitation to present on the $date";
+            $dueDate = date('Y-m-d', strtotime($info['date'].' - 1 week'));
+            $content = self::invitationEmail($user->fullname, $dueDate, $info['date'], $info['type']);
         } else {
-            $content['body'] = "
-            <div style='width: 100%; margin: auto;'>
-                <p>Hello $user->fullname,</p>
-                <p>Your presentation planned on {$date} has been manually canceled. 
-                You are no longer required to give a presentation on this day.</p>
-                <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
-            </div>
-            ";
-            $content['subject'] = "Your presentation ($date) has been canceled";
+            $content = self::cancelationUserEmail($user->fullname, $info['date']);
         }
 
         // Notify organizers of the cancellation but only for real users
-        if (!$assigned && $user->username !== 'TBA') $this->notify_organizers($user, $info);
+        if (!$assigned && $user->username !== 'TBA') {
+            $this->notify_organizers($user, $info);
+        }
 
+        // Send email
         $result = $MailManager->send($content, array($user->email));
         return $result;
-
     }
 
     /**
@@ -409,22 +401,8 @@ class Session extends BaseModel
     public function notify_organizers(Users $user, array $info)
     {
         $MailManager = new MailManager();
-        $date = $info['date'];
-        $url = URL_TO_APP.'index.php?page=sessions';
-
-        foreach ($user->getAdmin() as $key=> $info) {
-            $content['body'] = "
-                <div style='width: 100%; margin: auto;'>
-                    <p>Hello {$info['fullname']},</p>
-                    <p>This is to inform you that the presentation of 
-                    <strong>{$user->fullname}</strong> planned on the <strong>{$date}</strong> has been canceled. 
-                    You can either manually assign another speaker on this day in the 
-                    <a href='{$url}'>Admin>Session</a> section or let the automatic 
-                    assignment select a member for you.</p>
-                </div>
-            ";
-            $content['subject'] = "A presentation ($date) has been canceled";
-
+        foreach ($user->getAdmin() as $key => $info) {
+            $content = self::cancelationOrganizerEmail($info['fullname'], $user->fullname, $info['date']);
             if (!$MailManager->send($content, array($info['email']))) {
                 return false;
             }
@@ -581,6 +559,11 @@ class Session extends BaseModel
         return $result;
     }
 
+    /**
+     * Update session information
+     *
+     * @return array
+     */
     public function updateSession()
     {
         $session_id = $_POST['id'];
@@ -608,6 +591,7 @@ class Session extends BaseModel
 
     /**
      * Update session status
+     *
      * @return bool
      */
     public function update_status()
@@ -625,6 +609,7 @@ class Session extends BaseModel
 
     /**
      * Check if the date of presentation is already booked
+     *
      * @param int $session_id: session id
      * @return bool
      */
@@ -633,7 +618,7 @@ class Session extends BaseModel
         $session = new self();
         $data = $session->getInfo(array('id'=>$session_id));
         if ($data === false) {
-            return 'no_session';
+            return 'nothingPlannedThisDay';
         } elseif ($data['nbpres']<$data['slots']) {
             return false;
         } else {
@@ -643,6 +628,7 @@ class Session extends BaseModel
 
     /**
      * Get session info
+     *
      * @param array $id: session id
      * @return array|bool
      */
@@ -661,6 +647,7 @@ class Session extends BaseModel
 
     /**
      * Show session details
+     *
      * @param bool $show
      * @param bool $prestoshow
      * @return string
@@ -780,6 +767,7 @@ class Session extends BaseModel
 
     /**
      * Delete all or only upcoming occurences of an event
+     *
      * @param $id: id of current occurence
      * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
      * @return bool
@@ -822,6 +810,7 @@ class Session extends BaseModel
 
     /**
      * Test if event is recurrent
+     *
      * @param $id
      * @return bool
      */
@@ -833,6 +822,7 @@ class Session extends BaseModel
 
     /**
      * Recursively repeat All sessions
+     *
      * @param $item
      * @param $max_date
      * @param array|null $result
@@ -876,6 +866,7 @@ class Session extends BaseModel
 
     /**
      * Check consistency between presentations and sessions table
+     *
      * @return array
      */
     public function checkDb()
@@ -942,7 +933,7 @@ class Session extends BaseModel
             $search = null;
         }
 
-        $sql = "SELECT *, id as session_id, type as renderTypes
+        $sql = "SELECT *, id as session_id, type as session_type
                 FROM {$this->tablename} s
                  LEFT JOIN 
                     (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id as id_pres, 
@@ -954,6 +945,30 @@ class Session extends BaseModel
                         ON u.username=p.username
                  {$search['cond']} {$param} {$limit}";
 
+        $req = $this->db->sendQuery($sql);
+        $data = array();
+        if ($req !== false) {
+            while ($row = $req->fetch_assoc()) {
+                if (!isset($data[$row['session_id']])) {
+                    $data[$row['session_id']] = array();
+                }
+                $data[$row['session_id']][] = $row;
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Get slots related to session
+     *
+     * @param string $id: session id
+     *
+     * @return array
+     */
+    public function getSlots($id)
+    {
+        $sql = "SELECT * FROM " . $this->db->getAppTables('Presentation') . " WHERE session_id={$id}";
+        
         $req = $this->db->sendQuery($sql);
         $data = array();
         if ($req !== false) {
@@ -1117,7 +1132,7 @@ class Session extends BaseModel
         <div class='section_content'>
             <div class='form-group'>
                 <input type='date' class='selectSession datepicker viewerCalendar' data-status='false' 
-                data-view='edit' name='date' />
+                data-view='view' name='date' />
                 <label>Filter</label>
             </div>
             <div id='sessionlist'>{$sessions}</div>
@@ -1131,23 +1146,22 @@ class Session extends BaseModel
      * @param $form: edit form
      * @return string
      */
-    public static function sessionManager($sessionEditor, $form)
+    public static function sessionManager($sessionEditor, $form, $selected_date = null)
     {
         return "
-            <div class='section_content'>
-                <div class='session_viewer_container'>
-                    <h3>Edit a session</h3>
-                    <div class='form-group'>
-                        <input type='date' class='selectSession datepicker viewerCalendar' 
-                        name='date' data-status='admin' data-view='edit'/>
-                        <label>Session to show</label>
-                    </div>
-                    <div id='sessionlist'>{$sessionEditor}</div>
+            <div class='session_viewer_container'>
+                <h3>Edit a session</h3>
+                <div class='form-group'>
+                    <input type='date' class='selectSession datepicker viewerCalendar' 
+                    name='date' data-view='edit' data-destination='#session_list' value='{$selected_date}' />
+                    <label>Select a session</label>
                 </div>
-                <div class='session_viewer_container'>
-                    <h3>Add a new session</h3>
-                    {$form}
-                </div>
+                <div id='session_list'>{$sessionEditor}</div>
+            </div>
+
+            <div>
+                <h3>Add a new session</h3>
+                {$form}
             </div>
         ";
     }
@@ -1176,50 +1190,141 @@ class Session extends BaseModel
     public static function defaultSettingsForm(array $settings)
     {
         return "
-        <section>
-            <h2>Default Session Settings</h2>
-            <div class='section_content'>
-                <form method='post' action='php/router.php?controller=Session&action=updateSettings'>
-                    <div class='feedback' id='feedback_jcsession'></div>
-                    <div class='form-group'>
-                        <input type='text' name='room' value='" . $settings['room'] . "'>
-                        <label>Room</label>
-                    </div>
-                    <div class='form-group'>
-                        <select name='jc_day'>
-                            " . self::dayList($settings['jc_day']) . "
-                        </select>
-                        <label for='jc_day'>Day</label>
-                    </div>
-                    <div class='form-group'>
-                        <input type='time' name='jc_time_from' value='" . $settings['jc_time_from'] . "' />
-                        <label>From</label>
-                    </div>
-                    <div class='form-group'>
-                        <input type='time' name='jc_time_to' value='" . $settings['jc_time_to'] . "' />
-                        <label>To</label>
-                    </div>
-                    <div class='form-group'>
-                        <input type='number' name='max_nb_session' value='" . $settings['max_nb_session'] . "'/>
-                        <label>Slots/Session</label>
-                    </div>
-                    <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' 
-                    class='processform'/></p>
-                </form>
+        <div class='section_content'>
+            <form method='post' action='php/router.php?controller=Session&action=updateSettings'>
+                <div class='feedback' id='feedback_jcsession'></div>
+                <div class='form-group'>
+                    <input type='text' name='room' value='" . $settings['room'] . "'>
+                    <label>Room</label>
+                </div>
+                <div class='form-group'>
+                    <select name='jc_day'>
+                        " . self::dayList($settings['jc_day']) . "
+                    </select>
+                    <label for='jc_day'>Day</label>
+                </div>
+                <div class='form-group'>
+                    <input type='time' name='jc_time_from' value='" . $settings['jc_time_from'] . "' />
+                    <label>From</label>
+                </div>
+                <div class='form-group'>
+                    <input type='time' name='jc_time_to' value='" . $settings['jc_time_to'] . "' />
+                    <label>To</label>
+                </div>
+                <div class='form-group'>
+                    <input type='number' name='max_nb_session' value='" . $settings['max_nb_session'] . "'/>
+                    <label>Slots/Session</label>
+                </div>
+                <p style='text-align: right'><input type='submit' name='modify' value='Modify' id='submit' 
+                class='processform'/></p>
+            </form>
+        </div>
+        ";
+    }
+
+    /**
+     * Render form to add session
+     * @param array $data
+     * @param $default_type
+     * @return string
+     */
+    public static function form(array $data, $slots = null, $default_type = null)
+    {
+        // Repeat session option
+        $repeat_options = null;
+        foreach (array('Yes'=>1, 'No'=>0) as $label => $value) {
+            $selected = (int)$data['to_repeat'] === $value ? 'selected' : null;
+            $repeat_options .= "<option value={$value} {$selected}>{$label}</option>";
+        }
+        $show_repeat_settings = $data['to_repeat'] == 1 ? 'display: visible' : 'display: none';
+
+        // Form action url
+        $url = Router::buildUrl(
+            self::getClassName(),
+            'make'
+        );
+
+        // Select of input for session type
+        $selectedType = (!empty($data['session_type'])) ? $data['session_type'] : $default_type;
+        $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $selectedType);
+
+        // Submit buttons
+        if (isset($data['id'])) {
+            $addButton = "<input type='submit' value='Add' class='processform' />";
+            $deleteButton = "<input type='submit' value='Delete' class='delete_session' data-controller='Session' 
+            data-action='delete' data-id='{$data['id']}' />";
+            $modifyButton = "<input type='submit' class='modify_session' value='Modify' />";
+            $buttons = "
+            {$modifyButton}
+            {$deleteButton}
+            ";
+        } else {
+            $buttons = "<input type='submit' class='modify_session' value='Modify' />";
+            $data['id'] = false;
+        }
+
+        return "
+        <form action='{$url}' method='post'>
+            <div class='form-group'>
+                <select name='type'>{$type_list['options']}</select>
+                <label>Type</label>
             </div>
-        </section>
+            <div class='form-group field_small inline_field'>
+                <input type='date' name='date' class='datepicker viewerCalendar' data-view='edit' 
+                value='{$data['date']}' />
+                <label>Date</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='time' name='start_time' value='{$data['start_time']}' />
+                <label>From</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='time' name='end_time' value='{$data['end_time']}' />
+                <label>To</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='text' name='room' value='{$data['room']}' />
+                <label>Room</label>
+            </div>
+            <div class='form-group field_small inline_field'>
+                <input type='number' name='slots' value='{$data['slots']}' />
+                <label>Slots</label>
+            </div>
+            <div>
+                <div class='form-group field_small inline_field'>
+                    <select name='to_repeat' class='repeated_session'>
+                        <option value=1>Yes</option>
+                        <option value=0 selected>No</option>
+                    </select>
+                    <label>Repeat</label>
+                </div>
+                <div class='form-group field_small inline_field settings_hidden' style='display: none;'>
+                    <input type='date' name='end_date' value='{$data['date']}' />
+                    <label>End date</label>
+                </div>
+                <div class='form-group field_small inline_field settings_hidden' style='display: none;'>
+                    <input type='number' name='frequency' value='{$data['frequency']}' />
+                    <label>Frequency (day)</label>
+                </div>
+                <div class='submit_btns'>
+                    <input type='hidden' name='start_date' value='{$data['date']}' />
+                    <input type='hidden' name='id' value='{$data['id']}' />
+                </div>
+            </div>
+        </form>
         ";
     }
 
     /**
      * Render session settings panel
+     *
      * @param array $session: session information
      * @param array $types: list of session types
      * @return string
      */
     public static function sessionSettings(array $session, array $types)
     {
-        $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $session['renderTypes']);
+        $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $session['session_type']);
         $repeat_options = null;
         foreach (array('Yes'=>1, 'No'=>0) as $label => $value) {
             $selected = (int)$session['to_repeat'] === $value ? 'selected' : null;
@@ -1321,7 +1426,7 @@ class Session extends BaseModel
     }
 
     /**
-     * Message to display when there is no session  planned yet
+     * Message to display when there is no session planned yet
      *
      * @return string
      */
@@ -1336,77 +1441,13 @@ class Session extends BaseModel
         ";
     }
 
-    /**
-     * Render form to add session
-     * @param array $data
-     * @param $default_type
-     * @return string
-     */
-    public static function add_session_form(array $data, $default_type)
-    {
-        $url = Router::buildUrl(
-            self::getClassName(),
-            'make'
-        );
-        $type_list = TypesManager::getTypeSelectInput(self::getClassName(), $default_type);
-        return "
-        <form action='{$url}' method='post'>
-            <div class='form-group'>
-                <select name='type'>
-                {$type_list['options']}</select>
-                <label>Type</label>
-            </div>
-            <div class='form-group field_small inline_field'>
-                <input type='date' name='date' class='datepicker viewerCalendar' data-view='edit' data-status='false' 
-                value='{$data['date']}' />
-                <label>Date</label>
-            </div>
-            <div class='form-group field_small inline_field'>
-                <input type='time' name='start_time' value='{$data['start_time']}' />
-                <label>From</label>
-            </div>
-            <div class='form-group field_small inline_field'>
-                <input type='time' name='end_time' value='{$data['end_time']}' />
-                <label>To</label>
-            </div>
-            <div class='form-group field_small inline_field'>
-                <input type='text' name='room' value='{$data['room']}' />
-                <label>Room</label>
-            </div>
-            <div class='form-group field_small inline_field'>
-                <input type='number' name='slots' value='{$data['slot']}' />
-                <label>Slots</label>
-            </div>
-            <div>
-                <div class='form-group field_small inline_field'>
-                    <select name='to_repeat' class='repeated_session'>
-                        <option value=1>Yes</option>
-                        <option value=0 selected>No</option>
-                    </select>
-                    <label>Repeat</label>
-                </div>
-                <div class='form-group field_small inline_field settings_hidden' style='display: none;'>
-                    <input type='date' name='end_date' value='{$data['date']}' />
-                    <label>End date</label>
-                </div>
-                <div class='form-group field_small inline_field settings_hidden' style='display: none;'>
-                    <input type='number' name='frequency' value='{$data['frequency']}' />
-                    <label>Frequency (day)</label>
-                </div>
-                <div class='submit_btns'>
-                    <input type='hidden' name='start_date' value='{$data['date']}' />
-                    <input type='submit' value='Add' class='processform'/>
-                </div>
-            <div>
-        </form>
-        ";
-    }
 
     /**
      * Show session slot as empty
+     *
      * @return string
      */
-    public static function no_session()
+    public static function nothingPlannedThisDay()
     {
         return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
                     font-weight: 600; overflow: hidden;'>
@@ -1415,11 +1456,12 @@ class Session extends BaseModel
 
     /**
      * Show presentation slot as empty
+     *
      * @param array $data : session data
      * @param bool $show_button: display add button
      * @return string
      */
-    public static function emptySlot(array $data, $show_button = true)
+    public static function emptyPresentationSlot(array $data, $show_button = true)
     {
         $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
         $leanModalUrl = Router::buildUrl(
@@ -1438,16 +1480,17 @@ class Session extends BaseModel
 
         $content = "
                 <div>{$addButton}</div>";
-        return self::slotContainer(array('name'=>'Free slot', 'button'=>$content, 'content'=>null));
+        return self::slotContainerBody(array('name'=>'Free slot', 'button'=>$content, 'content'=>null));
     }
 
     /**
      * Show presentation slot as empty
+     *
      * @return string
      */
     public static function emptySlotEdit()
     {
-        return self::slotContainer(array('name'=>'Free slot', 'button'=>null, 'content'=>
+        return self::slotContainerBody(array('name'=>'Free slot', 'button'=>null, 'content'=>
             "<span style='font-size: 14px; font-weight: 500; color: #777;'>" . Presentation::speakerList() . "</span>
             "));
     }
@@ -1458,17 +1501,19 @@ class Session extends BaseModel
      * @param null $div_id
      * @return string
      */
-    public static function slotContainer(array $data, $div_id = null)
+    public static function slotContainerBody(array $data, $div_id = null)
     {
         return "
             <div class='pres_container ' id='{$div_id}' data-id='{$div_id}'>
                 <div class='pres_type'>
                     {$data['name']}
                 </div>
-                <div class='pres_info'>
-                    {$data['content']}
+                <div class='pres_content'>
+                    <div class='pres_info'>
+                        {$data['content']}
+                    </div>
+                    <div class='pres_btn'>{$data['button']}</div>
                 </div>
-                <div class='pres_btn'>{$data['button']}</div>
             </div>
             ";
     }
@@ -1478,7 +1523,7 @@ class Session extends BaseModel
      * @param array $data
      * @return string
      */
-    public static function mail_slotContainer(array $data)
+    public static function slotContainerEmail(array $data)
     {
         return "
             <div class='pres_container '>
@@ -1498,7 +1543,8 @@ class Session extends BaseModel
     }
 
     /**
-     * Template for slot container
+     * Template for editable slot container
+     *
      * @param array $data
      * @param null $div_id
      * @return string
@@ -1600,7 +1646,8 @@ class Session extends BaseModel
      * @param $presentations
      * @return string
      */
-    public static function session_details(array $data, $presentations) {
+    public static function sessionDetailsBody(array $data, $presentations)
+    {
         return "
             <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
                 <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
@@ -1619,18 +1666,19 @@ class Session extends BaseModel
 
     /**
      * Render session details in email body
+     * 
      * @param array $data
      * @param $presentations
      * @return string
      */
-    public static function mail_session_details(array $data, $presentations)
+    public static function sessionDetailsEmail(array $data, $presentations)
     {
         return "
         <div class='session_details_container'>
             <div class='session_details_header'>
                 <div style='margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; 
                     background-color: #555555; color: #FFF; padding: 5px; border-radius: 5px;'>
-                    {$data['renderTypes']}
+                    {$data['session_type']}
                 </div>
                 <div class='session_info' style='text-align: right; width: 100%; font-size: 12px;'>
                     <div id='pub_date'>
@@ -1660,4 +1708,85 @@ class Session extends BaseModel
         ";
     }
 
+    /**
+     * Content of invitation email
+     *
+     * @param string $fullname: user's full name
+     * @param string $dueDate: deadline for submitting presentation
+     * @param string $date: date of presentation
+     * @param string $session_type: session type
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function invitationEmail($fullname, $dueDate, $date, $session_type)
+    {
+        $contactURL = URL_TO_APP."index.php?page=contact";
+        $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$info['presid']}&user={$user->username}";
+        return array(
+            'body'=> "<div style='width: 100%; margin: auto;'>
+                    <p>Hello {$fullname},</p>
+                    <p>You have been automatically invited to present at a 
+                    <span style='font-weight: 500'>{$session_type}</span> 
+                    session on the <span style='font-weight: 500'>$date</span>.</p>
+                    <p>Please, submit your presentation on the Journal Club Manager before the 
+                    <span style='font-weight: 500'>{$dueDate}</span>.</p>
+                    <p>If you think you will not be able to present on the assigned date, please 
+                    <a href='{$contactURL}'>contact</a> the organizers as soon as possible.</p>
+                    <div>
+                        You can edit your presentation from this link: <a href='{$editUrl}'>{$editUrl}</a>
+                    </div>
+                </div>
+            ",
+            'subject'=> "Invitation to present on the $date"
+        );
+    }
+
+    /**
+     * Content of presentation cancelation email sent to speaker
+     *
+     * @param string $fullname: user's full name
+     * @param string $date: presentation date
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function cancelationUserEmail($fullname, $date)
+    {
+        $contactURL = URL_TO_APP . "index.php?page=contact";
+        return array(
+            'body'=>"<div style='width: 100%; margin: auto;'>
+                <p>Hello {$fullname},</p>
+                <p>Your presentation planned on {$date} has been manually canceled. 
+                You are no longer required to give a presentation on this day.</p>
+                <p>If you need more information, please <a href='{$contactURL}'>contact</a> the organizers.</p>
+                </div>
+                ",
+            'subject'=>"Your presentation ($date) has been canceled"
+        );
+    }
+
+    /**
+     * Content of presentation cancelation email sent to organizers
+     *
+     * @param string $fullname: organizer's full name
+     * @param string $speaker: speaker's full name
+     * @param string $date: date of presentation
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function cancelationOrganizerEmail($fullname, $speaker, $date)
+    {
+        $url = URL_TO_APP . 'index.php?page=organizer/sessions';
+        return array(
+            'body'=>"<div style='width: 100%; margin: auto;'>
+                <p>Hello {$info['fullname']},</p>
+                <p>This is to inform you that the presentation of 
+                <strong>{$user->fullname}</strong> planned on the <strong>{$date}</strong> has been canceled. 
+                You can either manually assign another speaker on this day in the 
+                <a href='{$url}'>Admin>Session</a> section or let the automatic 
+                assignment select a member for you.</p>
+                </div>
+            ",
+            'subject'=>"A presentation ($date) has been canceled"
+        );
+    }
 }
