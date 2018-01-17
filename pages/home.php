@@ -21,7 +21,7 @@
  */
 
 $last_news = new includes\Posts();
-$sessions = new includes\Session();
+$calendar = new includes\Calendar();
 $suggestions = new includes\Suggestion();
 
 $result = "
@@ -37,7 +37,7 @@ $result = "
     <div class='section_container'>
         <section>
             <h2>Next Sessions</h2>
-            {$sessions->getViewer(4)}
+            {$calendar->show(null, 4)}
         </section>
 
         <section>
