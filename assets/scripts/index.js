@@ -343,6 +343,9 @@ var selected = new Date().getTime();
 
 function removeDatePicker() {
     jQuery('#ui-datepicker-div').remove();
+    $(".hasDatepicker").removeClass("hasDatepicker");
+    $(".datepicker").datepicker("destroy");
+    $(".datepicker").datepicker();
 }
 
 /**
@@ -1463,16 +1466,10 @@ $(document).ready(function () {
         // Select session to show
         .on('change', '.selectSession', function (e) {
             e.preventDefault();
-            var date = $(this).val();
-            var view = ($(this).data('view') === undefined) ? 'viewer' : $(this).data('view');
-            var div = ($(this).data('destination') === undefined) ? $('#sessionlist') : $($(this).data('destination'));
-            var callback = function (result) {
-                div
-                    .html(result)
-                    .fadeIn(200);
-            };
-            processAjax(div, [], callback, 
-                "php/router.php?controller=Session&action=showSessionCalendar&date=" + date + '&view=' + view);
+            $(this)
+                .removeData('datepicker')
+                .data('date', $(this).val());
+            loadContent($(this));
         })
 
         // Modify speaker
