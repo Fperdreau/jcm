@@ -70,4 +70,38 @@ class Availability extends BaseModel
         $data = $this->db->sendQuery($sql)->fetch_assoc();
         return !empty($data);
     }
+
+    /**
+     * Update user's availability on the selected date
+     *
+     * @param string $date: selected date (Y-m-d)
+     * @return array
+     */
+    public function updateUserAvailability($date)
+    {
+        $username = $_SESSION['username'];
+        //$date = $data['date'];
+        $Presentation = new Presentation();
+
+        $result['status'] = $this->edit(array('date'=>$date, 'username'=>$username));
+        if ($result['status'] !== false) {
+            // Check whether user has a presentation planned on this day, if yes, then we delete it and notify the user that
+            // this presentation has been canceled
+            $data = $Presentation->get(array('date'=>$date, 'orator'=>$username));
+            if (!empty($data)) {
+                $speaker = new Users($username);
+                $Assignment = new Assignment();
+                $session = new Session($data['session_id']);
+                $Presentation = new Presentation($data['id']);
+                $info['type'] = $session->type;
+                $info['date'] = $date;
+                $info['presid'] = $data['id'];
+                $result['status'] = $Presentation->deleteSubmission($data['id']);
+                if ($result['status']) {
+                    $result['status'] = $Assignment->updateAssignment($speaker, $info, false, true);
+                }
+            }
+        }
+        return $result;
+    }
 }
