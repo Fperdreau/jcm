@@ -237,17 +237,25 @@ abstract class BaseSubmission extends BaseModel
      * @return mixed
      * @throws Exception
      */
-    public function getForm($view = 'body', $operation = 'edit', $id = null, $section = null)
+    public function getForm(array $data)
     {
+        $view = isset($data['view']) ? $data['view'] : "body";
+        $operation = isset($data['operation']) ? $data['operation'] : 'edit';
+        $id = isset($data['id']) ? $data['id'] : null;
+        $section = isset($data['section']) ? $data['section'] : null;
+        $session_id = isset($data['session_id']) ? $data['session_id'] : null;
+
         if ($view === "body") {
             return self::formatSection($this->editor(array(
                 'operation'=>$operation,
-                'id'=>$id
+                'id'=>$id,
+                'session_id'=>$session_id
             )));
         } else {
             $content = $this->editor(array(
                 'operation'=>$operation,
-                'id'=>$id
+                'id'=>$id,
+                'session_id'=>$session_id
             ));
             
             if (is_null($section)) {

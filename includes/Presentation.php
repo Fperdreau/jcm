@@ -65,8 +65,8 @@ class Presentation extends BaseSubmission
      */
     public function make(array $data)
     {
-        $is_full = Session::isBooked($data['session_id']);
-        if ($is_full === false) {
+        $Session = new Session();
+        if (!$Session->isFull($data['session_id'])) {
             if ($this->isExist(array('title'=>$data['title'])) === false) {
                 // Create an unique ID
                 //$post['id_pres'] = $this->generateID('id_pres');
@@ -93,7 +93,7 @@ class Presentation extends BaseSubmission
                 return "exist";
             }
         } else {
-            return $is_full;
+            return 'booked';
         }
     }
 
@@ -495,19 +495,12 @@ class Presentation extends BaseSubmission
         // Get presentation information
         $this->getInfo($id_Presentation);
 
-        // Get session id
-        if (!is_null($this->session_id)) {
-            $post['session_id'] = $this->session_id;
-        } else {
-            $post['session_id'] = (!empty($post['session_id'])
-            && $post['session_id'] !== 'false') ? $post['session_id'] : null;
-        }
-
-        // Get presentation date, and if not present, then automatically resultSet next planned session date.
-        if (is_null($post['session_id'])) {
-            $next = $Session->getNext(1);
-            $post['date'] = $next[0]['date'];
-            $post['session_id'] = $next[0]['id'];
+        // Get presentation date, and if not present, then automatically get next planned session date.
+        if (!isset($post['session_id']) || is_null($post['session_id'])) {
+            $next = $Session->getUpcoming(1);
+            $next = reset($next);
+            $post['date'] = $next['date'];
+            $post['session_id'] = $next['id'];
         } else {
             $data = $Session->get(array('id'=>$post['session_id']));
             $post['date'] = $data['date'];
