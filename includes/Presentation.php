@@ -50,7 +50,6 @@ class Presentation extends BaseSubmission
     public $orator;
     public $chair;
     public $notified;
-    public $id_pres;
     public $session_id;
 
     private static $default = array();
@@ -316,7 +315,7 @@ class Presentation extends BaseSubmission
             'showDetails',
             array(
             'view'=>'modal',
-            'id'=>$presentation->id_pres)
+            'id'=>$presentation->id)
         );
         return "
             <div class='pub_container' style='display: table-row; position: relative; 
@@ -327,7 +326,7 @@ class Presentation extends BaseSubmission
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id_pres}" . "' 
+                    <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id}" . "' 
                     class='leanModal' data-url='{$leanModalUrl}' data-section='presentation'>
                         $presentation->title
                     </a>
@@ -339,19 +338,32 @@ class Presentation extends BaseSubmission
 
     /**
      * Render list of available speakers
+     *
      * @param string $cur_speaker: username of currently assigned speaker
+     *
      * @return string
      */
-    public static function speakerList($cur_speaker = null)
+    public static function speakerList($cur_speaker = null, $selectable = false)
     {
+        if (is_null($cur_speaker)) {
+            $cur_speaker = $_SESSION['username'];
+        }
         $Users = new Users();
+
         // Render list of available speakers
         $speakerOpt = (is_null($cur_speaker)) ? "<option selected disabled>Select a speaker</option>" : null;
         foreach ($Users->getAll() as $key => $speaker) {
             $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
             $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
         }
-        return "<select class='modSpeaker select_opt' style='max-width: 150px;'>{$speakerOpt}</select>";
+
+        $select = $selectable ? null : 'readonly';
+        return "
+                <select name='orator' {$select}>
+                    {$speakerOpt}
+                </select>
+                <label>Speaker</label>
+                ";
     }
 
     /**
@@ -380,7 +392,7 @@ class Presentation extends BaseSubmission
                     " . self::speakerList($data['username']) ."</span>
                 </div>
                 ",
-            "name"=>$data['pres_type'],
+            "name"=>$data['type'],
             "button"=>$view_button
             );
     }
@@ -392,13 +404,13 @@ class Presentation extends BaseSubmission
      */
     private static function renderTitle(array $data)
     {
-        $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id_pres'];
+        $url = URL_TO_APP . "index.php?page=presentation&id=" . $data['id'];
         $leanModalUrl = Router::buildUrl(
             self::getClassName(),
             'showDetails',
             array(
             'view'=>'modal',
-            'id'=>$data['id_pres'])
+            'id'=>$data['id'])
         );
         return "<a href='{$url}' class='leanModal' data-url='{$leanModalUrl}' data-section='presentation' 
             data-title='Submission'>{$data['title']}</a>";
@@ -414,7 +426,7 @@ class Presentation extends BaseSubmission
         $show_but = self::renderTitle($data);
         $Bookmark = new Bookmark();
         return array(
-            "name"=>$data['pres_type'],
+            "name"=>$data['type'],
             "content"=>"
             <div style='display: block !important;'>{$show_but}</div>
             <div>
@@ -480,42 +492,66 @@ class Presentation extends BaseSubmission
     }
 
     /**
+     * Get default information
+     *
+     * @return array
+     */
+    private function getDefaults()
+    {
+        $properties = get_class_vars(\get_class($this));
+        $data = array();
+        foreach ($properties as $prop => $value) {
+            $data[$prop] = $value;
+        }
+        $data['media'] = array();
+        return $data;
+    }
+
+    /**
      * Render submission editor
      * @param array|null $post
      * @return array
      */
-    public function editor(array $post = null)
+    public function editor(array $data = null, $session_id = null)
     {
-        $post = (is_null($post)) ? $_POST : $post;
         $Session = new Session();
 
         // Get presentation id (if none, then this is a new presentation)
-        $id_Presentation = isset($post['id']) ? $post['id'] : false;
+        $id_Presentation = isset($data['id']) ? $data['id'] : false;
 
         // Get presentation information
-        $this->getInfo($id_Presentation);
+        $presentationData = $this->getInfo($id_Presentation);
+        if (!$presentationData) {
+            $presentationData = $this->getDefaults();
+        } else {
+            $data['session_id'] = $presentationData['session_id'];
+        }
 
         // Get presentation date, and if not present, then automatically get next planned session date.
-        if (!isset($post['session_id']) || is_null($post['session_id'])) {
+        if (!isset($data['session_id']) || is_null($data['session_id'])) {
             $next = $Session->getUpcoming(1);
             $next = reset($next);
-            $post['date'] = $next['date'];
-            $post['session_id'] = $next['id'];
+            $data['date'] = $next['date'];
+            $data['session_id'] = $next['id'];
         } else {
-            $data = $Session->get(array('id'=>$post['session_id']));
-            $post['date'] = $data['date'];
+            // Get session date
+            $session_data = $Session->get(array('id'=>$data['session_id']));
+            $data['date'] = $session_data['date'];
         }
 
         // Get operation type
-        $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
+        $operation = (!empty($data['operation']) && $data['operation'] !== 'false') ? $data['operation'] : null;
 
         // Get presentation type
-        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
+        $type = (!empty($data['type']) && $data['type'] !== 'false') ? $data['type'] : null;
 
-        // Get user information
-        $user = new Users($_SESSION['username']);
-
-        return Presentation::form($user, $this, $operation, $type, $post);
+        return Presentation::form(
+            new Users($_SESSION['username']),
+            (object)$presentationData,
+            $operation,
+            $type,
+            $data
+        );
     }
 
     /**
@@ -537,24 +573,25 @@ class Presentation extends BaseSubmission
     /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
      * @param Users $user
-     * @param Suggestion|Presentation $Presentation
+     * @param \StdClass $Presentation
      * @param string $submit
      * @param bool $type
      * @param array $data
+     *
      * @return array
-     * @internal param bool $date
      */
-    public static function form(Users $user, $Presentation = null, $submit = "edit", $type = null, array $data = null)
+    public static function form(Users $user, $Presentation = null, $submit = "edit", $type = null, array $data = null, $organizer = true)
     {
-        if (is_null($Presentation)) {
-            $Presentation = new self();
-            $date = !is_null($data) && isset($data['date']) ? $data['date'] : null;
-            $session_id = !is_null($data) && isset($data['session_id']) ? $data['session_id'] : null;
-        } elseif (array_key_exists('date', $data)) {
-            $date = !is_null($data) && isset($data['date']) ? $data['date'] : null;
-            $session_id = !is_null($data) && isset($data['session_id']) ? $data['session_id'] : null;
+
+        if (array_key_exists('date', $data)) {
+            $date = $data['date'];
         } else {
             $date = $Presentation->date;
+        }
+
+        if (array_key_exists('session_id', $data)) {
+            $session_id = $data['session_id'];
+        } else {
             $session_id = $Presentation->session_id;
         }
 
@@ -570,6 +607,9 @@ class Presentation extends BaseSubmission
         if (empty($type)) {
             $type = 'paper';
         }
+
+        // Speaker input
+        $speakerList = $organizer ? self::speakerList($Presentation->orator) : null;
 
         // Presentation ID
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
@@ -608,6 +648,10 @@ class Presentation extends BaseSubmission
                         
                         <div class='form-group'>
                             $dateinput
+                        </div>
+
+                        <div class='form-group'>
+                            {$speakerList}
                         </div>
                     </div>
                 
