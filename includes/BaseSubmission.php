@@ -460,6 +460,9 @@ abstract class BaseSubmission extends BaseModel
                 {$modify_button}
             </div>" : null;
 
+        // List of keywords
+        $keywords = !empty($data['keywords']) ? self::keywordsList($data['keywords']) : null;
+
         // Header
         $header = "
             <span style='color: #222; font-weight: 900;'>" . self::getClassName() . "</span>
@@ -485,6 +488,8 @@ abstract class BaseSubmission extends BaseModel
                 <span class='pub_label'>Abstract: </span>
                 {$data['summary']}
             </div>
+
+            {$keywords}
             
             {$file_div}
 
