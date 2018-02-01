@@ -152,7 +152,7 @@ return array(
         "start_time" => array("TIME", false),
         "end_time" => array("TIME", false),
         "event_id" => array("INT", false),
-        "recurrent" => array("INT(1)", 0),
+        "recurrent" => array("INT(1) NOT NULL", 0),
         "primary" => "id"
     ),
 
