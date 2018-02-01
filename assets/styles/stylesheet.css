@@ -510,7 +510,7 @@ div.inputFeedback {
     padding: 28px 6px 0 6px;
 }
 
-.form-group > input:valid, .form-group > select:valid, .form-group > textarea:valid, .form-group > div {
+.form-group > input:valid, .form-group > select:valid, .form-group > select:read-only, .form-group > textarea:valid, .form-group > div {
     background: none !important;
     padding: 24px 6px 0 6px;
 }
@@ -550,16 +550,17 @@ input:-webkit-autofill, .form-group > input:-webkit-autofill, .form-group > sele
     padding: 4px 6px 24px 6px;
 }
 
-.form-group>select, .form-group>select:focus, .form-group>select:valid {
+.form-group>select, .form-group>select:focus, .form-group>select:valid, 
+.form-group > select:read-only {
     padding: 27px 6px 0 6px !important;
 }
 
 /* Select input */
-.form-group > select:valid {
+.form-group > select:valid, .form-group > select:read-only {
     opacity: 1;
 }
 
-.form-group > select:valid + label {
+.form-group > select:valid + label, .form-group > select:read-only + label {
     background: white;
 }
 
@@ -1730,7 +1731,7 @@ h3 {
 
 .pres_type {
     display: block !important;
-    width: 50px;
+    width: auto;
     font-weight: 600;
     color: #222222;
     text-transform: capitalize;
