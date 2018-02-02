@@ -27,6 +27,7 @@
 namespace includes;
 
 use includes\BaseModel;
+use \DateTime;
 
 /**
  * Class Session
@@ -69,7 +70,6 @@ class Session extends BaseModel
     public $frequency;
     public $start_date;
     public $end_date;
-    public $to_repeat;
     public $event_id;
     public $recurrent;
     public $presids = array();
@@ -101,18 +101,23 @@ class Session extends BaseModel
      * Get default session settings
      * @return array: default settings
      */
-    private function getDefaults()
+    public function getDefaults($selectedDate = null)
     {
+        $date = is_null($selectedDate) ? $this->getJcDates($this->settings['jc_day'], 1)[0]
+         : date('Y-m-d', strtotime($selectedDate));
         self::$default = array(
             'id'=>null,
-            'date'=>$this->getJcDates($this->settings['jc_day'], 1)[0],
+            'date'=>$date,
+            'start_date'=>$date,
+            'end_date'=>$date,
             'frequency'=>null,
             'slots'=>$this->settings['max_nb_session'],
             'type'=>$this->settings['default_type'],
             'start_time'=>$this->settings['jc_time_from'],
             'end_time'=>$this->settings['jc_time_to'],
             'room'=>$this->settings['room'],
-            'to_repeat'=>0
+            'repeated'=>0,
+            'recurrent'=>0
         );
         return self::$default;
     }
@@ -127,7 +132,7 @@ class Session extends BaseModel
     {
         $post['date'] = (!empty($post['date'])) ? $post['date'] : $this->date;
         $post['start_date'] = $post['date'];
-        $post['end_date'] = (!empty($post['to_repeat']) && $post['to_repeat'] == 1) ? $post['end_date'] : $post['date'];
+        $post['end_date'] = (!empty($post['recurrent']) && $post['recurrent'] == 1) ? $post['end_date'] : $post['date'];
 
         if ($this->isAvailable($post)) {
             $content = $this->parseData($post, array('presids','speakers', 'max_nb_session', 'default'));
@@ -143,7 +148,7 @@ class Session extends BaseModel
                     $post['event_id'] = $id;
                 }
 
-                if ($initial && (!empty($post['to_repeat']) && $post['to_repeat'] == 1)) {
+                if ($initial && (!empty($post['recurrent']) && $post['recurrent'] == 1)) {
                     $this->repeat($post);
                 }
                 $result['status'] = true;
@@ -188,6 +193,9 @@ class Session extends BaseModel
     {
         $session_id = $data['id'];
         $operation = $data['operation'];
+        $date = $data['date'];
+
+        unset($data['date']);
         unset($data['operation']);
         unset($data['id']);
         $result = array('status'=>false, 'msg'=>null);
@@ -202,11 +210,146 @@ class Session extends BaseModel
             // Update all (past/future) occurences
             $result['status'] = $this->updateAllEvents($data, $session_id, 'all');
         } else {
-            throw new Exception("'{$operation}' is an unknown update operation");
+            Logger::getInstance(
+                APP_NAME,
+                get_class($this)
+            )->error("Session::updateSession(): '{$operation}' is not a valid operation");
+        }
+
+        if ((int)$data['recurrent'] == 1) {
+            $data = $this->get(array('id'=>$session_id));
+            $this->repeat($data, $this->getSettings('max_nb_session'));
         }
 
         $result['msg'] = $result['status'] ? "Session has been modified" : 'Something went wrong';
         return $result;
+    }
+
+    /**
+     * Update all or only upcoming occurences of an event
+     *
+     * @param array $post: Updated information
+     * @param string $id: id of current occurrence
+     * @param string $what: 'future': only upcoming occurences, 'all': past and future occurences
+     *
+     * @return bool
+     */
+    public function updateAllEvents(array $post, $id, $what)
+    {
+        // Get event id
+        $data = $this->get(array('id'=>$id));
+
+        if ($what === 'future') {
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'],
+                'date >='=>$data['date'])
+            );
+        } else {
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'])
+            );
+        }
+
+        if (!empty($all)) {
+            foreach ($all as $key => $item) {
+                if (!$this->update($post, array('id'=>$item['id']))) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete current and related sessions
+     *
+     * @param string $id: session id
+     * @param string $operation: 'present', 'future', 'all'
+     *
+     * @return array
+     */
+    public function deleteSession($id, $operation)
+    {
+        $result = array('status'=>false, 'msg'=>null);
+
+        if ($operation === 'present') {
+            // Only update the current event
+            $result['status'] = $this->delete(array('id'=>$id));
+        } elseif ($operation === 'future') {
+            // Update all future occurrences
+            $result['status'] = $this->deleteAllEvents($id, 'future');
+        } elseif ($operation === 'all') {
+            // Update all (past/future) occurrences
+            $result['status'] = $this->deleteAllEvents($id, 'all');
+        } else {
+            Logger::getInstance(
+                APP_NAME,
+                get_class($this)
+            )->error("Session::deleteSession(): '{$operation}' is not a valid operation");
+        }
+
+        $result['msg'] = $result['status'] ? "Session has been deleted" : 'Something went wrong';
+
+        return $result;
+    }
+
+    /**
+     * Delete all or only upcoming occurences of an event
+     *
+     * @param $id: id of current occurence
+     * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
+     * @return bool
+     */
+    public function deleteAllEvents($id, $what)
+    {
+        // Get event id
+        $data = $this->get(array('id'=>$id));
+        if ($what === 'future') {
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'],
+                'date >='=>$data['date'])
+            );
+        } else {
+            $all = $this->db->resultSet(
+                $this->tablename,
+                array('*'),
+                array('event_id'=>$data['event_id'])
+            );
+        }
+
+        if (!empty($all)) {
+            foreach ($all as $key => $item) {
+                if (!$this->delete(array('id'=>$item['id']))) {
+                    Logger::getInstance(APP_NAME, get_class($this))->error("Could not delete session {$item['id']}");
+                    return false;
+                } else {
+                    Logger::getInstance(APP_NAME, get_class($this))->info("Session {$item['id']} has been deleted");
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Test if event is recurrent
+     *
+     * @param $id
+     * @return bool
+     */
+    public function isRecurrent($id)
+    {
+        $data = $this->get(array('id'=>$id));
+        return (int)$data['recurrent'] == 1;
     }
 
     /**
@@ -245,100 +388,6 @@ class Session extends BaseModel
     }
 
     /**
-     * Update all or only upcoming occurences of an event
-     * @param array $post: Updated information
-     * @param $id: id of current occurrence
-     * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
-     * @return bool
-     */
-    public function updateAllEvents(array $post, $id, $what)
-    {
-        // Get event id
-        $data = $this->get(array('id'=>$id));
-
-        $today = date('Y-m-d');
-        if ($what === 'future') {
-            $all = $this->db->resultSet(
-                $this->tablename,
-                array('*'),
-                array('event_id'=>$data['event_id'],
-                'date >='=>$today)
-            );
-        } else {
-            $all = $this->db->resultSet(
-                $this->tablename,
-                array('*'),
-                array('event_id'=>$data['event_id'])
-            );
-        }
-
-        if (!empty($all)) {
-            foreach ($all as $key => $item) {
-                if (!$this->update($post, array('id'=>$item['id']))) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Delete all or only upcoming occurences of an event
-     *
-     * @param $id: id of current occurence
-     * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
-     * @return bool
-     */
-    public function deleteAllEvents($id, $what)
-    {
-        // Get event id
-        $data = $this->get(array('id'=>$id));
-        $today = date('Y-m-d');
-        if ($what === 'future') {
-            $all = $this->db->resultSet(
-                $this->tablename,
-                array('*'),
-                array('event_id'=>$data['event_id'],
-                'date >='=>$today)
-            );
-        } else {
-            $all = $this->db->resultSet(
-                $this->tablename,
-                array('*'),
-                array('event_id'=>$data['event_id'])
-            );
-        }
-
-        if (!empty($all)) {
-            foreach ($all as $key => $item) {
-                if (!$this->delete(array('id'=>$item['id']))) {
-                    Logger::getInstance(APP_NAME, get_class($this))->error("Could not delete session {$item['id']}");
-                    return false;
-                } else {
-                    Logger::getInstance(APP_NAME, get_class($this))->info("Session {$item['id']} has been deleted");
-                }
-            }
-        } else {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Test if event is recurrent
-     *
-     * @param $id
-     * @return bool
-     */
-    public function isRecurrent($id)
-    {
-        $data = $this->get(array('id'=>$id));
-        return count($this->all(array('event_id'=>$data['event_id']))) > 1;
-    }
-
-    /**
      * Recursively repeat All sessions
      *
      * @param $item
@@ -370,7 +419,10 @@ class Session extends BaseModel
             }
 
             // Update occurrence
-            $this->update(array('repeated'=>$item['repeated']), array('date'=>$item['date'], 'event_id'=>$item['event_id']));
+            $this->update(
+                array('repeated'=>$item['repeated']),
+                array('date'=>$item['date'], 'event_id'=>$item['event_id'])
+            );
 
             // Continue with next occurrences
             $data = $item;
@@ -453,7 +505,7 @@ class Session extends BaseModel
     {
         $content = null;
         for ($i=0; $i<$data[0]['slots']; $i++) {
-            if (isset($data[$i]) && !is_null($data[$i]['id_pres'])) {
+            if (isset($data[$i]) && !is_null($data[$i]['id'])) {
                 if (!$mail) {
                     $content .= self::slotContainerEmail(Presentation::inSessionSimple($data[$i]));
                 } else {
@@ -464,6 +516,24 @@ class Session extends BaseModel
             }
         }
         return $content;
+    }
+
+    /**
+     * Check if session is full
+     *
+     * @param string $id: session id
+     *
+     * @return boolean
+     */
+    public function isFull($id)
+    {
+        $data = $this->all(array('s.id'=>$id));
+        if ($data !== false) {
+            $data = reset($data);
+            return count($data['content']) >= (int)$data['slots'];
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -486,13 +556,11 @@ class Session extends BaseModel
 
         $presentations_list = '';
         $i = 0;
-        foreach ($this->presids as $presid) {
-            if ($prestoshow != false && $presid != $prestoshow) {
+        foreach ($data['content'] as $key => $item) {
+            if ($prestoshow != false && $item['id'] != $prestoshow) {
                 continue;
             }
-
-            $pres = new Presentation($presid);
-            $presentations_list .= $pres->mailDetails($show);
+            $presentations_list .= Presentation::mailDetails($item, $show);
             $i++;
         }
 
@@ -556,13 +624,42 @@ class Session extends BaseModel
 
     /* MODEL */
 
+    public function all(array $id = null, array $filter = null)
+    {
+        $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
+        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY {$filter['order']} " . $dir
+        : "ORDER BY start_time ASC";
+        $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT {$filter['limit']} " : null;
+
+        if (!is_null($id)) {
+            $search = $this->db->parse(array(), $id);
+        } else {
+            $search = null;
+        }
+        $sql = "SELECT *, id as session_id, type as session_type
+                    FROM {$this->tablename} s
+                {$search['cond']} {$param} {$limit}";
+        $req = $this->db->sendQuery($sql);
+
+        $data = array();
+        if ($req !== false) {
+            while ($row = $req->fetch_assoc()) {
+                if (!isset($data[$row['session_id']])) {
+                    $data[$row['session_id']] = $row;
+                    $data[$row['session_id']]['content'] = $this->getSlots($row['session_id']);
+                }
+            }
+        }
+        return $data;
+    }
+
     /**
      * Retrieve all elements from the selected table
      * @param array $id
      * @param array $filter
      * @return array|mixed
      */
-    public function all(array $id = null, array $filter = null)
+    public function allOld(array $id = null, array $filter = null)
     {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY {$filter['order']} " . $dir
@@ -599,7 +696,6 @@ class Session extends BaseModel
                         'room'=>$row['room'],
                         'slots'=>$row['slots'],
                         'repeated'=>$row['repeated'],
-                        'to_repeat'=>$row['to_repeat'],
                         'frequency'=>$row['frequency'],
                         'start_date'=>$row['start_date'],
                         'end_date'=>$row['end_date'],
@@ -609,8 +705,9 @@ class Session extends BaseModel
                         'recurrent'=>$row['recurrent'],
                         'content'=>array()
                     );
+                } else {
+                    $data[$row['session_id']]['content'][] = $row;
                 }
-                $data[$row['session_id']]['content'][] = $row;
             }
         }
         return $data;
@@ -625,7 +722,13 @@ class Session extends BaseModel
      */
     public function getSlots($id)
     {
-        $sql = "SELECT * FROM " . $this->db->getAppTables('Presentation') . " WHERE session_id={$id}";
+        $sql = "SELECT date, type, session_id, id, title, orator, username, u.fullname 
+                FROM " . $this->db->getAppTables('Presentation') . " p
+                LEFT JOIN 
+                    (SELECT username as user_name, fullname FROM " . $this->db->getAppTables('Users'). ") u
+                ON u.user_name=p.username
+                WHERE p.session_id={$id}
+        ";
         
         $req = $this->db->sendQuery($sql);
         $data = array();
@@ -644,7 +747,7 @@ class Session extends BaseModel
      */
     private function getPresids(array $data)
     {
-        $sql = "SELECT p.id_pres,u.fullname 
+        $sql = "SELECT p.id,u.fullname 
             FROM " . Db::getInstance()->getAppTables('Presentation') . " p
                 INNER JOIN " . Db::getInstance()->getAppTables('Users'). " u
                 ON p.username=u.username                
@@ -653,7 +756,7 @@ class Session extends BaseModel
         $data['presids'] = array();
         $data['speakers'] = array();
         while ($row = $req->fetch_assoc()) {
-            $data['presids'][] = $row['id_pres'];
+            $data['presids'][] = $row['id'];
             $data['speakers'][] = $row['fullname'];
         }
         $data['nbpres'] = count($data['presids']);
@@ -667,7 +770,7 @@ class Session extends BaseModel
     public function getRepeated()
     {
         $sql = "SELECT * FROM {$this->tablename}
-                  WHERE to_repeat=1 and repeated=0 and end_date>date";
+                  WHERE recurrent=1 and repeated=0 and end_date>date";
         $req = $this->db->sendQuery($sql);
         $data = array();
         while ($row = $req->fetch_assoc()) {
@@ -676,26 +779,37 @@ class Session extends BaseModel
         return $data;
     }
 
-    /**
+/**
      * Get upcoming sessions information
-     * @param null|int $limit
+     *
+     * @param null|int $limit: number of sessions to retrieve (all by default)
+     * @param null|string $date: reference date (today by default)
+     *
      * @return array|bool
      */
-    public function getUpcoming($limit = null)
+    public function getUpcoming($limit = null, $date = null)
     {
-        $today = date('Y-m-d');
-        $data = $this->all(array('date >'=>$today), array('order'=>'date', 'dir'=>'ASC', 'limit'=>$limit));
+        if (is_null($date)) {
+            $date = date('Y-m-d');
+        }
+        $data = $this->all(array('date >'=>$date), array('order'=>'date', 'dir'=>'ASC', 'limit'=>$limit));
         return empty($data) ? false : $data;
     }
 
     /**
      *  Get upcoming dates
-     * @param null|int $limit
+     *
+     * @param null|int $limit: number of dates to retrieve (all by default)
+     * @param null|string $date: reference date (today by default)
+     *
      * @return array|bool
      */
-    public function getNextDates($limit = null)
+    public function getNextDates($limit = null, $date = null)
     {
-        $sql = "SELECT date FROM {$this->tablename} WHERE date>=CURDATE() ORDER BY date ASC";
+        if (is_null($date)) {
+            $date = date('Y-m-d');
+        }
+        $sql = "SELECT DISTINCT date FROM {$this->tablename} WHERE date>={$date} ORDER BY date ASC";
         $sql .= !is_null($limit) ? " LIMIT {$limit}": null;
         $req = $this->db->sendQuery($sql);
 
@@ -762,11 +876,11 @@ class Session extends BaseModel
         $content = null;
         $nSlots = max(count($data), $nSlots);
         for ($i=0; $i<$nSlots; $i++) {
-            if (isset($data[$i]) && !is_null($data[$i]['id_pres'])) {
+            if (isset($data[$i]) && !is_null($data[$i]['id'])) {
                 if (!$edit) {
-                    $content .= self::slotContainerBody(Presentation::inSessionSimple($data[$i]), $data[$i]['id_pres']);
+                    $content .= self::slotContainerBody(Presentation::inSessionSimple($data[$i]), $data[$i]['id']);
                 } else {
-                    $content .= self::slotEditContainer(Presentation::inSessionEdit($data[$i]), $data[$i]['id_pres']);
+                    $content .= self::slotEditContainer(Presentation::inSessionEdit($data[$i]), $data[$i]['id']);
                 }
             } else {
                 if ($edit) {

@@ -243,8 +243,8 @@ function dialogBox(el, txt, title, callback) {
     var container = $('.modalContainer');
 
     // Remove confirmation section if it already exist
-    if (container.find('.modal_section#confirmationBox').length > 0) {
-        container.find('.modal_section#confirmationBox').remove();
+    if (container.find('.modal_section#confirmation_box').length > 0) {
+        container.find('.modal_section#confirmation_box').remove();
     }
 
     // Render section
@@ -266,9 +266,9 @@ function dialogBox(el, txt, title, callback) {
 
             var modal = el.modalTrigger('getWindow');
 
-            modal.modalWindow('show_section', 'confirmationBox');
+            modal.modalWindow('show_section', 'confirmation_box');
 
-            var section = $('.modal_section#confirmationBox');
+            var section = $('.modal_section#confirmation_box');
 
             // User has confirmed
             section.find(".callback_trigger").click(function() {
@@ -357,7 +357,7 @@ var initCalendars = function () {
     removeDatePicker();
 
     jQuery.ajax({
-        url: 'php/router.php?controller=Calendar&action=getCalendarParams',
+        url: 'php/router.php?controller=Calendar&action=getData',
         type: 'POST',
         async: true,
         success: function (data) {
@@ -1552,26 +1552,25 @@ $(document).ready(function () {
             var session_id = form.find('input[name="id"]').val();
             var input = $(this);
 
-            var process = function(operation) {
-                // Add/Update operation input
-                if (form.find('input[name="operation"]').length === 0) {
-                    form.append("<input type='hidden' name='operation' value='" + operation + "' />");
-                } else {
-                    form.find('input[name="operation"]').attr('value', operation);
-                }
-
-                // Get form data
-                var data = form.serializeArray();
-                data.push({name: 'delSession', value: true});
-
-                // Process data
-                processAjax(form, data, close_modal, 'php/form.php');
+            /**
+             * Callback function
+             * @param {string} operation 
+             * @param {string} session_id 
+             */
+            var process = function(operation, session_id) {
+                processAjax(
+                    form,
+                    form.serializeArray(),
+                    function() {
+                        input.modalTrigger('close');
+                    },
+                    'php/router.php?controller=Session&action=deleteSession&id=' + session_id + '&operation=' + operation
+                );
             };
 
             jQuery.ajax({
-                url: 'php/form.php',
+                url: 'php/router.php?controller=Session&action=isRecurrent&id=' + session_id,
                 type: 'post',
-                data: {'is_recurrent': session_id},
                 async: true,
                 success: function(data) {
 
@@ -1582,11 +1581,11 @@ $(document).ready(function () {
                             "<input type='submit' value='Delete all future occurrences' class='callback_trigger' data-operation='future'/>" +
                             "<input type='submit' value='Delete all occurrences' class='callback_trigger' data-operation='all'/>";
                         dialogBox(input, msg, 'Delete event', function(el) {
-                            process(el.data('operation'));
+                            process(el.data('operation'), session_id);
                         });
                     } else {
                         confirmationBox(input, 'Are you sure you want to delete this session?', 'Delete', function () {
-                            process('present');
+                            process('present', session_id);
                         });
                     }
                 }

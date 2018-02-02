@@ -2,12 +2,13 @@
 
 namespace includes;
 
+/**
+ * Calendar UI
+ *
+ * Shows planned sessions.
+ */
 class Calendar
 {
-
-    public function __construct()
-    {
-    }
 
     /**
      * Session instance
@@ -17,26 +18,35 @@ class Calendar
     private static $instance;
 
     /**
+     * Class constructor
+     *
+     */
+    public function __construct()
+    {
+    }
+
+    /**
      * Get Session instance
      *
      * @return Session
      */
-    private function factory()
+    private static function factory()
     {
-        if (is_null($this::$instance)) {
-            $this::$instance = new Session();
+        if (is_null(self::$instance)) {
+            self::$instance = new Session();
         }
-        return $this::$instance;
+        return self::$instance;
     }
 
     /**
      * Get calendar data
      *
      * @param bool $force_select
+     *
      * @return array
      * @throws Exception
      */
-    public function getCalendarParams($force_select = true)
+    public static function getData($force_select = true)
     {
         $formatdate = array();
         $nb_pres = array();
@@ -44,13 +54,12 @@ class Calendar
         $slots = array();
         $session_ids = array();
 
-        foreach ($this->factory()->all() as $session_id => $session_data) {
+        foreach (self::factory()->all() as $session_id => $session_data) {
             // Count how many presentations there are for this day
-            $nb = count($session_data['content']);
             $type[] = $session_data['type'];
             $slots[] = $session_data['slots'];
             $formatdate[] = date('d-m-Y', strtotime($session_data['date']));
-            $nb_pres[] = $nb;
+            $nb_pres[] = count($session_data['content']);
             $session_ids[] = $session_id;
         }
 
@@ -87,8 +96,8 @@ class Calendar
         return array(
             "Assignments"=>$assignments,
             "Availability"=>$availabilities,
-            "max_nb_session"=>$this->factory()->getSettings('max_nb_session'),
-            "jc_day"=>$this->factory()->getSettings('jc_day'),
+            "max_nb_session"=>self::factory()->getSettings('max_nb_session'),
+            "jc_day"=>self::factory()->getSettings('jc_day'),
             "today"=>date('d-m-Y'),
             "booked"=>$formatdate,
             "nb"=>$nb_pres,
@@ -101,38 +110,41 @@ class Calendar
 
     /**
      * Get session viewer
+     *
      * @param string|null $date: day to show
      * @param int $n: number of days to display
+     *
      * @return string
      */
-    public function show($date = null, $n = 4)
+    public static function show($date = null, $n = 4)
     {
-        
-        return self::layout($this->getCalendarContent($date, $n), $date);
+        return self::layout(self::getCalendarContent($date, $n), $date);
     }
 
     /**
      * Get list of future presentations (home page/mail)
-     * @param int $nsession
+     *
+     * @param int $nsession: number of sessions to get
+     *
      * @return string
      */
-    public function getCalendarContent($date = null, $nSession = 4)
+    public static function getCalendarContent($date = null, $nSession = 4)
     {
         // Get next planned date
         $today = date('Y-m-d', time());
         if (is_null($date)) {
-            $dates = $this->factory()->getNextDates($nSession);
+            $dates = self::factory()->getNextDates($nSession);
         } else {
             $dates = array($date);
         }
 
         if (!empty($dates)) {
             // Repeat sessions
-            $this->factory()->repeatAll(end($dates));
+            self::factory()->repeatAll(end($dates));
     
             $content = "";
             foreach ($dates as $day) {
-                $content .= $this->getDayContent($this->factory()->all(array('s.date'=>$day)), $day, false);
+                $content .= self::getDayContent(self::factory()->all(array('s.date'=>$day)), $day, false);
             }
             return $content;
         } else {
@@ -149,7 +161,7 @@ class Calendar
      *
      * @return string
      */
-    public function getDayContent(array $data, $day, $edit = false)
+    public static function getDayContent(array $data, $day, $edit = false)
     {
         $date = date('d M Y', strtotime($day));
         $dayContent = null;
@@ -160,25 +172,27 @@ class Calendar
         } else {
             $dayContent .= self::nothingPlannedThisDay();
         }
-        return Session::dayContainer(array('date'=>$date, 'content'=>$dayContent));
+        return self::dayContainer(array('date'=>$date, 'content'=>$dayContent));
     }
 
     /**
      * Get and render session content
+     *
      * @param array $data: session data
      * @param string $date: selected date
      * @param bool $edit: Get editor or viewer
+     *
      * @return string
      */
-    private function getSessionContent(array $data, $date)
+    private static function getSessionContent(array $data, $date)
     {
         $content = null;
-        $nSlots = max(count($data['content']), $data['slots']);
+        $nSlots = max(count($data['content']), (int)$data['slots']);
         for ($i=0; $i<$nSlots; $i++) {
-            if (isset($data['content'][$i]) && !is_null($data['content'][$i]['id_pres'])) {
+            if (isset($data['content'][$i])) {
                 $content .= self::slotContainer(
                     Presentation::inSessionSimple($data['content'][$i]),
-                    $data['content'][$i]['id_pres']
+                    $data['content'][$i]['id']
                 );
             } else {
                 $content .= self::emptySlotContainer($data, SessionInstance::isLogged());
@@ -189,7 +203,9 @@ class Calendar
 
     /**
      * Render session viewer
+     *
      * @param string $sessions: list of sessions
+     *
      * @return string
      */
     public static function layout($sessions, $selectedDate = null)
@@ -202,6 +218,13 @@ class Calendar
         ";
     }
 
+    /**
+     * Render date selection input
+     *
+     * @param string $selectedDate: selected date (Y-m-d)
+     *
+     * @return string
+     */
     private static function dateInput($selectedDate = null)
     {
         $url = Router::buildUrl('Calendar', 'getCalendarContent');
@@ -216,11 +239,11 @@ class Calendar
     /**
      * Render day container
      *
-     * @param array $data: day's data
+     * @param array $data
      *
      * @return string
      */
-    private static function day(array $data)
+    public static function dayContainer(array $data)
     {
         $date = date('d M Y', strtotime($data['date']));
         return "
@@ -237,7 +260,9 @@ class Calendar
 
     /**
      * Render session slot
+     *
      * @param array $data
+     *
      * @return string
      */
     public static function sessionContainer(array $data, $content)
@@ -249,7 +274,8 @@ class Calendar
                     <div class='session_info'>
                         <div>
                             <div><img src='".URL_TO_IMG . 'clock_bk.png'."'/></div>
-                            <div>" . date('H:i', strtotime($data['start_time'])) . '-' . date('H:i', strtotime($data['end_time'])) . "</div>
+                            <div>" . date('H:i', strtotime($data['start_time']))
+                             . '-' . date('H:i', strtotime($data['end_time'])) . "</div>
                         </div>
                         <div>
                             <div><img src='".URL_TO_IMG . 'location_bk.png'."'/></div>
@@ -267,8 +293,10 @@ class Calendar
 
     /**
      * Template for slot container
+     *
      * @param array $data
-     * @param null $div_id
+     * @param null|string $div_id: container id
+     *
      * @return string
      */
     public static function slotContainer(array $data, $div_id = null)
@@ -293,6 +321,7 @@ class Calendar
      *
      * @param array $data : session data
      * @param bool $show_button: display add button
+     *
      * @return string
      */
     public static function emptySlotContainer(array $data, $show_button = true)
@@ -317,32 +346,6 @@ class Calendar
         return self::slotContainer(array('name'=>'Free slot', 'button'=>$content, 'content'=>null));
     }
 
-
-    /**
-     * Render event slot
-     *
-     * @param array $data: event's data
-     *
-     * @return string
-     */
-    private static function slot(array $data)
-    {
-        return "
-            <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
-                <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
-                <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>{$data['date']}</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'>
-                    <b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
-            </div>
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
-            font-weight: 500; font-size: 1.2em;'>
-            Presentations
-            </div>
-            {$data['presentations']}
-            ";
-    }
-
     /**
      * Message displayed when there is no upcoming session planned
      *
@@ -364,7 +367,6 @@ class Calendar
     {
         return "<div style='display: block; margin: 0 auto 10px 0; padding-left: 10px; font-size: 14px; 
                     font-weight: 600; overflow: hidden;'>
-                    No Journal Club this day</div>";
+                    Nothing planned this day</div>";
     }
-
 }

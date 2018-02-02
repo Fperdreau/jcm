@@ -69,7 +69,7 @@ $settingsForm = Template::section(
 // Session manager
 $sessionManager = Template::section(
     array(
-        'body'=>$Session->getSessionManager(),
+        'body'=>\includes\SessionManager::show(),
         'title'=>'Session Manager'
     ),
     'session_manager'

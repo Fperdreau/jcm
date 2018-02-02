@@ -266,34 +266,6 @@ if (!empty($_POST['modSession'])) {
     exit;
 }
 
-// Delete a session
-if (!empty($_POST['delSession'])) {
-    $session_id = htmlspecialchars($_POST['id']);
-    $session = new Session();
-
-    $operation = htmlspecialchars($_POST['operation']);
-
-    $result = array('status'=>false, 'msg'=>null);
-
-    if ($operation === 'present') {
-        // Only update the current event
-        $result['status'] = $session->delete(array('id'=>$session_id));
-    } elseif ($operation === 'future') {
-        // Update all future occurrences
-        $result['status'] = $session->deleteAllEvents($session_id, 'future');
-    } elseif ($operation === 'all') {
-        // Update all (past/future) occurrences
-        $result['status'] = $session->deleteAllEvents($session_id, 'all');
-    } else {
-        throw new Exception("'{$operation}' is an unknown update operation");
-    }
-
-    $result['msg'] = $result['status'] ? "Session has been deleted" : 'Something went wrong';
-
-    echo json_encode($result);
-    exit;
-}
-
 // Modify session type or cancel session
 if (!empty($_POST['mod_session_type'])) {
     $sessionid = htmlspecialchars($_POST['session']);
