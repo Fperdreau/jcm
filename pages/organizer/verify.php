@@ -23,10 +23,10 @@
 use includes\Template;
 use includes\Users;
 
-if (!empty($_POST['hash']) && !empty($_POST['email']) && !empty($_POST['result'])) {
-    $hash = htmlspecialchars($_POST['hash']);
-    $email = htmlspecialchars($_POST['email']);
-    $result = htmlspecialchars($_POST['result']);
+if (!empty($pageParameters['hash']) && !empty($pageParameters['email']) && !empty($pageParameters['result'])) {
+    $hash = htmlspecialchars($pageParameters['hash']);
+    $email = htmlspecialchars($pageParameters['email']);
+    $result = htmlspecialchars($pageParameters['result']);
     $user = new Users();
     $valid = $user->validate_account($hash, $email, $result);
     $msg = ($valid['status']) ? "<div class='sys_msg success'>".$valid['msg']."</div>":"<div class='sys_msg warning'>".$valid['msg']."</div>";
