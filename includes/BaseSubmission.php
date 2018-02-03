@@ -134,7 +134,7 @@ abstract class BaseSubmission extends BaseModel
 
         $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'), true);
 
-        if ($created === false || $result['status'] === false) {
+        if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
             $result['msg'] = "Sorry, a submission with a similar title already exists in our database.";
