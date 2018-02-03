@@ -74,18 +74,18 @@ class Suggestion extends BaseSubmission
 
     /**
      * Render submission editor
-     * @param array|null $post
+     * @param array|null $data
      * @param string $view: requested view (body or modal)
      * @param string $destination: id of destination modal window
      * @return array
      * @throws Exception
      */
-    public function editor(array $post = null, $view = 'body', $destination = null)
+    public function editor(array $data = null, $view = 'body', $destination = null)
     {
-        $operation = (!empty($post['operation']) && $post['operation'] !== 'false') ? $post['operation'] : null;
-        $type = (!empty($post['type']) && $post['type'] !== 'false') ? $post['type'] : null;
-        $id = isset($post['id']) ? $post['id'] : false;
-        $destination = (!empty($post['destination'])) ? $post['destination'] : '#' . $destination;
+        $operation = (!empty($data['operation']) && $data['operation'] !== 'false') ? $data['operation'] : null;
+        $type = (!empty($data['type']) && $data['type'] !== 'false') ? $data['type'] : null;
+        $id = isset($data['id']) ? $data['id'] : false;
+        $destination = (!empty($data['destination'])) ? $data['destination'] : '#' . $destination;
 
         if ($operation === 'selection_list') {
             $result['content'] = $this->getSelectionMenu($destination, $view);
@@ -94,17 +94,17 @@ class Suggestion extends BaseSubmission
             return $result;
         } elseif ($operation === 'select') {
             $Suggestion = new Suggestion();
-            $Suggestion->getInfo($id);
+            $data = $Suggestion->getInfo($id);
             $Session = new Session();
-            $next = $Session->getNext(1);
+            $next = $Session->getUpcoming(1);
+            $next = reset($next);
             return Presentation::form(
                 new Users($_SESSION['username']),
                 $Suggestion,
-                'edit',
-                $operation,
+                'select',
                 array(
-                    'date'=>$next[0]['date'],
-                    'session_id'=>$next[0]['id'],
+                    'date'=>$next['date'],
+                    'session_id'=>$next['id'],
                     'controller'=>'Suggestion')
             );
         } elseif ($operation === 'edit') {

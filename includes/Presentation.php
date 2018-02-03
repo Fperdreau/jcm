@@ -540,7 +540,7 @@ class Presentation extends BaseSubmission
         }
 
         // Get operation type
-        $operation = (!empty($data['operation']) && $data['operation'] !== 'false') ? $data['operation'] : null;
+        $operation = (!empty($data['operation']) && $data['operation'] !== 'false') ? $data['operation'] : 'edit';
 
         // Get presentation type
         $type = (!empty($data['type']) && $data['type'] !== 'false') ? $data['type'] : null;
@@ -549,7 +549,6 @@ class Presentation extends BaseSubmission
             new Users($_SESSION['username']),
             (object)$presentationData,
             $operation,
-            $type,
             $data
         );
     }
@@ -574,13 +573,13 @@ class Presentation extends BaseSubmission
      * Generate submission form and automatically fill it up with data provided by Presentation object.
      * @param Users $user
      * @param \StdClass $Presentation
-     * @param string $submit
+     * @param string $operation
      * @param bool $type
      * @param array $data
      *
      * @return array
      */
-    public static function form(Users $user, $Presentation = null, $submit = "edit", $type = null, array $data = null, $organizer = true)
+    public static function form(Users $user, $Presentation = null, $operation = "edit", array $data = null, $organizer = true)
     {
 
         if (array_key_exists('date', $data)) {
@@ -598,18 +597,9 @@ class Presentation extends BaseSubmission
         // Get class of instance
         $controller = !empty($data['controller']) ? $data['controller'] : self::getClassName();
 
-        // Submission date
-        $dateinput = ($submit !== "suggest") ? "<input type='date' class='datepicker submissionCalendar' name='date' 
-                    value='{$date}' data-view='view'><label>Date</label>" : null;
-
-        // Submission type
-        $type = (is_null($type)) ? $type : $Presentation->type;
-        if (empty($type)) {
-            $type = 'paper';
-        }
-
         // Speaker input
-        $speakerList = $organizer ? self::speakerList($Presentation->orator) : null;
+        $orator = \property_exists($Presentation, 'orator') ? $Presentation->orator : $_SESSION['username'];
+        $speakerList = $organizer ? self::speakerList($orator) : null;
 
         // Presentation ID
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
@@ -620,8 +610,10 @@ class Presentation extends BaseSubmission
         // Download links
         $links = !is_null($Presentation->media) ? $Presentation->media : array();
 
-        // Text of the submit button
-        $form = ($submit !== "wishpick") ? "
+        $result['title'] = "Add/Edit presentation";
+
+        $result['content'] = "
+            <div class='submission'>
             <div class='feedback'></div>
             <div class='form_container'>
                 <div class='form_aligned_block matched_bg'>
@@ -631,7 +623,7 @@ class Presentation extends BaseSubmission
                     " . Media::uploader('Presentation', $links, 'presentation_form') . "
                 </div>
                 
-                <form method='post' action='php/router.php?controller=Presentation&action={$submit}' 
+                <form method='post' action='php/router.php?controller=Presentation&action={$operation}' 
                 enctype='multipart/form-data' id='presentation_form'>
                     
                     <div class='form_aligned_block matched_bg'>
@@ -647,7 +639,9 @@ class Presentation extends BaseSubmission
                         </div>
                         
                         <div class='form-group'>
-                            $dateinput
+                            <input type='date' class='datepicker submissionCalendar' name='date' value='{$date}' 
+                            data-view='view'/>
+                            <label>Date</label>
                         </div>
 
                         <div class='form-group'>
@@ -657,7 +651,7 @@ class Presentation extends BaseSubmission
                 
                     <div class='form_lower_container'>
                         <div class='special_inputs_container'>
-                        " . SubmissionForms::get($type, $Presentation) . "
+                        " . SubmissionForms::get($Presentation->type, $Presentation) . "
                         </div>
 
                         <div class='form-group'>
@@ -668,12 +662,12 @@ class Presentation extends BaseSubmission
                         <div class='form-group'>
                             <label>Abstract</label>
                             <textarea name='summary' class='wygiwym' id='summary' 
-                            placeholder='Abstract (5000 characters maximum)' style='width: 90%;' required>
-                            $Presentation->summary</textarea>
+                            placeholder='Abstract (5000 characters maximum)' required>
+                            {$Presentation->summary}</textarea>
                         </div>
                     </div>
                     <div class='submit_btns'>
-                        <input type='submit' name='$submit' class='submit_pres'>
+                        <input type='submit' name='{$operation}' class='submit_pres'>
                         <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
                         <input type='hidden' name='session_id' value='{$session_id}'/>
                         <input type='hidden' name='username' value='$user->username'/>
@@ -681,16 +675,6 @@ class Presentation extends BaseSubmission
                     </div>
                 </form>
             </div>
-        ":"";
-
-        if ($submit == "edit") {
-            $result['title'] = "Add/Edit presentation";
-        } elseif ($submit == "select") {
-            $result['title'] = "Select a suggestion";
-        }
-        $result['content'] = "
-            <div class='submission'>
-                $form
             </div>
             ";
         $result['description'] = self::description();
