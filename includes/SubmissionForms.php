@@ -124,16 +124,20 @@ class SubmissionForms
      */
     private static function minute($Presentation)
     {
-        return "
-        <div class='form_description'>
-            Provide presentation information
-        </div>
-
-        <div class='form-group'>
-            <input type='text' id='title' name='title' value='Minutes for session held on 
-            {$Presentation->date}' disabled/>
-            <label>Title</label>
-        </div>
-        ";
+        if (\property_exists($Presentation, 'date')) {
+            return "
+            <div class='form_description'>
+                Provide presentation information
+            </div>
+    
+            <div class='form-group'>
+                <input type='text' id='title' name='title' value='Minutes for session held on 
+                {$Presentation->date}' disabled/>
+                <label>Title</label>
+            </div>
+            ";
+        } else {
+            return self::notFound('minute');
+        }
     }
 }
