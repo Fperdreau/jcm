@@ -340,6 +340,7 @@ class Presentation extends BaseSubmission
      * Render list of available speakers
      *
      * @param string $cur_speaker: username of currently assigned speaker
+     * @param bool $selectable: is input selectable
      *
      * @return string
      */
@@ -357,7 +358,7 @@ class Presentation extends BaseSubmission
             $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
         }
 
-        $select = $selectable ? null : 'readonly';
+        $select = $selectable ? null : 'disabled';
         return "
                 <select name='orator' {$select}>
                     {$speakerOpt}
@@ -545,11 +546,13 @@ class Presentation extends BaseSubmission
         // Get presentation type
         $type = (!empty($data['type']) && $data['type'] !== 'false') ? $data['type'] : null;
 
+        $Account = new Account();
         return Presentation::form(
             new Users($_SESSION['username']),
             (object)$presentationData,
             $operation,
-            $data
+            $data,
+            $Account->isAuthorized($_SESSION['username'], 'organizer')
         );
     }
 
@@ -582,24 +585,18 @@ class Presentation extends BaseSubmission
     public static function form(Users $user, $Presentation = null, $operation = "edit", array $data = null, $organizer = true)
     {
 
-        if (array_key_exists('date', $data)) {
-            $date = $data['date'];
-        } else {
-            $date = $Presentation->date;
-        }
+        // Presentation date
+        $date = array_key_exists('date', $data) ? $data['date'] : $Presentation->date;
 
-        if (array_key_exists('session_id', $data)) {
-            $session_id = $data['session_id'];
-        } else {
-            $session_id = $Presentation->session_id;
-        }
+        // Session id assigned to current presentation
+        $session_id = array_key_exists('session_id', $data) ? $data['session_id'] : $Presentation->session_id;
 
         // Get class of instance
         $controller = !empty($data['controller']) ? $data['controller'] : self::getClassName();
 
         // Speaker input
         $orator = \property_exists($Presentation, 'orator') ? $Presentation->orator : $_SESSION['username'];
-        $speakerList = $organizer ? self::speakerList($orator) : null;
+        $speakerList = self::speakerList($orator, $organizer);
 
         // Presentation ID
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
