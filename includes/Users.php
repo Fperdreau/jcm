@@ -87,20 +87,11 @@ class Users extends BaseModel {
     public $hash = "";
 
     /**
-     * Number of unsuccessful login attempts
-     * @var int
-     *
-     */
-    public $attempt = 0;
-
-    /** @var  string */
-    protected $last_login;
-
-    /**
      * Users constructor.
      * @param null $username
      */
-    function __construct($username=null) {
+    public function __construct($username = null)
+    {
         parent::__construct();
         $this->username = $username;
         if (!is_null($username)) {
@@ -116,12 +107,8 @@ class Users extends BaseModel {
      * @param array $post
      * @return bool|string
      */
-    public function make(array $post = null)
+    public function make(array $post)
     {
-        if (is_null($post)) {
-            $post = $_POST;
-        }
-
         $post = self::sanitize($post); // Escape $_POST content
 
         $post['date'] = date("Y-m-d H:i:s"); // Date of creation (today)
@@ -133,7 +120,7 @@ class Users extends BaseModel {
             $post['fullname'] = $post['firstname']." ".$post['lastname'];
         }
 
-        $post['hash'] = $this->make_hash(); // Create an unique hash for this user
+        $post['hash'] = $this->createHash(); // Create an unique hash for this user
         $post['password']= Auth::cryptPwd($post['password']); // Encrypt password
         $post['active'] = ($post['status'] == "admin") ? 1 : 0; // Automatically activate the account if the user has an
         // admin level
@@ -164,9 +151,10 @@ class Users extends BaseModel {
      * @throws Exception
      * @return void
      */
-    private function sendAccountCreationEmail($status, array $post=null) {
+    private function sendAccountCreationEmail($status, array $post = null)
+    {
         try {
-            if ($this->status !=  "admin") {
+            if ($status !=  "admin") {
                 // Send verification email to admins/organizer
                 if ($this->send_verification_mail($this->hash, $this->email, $this->fullname)) {
                     $result['status'] = true;
@@ -204,7 +192,8 @@ class Users extends BaseModel {
      * @param $prov_username
      * @return bool
      */
-    public function getUser($prov_username) {
+    public function getUser($prov_username)
+    {
         $data = $this->get(array('username'=>$prov_username));
         if (!empty($data)) {
             $this->map($data);
@@ -224,12 +213,9 @@ class Users extends BaseModel {
      * @param bool $admin
      * @return array
      */
-    public function getAdmin($admin=false) {
-        if ($admin) {
-            $search = array('admin', 'organizer');
-        } else {
-            $search = 'organizer';
-        }
+    public function getAdmin($admin = false)
+    {
+        $search = $admin ? array('admin', 'organizer') : 'organizer';
         return $this->all(array('status'=>$search));
     }
 
@@ -238,9 +224,12 @@ class Users extends BaseModel {
      * @param bool $assign
      * @return array
      */
-    public function getAll($assign = false) {
+    public function getAll($assign = false)
+    {
         $search = array('active'=>1, 'status !='=>'admin');
-        if ($assign) $search['assign'] = 1;
+        if ($assign) {
+            $search['assign'] = 1;
+        }
         return $this->all($search);
     }
 
@@ -248,7 +237,8 @@ class Users extends BaseModel {
      * Get all activated members except admins
      * @return array
      */
-    public function all_but_admin() {
+    public function all_but_admin()
+    {
         return $this->all(
             array(
                 'active'=>1,
@@ -262,7 +252,8 @@ class Users extends BaseModel {
      * @param string $filter
      * @return string
      */
-    public function generateuserslist($filter='lastname') {
+    public function generateuserslist($filter = 'lastname')
+    {
         return self::users_list($this->all(array(), array('dir'=>'ASC', 'filter'=>$filter)));
     }
 
@@ -272,8 +263,9 @@ class Users extends BaseModel {
      *
      * @return string
      */
-    private function make_hash() {
-        $hash = md5( rand(0,1000) );
+    private function createHash()
+    {
+        $hash = md5(rand(0, 1000));
         return $hash;
     }
 
@@ -285,7 +277,8 @@ class Users extends BaseModel {
      * @param $activate
      * @return array
      */
-    public function validate_account($hash, $email, $activate) {
+    public function validate_account($hash, $email, $activate)
+    {
         // Get user data from DB
         $data = $this->get(array('email'=>$email));
 
@@ -319,7 +312,8 @@ class Users extends BaseModel {
      * @param array $data: array('username'=>string)
      * @return mixed
      */
-    public function activate(array $data) {
+    public function activate(array $data)
+    {
         $data = $this->get(array('username'=>$data['username']));
         if ($this->db->update($this->tablename, array('active'=>1), array("username"=>$data['username']))) {
             if ($this->send_confirmation_mail($data)) {
@@ -345,7 +339,8 @@ class Users extends BaseModel {
      * @param array $data: array('username'=>string)
      * @return mixed
      */
-    public function deactivate(array $data) {
+    public function deactivate(array $data)
+    {
         $data = $this->get(array('username'=>$data['username']));
         if ($this->db->update($this->tablename, array('active'=>0), array("username"=>$data['username']))) {
             if ($this->send_activation_mail($data)) {
@@ -373,12 +368,13 @@ class Users extends BaseModel {
      * @param bool $option : activate (true) or deactivate account (false)
      * @return array
      */
-    public function activation(array $post) {
+    public function activation(array $post)
+    {
         $username = $post['username'];
         $option = $post['action'];
 
         $data = $this->get(array('username'=>$username));
-        if ($option === true){
+        if ($option === true) {
             $result = $this->activate($data);
         } else {
             $result = $this->deactivate($data);
@@ -396,11 +392,12 @@ class Users extends BaseModel {
      * @throws Exception
      * @throws phpmailerException
      */
-    public function send_verification_mail($hash, $user_mail, $username) {
+    public function send_verification_mail($hash, $user_mail, $username)
+    {
         $Users = new self();
         $admins = $Users->getadmin('admin');
         $to = array();
-        foreach ($admins as $key=>$admin) {
+        foreach ($admins as $key => $admin) {
             $to[] = $admin['email'];
         }
 
@@ -425,7 +422,8 @@ class Users extends BaseModel {
      * @param array $data: user data
      * @return bool
      */
-    public function send_confirmation_mail(array $data) {
+    public function send_confirmation_mail(array $data)
+    {
         $MailManager = new MailManager();
         $fullname = isset($data['fullname']) ? $data['fullname'] : $data['username'];
         $body = self::confirmation_mail($fullname, $data['username']);
@@ -440,7 +438,8 @@ class Users extends BaseModel {
      * @param array $data: user data
      * @return bool
      */
-    public function send_activation_mail(array $data) {
+    public function send_activation_mail(array $data)
+    {
         $MailManager = new MailManager();
         $body = self::deactivationEmail($data['fullname'], $data['email'], $data['hash']);
         return $MailManager->send(array(
@@ -454,7 +453,8 @@ class Users extends BaseModel {
      * @param $email
      * @return array: array('status'=>bool, 'msg"=>string)
      */
-    public function request_password_change($email) {
+    public function request_password_change($email)
+    {
         if ($this->isExist(array('email'=>$email))) {
             $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
             $this->getUser($username['username']);
@@ -481,7 +481,7 @@ class Users extends BaseModel {
      * Get password modification form
      * @return string
      */
-    public function getPasswordForm($hash, $email, $view='body')
+    public function getPasswordForm($hash, $email, $view = 'body')
     {
         // Modify user password
         if (!empty($hash) && !empty($email)) {
@@ -509,7 +509,8 @@ class Users extends BaseModel {
      * @param $password
      * @return mixed
      */
-    public function password_change($username, $password) {
+    public function password_change($username, $password)
+    {
         if ($this->isExist(array('username'=>$username))) {
             if ($this->update(array('password' => Auth::cryptPwd($password)), array('username' => $username))) {
                 $result['msg'] = "Your password has been changed!";
@@ -518,7 +519,7 @@ class Users extends BaseModel {
                 $result['status'] = false;
             }
         } else {
-            $result['status'] = False;
+            $result['status'] = false;
             $result['msg'] = 'This account does not exist';
         }
         return $result;
@@ -529,8 +530,9 @@ class Users extends BaseModel {
      * @param string $username: user's name
      * @return bool
      */
-    public function is_admin($username) {
-        foreach ($this->all(array('status'=>'admin')) as $key=>$admin) {
+    public function is_admin($username)
+    {
+        foreach ($this->all(array('status'=>'admin')) as $key => $admin) {
             if ($admin['username'] == $username) {
                 return true;
             }
@@ -545,23 +547,21 @@ class Users extends BaseModel {
      * @param null $username: provided username
      * @return array
      */
-    public function delete_user($username=null, $current_user=null) {
-        if (isset($_SESSION['username'])) $current_user = $_SESSION['username'];
-        if (isset($_POST['username'])) $username = $_POST['username'];
+    public function delete_user($username = null, $current_user = null)
+    {
+        if (is_null($current_user) && isset($_SESSION['username'])) {
+            $current_user = $_SESSION['username'];
+        }
 
         // check if user has admin status and if there will be remaining admins after we delete this account.
         $is_admin = false;
+        $data = $this->get(array('username'=>$username));
+        $is_admin = $data['status'] == 'admin';
         $admins = $this->all(array('status'=>'admin'));
-        foreach ($admins as $key=>$admin) {
-            if ($admin['username'] == $username) {
-                $is_admin = true;
-                break;
-            }
-        }
 
         // Check if current user has necessary credentials
-        $is_authorized = !is_null($current_user) && !empty($this->get(
-            array('username'=>$current_user, 'status !='=>'member')));
+        $Account = new Account();
+        $is_authorized = !is_null($current_user) && $Account->isAuthorized($current_user, 'organizer');
 
         if (!is_null($current_user) && ($current_user === $username || $is_authorized)) {
             if ($is_admin and count($admins) === 1) {
@@ -627,7 +627,8 @@ class Users extends BaseModel {
      *
      * @return string
      */
-    public function getPublicationList() {
+    public function getPublicationList()
+    {
         $pub = new Presentation();
         return self::user_assignments($pub->getUserPresentations($this->username, 'previous'));
     }
@@ -636,7 +637,8 @@ class Users extends BaseModel {
      * Gets user's assignments list
      * @return string
      */
-    public function getAssignments() {
+    public function getAssignments()
+    {
         $pub = new Presentation();
         return self::user_assignments($pub->getUserPresentations($this->username, 'next'));
     }
@@ -644,7 +646,8 @@ class Users extends BaseModel {
     /**
      * Get list of bookmarks
      */
-    public function getBookmarks() {
+    public function getBookmarks()
+    {
         $Bookmark = new Bookmark();
         return $Bookmark->getList($_SESSION['username']);
     }
@@ -655,7 +658,7 @@ class Users extends BaseModel {
      * @param string $type: form type (login, registration)
      * @param string $view: view type (modal, body)
      * @param string $section: destination DOM element id
-     * 
+     *
      * @return string
      */
     public function getForm($type, $view = 'body', $section = null)
@@ -672,7 +675,8 @@ class Users extends BaseModel {
      * @param $id
      * @return array|null
      */
-    public function getById($id) {
+    public function getById($id)
+    {
         return $this->get(array('id'=>$id));
     }
 
@@ -681,7 +685,8 @@ class Users extends BaseModel {
      * @param string $username: user name
      * @return int
      */
-    private static function get_nbPres($username) {
+    private static function get_nbPres($username)
+    {
         $pub = new Presentation();
         return count($pub->all(array('orator'=>$username, 'type !='=>'wishlist')));
     }
@@ -692,9 +697,10 @@ class Users extends BaseModel {
      * @param array $data
      * @return string
      */
-    private static function users_list(array $data=array()) {
+    private static function users_list(array $data = array())
+    {
         $content = null;
-        foreach ($data as $key=>$item) {
+        foreach ($data as $key => $item) {
             $content .= self::user_in_list($item);
         }
         return "
@@ -745,7 +751,8 @@ class Users extends BaseModel {
      * @param array $item
      * @return string: select input
      */
-    private static function actionsList(array $item) {
+    private static function actionsList(array $item)
+    {
         // Account activation/deactivation option
         $activOption = $item['active'] == 1 ? "<option value='deactivate'>Deactivate</option>" 
         : "<option value='activate'>Activate</option>";
@@ -757,7 +764,8 @@ class Users extends BaseModel {
             data-destination='#user_list' style='max-width: 75%;'>
                 <option selected disabled>Select an action</option>
                 {$activOption}
-                <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); color: white;'>Delete</option>
+                <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); 
+                color: white;'>Delete</option>
             </select>
         </form>
         ";
@@ -769,7 +777,8 @@ class Users extends BaseModel {
      * @param array $item
      * @return string: select input
      */
-    private static function statusList(array $item) {
+    private static function statusList(array $item)
+    {
         // Generate actions list
         $statusList = '';
         $status = ['member', 'admin', 'organizer'];
@@ -778,8 +787,9 @@ class Users extends BaseModel {
             $statusList .= "<option value='{$value}' {$selected}> ". ucfirst($value). "</option>";
         }
         
+        $url = Router::buildUrl('Users', 'setStatus');
         return "
-        <form action='php/router.php?controller=Users&action=setStatus' method='post'>
+        <form action='{$url}' method='post'>
             <input type='hidden' name='username' value='{$item['username']}' />
             <select name='status' class='actionOnSelect' data-destination='#user_list' style='max-width: 75%;'>
                 {$statusList}
@@ -790,11 +800,12 @@ class Users extends BaseModel {
 
     /**
      * Display user information in list
-     * 
+     *
      * @param array $item
      * @return string
      */
-    private static function user_in_list(array $item) {
+    private static function user_in_list(array $item)
+    {
         return "
             <div class='list-container' id='section_{$item['username']}->username'>
                 <div class='user_firstname'>{$item['firstname']}</div>
@@ -814,10 +825,11 @@ class Users extends BaseModel {
 
     /**
      * Render login form to be displayed in full page
-     * 
+     *
      * @return string|array
      */
-    public static function login_form_body() {
+    public static function login_form_body()
+    {
         $leanModalUrlPwd = Router::buildUrl(
             'Users',
             'getForm',
@@ -860,10 +872,11 @@ class Users extends BaseModel {
 
     /**
      * Render login form for modal windows
-     * 
+     *
      * @return array
      */
-    public static function login_form_modal() {
+    public static function login_form_modal()
+    {
         return array(
             'id'=>'login_form',
             'content'=>self::login_form_body(),
@@ -876,7 +889,8 @@ class Users extends BaseModel {
      * Render signup form
      * @return string
      */
-    public static function registration_form_body() {
+    public static function registration_form_body()
+    {
         $leanModalUrlLogin = Router::buildUrl(
             'Users',
             'getForm',
@@ -935,7 +949,8 @@ class Users extends BaseModel {
      * Render admin creation form (for installation)
      * @return string
      */
-    public static function admin_creation_form() {
+    public static function admin_creation_form()
+    {
         return "
             <div class='feedback'></div>
 			<form action='php/router.php?controller=Users&action=make' method='post'>
@@ -971,7 +986,8 @@ class Users extends BaseModel {
      * Render registration form for modal windows
      * @return array
      */
-    public static function registration_form_modal() {
+    public static function registration_form_modal()
+    {
         return array(
             'id'=>'registration_form',
             'content'=>self::registration_form_body(),
@@ -984,7 +1000,8 @@ class Users extends BaseModel {
      * Render change password form
      * @return string
      */
-    public static function change_password_form_body() {
+    public static function change_password_form_body()
+    {
         return "
         <!-- Change password section -->
         <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
@@ -1006,7 +1023,8 @@ class Users extends BaseModel {
      * Render password modification form for modal windows
      * @return array
      */
-    public static function change_password_form_modal() {
+    public static function change_password_form_modal()
+    {
         return array(
             'id'=>'change_password_form',
             'content'=>self::change_password_form_body(),
@@ -1020,11 +1038,15 @@ class Users extends BaseModel {
      * @param $content
      * @return string
      */
-    private static function user_assignments($content) {
-        if (empty($content)) return "You don't have any upcoming presentations.";
+    private static function user_assignments($content)
+    {
+        if (empty($content)) {
+            return "You don't have any upcoming presentations.";
+        }
         return "
             <div class='table_container' style='display: table; width: 100%;'>
-                <div style='display: table-row; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em;'>
+                <div style='display: table-row; text-align: left; font-weight: 600; 
+                text-transform: uppercase; font-size: 0.9em;'>
                     <div style='width: 20%; display: table-cell;'>Date</div>
                     <div style='width: 75%; display: table-cell;'>Title</div>
                 </div>
@@ -1038,7 +1060,8 @@ class Users extends BaseModel {
      * @param array $data
      * @return string
      */
-    private static function password_form(array $data, $view) {
+    private static function password_form(array $data, $view)
+    {
         return "
             <section>
                 <div class='section_content'>
@@ -1067,7 +1090,8 @@ class Users extends BaseModel {
      * Error message if hash does not match user information
      * @return string
      */
-    private static function incorrect_hash() {
+    private static function incorrect_hash()
+    {
         return "
             <section>
                 <div class='section_content'>
@@ -1083,7 +1107,8 @@ class Users extends BaseModel {
      * @param $username: user username
      * @return string
      */
-    private static function confirmation_mail($fullname, $username) {
+    private static function confirmation_mail($fullname, $username)
+    {
         $login_url = App::$site_url . "index.php";
 
         return "
@@ -1091,7 +1116,8 @@ class Users extends BaseModel {
             <p>Hello {$fullname},</p>
             <p>Thank you for signing up!</p>
         </div>
-        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; 
+        border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
             Your account has been created, you can now <a href='{$login_url}'>log in</a> with the following credentials.
             <p><b>Username</b>: {$username}</p>
             <p></p><b>Password</b>: Only you know it!</p>
@@ -1105,16 +1131,19 @@ class Users extends BaseModel {
      * @param $hash
      * @return string
      */
-    private static function deactivationEmail($fullname, $email, $hash) {
+    private static function deactivationEmail($fullname, $email, $hash)
+    {
         $authorize_url = App::getAppUrl() . "index.php?page=organizer/verify&email={$email}&hash={$hash}&result=true";
         $newpwurl = App::getAppUrl() . "index.php?page=renew_pwd&hash={$hash}&email={$email}";
 
         return "
         <div style='width: 100%; margin: auto;'>
             <p>Hello {$fullname},</p>
-            <p>We have the regret to inform you that your account has been deactivated due to too many login attempts.</p>
+            <p>We have the regret to inform you that your account has been 
+            deactivated due to too many login attempts.</p>
         </div>
-        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
+        <div style='display: block; padding: 10px; margin: 0 30px 20px 0; border: 1px solid #ddd; 
+        background-color: rgba(255,255,255,1);'>
             <p>You can reactivate your account by following this link:</br>
                 <a href='{$authorize_url}'>{$authorize_url}</a>
             </p>
@@ -1131,7 +1160,8 @@ class Users extends BaseModel {
      * @param $email
      * @return string
      */
-    private static function password_request_email($full_name, $hash, $email) {
+    private static function password_request_email($full_name, $hash, $email)
+    {
         $reset_url = URL_TO_APP . "index.php?page=renew&hash={$hash}&email={$email}";
         return "
             Hello {$full_name},<br>
