@@ -180,7 +180,7 @@ class Plugins extends BaseModel {
     {
         $plugins = array();
         foreach ($this->getPluginsList($page) as $key => $plugin_name) {
-            if (!empty($plugin_name) && !in_array($plugin_name, array('.','..'))) {
+            if (!empty($plugin_name) && !in_array($plugin_name, array('.','..','Autoloader.php'))) {
                 $plugins[$plugin_name] = $this->load($plugin_name, $page);
             }
         }
