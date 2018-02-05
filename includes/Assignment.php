@@ -344,7 +344,7 @@ class Assignment extends BaseModel
     {
         $sql = "SELECT p.*, u.fullname
                 FROM {$this->tablename} p
-                LEFT JOIN {$this->db->gen_name('Users')} u
+                LEFT JOIN {$this->db->genName('Users')} u
                 ON p.username=u.username";
         $req = $this->db->sendQuery($sql);
         $data = array();
