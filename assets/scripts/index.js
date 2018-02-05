@@ -124,7 +124,6 @@ var get_submission_form = function (data) {
     if (data['date'] === undefined) {data['date'] = false; }
     if (data['type'] === undefined) {data['type'] = false; }
     if (data['view'] === undefined) data['view'] = 'body';
-    data['loadContent'] = true;
     var el = (data['destination'] === undefined) ? $('.submission_container') : $(data['destination']);
 
     // First we remove any existing submission form
@@ -133,14 +132,16 @@ var get_submission_form = function (data) {
             .html(result)
             .fadeIn(200)
             .find('textarea').html(result.content);
-
+        
+        // Load WYSIWYG editor
         loadWYSIWYGEditor();
 
         // Load JCM calendar
         initCalendars();
     };
 
-    processAjax(el, data, callback, "php/form.php");
+    var url = 'php/router.php?controller=' + controller + '&action=getForm';
+    processAjax(el, data, callback, url);
 };
 
 
@@ -999,7 +1000,10 @@ function process_post(el, e) {
     // Callback function
     var callback = function (result) {
         if (result.status === true) {
-            var container_id = controller.toLowerCase() + '_form';
+            //var container_id = controller.toLowerCase() + '_form';
+            var section = form.closest('.modal_section');
+            var controller = section.attr('id');
+            console.log(controller);
             $('section#' + container_id + ', .modal_section#' + container_id).empty();
             var id = form.find('input[name="id"]').val().length > 0
             && form.find('input[name="id"]').length > 0 ? form.find('input[name="id"]').val() : undefined;
@@ -1075,29 +1079,10 @@ function process_submission(el, e) {
     // Form data
     var data = getData(form);
 
-    // Get controller name
-    var controller = form.find('input[name="controller"]').val();
-
     // Callback function
     var callback = function (result) {
         if (result.status === true) {
-            var container_id = controller.toLowerCase() + '_form';
-            $('section#' + container_id + ', .modal_section#' + container_id).empty();
-            var id = form.find('input[name="id"]').val().length > 0
-            && form.find('input[name="id"]').length > 0 ? form.find('input[name="id"]').val() : undefined;
-            var operation = id !== undefined ? 'edit' : 'new';
-            if (in_modal(el)) {
-                el.find('.modalContainer').modalWindow('close');
-                location.reload();
-            } else {
-                get_submission_form({
-                    'controller': controller,
-                    'action': 'get_form',
-                    'operation': operation,
-                    'id': id,
-                    'destination': '#' + controller.toLowerCase() + '_container'}
-                );
-            }
+            location.reload();
         } else {
             return false;
         }

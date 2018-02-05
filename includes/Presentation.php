@@ -607,71 +607,71 @@ class Presentation extends BaseSubmission
         // Download links
         $links = !is_null($Presentation->media) ? $Presentation->media : array();
 
+        // Output
         $result['title'] = "Add/Edit presentation";
-
         $result['content'] = "
             <div class='submission'>
-            <div class='feedback'></div>
-            <div class='form_container'>
-                <div class='form_aligned_block matched_bg'>
-                    <div class='form_description'>
-                        Upload files attached to this presentation
-                    </div>
-                    " . Media::uploader('Presentation', $links, 'presentation_form') . "
-                </div>
-                
-                <form method='post' action='php/router.php?controller=Presentation&action={$operation}' 
-                enctype='multipart/form-data' id='presentation_form'>
-                    
+                <div class='form_container'>
                     <div class='form_aligned_block matched_bg'>
-                        
                         <div class='form_description'>
-                            Select a presentation type and pick a date
+                            Upload files attached to this presentation
                         </div>
-                        <div class='form-group'>
-                            <select class='change_pres_type' name='type' id='{$controller}_{$idPres}' required>
-                                {$type_list['options']}
-                            </select>
-                            <label>Type</label>
-                        </div>
+                        " . Media::uploader('Presentation', $links, 'presentation_form') . "
+                    </div>
+                    
+                    <form method='post' action='php/router.php?controller=Presentation&action={$operation}' 
+                    enctype='multipart/form-data' id='presentation_form'>
                         
-                        <div class='form-group'>
-                            <input type='date' class='datepicker submissionCalendar' name='date' value='{$date}' 
-                            data-view='view'/>
-                            <label>Date</label>
+                        <div class='form_aligned_block matched_bg'>
+                            
+                            <div class='form_description'>
+                                Select a presentation type and pick a date
+                            </div>
+                            <div class='form-group'>
+                                <select class='change_pres_type' name='type' id='{$controller}_{$idPres}' required>
+                                    {$type_list['options']}
+                                </select>
+                                <label>Type</label>
+                            </div>
+                            
+                            <div class='form-group'>
+                                <input type='date' class='datepicker submissionCalendar' name='date' value='{$date}' 
+                                data-view='view'/>
+                                <label>Date</label>
+                            </div>
+
+                            <div class='form-group'>
+                                {$speakerList}
+                            </div>
+                        </div>
+                    
+                        <div class='form_lower_container'>
+                            <div class='special_inputs_container'>
+                            " . SubmissionForms::get($Presentation->type, $Presentation) . "
+                            </div>
+
+                            <div class='form-group'>
+                                <input type='text' id='keywords' name='keywords' value='$Presentation->keywords'>
+                                <label>Keywords (comma-separated)</label>
+                            </div>
+
+                            <div class='form-group'>
+                                <label>Abstract</label>
+                                <textarea name='summary' class='wygiwym' id='summary' 
+                                placeholder='Abstract (5000 characters maximum)' required>
+                                {$Presentation->summary}</textarea>
+                            </div>
                         </div>
 
-                        <div class='form-group'>
-                            {$speakerList}
+                        <div class='submit_btns'>
+                            <input type='submit' name='{$operation}' class='submit_pres' />
+                            <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
+                            <input type='hidden' name='session_id' value='{$session_id}'/>
+                            <input type='hidden' name='username' value='$user->username'/>
+                            <input type='hidden' id='id' name='id' value='{$idPres}'/>
                         </div>
-                    </div>
-                
-                    <div class='form_lower_container'>
-                        <div class='special_inputs_container'>
-                        " . SubmissionForms::get($Presentation->type, $Presentation) . "
-                        </div>
-
-                        <div class='form-group'>
-                            <input type='text' id='keywords' name='keywords' value='$Presentation->keywords'>
-                            <label>Keywords (comma-separated)</label>
-                        </div>
-
-                        <div class='form-group'>
-                            <label>Abstract</label>
-                            <textarea name='summary' class='wygiwym' id='summary' 
-                            placeholder='Abstract (5000 characters maximum)' required>
-                            {$Presentation->summary}</textarea>
-                        </div>
-                    </div>
-                    <div class='submit_btns'>
-                        <input type='submit' name='{$operation}' class='submit_pres'>
-                        <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
-                        <input type='hidden' name='session_id' value='{$session_id}'/>
-                        <input type='hidden' name='username' value='$user->username'/>
-                        <input type='hidden' id='id' name='id' value='{$idPres}'/>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
             </div>
             ";
         $result['description'] = self::description();
