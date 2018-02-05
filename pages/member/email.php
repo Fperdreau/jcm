@@ -23,7 +23,7 @@
 use includes\MailManager;
 
 // Get contact form
-$recipients_list = isset($_POST['recipients_list']) ? $_POST['recipients_list'] : null;
+$recipients_list = isset($pageParameters['recipients_list']) ? $pageParameters['recipients_list'] : null;
 $MailManager = new MailManager();
 $contactForm = $MailManager->getContactForm($recipients_list);
 

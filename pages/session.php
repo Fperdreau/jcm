@@ -22,7 +22,7 @@
 
 use includes\Session;
 
-if (!empty($_POST['id'])) {
+if (!empty($pageParameters['id'])) {
     $Session = new Session();
     $content = $Session->showNextSession(true);
 } else {

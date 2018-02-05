@@ -22,10 +22,10 @@
 
 $news = new includes\Posts();
 
-if (!empty($_POST['show'])) {
-    echo $news->show(htmlspecialchars($_POST['show']));
+if (!empty($pageParameters['show'])) {
+    echo $news->show(htmlspecialchars($pageParameters['show']));
 } else {
-    $category = (isset($_POST['category'])) ? htmlspecialchars($_POST['category']) : null;
-    $curr_page = (isset($_POST['curr_page'])) ? htmlspecialchars($_POST['curr_page']) : 1;
+    $category = (isset($pageParameters['category'])) ? htmlspecialchars($pageParameters['category']) : null;
+    $curr_page = (isset($pageParameters['curr_page'])) ? htmlspecialchars($pageParameters['curr_page']) : 1;
     echo $news->index($category, $curr_page);
 }

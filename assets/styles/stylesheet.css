@@ -2314,6 +2314,7 @@ button.add_btn:active {
     text-align: center;
     background-color: rgba(255,255,255,1);
     border-radius: 50%;
+    cursor: pointer;
 }
 
 .action_icon img {
@@ -3761,6 +3762,7 @@ input.dateinput {
     background: #eeeeee;
     padding: 5px 10px;
     box-sizing: border-box;
+    margin-bottom: 20px;
 }
 
 .post_edit_container > div {

@@ -51,10 +51,11 @@ class Posts extends BaseModel
 
     /**
      * Constructor
-     * 
-     * @param null $id
+     *
+     * @param string|null $id
      */
-    public function __construct($id=null) {
+    public function __construct($id = null)
+    {
         parent::__construct();
         if (null !== $id) {
             $this->getInfo($id);
@@ -64,24 +65,24 @@ class Posts extends BaseModel
 
     /**
      * Register into DigestMaker table
-     * 
+     *
      * @return void
      */
-    public static function registerDigest() {
+    public static function registerDigest()
+    {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register('Posts');
     }
 
     /**
      * Add a post to the database
-     * 
+     *
      * @param array $post
      * @return bool|string
      */
     public function add(array $post)
     {
         if ($this->isExist(array('title'=>$post['title'])) === false) {
-
             //$post['postid'] = $this->generateID('postid');
             $post['date'] = date('Y-m-d H:i:s');
 
@@ -94,7 +95,6 @@ class Posts extends BaseModel
                     $media = new Media();
                     $media->addUpload(explode(',', $post['link']), $post['id'], __CLASS__);
                 }
-
                 return $id;
             } else {
                 return false;
@@ -106,11 +106,12 @@ class Posts extends BaseModel
 
     /**
      * Edit Post
-     * 
+     *
      * @param array $data
      * @return mixed
      */
-    public function edit(array $data) {
+    public function edit(array $data)
+    {
         // check entries
         $id = htmlspecialchars($data['id']);
         if (!empty($id) && $id !== "false") {
@@ -136,12 +137,13 @@ class Posts extends BaseModel
      * @param $id: post id
      * @return array|bool
      */
-    public function getInfo($id) {
+    public function getInfo($id)
+    {
         $data = $this->get(array('id'=>$id));
         if (!empty($data)) {
             $this->map($data);
-            $this->day = date('Y-m-d',strtotime($this->date));
-            $this->time = date('H:i',strtotime($this->date));
+            $this->day = date('Y-m-d', strtotime($this->date));
+            $this->time = date('H:i', strtotime($this->date));
             $data['link'] = $this->getUploads();
             return $data;
         } else {
@@ -152,7 +154,8 @@ class Posts extends BaseModel
     /**
      * Get associated files
      */
-    private function getUploads() {
+    private function getUploads()
+    {
         $upload = new Media();
         $link = $upload->getUploads($this->id, __CLASS__);
         return $link;
@@ -163,7 +166,8 @@ class Posts extends BaseModel
      * @param int $limit: number of items
      * @return array|bool
      */
-    public function getlastnews($limit=3) {
+    public function getlastnews($limit = 3)
+    {
         $sql = "SELECT id from {$this->tablename} ORDER BY date DESC LIMIT 0, {$limit}";
         $req = $this->db->sendQuery($sql);
         $data = array();
@@ -181,7 +185,8 @@ class Posts extends BaseModel
      * @param $pp: number of items shown per page
      * @return array
      */
-    public function getLimited($category, $order='date ASC', $page, $pp) {
+    public function getLimited($category, $page, $pp, $order = 'date ASC')
+    {
         $sql = "
             SELECT id
             FROM {$this->tablename}
@@ -199,7 +204,8 @@ class Posts extends BaseModel
      * @param null|string $id: category name
      * @return int
      */
-    public function getCount($id=null) {
+    public function getCount($id = null)
+    {
         $req = $this->db->sendQuery("SELECT * FROM {$this->tablename}");
         $data = array();
         while ($row = $req->fetch_assoc()) {
@@ -214,12 +220,13 @@ class Posts extends BaseModel
      * @param int $page_number: current page number
      * @return string
      */
-    public function index($category=null, $page_number=1) {
+    public function index($category = null, $page_number = 1)
+    {
         $pp = 10;
         $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
         $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
         $count = $this->getCount($category);
-        $posts_ids = $this->getLimited($category, 'date DESC', $page_index, $pp);
+        $posts_ids = $this->getLimited($category, $page_index, $pp, 'date DESC');
         $pagination = new Pagination();
 
         if (!empty($posts_ids)) {
@@ -245,7 +252,8 @@ class Posts extends BaseModel
      * Show last posted news
      * @return string
      */
-    public function show_last() {
+    public function show_last()
+    {
         $posts_ids = self::getlastnews();
         if (!empty($posts_ids)) {
             $news = "";
@@ -265,7 +273,8 @@ class Posts extends BaseModel
      * @param $id
      * @return string
      */
-    public function show($id) {
+    public function show($id)
+    {
         $this->getInfo($id);
         $user = new Users($this->username);
         return self::display($this, $user->fullname, false);
@@ -275,7 +284,8 @@ class Posts extends BaseModel
      * Render "Nothing to show" message
      * @return string
      */
-    public static function nothing() {
+    public static function nothing()
+    {
         return "<section style='width: 100%; box-sizing: border-box; padding: 5px; margin: 10px auto 0 auto; 
                     background-color: rgba(255,255,255,1); border: 1px solid #bebebe;'>
                     No recent news</section>";
@@ -288,29 +298,38 @@ class Posts extends BaseModel
      * @param bool $limit
      * @return string
      */
-    public static function display(Posts $post, $user_name, $limit=true) {
+    public static function display(Posts $post, $user_name, $limit = true)
+    {
         $char_limit = 1000;
         $url = URL_TO_APP . 'index.php?page=news&show=' . $post->id;
-        $day = date('d M y',strtotime($post->date));
+        $day = date('d M y', strtotime($post->date));
         $txt_content = htmlspecialchars_decode($post->content);
-        $content = ($limit && strlen($txt_content) > $char_limit) ? substr($txt_content, 0, $char_limit) . "..." : $txt_content;
-        $show_more = ($limit && strlen($txt_content) > $char_limit) ? "<span class='blog_more'><a href='{$url}'>"._('Show more')."</a></span>" : null;
+        $content = ($limit && strlen($txt_content) > $char_limit) ?
+                        substr($txt_content, 0, $char_limit) . "..." : $txt_content;
+        $show_more = ($limit && strlen($txt_content) > $char_limit) ?
+                        "<span class='blog_more'><a href='{$url}'>"._('Show more')."</a></span>" : null;
         return "
-            <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; background-color: rgba(255,255,255,1); 
+            <div style='width: 100%; box-sizing: border-box; padding: 0; margin: 10px auto 0 auto; 
+            background-color: rgba(255,255,255,1); 
             border: 1px solid; border-color: #e5e6e9 #dfe0e4 #d0d1d5;'>
-                <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; text-align: left; font-size: 15px; font-weight: bold;'><a href='{$url}'>{$post->title}</a></div>
-                <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; border-bottom: 1px solid #d8d8d8'></div>
+                <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; 
+                text-align: left; font-size: 15px; font-weight: bold;'><a href='{$url}'>{$post->title}</a></div>
+                <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; 
+                border-bottom: 1px solid #d8d8d8'></div>
 
                 <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
                     $content
                     $show_more
                 </div>
-                <div style='position:relative; width: auto; padding: 2px 10px 2px 10px; background-color: rgba(50,50,50,1); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
-                    <div class='news_time_container'>
+                <table style='position:relative; width: 100%; padding: 2px 10px 2px 10px; 
+                background-color: rgba(50,50,50,1); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
+                    <tr>
+                    <td class='news_time_container'>
                         $day at $post->time
-                    </div>
-                    <div style='text-align: right'>Posted by <span id='author_name'>$user_name</span></div>
-                </div>
+                    </td>
+                    <td style='text-align: right'>Posted by <span id='author_name'>$user_name</span></td>
+                    /<tr>
+                </table>
             </div>";
     }
 
@@ -319,9 +338,11 @@ class Posts extends BaseModel
      * @param Users $user
      * @return string
      */
-    public function get_selection_list(Users $user) {
+    public function get_selection_list(Users $user)
+    {
         // Get all posted news if user has at least the organizer level, otherwise only get user's posts.
-        $post_list = (Page::$levels[$user->status] >= 1) ? $this->all() : $this->all(array('username'=>$user->username));
+        $post_list = (Page::$levels[$user->status] >= 1) ?
+        $this->all() : $this->all(array('username'=>$user->username));
         if (!empty($post_list)) {
             return self::selection_menu($post_list);
         } else {
@@ -334,10 +355,11 @@ class Posts extends BaseModel
      * @param array $data
      * @return string
      */
-    public static function selection_list(array $data) {
+    public static function selection_list(array $data)
+    {
         $options = "";
-        foreach ($data as $key=>$item) {
-            $day = date('d M y',strtotime($item['date']));
+        foreach ($data as $key => $item) {
+            $day = date('d M y', strtotime($item['date']));
             $options .= "<option value='{$item['id']}'><b><strong>{$day}</strong> |</b> {$item['title']}</option>";
         }
         return "
@@ -352,11 +374,13 @@ class Posts extends BaseModel
      * @param string $view
      * @return array|string
      */
-    public function get_form($view='body') {
+    public function getForm(array $data)
+    {
+        $view = isset($data['view']) ? $data['view'] : 'body';
         if ($view === "body") {
-            return self::format_section($this->editor($_POST));
+            return self::format_section($this->editor($data));
         } else {
-            $content = $this->editor($_POST);
+            $content = $this->editor($data);
             return array(
                 'content'=>$content['content'],
                 'id'=>'suggestion',
@@ -370,7 +394,8 @@ class Posts extends BaseModel
      * @param array|null $post
      * @return array
      */
-    public function editor(array $post=null) {
+    public function editor(array $post = null)
+    {
         $post = (is_null($post)) ? $_POST : $post;
         $id = isset($post['id']) ? $post['id'] : false;
         $user = new Users($_SESSION['username']);
@@ -382,7 +407,8 @@ class Posts extends BaseModel
      * @param array $content
      * @return string
      */
-    public static function format_section(array $content) {
+    public static function format_section(array $content)
+    {
         return "
         {$content['content']}
         ";
@@ -393,10 +419,16 @@ class Posts extends BaseModel
      * @param array $data
      * @return string
      */
-    public static function selection_menu(array $data) {
+    public static function selection_menu(array $data)
+    {
         $content = null;
-        foreach ($data as $key=>$item) {
+        foreach ($data as $key => $item) {
             $day = date('d M y', strtotime($item['date']));
+            $url = Router::buildUrl(
+                self::getClassName(),
+                'getForm',
+                array('id'=>$item['id'])
+            );
             $content .= "
                 <div class='table_container'>
                     <div class='list-container-row news-details el_to_del' id='{$item['id']}'>
@@ -407,10 +439,10 @@ class Posts extends BaseModel
                         
                             <!-- Edit button -->
                             <div class='action_icon'>
-                                <div class='loadContent' data-destination='.post_edit_container#post_{$item['id']}' 
-                                data-controller='Posts' data-action='editor' data-id='{$item['id']}'>
+                                <a class='loadContent' data-url='{$url}' 
+                                    data-destination='.post_edit_container#post_{$item['id']}'>
                                     <img src='" . URL_TO_IMG . 'edit.png' . "' />
-                                </div>
+                                </a>
                             </div>
                             
                             <!-- Delete button -->
@@ -443,13 +475,20 @@ class Posts extends BaseModel
      * @param null $options
      * @return string
      */
-    public static function addNewsSection($options=null) {
+    public static function addNewsSection($options = null)
+    {
+        $url = Router::buildUrl(
+            self::getClassName(),
+            'getForm',
+            array(
+                'destination'=>'.post_edit_container#main')
+        );
         return "
                 <section>
                     <h2>Post a news</h2>
                     <div class='section_content'>
                         <div class='action_btns'>
-                            <input type='button' id='submit' class='loadContent' data-controller='Posts' data-action='editor' 
+                            <input type='button' id='submit' class='loadContent' data-url='{$url}' 
                             data-destination='.post_edit_container#main' value='Add a news'/>
                         </div>
                         <div class='post_edit_container' id='main'></div>
@@ -466,12 +505,14 @@ class Posts extends BaseModel
      * @param null|Posts $Post
      * @return mixed
      */
-    public static function form(Users $user, $Post=null) {
+    public static function form(Users $user, $Post = null)
+    {
         if (is_null($Post)) {
             $Post = new self();
             $del_btn = "";
         } else {
-            $del_btn = "<input type='button' class='delete' data-controller='Posts' id='submit' data-id='$Post->id' value='Delete'/>";
+            $del_btn = "<input type='button' class='delete' data-controller='Posts' id='submit' 
+            data-id='$Post->id' value='Delete'/>";
         }
 
         $result['content'] = "
@@ -506,7 +547,8 @@ class Posts extends BaseModel
      * @param array $data
      * @return string
      */
-    private static function formSection(array $data) {
+    private static function formSection(array $data)
+    {
         return "
             <section>
                 <h2>Post a news</h2>
@@ -521,7 +563,8 @@ class Posts extends BaseModel
      * Submission form instruction
      * @return string
      */
-    public static function description() {
+    public static function description()
+    {
         return "";
     }
 
@@ -530,14 +573,15 @@ class Posts extends BaseModel
      * @param null $username
      * @return mixed
      */
-    public function makeMail($username=null) {
+    public function makeMail($username = null)
+    {
         $last = $this->getlastnews();
         if (empty($last)) {
             $content['body'] = "No news this week";
         } else {
             $last_news = new self($last[0]);
             $today = date('Y-m-d');
-            if ( date('Y-m-d',strtotime($last_news->date)) < date('Y-m-d',strtotime("$today - 7 days"))) {
+            if (date('Y-m-d', strtotime($last_news->date)) < date('Y-m-d', strtotime("$today - 7 days"))) {
                 $last_news->content = "No recent news this week";
             }
             $content['body'] = $last_news->content;
@@ -545,22 +589,5 @@ class Posts extends BaseModel
 
         $content['title'] = 'Last News';
         return $content;
-    }
-
-    /**
-     * Convert post username
-     */
-    public static function patch_table () {
-        $self = new self();
-        $sql = "SELECT * FROM {$self->tablename}";
-        $req = $self->db->sendQuery($sql);
-        $user = new Users();
-        while ($row = mysqli_fetch_assoc($req)) {
-            $data = $user->get(array('fullname'=>$row['username']));
-            if (!empty($data)) {
-                $cur_post = new self($row['id']);
-                $cur_post->update(array('username'=>$data['username']), array('id'=>$row['id']));
-            }
-        }
     }
 }

@@ -607,7 +607,7 @@ abstract class BaseSubmission extends BaseModel
      *
      * @return string
      */
-    private static function emptyList()
+    protected static function emptyList()
     {
         return "<p>Were you looking for suggestions? Sorry, there is none yet.</p>";
     }

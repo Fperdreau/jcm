@@ -24,7 +24,7 @@
  use includes\Presentation;
  use includes\Suggestion;
  
-$username = (isset($_POST['Users'])) ? $_POST['Users'] : $_SESSION['username'];
+$username = (isset($pageParameters['Users'])) ? $pageParameters['Users'] : $_SESSION['username'];
 $user = new Users($username);
 
 // Get options
@@ -32,14 +32,14 @@ $result = null;
 $submit_form = null;
 $section_content = null;
 
-if (isset($_POST['op'])) {
-    $op = htmlspecialchars($_POST['op']);
+if (isset($pageParameters['op'])) {
+    $op = htmlspecialchars($pageParameters['op']);
     $result = "Oops";
-    $date = (!empty($_POST['date'])) ? htmlspecialchars($_POST['date']) : null;
+    $date = (!empty($pageParameters['date'])) ? htmlspecialchars($pageParameters['date']) : null;
 // Submit a new presentation
     if ($op == 'edit') {
-        if (!empty($_POST['id'])) {
-            $id_pres = htmlspecialchars($_POST['id']);
+        if (!empty($pageParameters['id'])) {
+            $id_pres = htmlspecialchars($pageParameters['id']);
             $Presentation = new Presentation($id_pres);
             $date = $Presentation->date;
         } else {
@@ -53,8 +53,8 @@ if (isset($_POST['op'])) {
 
 // Select from the wish list
     } elseif ($op == 'wishpick') {
-        if (!empty($_POST['id'])) {
-            $id_pres = htmlspecialchars($_POST['id']);
+        if (!empty($pageParameters['id'])) {
+            $id_pres = htmlspecialchars($pageParameters['id']);
             $Presentation = new Suggestion();
             $selectopt = $Presentation->generate_selectwishlist('.submission_container');
         } else {
@@ -62,7 +62,7 @@ if (isset($_POST['op'])) {
             $selectopt = null;
         }
 
-        if (!empty($_POST['id']) || !empty($_POST['update'])) { // a wish has been selected
+        if (!empty($pageParameters['id']) || !empty($pageParameters['update'])) { // a wish has been selected
             $submit_form = Presentation::form($user, $Presentation, 'submit');
         } else {
             $submit_form = "";
@@ -74,7 +74,7 @@ if (isset($_POST['op'])) {
 
 // Modify a presentation
     } elseif ($op == 'mod_pub') {
-        $Presentation = new Presentation($_POST['id']);
+        $Presentation = new Presentation($pageParameters['id']);
         $section_content = Presentation::form($user, $Presentation, 'submit');
     }
 }
