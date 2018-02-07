@@ -25,7 +25,7 @@ use includes\Users;
 
 // Show an empty form
 $post = new Posts();
-$options = $post->get_selection_list(new Users($_SESSION['username']));
+$options = $post->getSelectionList(new Users($_SESSION['username']));
 $addNewsBar = Posts::addNewsSection($options);
 $result = "
     <div class='page_header'>

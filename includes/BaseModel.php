@@ -263,7 +263,18 @@ abstract class BaseModel
     {
         $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
         $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY `{$filter['order']}` ".$dir : null;
-        $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT `{$filter['limit']}` " : null;
+        $limit_end = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT `{$filter['limit']}` " : null;
+        $limit_start = (!is_null($filter) && isset($filter['limit_start'])) ? $filter['limit_start'] : null;
+        if (!is_null($limit_end)) {
+            if (!is_null($limit_start)) {
+                $limit = "LIMIT {$filter['limit_start']}, {$filter['limit']} ";
+            } else {
+                $limit = "LIMIT {$filter['limit']} ";
+            }
+        } else {
+            $limit = null;
+        }
+
         return $this->db->resultSet($this->tablename, array('*'), $ref, $param . $limit);
     }
 

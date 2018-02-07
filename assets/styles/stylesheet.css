@@ -2292,6 +2292,7 @@ button.add_btn:active {
     display: table-cell;
     text-align: left;
     vertical-align: middle;
+    padding: 5px;
 }
 
 .list-container-row .list-container-row-form {
@@ -3754,10 +3755,14 @@ input.dateinput {
     padding: 5px 0 5px 27px;
 }
 
+.post_edit_target {
+    display: table;
+    width: 100%;
+}
+
 .post_edit_container {
     width: 100%;
     display: block;
-    visibility: hidden;
     border: 2px solid #bbbbbb;
     background: #eeeeee;
     padding: 5px 10px;

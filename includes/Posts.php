@@ -105,6 +105,153 @@ class Posts extends BaseModel
     }
 
     /**
+     * Show post on the homepage
+     * @param null $category
+     * @param int $page_number: current page number
+     * @return string
+     */
+    public function index($category = null, $page_number = 1)
+    {
+        $pp = 10;
+        $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
+        $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
+        $count = $this->getCount($category);
+        $posts_ids = $this->getLimited($category, $page_index, $pp, 'date DESC');
+        $pagination = new Pagination();
+
+        if (!empty($posts_ids)) {
+            $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
+            foreach ($posts_ids as $id) {
+                $data = $this->getInfo($id);
+                $user = new Users($data['username']);
+                $news .= self::display($data, $user->fullname, true);
+            }
+        } else {
+            $news = self::nothing();
+        }
+
+        // Add news section
+        if (SessionInstance::isLogged()) {
+            $news .= self::formSection(self::editor());
+        }
+
+        return $news;
+    }
+
+    /**
+     * Show last posted news
+     * @return string
+     */
+    public function showLast()
+    {
+        $posts_ids = self::getlastnews();
+        if (!empty($posts_ids)) {
+            $news = "";
+            foreach ($posts_ids as $id) {
+                $data = $this->getInfo($id);
+                $user = new Users($data['username']);
+                $news .= self::display($data, $user->fullname);
+            }
+        } else {
+            $news = self::nothing();
+        }
+        return $news;
+    }
+
+    /**
+     * Show news details
+     * @param $id
+     * @return string
+     */
+    public function show($id)
+    {
+        $data = $this->getInfo($id);
+        $user = new Users($data['username']);
+        return self::display($data, $user->fullname, false);
+    }
+
+    /**
+     * Show post on the homepage
+     * @param null $category
+     * @param int $page_number: current page number
+     * @return string
+     */
+    public function getSelectionList(Users $user, $page_number = 1)
+    {
+        $pp = 10;
+        $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
+        $base_url = URL_TO_APP . "index.php?page=member/news&curr_page=";
+        $count = $this->getCount();
+        $post_list = (Page::$levels[$user->status] >= 1) ?
+        $this->all() : $this->all(array('username'=>$user->username));
+        $posts_ids = $this->getLimited(null, $page_index, $pp, 'date DESC');
+        $pagination = new Pagination();
+
+        if (!empty($posts_ids)) {
+            $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
+            $data = array();
+            foreach ($posts_ids as $key => $item) {
+                $data[$key] = $this->getInfo($item);
+            }
+            $news .= self::selectionMenu($data);
+        } else {
+            $news = self::nothing();
+        }
+        return $news;
+    }
+
+    /**
+     * Generate selection list of news (for editing)
+     * @param Users $user
+     * @return string
+     */
+    public function getSelectionList_old(Users $user)
+    {
+        // Get all posted news if user has at least the organizer level, otherwise only get user's posts.
+        $post_list = (Page::$levels[$user->status] >= 1) ?
+        $this->all() : $this->all(array('username'=>$user->username));
+        if (!empty($post_list)) {
+            return self::selectionMenu($post_list);
+        } else {
+            return self::nothing();
+        }
+    }
+
+    /**
+     * Get submission form
+     * @param string $view
+     * @return array|string
+     */
+    public function getForm(array $data)
+    {
+        $view = isset($data['view']) ? $data['view'] : 'body';
+        if ($view === "body") {
+            return self::formatSection($this->editor($data));
+        } else {
+            $content = $this->editor($data);
+            return array(
+                'content'=>$content['content'],
+                'id'=>'suggestion',
+                'buttons'=>null,
+                'title'=>$content['title']);
+        }
+    }
+
+    /**
+     * Render submission editor
+     * @param array|null $post
+     * @return array
+     */
+    public function editor(array $post = null)
+    {
+        $post = (is_null($post)) ? $_POST : $post;
+        $id = isset($post['id']) ? $post['id'] : false;
+        $user = new Users($_SESSION['username']);
+        $data = $this->getInfo($id);
+        return self::form($user, $data ? (object)$data : null);
+    }
+
+    /**
      * Edit Post
      *
      * @param array $data
@@ -142,13 +289,36 @@ class Posts extends BaseModel
         $data = $this->get(array('id'=>$id));
         if (!empty($data)) {
             $this->map($data);
-            $this->day = date('Y-m-d', strtotime($this->date));
-            $this->time = date('H:i', strtotime($this->date));
+            $data['day'] = date('Y-m-d', strtotime($data['date']));
+            $data['time'] = date('H:i', strtotime($data['date']));
             $data['link'] = $this->getUploads();
             return $data;
         } else {
             return false;
         }
+    }
+
+    /**
+     * Display last news in digest email
+     * @param null $username
+     * @return mixed
+     */
+    public function makeMail($username = null)
+    {
+        $last = $this->getlastnews();
+        if (empty($last)) {
+            $content['body'] = "No news this week";
+        } else {
+            $last_news = new self($last[0]);
+            $today = date('Y-m-d');
+            if (date('Y-m-d', strtotime($last_news->date)) < date('Y-m-d', strtotime("$today - 7 days"))) {
+                $last_news->content = "No recent news this week";
+            }
+            $content['body'] = $last_news->content;
+        }
+
+        $content['title'] = 'Last News';
+        return $content;
     }
 
     /**
@@ -160,6 +330,8 @@ class Posts extends BaseModel
         $link = $upload->getUploads($this->id, __CLASS__);
         return $link;
     }
+
+    // MODEL //
 
     /**
      * Get the newest posts
@@ -214,70 +386,18 @@ class Posts extends BaseModel
         return count($data);
     }
 
-    /**
-     * Show post on the homepage
-     * @param null $category
-     * @param int $page_number: current page number
-     * @return string
-     */
-    public function index($category = null, $page_number = 1)
-    {
-        $pp = 10;
-        $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
-        $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
-        $count = $this->getCount($category);
-        $posts_ids = $this->getLimited($category, $page_index, $pp, 'date DESC');
-        $pagination = new Pagination();
-
-        if (!empty($posts_ids)) {
-            $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
-            foreach ($posts_ids as $id) {
-                $post = new self($id);
-                $user = new Users($post->username);
-                $news .= self::display($post, $user->fullname, true);
-            }
-        } else {
-            $news = self::nothing();
-        }
-
-        // Add news section
-        if (SessionInstance::isLogged()) {
-            $news .= self::formSection(self::editor());
-        }
-
-        return $news;
-    }
+    // VIEWS //
 
     /**
-     * Show last posted news
+     * Render section
+     *
+     * @param array $content
+     *
      * @return string
      */
-    public function show_last()
+    public static function formatSection(array $content)
     {
-        $posts_ids = self::getlastnews();
-        if (!empty($posts_ids)) {
-            $news = "";
-            foreach ($posts_ids as $id) {
-                $post = new self($id);
-                $user = new Users($post->username);
-                $news .= self::display($post, $user->fullname);
-            }
-        } else {
-            $news = self::nothing();
-        }
-        return $news;
-    }
-
-    /**
-     * Show news details
-     * @param $id
-     * @return string
-     */
-    public function show($id)
-    {
-        $this->getInfo($id);
-        $user = new Users($this->username);
-        return self::display($this, $user->fullname, false);
+        return "<div class='post_edit_container'>{$content['content']}</div>";
     }
 
     /**
@@ -298,12 +418,12 @@ class Posts extends BaseModel
      * @param bool $limit
      * @return string
      */
-    public static function display(Posts $post, $user_name, $limit = true)
+    public static function display(array $data, $user_name, $limit = true)
     {
         $char_limit = 1000;
-        $url = URL_TO_APP . 'index.php?page=news&show=' . $post->id;
-        $day = date('d M y', strtotime($post->date));
-        $txt_content = htmlspecialchars_decode($post->content);
+        $url = URL_TO_APP . 'index.php?page=news&show=' . $data['id'];
+        $day = date('d M y', strtotime($data['date']));
+        $txt_content = htmlspecialchars_decode($data['content']);
         $content = ($limit && strlen($txt_content) > $char_limit) ?
                         substr($txt_content, 0, $char_limit) . "..." : $txt_content;
         $show_more = ($limit && strlen($txt_content) > $char_limit) ?
@@ -313,41 +433,24 @@ class Posts extends BaseModel
             background-color: rgba(255,255,255,1); 
             border: 1px solid; border-color: #e5e6e9 #dfe0e4 #d0d1d5;'>
                 <div style='width: 100%; min-height: 20px; line-height: 20px; padding: 5px; margin: 0; 
-                text-align: left; font-size: 15px; font-weight: bold;'><a href='{$url}'>{$post->title}</a></div>
+                text-align: left; font-size: 15px; font-weight: bold;'><a href='{$url}'>{$data['title']}</a></div>
                 <div style='width: 60%; min-width: 300px; box-sizing: border-box; height: 5px; 
                 border-bottom: 1px solid #d8d8d8'></div>
 
                 <div style='text-align: left; margin: auto; background-color: white; padding: 10px;'>
-                    $content
-                    $show_more
+                    {$content}
+                    {$show_more}
                 </div>
                 <table style='position:relative; width: 100%; padding: 2px 10px 2px 10px; 
                 background-color: rgba(50,50,50,1); margin: auto; text-align: right; color: #ffffff; font-size: 13px;'>
                     <tr>
                     <td class='news_time_container'>
-                        $day at $post->time
+                        {$day} at {$data['time']}
                     </td>
-                    <td style='text-align: right'>Posted by <span id='author_name'>$user_name</span></td>
+                    <td style='text-align: right'>Posted by <span id='author_name'>{$user_name}</span></td>
                     /<tr>
                 </table>
             </div>";
-    }
-
-    /**
-     * Generate selection list of news (for editing)
-     * @param Users $user
-     * @return string
-     */
-    public function get_selection_list(Users $user)
-    {
-        // Get all posted news if user has at least the organizer level, otherwise only get user's posts.
-        $post_list = (Page::$levels[$user->status] >= 1) ?
-        $this->all() : $this->all(array('username'=>$user->username));
-        if (!empty($post_list)) {
-            return self::selection_menu($post_list);
-        } else {
-            return self::nothing();
-        }
     }
 
     /**
@@ -355,7 +458,7 @@ class Posts extends BaseModel
      * @param array $data
      * @return string
      */
-    public static function selection_list(array $data)
+    public static function selectionList(array $data)
     {
         $options = "";
         foreach ($data as $key => $item) {
@@ -370,56 +473,11 @@ class Posts extends BaseModel
     }
 
     /**
-     * Get submission form
-     * @param string $view
-     * @return array|string
-     */
-    public function getForm(array $data)
-    {
-        $view = isset($data['view']) ? $data['view'] : 'body';
-        if ($view === "body") {
-            return self::format_section($this->editor($data));
-        } else {
-            $content = $this->editor($data);
-            return array(
-                'content'=>$content['content'],
-                'id'=>'suggestion',
-                'buttons'=>null,
-                'title'=>$content['title']);
-        }
-    }
-
-    /**
-     * Render submission editor
-     * @param array|null $post
-     * @return array
-     */
-    public function editor(array $post = null)
-    {
-        $post = (is_null($post)) ? $_POST : $post;
-        $id = isset($post['id']) ? $post['id'] : false;
-        $user = new Users($_SESSION['username']);
-        $data = $this->getInfo($id);
-        return self::form($user, $data ? (object)$data : null);
-    }
-
-    /**
-     * @param array $content
-     * @return string
-     */
-    public static function format_section(array $content)
-    {
-        return "
-        {$content['content']}
-        ";
-    }
-
-    /**
      * render selection menu for edit page
      * @param array $data
      * @return string
      */
-    public static function selection_menu(array $data)
+    public static function selectionMenu(array $data)
     {
         $content = null;
         foreach ($data as $key => $item) {
@@ -440,7 +498,7 @@ class Posts extends BaseModel
                             <!-- Edit button -->
                             <div class='action_icon'>
                                 <a class='loadContent' data-url='{$url}' 
-                                    data-destination='.post_edit_container#post_{$item['id']}'>
+                                    data-destination='.post_edit_target#post_{$item['id']}'>
                                     <img src='" . URL_TO_IMG . 'edit.png' . "' />
                                 </a>
                             </div>
@@ -454,7 +512,7 @@ class Posts extends BaseModel
                         </div>
                     </div>
                 </div>
-                <div class='list-container-row post_edit_container' id='post_{$item['id']}'></div>
+                <div class='list-container-row post_edit_target' id='post_{$item['id']}'></div>
                 ";
         }
         return "<div class='table_container'>
@@ -481,7 +539,7 @@ class Posts extends BaseModel
             self::getClassName(),
             'getForm',
             array(
-                'destination'=>'.post_edit_container#main')
+                'destination'=>'.post_edit_target#main')
         );
         return "
                 <section>
@@ -489,9 +547,9 @@ class Posts extends BaseModel
                     <div class='section_content'>
                         <div class='action_btns'>
                             <input type='button' id='submit' class='loadContent' data-url='{$url}' 
-                            data-destination='.post_edit_container#main' value='Add a news'/>
+                            data-destination='.post_edit_target#main' value='Add a news'/>
                         </div>
-                        <div class='post_edit_container' id='main'></div>
+                        <div class='post_edit_target' id='main'></div>
                         <div class='feedback'></div>
                         {$options}
                     </div>
@@ -502,7 +560,7 @@ class Posts extends BaseModel
     /**
      * Show post form
      * @param Users $user
-     * @param null|Posts $Post
+     * @param null|\StdClass $Post
      * @return mixed
      */
     public static function form(Users $user, $Post = null)
@@ -566,28 +624,5 @@ class Posts extends BaseModel
     public static function description()
     {
         return "";
-    }
-
-    /**
-     * Display last news in digest email
-     * @param null $username
-     * @return mixed
-     */
-    public function makeMail($username = null)
-    {
-        $last = $this->getlastnews();
-        if (empty($last)) {
-            $content['body'] = "No news this week";
-        } else {
-            $last_news = new self($last[0]);
-            $today = date('Y-m-d');
-            if (date('Y-m-d', strtotime($last_news->date)) < date('Y-m-d', strtotime("$today - 7 days"))) {
-                $last_news->content = "No recent news this week";
-            }
-            $content['body'] = $last_news->content;
-        }
-
-        $content['title'] = 'Last News';
-        return $content;
     }
 }

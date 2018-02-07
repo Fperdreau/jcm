@@ -28,7 +28,7 @@ $result = "
         <h2>Last News</h2>
         <div class='section_content'>
             <div class='news'>
-                " . $last_news->show_last() . "
+                " . $last_news->showLast() . "
             </div>
         </div>
     </section>

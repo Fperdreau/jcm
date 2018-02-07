@@ -144,30 +144,6 @@ var get_submission_form = function (data) {
     processAjax(el, data, callback, url);
 };
 
-
-/**
- * Display form to post a news
- * @param postid
- */
-var showpostform = function (postid) {
-    var el = $('.post_edit_container');
-    var data = {post_show: true, postid: postid};
-    var callback = function (result) {
-        var text_area = "<textarea name='content' id='post_edit_container' class='wygiwgm'>" + result.content + "</textarea>";
-        el
-            .empty()
-            .html(result.content)
-            .fadeIn(200);
-        $('.post_txtarea')
-            .html(text_area)
-            .show();
-
-        loadWYSIWYGEditor();
-    };
-    processAjax(el, data, callback, "php/router.php?controller=Posts&action=editor");
-};
-
-
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Dialog boxes
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
