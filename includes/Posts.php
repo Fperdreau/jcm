@@ -117,10 +117,9 @@ class Posts extends BaseModel
         $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
         $count = $this->getCount($category);
         $posts_ids = $this->getLimited($category, $page_index, $pp, 'date DESC');
-        $pagination = new Pagination();
 
         if (!empty($posts_ids)) {
-            $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
+            $news = "<div class='paging_container'>" . Pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
             foreach ($posts_ids as $id) {
                 $data = $this->getInfo($id);
                 $user = new Users($data['username']);
@@ -182,39 +181,24 @@ class Posts extends BaseModel
         $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
         $base_url = URL_TO_APP . "index.php?page=member/news&curr_page=";
         $count = $this->getCount();
-        $post_list = (Page::$levels[$user->status] >= 1) ?
-        $this->all() : $this->all(array('username'=>$user->username));
-        $posts_ids = $this->getLimited(null, $page_index, $pp, 'date DESC');
-        $pagination = new Pagination();
+
+        // Only show list of news posted by current user if user is not organizer/admin
+        $Account = new Account();
+        $posts_ids = $Account->isAuthorized($user->username, 'organizer') ?
+                        $this->all(array(), array('limit_start'=>$page_index, 'limit'=>$pp)) :
+                        $this->all(array('username'=>$user->username), array('limit_start'=>$page_index, 'limit'=>$pp));
 
         if (!empty($posts_ids)) {
-            $news = "<div class='paging_container'>" . $pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
+            $news = Pagination::getPaging($count, $pp, $page_number, $base_url);
             $data = array();
             foreach ($posts_ids as $key => $item) {
-                $data[$key] = $this->getInfo($item);
+                $data[$key] = $this->getInfo(array('id'=>$item['id']));
             }
             $news .= self::selectionMenu($data);
         } else {
             $news = self::nothing();
         }
         return $news;
-    }
-
-    /**
-     * Generate selection list of news (for editing)
-     * @param Users $user
-     * @return string
-     */
-    public function getSelectionList_old(Users $user)
-    {
-        // Get all posted news if user has at least the organizer level, otherwise only get user's posts.
-        $post_list = (Page::$levels[$user->status] >= 1) ?
-        $this->all() : $this->all(array('username'=>$user->username));
-        if (!empty($post_list)) {
-            return self::selectionMenu($post_list);
-        } else {
-            return self::nothing();
-        }
     }
 
     /**
@@ -448,7 +432,7 @@ class Posts extends BaseModel
                         {$day} at {$data['time']}
                     </td>
                     <td style='text-align: right'>Posted by <span id='author_name'>{$user_name}</span></td>
-                    /<tr>
+                    </tr>
                 </table>
             </div>";
     }
@@ -498,7 +482,7 @@ class Posts extends BaseModel
                             <!-- Edit button -->
                             <div class='action_icon'>
                                 <a class='loadContent' data-url='{$url}' 
-                                    data-destination='.post_edit_target#post_{$item['id']}'>
+                                    data-destination='.post_edit_target#main'>
                                     <img src='" . URL_TO_IMG . 'edit.png' . "' />
                                 </a>
                             </div>
@@ -512,7 +496,6 @@ class Posts extends BaseModel
                         </div>
                     </div>
                 </div>
-                <div class='list-container-row post_edit_target' id='post_{$item['id']}'></div>
                 ";
         }
         return "<div class='table_container'>

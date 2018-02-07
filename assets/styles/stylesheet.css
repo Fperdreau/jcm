@@ -3912,6 +3912,8 @@ input.dateinput {
     background-color: rgba(255, 255, 255, 1);
     padding: 0;
     bottom: 10px;
+    border: 1px solid;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
 }
 
 #paging_menu {
@@ -3934,6 +3936,7 @@ input.dateinput {
     width: 100%;
     text-align: center;
     font-weight: 400;
+    padding: 5px;
 }
 
 #paging_nav div {

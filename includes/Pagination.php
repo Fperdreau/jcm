@@ -27,7 +27,8 @@ namespace includes;
  * Class Pagination
  * @package Core\HTML
  */
-class Pagination {
+class Pagination
+{
 
     /**
      * Get Pagination
@@ -37,9 +38,10 @@ class Pagination {
      * @param $base_url
      * @return string
      */
-    public  static function getPaging($tot_rows, $pp, $curr_page, $base_url) {
-        $paging_info = self::get_paging_info($tot_rows, $pp, $curr_page, $base_url);
-        return self::paging_menu($paging_info);
+    public static function getPaging($tot_rows, $pp, $curr_page, $base_url)
+    {
+        $paging_info = self::getPagingInfo($tot_rows, $pp, $curr_page, $base_url);
+        return self::pagingMenu($paging_info);
     }
 
     /**
@@ -50,7 +52,8 @@ class Pagination {
      * @param string $base_url
      * @return array
      */
-    public static function get_paging_info($tot_rows, $pp, $curr_page, $base_url) {
+    public static function getPagingInfo($tot_rows, $pp, $curr_page, $base_url)
+    {
         $pages = ($pp>0) ? ceil($tot_rows / $pp):$tot_rows; // calc pages
 
         $data = array(); // start out array
@@ -67,25 +70,33 @@ class Pagination {
      * @param array $paging_info
      * @return string
      */
-    public static function paging_menu($paging_info) {
+    public static function pagingMenu($paging_info)
+    {
         $content = "";
         if ($paging_info['curr_page'] > 1) {
-            $first_url = $paging_info['curr_url'].'1';
-            $prev_url = $paging_info['curr_url'].($paging_info['curr_page']-1);
+            $first_url = $paging_info['curr_url'] . '1';
+            $prev_url = $paging_info['curr_url'] . ($paging_info['curr_page']-1);
             $content .= "
-                <div><a href='{$first_url}' title='Page 1' id='paging_first'><img src='".URL_TO_IMG.'first_arrow.png'."'></a></div>
-                <div><a href='{$prev_url}' title='" . ($paging_info['curr_page'] - 1) . "'  id='paging_prev'><img src='".URL_TO_IMG.'prev.png'."'></a></div>";
+                <div><a href='{$first_url}' title='Page 1' id='paging_first'>
+                <img src='" . URL_TO_IMG . 'first_arrow.png'."'></a></div>
+                <div><a href='{$prev_url}' title='" . ($paging_info['curr_page'] - 1) . "'  id='paging_prev'>
+                <img src='" . URL_TO_IMG . 'prev.png'."'></a></div>";
+        } else {
+            $content .= "
+                <div style='opacity: 0.5'><img src='" . URL_TO_IMG . 'first_arrow.png' . "'></div>
+                <div style='opacity: 0.5'><img src='" . URL_TO_IMG . 'prev.png' . "'></div>";
         }
 
         //setup starting point
         //$max is equal to number of links shown
         $max = 3;
-        if ($paging_info['curr_page'] < $max)
+        if ($paging_info['curr_page'] < $max) {
             $sp = 1;
-        elseif ($paging_info['curr_page'] >= ($paging_info['pages'] - floor($max / 2)))
+        } elseif ($paging_info['curr_page'] >= ($paging_info['pages'] - floor($max / 2))) {
             $sp = $paging_info['pages'] - $max + 1;
-        elseif ($paging_info['curr_page'] >= $max)
+        } elseif ($paging_info['curr_page'] >= $max) {
             $sp = $paging_info['curr_page'] - floor($max / 2);
+        }
 
         // If the current page >= $max then show link to 1st page
         if ($paging_info['curr_page'] >= $max) {
@@ -95,7 +106,6 @@ class Pagination {
 
         // Loop though max number of pages shown and show links either side equal to $max / 2
         for ($i = $sp; $i <= ($sp + $max - 1); $i++) {
-
             if ($i > $paging_info['pages']) {
                 continue;
             }
@@ -126,9 +136,14 @@ class Pagination {
             <div><a href='{$next_url}' title='Page ". ($paging_info['curr_page'] + 1). "' id='paging_next'><img src='".URL_TO_IMG.'next.png'."'></a></div>
             <div><a href='{$last_url}' title='Page {$paging_info['pages']}' id='paging_last'><img src='".URL_TO_IMG.'last_arrow.png'."'></a></div>
             ";
+        } else {
+            $content .= "
+            <div style='opacity: 0.5'><img src='" . URL_TO_IMG . 'next.png' . "'></div>
+            <div style='opacity: 0.5'><img src='" . URL_TO_IMG . 'last_arrow.png' . "'></div>
+            ";
         }
 
-        return "<div id='paging_menu'><div id='paging_nav'>{$content}</div></div>";
+        return "<div id='pagingMenu'><div id='paging_nav'>{$content}</div></div>";
     }
 
     /**
@@ -136,7 +151,8 @@ class Pagination {
      * @param null|string $label: input's label
      * @return string
      */
-    public static function pp_selector($label=null) {
+    public static function pageSelector($label = null)
+    {
         $label = (is_null($label)) ? _('Items/Page'):$label;
         $allowed = array(5, 10, 15, 20, 50);
         $options = "";
@@ -145,7 +161,7 @@ class Pagination {
             $options .= "<option value='{$nb}' {$selected}>{$nb}</option>";
         }
         return "
-        <div class='pp_selector_container'>
+        <div class='pageSelector_container'>
             <form method='post' action='".URL_TO_APP.'collections/update_pp'."'>
                 <select name='pp' class='ajax_select'>
                     <option value='' disabled selected class='disabled_select'>{$label}</option>
