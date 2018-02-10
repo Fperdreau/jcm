@@ -65,7 +65,8 @@ class Mail
      * Class constructor
      * @param array $settings
      */
-    public function __construct(array $settings) {
+    public function __construct(array $settings)
+    {
         $this->setSettings($settings);
     }
 
@@ -74,18 +75,19 @@ class Mail
      * @param $settings
      * @return array
      */
-    public function setSettings($settings) {
+    public function setSettings($settings)
+    {
         if (isset($settings['SMTP_debug'])) {
             if ($settings['SMTP_debug'] === 'false') {
                 $settings['SMTP_debug'] = false;
-            } else if ($settings['SMTP_debug'] === 'true') {
+            } elseif ($settings['SMTP_debug'] === 'true') {
                 $settings['SMTP_debug'] = true;
             } else {
                 $settings['SMTP_debug'] = (int)$settings['SMTP_debug'];
             }
         }
 
-        foreach ($settings as $key=>$value) {
+        foreach ($settings as $key => $value) {
             if (in_array($key, array_keys($this->settings))) {
                 $this->settings[$key] = $value;
             }
@@ -96,9 +98,11 @@ class Mail
 
     /**
      * Get PhpMailer instance
+     *
      * @return PHPMailer
      */
-    private function getPhpMailer() {
+    private function getPhpMailer()
+    {
         if (is_null(self::$PhpMailer)) {
             self::$PhpMailer = new PHPMailer(false);
         }
@@ -107,11 +111,13 @@ class Mail
 
     /**
      * Test if domain email exists
+     *
      * @param $email
      * @param string $record
      * @return bool
      */
-    public static function domain_exists($email, $record = 'MX') {
+    public static function domainExists($email, $record = 'MX')
+    {
         list($user, $domain) = explode('@', $email);
         return empty($domain) ? false : checkdnsrr($domain, $record);
     }
@@ -131,27 +137,33 @@ class Mail
      * @throws phpmailerException
      * @throws Exception
      */
-    public function send_mail($to, $subject, $body, $attachment = null, $undisclosed=true)
+    public function send($to, $subject, $body, $attachment = null, $undisclosed = true)
     {
-        if (!is_array($to)) $to = array($to);
+        if (!is_array($to)) {
+            $to = array($to);
+        }
 
         try {
             // Set PhpMailer instance
             $mail = $this->setMailObj($subject, $body);
 
+            // Add recipients
             foreach ($to as $to_add) {
-
-                if (!self::domain_exists($to_add))
-                    return array('status' => false, 'logs' => "{$to_add} is not a valid email address");
+                if (!self::domainExists($to_add)) {
+                    return array(
+                        'status' => false,
+                        'logs' => "{$to_add} is not a valid email address"
+                    );
+                }
 
                 if ($undisclosed) {
                     if (!$mail->addBCC($to_add)) {
-                        Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                        Logger::getInstance('jcm')->error($mail->ErrorInfo);
                         return array('status' => false, 'logs' => $mail->ErrorInfo);
                     }
                 } else {
                     if (!$mail->addAddress($to_add)) {
-                        Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                        Logger::getInstance('jcm')->error($mail->ErrorInfo);
                         return array('status' => false, 'logs' => $mail->ErrorInfo);
                     }
                 }
@@ -159,12 +171,14 @@ class Mail
 
             // Add attachments
             if (!is_null($attachment)) {
-                if (!is_array($attachment)) $attachment = array($attachment);
+                if (!is_array($attachment)) {
+                    $attachment = array($attachment);
+                }
                 foreach ($attachment as $path) {
                     $split = explode('/', $path);
                     $file_name = end($split);
                     if (!$mail->addAttachment($path, $file_name)) {
-                        Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                        Logger::getInstance('jcm')->error($mail->ErrorInfo);
                         return array('status' => false, 'logs' => $mail->ErrorInfo);
                     }
                 }
@@ -172,16 +186,15 @@ class Mail
 
             // Send email
             if (!$mail->send()) {
-                Logger::getInstance('jcm')->error($mail->ErrorInfo); //Catch error messages from PHPMailer
+                Logger::getInstance('jcm')->error($mail->ErrorInfo);
                 return array('status' => false, 'logs' => $mail->ErrorInfo);
             } else {
                 $mail->clearAddresses();
                 $mail->clearAttachments();
                 return array('status' => true, 'logs' => $this->logs);
             }
-
         } catch (Exception $e) {
-            Logger::getInstance('jcm')->error($e->getMessage()); //Catch error messages from PHPMailer
+            Logger::getInstance('jcm')->error($e->getMessage());
             return array('status' => false, 'logs' => $e->getMessage());
         }
     }
@@ -193,7 +206,8 @@ class Mail
      * @param string $body: email content
      * @return PhpMailer
      */
-    private function setMailObj($subject, $body) {
+    private function setMailObj($subject, $body)
+    {
         // Get PhpMailer instance
         $mail = self::getPhpMailer();
 
@@ -238,5 +252,4 @@ class Mail
 
         return $mail;
     }
-
 }
