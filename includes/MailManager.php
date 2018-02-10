@@ -31,7 +31,8 @@ use includes\BaseModel;
 /**
  * Class MailManager
  */
-class MailManager extends BaseModel {
+class MailManager extends BaseModel
+{
 
     /**
      * MailManager settings
@@ -50,13 +51,16 @@ class MailManager extends BaseModel {
     );
 
     // Entity properties
+    public $id; // Email id
     public $date; // Date of creation
     public $status; // Email status (1:sent, 0:not sent)
     public $recipients; // Email's recipients (comma-separated list of emails)
-    public $mail_id; // Email unique id
-    public $content; // Email body content
+    public $body; // Email body content
     public $subject; // Email header
     public $attachments; // Attached files (comma-separated)
+    public $mail_from; // Sender email
+    public $mail_from_name; // Sender full name
+    public $undisclosed; // Undisclosed recipients
     public $logs; // Logs
 
     /**
@@ -72,20 +76,20 @@ class MailManager extends BaseModel {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->setLab();
     }
 
     /**
      * Add email to db
+     *
      * @param null|array $post
      * @return bool|mysqli_result
      */
-    public function add(array $post=null) {
-        $post = (is_null($post)) ? $_POST:$post;
-        $post['date'] = date('Y-m-d h:i:s'); // Date of creation
-
+    public function add(array $post = null)
+    {
         $content = $this->parseData($post);
         return $this->db->insert($this->tablename, $content);
     }
@@ -95,7 +99,8 @@ class MailManager extends BaseModel {
      * @param array $settings: Mail settings
      * @return void
      */
-    private function setMail(array $settings) {
+    private function setMail(array $settings)
+    {
         $this->Mail = new Mail($settings);
     }
 
@@ -103,7 +108,8 @@ class MailManager extends BaseModel {
      * Lab setter
      * @return void
      */
-    private function setLab() {
+    private function setLab()
+    {
         $this->Lab = new Lab();
     }
 
@@ -112,8 +118,9 @@ class MailManager extends BaseModel {
      * @param array $settings
      * @return bool|void
      */
-    private function setSettings(array $settings) {
-        foreach ($settings as $key=>$value) {
+    private function setSettings(array $settings)
+    {
+        foreach ($settings as $key => $value) {
             if (in_array($key, array_keys($this->settings))) {
                 $this->settings[$key] = $value;
             }
@@ -126,87 +133,201 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Renders email content
-     * @param $mail_id
-     * @return string
+     * Renders email content in web browser
+     *
+     * @param int $id: email unique id
+     *
+     * @return string|null
      */
-    public function show($mail_id) {
-        $data = $this->get(array('mail_id'=>$mail_id));
+    public function show($id)
+    {
+        $data = $this->get(array('id'=>$id));
         if (empty($data)) {
-            return null;
+            return self::notFound();
         }
         $attachments = (!empty($data['attachments'])) ? explode(',', $data['attachments']) : array();
         $Media = new Media();
         $files = array();
-        foreach ($attachments as $file_name) {
+        foreach ($attachments as $key => $file_id) {
             // Get file information
-            $file_data = $Media->get(array('fileid'=>$file_name));
+            $file_data = $Media->get(array('id'=>$file_id));
             if (!is_null($file_data)) {
-                $files[] = array('name'=>$file_data['name'] . '.' . $file_data['type'], "path"=>URL_TO_APP . 'uploads/' . $file_data['filename']);
+                $files[] = array(
+                    'name'=>$file_data['name'] . '.' . $file_data['type'],
+                    "path"=>URL_TO_APP . 'uploads/' . $file_data['filename']
+                );
             }
         }
+
+        $data['body'] = $this->formatMail(
+            htmlspecialchars_decode($data['body']),
+            $data['id'],
+            false
+        );
         return self::showEmail($data, $files);
     }
 
     /**
+     * Add email to queue
+     *
+     * @param array $content
+     * @param array $mailing_list
+     * @param boolean $undisclosed
+     * @param array $settings
+     * @return void
+     */
+    public function addToQueue(array $data)
+    {
+        // Get emails from the provided list of IDs
+        $mailing_list = $this::processRecipientsList($data['emails']);
+
+        // Sender information
+        if (isset($data['sender_id'])) {
+            $user = new Users();
+            $userData = $user->getById($data['sender_id']);
+            $data['mail_from'] = $userData['email'];
+            $data['mail_from_name'] = $userData['firstname'] . ' ' . $userData['lastname'];
+        }
+
+        $mail_from = isset($data['mail_from']) ? $data['mail_from'] : null;
+        $mail_from_name = isset($data['mail_from_name']) ? $data['mail_from_name'] : null;
+
+        // Add email to the MailManager table
+        $id = $this->add(array(
+            'date'=>date('Y-m-d h:i:s'),
+            'status'=>0,
+            'mail_from'=>$mail_from,
+            'mail_from_name'=>$mail_from_name,
+            'recipients'=>implode(',', $mailing_list),
+            'subject'=>$data['subject'],
+            'body'=>$data['body'],
+            'attachments'=>isset($data['attachments']) ? $data['attachments'] : null,
+            'undisclosed'=>$data['undisclosed'] == 'yes'
+        ));
+
+        // Output result
+        if ($result['status'] = $id !== false) {
+            $result['msg'] = "Your message will be sent shortly!";
+        } else {
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['msg']);
+            $result['msg'] = 'Oops, something went wrong!';
+        }
+        return $result;
+    }
+
+    /**
+     * Process emails queue (send and update Db if operation is successful)
+     *
+     * @return array
+     */
+    public function processQueue()
+    {
+        $sent = 0;
+        $data = $this->all(array('status'=>0));
+        $to_be_sent = count($data);
+        foreach ($data as $key => $email) {
+            $recipients = explode(',', $email['recipients']);
+            if (empty($email['attachments'])) {
+                $email['attachments'] = null;
+            }
+            if ($this->send($email, $recipients, $data['undisclosed'], null)) {
+                $this->update(array('status'=>1), array('id'=>$email['id']));
+                $sent += 1;
+            }
+            sleep(2); // Add some time interval before processing the next email
+        }
+        return array(
+            'status' => $sent == $to_be_sent,
+             'msg' => "{$sent}/{$to_be_sent} emails have been sent."
+        );
+    }
+
+    /**
+     * Clean email table: remove emails older than $day days
+     *
+     * @param int|null $day
+     *
+     * @return bool
+     */
+    public function cleanQueue($day = null)
+    {
+        $day = (is_null($day)) ? $this->options['nb_version']['value'] : $day;
+        $date_limit = date('Y-m-d', strtotime("now - $day day"));
+        $data = $this->all(array('date <='=>$date_limit, 'status'=>1));
+
+        $to_delete = count($data);
+        $count = 0;
+        foreach ($data as $key => $email) {
+            if (!$this->delete(array('id'=>$email['id']))) {
+                Logger::getInstance(APP_NAME)->error("Could not delete email '{$email['id']}'");
+                return false;
+            } else {
+                $count += 1;
+            }
+        }
+
+        Logger::getInstance(APP_NAME)->log("{$count}/{$to_delete} emails have been deleted.");
+        return true;
+    }
+
+    /**
      * Sends an email
-     * @param array $content : email content
+     *
+     * @param array $data : email content
      * @param array $mailing_list : recipients list
      * @param bool $undisclosed : hide (true) or show(false) recipients list
      * @param array $settings : email host settings (for testing)
-     * @param bool $add : add email to Db
+     *
      * @return mixed
-     * @throws Exception
      * @throws phpmailerException
      */
-    public function send(array $content, array $mailing_list, $undisclosed=true, array $settings=null, $add=true) {
-        // Generate ID
-        $data['mail_id'] = $this->generateID('mail_id');
+    public function send(array $data, array $mailing_list, $undisclosed = true, array $settings = null)
+    {
+        // Set id to null if email is not recorded into Db
+        if (!isset($data['id'])) {
+            $data['id'] = null;
+        }
 
+        // Is this message sent by a human or automatically?
+        $auto = empty($data['mail_from']);
+        
         // Format email content
-        $auto = !isset($content['mail_from']); // Is this message sent by a human or automatically
-        $body = $this->formatmail($content['body'], $data['mail_id'], $auto);
+        $body = $this->formatMail($data['body'], $data['id'], $auto);
 
-        $data['status'] = 0;
-        $data['content'] = $body;
-        $data['recipients'] = implode(',', $mailing_list);
-        $data['attachments'] = !empty($content['attachments']) ? $content['attachments'] : null;
+        // Get Mailer settings
+        if (is_null($settings)) {
+            $settings = $this->settings;
+        }
 
         // Set sender
-        if (isset($content['mail_from'])) {
-            if (is_null($settings)) {
-                $settings = $this->settings;
-            }
-
+        if (isset($data['mail_from'])) {
             // Add custom settings
-            $settings['mail_from'] = $content['mail_from'];
-            $settings['mail_from_name'] = (isset($content['mail_from_name'])) ? $content['mail_from_name'] : $content['mail_from'];
+            $settings['mail_from'] = $data['mail_from'];
+            $settings['mail_from_name'] = $data['mail_from_name'];
 
             // Email title
-            $content['subject'] = "Sent by {$settings['mail_from_name']} - {$content['subject']}";
+            $data['subject'] = "{$data['subject']} (Sent by {$settings['mail_from_name']})";
         }
 
-        // Update object settings
-        if (!is_null($settings)) {
-            $this->setSettings($settings);
-        }
-
-        $content['subject'] = $this->settings['pre_header'] . ' ' . $content['subject'];
-        $data['subject'] = $content['subject'];
+        // Set email subject
+        $subject = $this->settings['pre_header'] . ' ' . $data['subject'];
 
         // Add attachments
-        if (!is_null($data['attachments'])) {
-            $attachments = $this->addAttachments($data['attachments'], $data['mail_id']);
-        } else {
-            $attachments = null;
-        }
+        $attachments = isset($data['attachments']) && !empty($data['attachments']) ?
+            $this->addAttachments($data['attachments'], $data['id']) : null;
 
-        // Add email to the MailManager table
-        $result = array('status'=>true, 'msg'=>null);
-        if ($add) {
-            $result = $this->addAndSend($data, $mailing_list, $content, $body, $attachments, $undisclosed);
-        }
+        // Set Email instance
+        $this->setMail($settings);
 
+        // Send email
+        $result = $this->Mail->send(
+            $mailing_list,
+            $data['subject'],
+            $body,
+            $attachments,
+            $undisclosed
+        );
+        
         // Output result
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
@@ -219,53 +340,18 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Helper function to adding email to Db and sending email
+     * Helper function for adding attachments before sending email
      *
      * @param $data
-     * @param $mailing_list
-     * @param $content
-     * @param $body
-     * @param $attachments
-     * @param $undisclosed
-     * @return array
-     * @throws Exception
-     * @throws phpmailerException
-     */
-    private function addAndSend($data, $mailing_list, $content, $body, $attachments, $undisclosed) {
-        if ($this->add($data)) {
-
-            // Set Email instance
-            $this->setMail($this->settings);
-
-            // Send email
-            $result = $this->Mail->send_mail($mailing_list, $content['subject'], $body, $attachments, $undisclosed);
-
-            if ($result['status'] === true) {
-                // Update MailManager table
-                $result['status'] = $this->update(array('status'=>1, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
-            } else {
-                $this->update(array('status'=>0, 'logs'=>$result['logs']), array('mail_id'=>$data['mail_id']));
-                $result['msg'] = $result['logs'];
-            };
-
-        } else {
-            $result['status'] = false;
-            $result['msg'] = 'Could not add email to database';
-        };
-        return $result;
-    }
-
-    /**
-     * Helper function for adding attachments before sending email
-     * @param $data
      * @param $mail_id
+     *
      * @return array
      */
-    private function addAttachments($data, $mail_id) {
+    private function addAttachments($data, $mail_id)
+    {
         $attachments = array();
         $Media = new Media();
         foreach (explode(',', $data) as $file_id) {
-
             if (is_file($file_id)) {
                 $attachments[] = $file_id;
             } else {
@@ -277,7 +363,8 @@ class MailManager extends BaseModel {
                     }
                 } else {
                     Logger::getInstance(APP_NAME, __CLASS__)->warning(
-                        "Could not add file '{$file_data['filename']}' in attachment");
+                        "Could not add file '{$file_data['filename']}' in attachment"
+                    );
                 }
             }
         }
@@ -286,13 +373,17 @@ class MailManager extends BaseModel {
 
     /**
      * Format email (html)
+     *
      * @param string $content
      * @param null $email_id
      * @param bool $auto : has this email been sent automatically
+     *
      * @return string
+     *
      * @throws Exception
      */
-    public function formatmail($content, $email_id=null, $auto=True) {
+    public function formatMail($content, $email_id = null, $auto = true)
+    {
         $show_in_browser = (is_null($email_id)) ? null:
             "<a href='" . URL_TO_APP . "pages/mail.php?mail_id={$email_id}"
             . "' target='_blank' style='color: #CF5151; text-decoration: none;'>Show</a> in browser";
@@ -305,15 +396,19 @@ class MailManager extends BaseModel {
      * @param null $type
      * @return array
      */
-    public static function get_mailinglist($type=null) {
+    public static function getMailingList($type = null)
+    {
         $User = new Users();
         $criteria = array("active"=>1);
         if (!is_null($type)) {
             $criteria[$type] = 1;
         }
         $mailing_list = array();
-        foreach ($User->all($criteria, array('order'=>'fullname')) as $key=>$item) {
-            $mailing_list[$item['fullname']] = array('email'=>$item['email'], 'username'=>$item['username']);
+        foreach ($User->all($criteria, array('order'=>'fullname')) as $key => $item) {
+            $mailing_list[$item['fullname']] = array(
+                'email'=>$item['email'],
+                'username'=>$item['username']
+            );
         }
 
         return $mailing_list;
@@ -321,29 +416,37 @@ class MailManager extends BaseModel {
 
     /**
      * Gets contact form
+     *
      * @param string|null $recipients : list of recipients
+     *
      * @return string
      */
-    public function getContactForm($recipients=null) {
+    public function getContactForm($recipients = null)
+    {
         $user = new Users();
 
         if (!is_null($recipients)) {
             $recipients_list = array();
             foreach (explode(',', $recipients) as $id) {
-                if (!empty($id)) $recipients_list[] = $user->getById($id);
+                if (!empty($id)) {
+                    $recipients_list[] = $user->getById($id);
+                }
             }
         } else {
             $recipients_list = null;
         }
 
         $mailing_list = "";
-        foreach ( $user->all_but_admin() as $key=>$info) {
-            $selected = (!is_null($recipients_list) && $info['fullname'] === $recipients_list[0]['fullname']) ? 'selected' : null;
-            if (!empty($info['fullname'])) $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
+        foreach ($user->all_but_admin() as $key => $info) {
+            $selected = (!is_null($recipients_list) && $info['fullname'] === $recipients_list[0]['fullname']) ?
+                'selected' : null;
+            if (!empty($info['fullname'])) {
+                $mailing_list .= "<option value='{$info['id']}' {$selected}>{$info['fullname']}</option>";
+            }
         }
 
         $sender_obj = new Users($_SESSION['username']);
-        $sender = array('mail_from'=>$sender_obj->email, 'mail_from_name'=>$sender_obj->fullname);
+        $sender = $sender_obj->id;
 
         // Upload
         $uploader = Media::uploader('MailManager', array(), 'email_form');
@@ -354,14 +457,15 @@ class MailManager extends BaseModel {
      * @param array $data
      * @return mixed
      */
-    public static function addRecipients(array $data) {
+    public static function addRecipients(array $data)
+    {
         $id = htmlspecialchars($data['add_emails']);
         $user = new Users();
         if (strtolower($id) === 'all') {
             $users = $user->all_but_admin();
             $content = "";
             $ids = array();
-            foreach ($users as $key=>$info) {
+            foreach ($users as $key => $info) {
                 $ids[] = $info['id'];
                 $content .= self::showRecipient($info);
             }
@@ -377,39 +481,37 @@ class MailManager extends BaseModel {
     }
 
     /**
-     * Send email to selected recipients
+     * Get emails list from recipients list
      *
-     * @param array $data
-     * @return mixed
-     * @throws Exception
-     * @throws phpmailerException
+     * @param string $data
+     *
+     * @return array
      */
-    public static function sendToRecipients(array $data) {
-        $content = array();
-        foreach ($data as $key => $value) {
-            if (!is_array($value)) {
-                $value = htmlspecialchars_decode($value);
-            }
-            $content[$key] = $value;
-        }
-
-        $ids = explode(',',$data['emails']); // Recipients list
-        $content['attachments'] = $data['attachments']; // Attached files
-        $disclose = htmlspecialchars($data['undisclosed']) == 'yes'; // Do we show recipients list?
-        $make_news = htmlspecialchars($data['make_news']) == 'yes'; // Do we show recipients list?
+    private static function processRecipientsList($data)
+    {
         $user = new Users();
-        $MailManager = new MailManager();
-
-        // Get emails from the provided list of IDs
+        $ids = explode(',', $data);
         $mailing_list = array();
         foreach ($ids as $id) {
             $tmp = $user->getById($id);
             $mailing_list[] = $tmp['email'];
         }
+        return $mailing_list;
+    }
 
-        $result = $MailManager->send($content, $mailing_list, $disclose);
+    /**
+     * Send email to selected recipients
+     *
+     * @param array $data
+     *
+     * @return mixed
+     */
+    public function sendToRecipients(array $data)
+    {
+        // Add email to queue
+        $result = $this->addToQueue($data);
 
-        if ($make_news) {
+        if (isset($data['make_news']) && $data['make_news'] == 'yes') {
             $news = new Posts();
             $news->add(array(
                 'title'=>$content['subject'],
@@ -429,10 +531,11 @@ class MailManager extends BaseModel {
      * @throws Exception
      * @throws phpmailerException
      */
-    public function send_test_email(array $data) {
+    public function sendTestEmail(array $data)
+    {
         // Tested settings
         $settings = array();
-        foreach ($data as $setting=>$value) {
+        foreach ($data as $setting => $value) {
             $settings[$setting] = htmlspecialchars($value);
         }
 
@@ -443,7 +546,7 @@ class MailManager extends BaseModel {
             $Users = new Users();
             $admins = $Users->getadmin('admin');
             $to = array();
-            foreach ($admins as $key=>$admin) {
+            foreach ($admins as $key => $admin) {
                 $to[] = $admin['email'];
             }
         } else {
@@ -451,7 +554,7 @@ class MailManager extends BaseModel {
         }
 
         $content['subject'] = 'Test: email host settings'; // Give the email a subject
-        $content['body'] = self::test_email();
+        $content['body'] = self::testEmail();
 
         return $this->send($content, $to, true, $data);
     }
@@ -459,22 +562,28 @@ class MailManager extends BaseModel {
     /**
      * Send email to selected organizer
      *
+     * @param array $data
+     *
      * @return array
      * @throws Exception
      * @throws phpmailerException
      */
-    public function sendMessage() {
-        $sel_admin_mail = htmlspecialchars($_POST['admin_mail']);
-        $usr_msg = htmlspecialchars($_POST["message"]);
-        $usr_mail = htmlspecialchars($_POST["email"]);
-        $usr_name = htmlspecialchars($_POST["name"]);
-        $content = "Message sent by {$usr_name} ($usr_mail):<br><p>$usr_msg</p>";
+    public function sendMessage(array $data)
+    {
+        $sel_admin_mail = htmlspecialchars($data['recipients']);
+        $usr_msg = htmlspecialchars($data["body"]);
+        $usr_mail = htmlspecialchars($data["email"]);
+        $usr_name = htmlspecialchars($data["name"]);
+
+        $content = "
+            <div>Message sent by {$data['name']} ({$data['email']}):</div>
+            <div><p>{$data['body']}</p></div>";
         $subject = "Contact from $usr_name";
 
         $settings['mail_from'] = $usr_mail;
         $settings['mail_from_name'] = $usr_mail;
 
-        if ($this->send(array('body'=>$content, 'subject'=>$subject), array($sel_admin_mail),true, $settings)) {
+        if ($this->addToQueue(array('body'=>$content, 'subject'=>$subject))) {
             $result['status'] = true;
             $result['msg'] = "Your message has been sent!";
         } else {
@@ -493,9 +602,10 @@ class MailManager extends BaseModel {
      * @throws Exception
      * @throws phpmailerException
      */
-    function send_to_mailinglist($subject,$body,$type=null,$attachment = NULL) {
+    public function sendToMailingList($subject, $body, $type = null, $attachment = null)
+    {
         $to = array();
-        foreach (self::get_mailinglist($type) as $fullname=>$data) {
+        foreach (self::getMailingList($type) as $fullname => $data) {
             $to[] = $data['email'];
         }
         if ($this->send($to, $subject, $body, $attachment)) {
@@ -560,17 +670,39 @@ class MailManager extends BaseModel {
      * @param array $attachements: list of files name attached to this email
      * @return string
      */
-    public static function showEmail(array $email, array $attachements = array())
+    private static function showEmail(array $email, array $attachements = array())
     {
         $file_list = "";
         foreach ($attachements as $key => $file) {
             $file_list .= "<div class='email_file'><a href='{$file['path']}'>{$file['name']}</a></div>";
         }
-        $content = htmlspecialchars_decode($email['content']);
         return "
         <div class='email_files'><div class='email_header'>Files list:</div>{$file_list}</div>
         <div class='email_title'><span class='email_header'>Subject:</span> {$email['subject']}</div>
-        <div class='email_content'>{$content}</div>
+        <div class='email_content'>{$email['body']}</div>
+        ";
+    }
+
+    /**
+     * Display message if no email could be found
+     *
+     * @return string
+     */
+    private static function notFound()
+    {
+        return "
+            <section>
+                <div class='section_content'>
+                    <div style='color: rgb(105,105,105); font-size: 50px; text-align: center; font-weight: 600; 
+                    margin-bottom: 20px;'>Oops</div>
+                    <div style='color: rgb(105,105,105); text-align: center; font-size: 1.2em; font-weight: 400;'>
+                        <p>Sorry, we could not find the email your were looking for. It may have been deleted due
+                        to regular cleaning of our database.</p>
+                        <p>Sorry for the inconvenience</p>
+                        <p style='font-size: 2em; text-align: center;'>ERROR 404!</p>
+                    </div>
+                </div>
+            </section>
         ";
     }
 
@@ -581,7 +713,7 @@ class MailManager extends BaseModel {
      * @param bool $auto: has this email been sent automatically
      * @return string
      */
-    public static function footer($url_browser, $profile_url, $auto = true)
+    private static function footer($url_browser, $profile_url, $auto = true)
     {
         $auto_msg = ($auto) ? "
             <div style='border-top: 1px solid #e0e0e0;'>
@@ -608,11 +740,13 @@ class MailManager extends BaseModel {
      * @param array $info
      * @return string
      */
-    public static function showRecipient(array $info) {
+    private static function showRecipient(array $info)
+    {
         return "
             <div class='added_email' id='{$info['id']}'>
                 <div class='added_email_name'>{$info['fullname']}</div>
-                <div class='added_email_delete' id='{$info['id']}'><img src='". URL_TO_IMG . "trash.png'></div>
+                <div class='added_email_delete' id='{$info['id']}'>
+                <img src='". URL_TO_IMG . "trash.png'></div>
             </div>
         ";
     }
@@ -622,12 +756,13 @@ class MailManager extends BaseModel {
      * @param array|null $recipients
      * @return array: array('recipients'=>string, 'input'=>string)
      */
-    private static function makeRecipientsList(array $recipients=null) {
+    private static function makeRecipientsList(array $recipients = null)
+    {
         $recipients_list = "";
         $emails_input = null;
         if (!is_null($recipients)) {
             $ids = array();
-            foreach ($recipients as $key=>$info) {
+            foreach ($recipients as $key => $info) {
                 $ids[] = $info['id'];
                 $recipients_list .= self::showRecipient($info);
             }
@@ -643,26 +778,21 @@ class MailManager extends BaseModel {
 
     /**
      * Renders contact form
-     * @param $uploader
-     * @param $mailing_list
+     *
+     * @param string $uploader
+     * @param string $mailing_list: list of recipients (comma-separated)
      * @param array|null $recipients
-     * @param null|array $sender: sender information (full name and email address).
-     *      $sender = array('mail_from'=>"email@me.com", 'mail_from_name'=>"John Doe")
+     * @param null|int $senderId: sender id
+     *
      * @return string
      */
-    public static function contactForm($uploader, $mailing_list, array $recipients=null, $sender=null) {
-
+    private static function contactForm($uploader, $mailing_list, array $recipients = null, $senderId = null)
+    {
+        // Recipients list
         $recipients_div = self::makeRecipientsList($recipients);
 
-        $sender_info = null;
-        if (!is_null($sender)) {
-            foreach ($sender as $key=>$value) {
-                $value = str_replace(' ','', $value);
-                if (!empty($value)) {
-                    $sender_info .= "<input type='hidden' name='{$key}' value='{$value}' />";
-                }
-            }
-        }
+        // Sender id
+        $sender_info = !is_null($senderId) ? "<input type='hidden' name='sender_id' value='{$senderId}' />" : null;
 
         return "
             <div class='mailing_container'>                 
@@ -736,7 +866,8 @@ class MailManager extends BaseModel {
      * @param array $settings
      * @return string
      */
-    private static function protocolsList(array $settings) {
+    private static function protocolsList(array $settings)
+    {
         // Make protocol list
         $protList = '';
         $protocols = ['ssl', 'tls', 'none'];
@@ -753,7 +884,8 @@ class MailManager extends BaseModel {
      * @param array $settings
      * @return string
      */
-    private static function debugOptions(array $settings) {
+    private static function debugOptions(array $settings)
+    {
         $debug_options = '';
         for ($i=0; $i<=5; $i++) {
             $selected = $settings['SMTP_debug'] == $i ? "selected" : null;
@@ -770,7 +902,8 @@ class MailManager extends BaseModel {
      * @param array $settings MailManager->settings
      * @return array
      */
-    public static function settingsForm(array $settings) {
+    public static function settingsForm(array $settings)
+    {
         // Make SMTP options list
         $debug_options = self::debugOptions($settings);
 
@@ -827,7 +960,7 @@ class MailManager extends BaseModel {
                     <label for='test_email'>Your email (for testing only)</label>
                 </div>
 
-                <div class='submit_btns'>
+                <div class='submit_btns'>test_email_settings
                     <input type='submit' value='Test settings' class='test_email_settings'> 
                     <input type='submit' value='Next' class='processform process_form'>
                 </div>
@@ -840,12 +973,12 @@ class MailManager extends BaseModel {
      * Render test email
      * @return string
      */
-    private static function test_email() {
+    private static function testEmail()
+    {
         return "
         Hello,<br><br>
         <p>This is just a test email sent to verify your email host settings. If you can read this message, it means 
         that everything went fine and that your settings are valid!</p>
         ";
     }
-
 }

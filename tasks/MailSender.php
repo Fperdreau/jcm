@@ -46,7 +46,8 @@ class MailSender extends Task
     public $options = array(
         'nb_version'=>array(
             'options'=>array(),
-            'value'=>10)
+            'value'=>10
+        )
     );
 
     /**
@@ -54,9 +55,9 @@ class MailSender extends Task
      */
     private static $Manager;
 
-    public $description = "Checks that all emails have been sent and sends them otherwise. It also cleans the
-    mailing database by deleting the oldest emails. The number of days of email storage can be defined in the task's 
-    settings (default is 10 days).";
+    public $description = "Checks that all emails have been sent and sends them otherwise. 
+    It also cleans the mailing database by deleting the oldest emails. The number of days 
+    of email storage can be defined in the task's settings (default is 10 days).";
 
     /**
      * Constructor
@@ -64,7 +65,6 @@ class MailSender extends Task
     public function __construct()
     {
         parent::__construct();
-        self::getMailer();
     }
 
     /**
@@ -81,72 +81,17 @@ class MailSender extends Task
 
     /**
      * Sends emails
+     *
+     * @return array: array('status'=>success or failure, 'msg'=>output log)
      */
     public function run()
     {
+        // Process emails queue
+        $result = $this->getMailer()->processQueue();
 
-        // Process emails
-        $result = $this->processMails();
+        // Clean queue
+        $this->getMailer()->cleanQueue($this->options['nb_version']['value']);
 
-        // Clean DB
-        $this->clean();
-
-        return array('status'=>true, 'msg'=> $result);
-    }
-
-    /**
-     * Attempt to send emails that haven't been successfully sent in the past
-     * @return string
-     */
-    public function processMails()
-    {
-        // Get Mail API
-        $this->getMailer();
-
-        $sent = 0;
-        $to_be_sent = count(self::getMailer()->all(array('status'=>0)));
-        foreach (self::getMailer()->all(array('status'=>0)) as $key => $email) {
-            $recipients = explode(',', $email['recipients']);
-            $email['body'] = $email['content'];
-            if ($email['attachments'] == '') {
-                $email['attachments'] = null;
-            }
-            if (self::getMailer()->send($email, $recipients, true, null, false)) {
-                self::getMailer()->update(array('status'=>1), array('mail_id'=>$email['mail_id']));
-                $sent += 1;
-            }
-            sleep(2); // Add some time interval before processing the next email
-        }
-        $msg = "{$sent}/{$to_be_sent} emails have been sent.";
-        Tasks::get_logger()->log($msg);
-        return $msg;
-    }
-
-    /**
-     * Clean email table
-     * @param int|null $day
-     * @return bool
-     */
-    public function clean($day = null)
-    {
-        $day = (is_null($day)) ? $this->options['nb_version']['value']: $day;
-        $date_limit = date('Y-m-d',strtotime("now - $day day"));
-        $data = self::getMailer()->all(array('date <='=>$date_limit, 'status'=>1));
-
-        $to_delete = count($data);
-        $count = 0;
-        foreach ($data as $key => $email) {
-            if (!self::getMailer()->delete(array('mail_id'=>$email['mail_id']))) {
-                Tasks::get_logger()->log("Could not delete email '{$email['mail_id']}'");
-
-                return false;
-            } else {
-                $count += 1;
-            }
-        }
-
-        $msg = "{$count}/{$to_delete} emails have been deleted.";
-        Tasks::get_logger()->log($msg);
-        return true;
+        return array('status'=>true, 'msg'=>$result);
     }
 }
