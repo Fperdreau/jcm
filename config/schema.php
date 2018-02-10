@@ -51,12 +51,14 @@ return array(
     "mailmanager"=>array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "date" => array("DATETIME", false),
-        "mail_id" => array("CHAR(15)", false),
         "status" => array("INT(1)", 0),
         "recipients" => array("TEXT NOT NULL", false),
         "attachments" => array("TEXT NOT NULL", false),
-        "content" => array("TEXT NOT NULL"),
+        "body" => array("TEXT NOT NULL"),
+        "mail_from" => array("CHAR(255)",false),
+        "mail_from_name" => array("CHAR(255)",false),
         "subject" => array("TEXT(500)", false),
+        "undisclosed" => array("INT(1) NOT NULL", 0),
         "logs" => array("TEXT", false),
         "primary" => "id"
     ),
@@ -101,7 +103,7 @@ return array(
     "posts"=>array(
         "id" => array("INT NOT NULL AUTO_INCREMENT", false),
         "postid" => array("CHAR(50) NOT NULL"),
-        "date" => array("DATETIME", False),
+        "date" => array("DATETIME", false),
         "title" => array("VARCHAR(255) NOT NULL"),
         "content" => array("TEXT(5000) NOT NULL", false, "post"),
         "username" => array("CHAR(30) NOT NULL", false),
