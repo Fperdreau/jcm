@@ -29,19 +29,17 @@
  * @return array
  */
 
-use includes\App;
-use includes\Tasks;
+namespace Tasks;
 
-include('../includes/App.php');
+require '../includes/App.php';
+\includes\App::boot(true);
 
-App::boot(true);
-
-$Tasks = new Tasks();
-$logs = $Tasks->execute_all();
+$Tasks = new \includes\Tasks();
+$logs = $Tasks->executeAll();
 
 // Send logs to admins
 if (!empty($logs)) {
     if ($Tasks->getSettings('notify_admin_task') === "yes") {
-        $Tasks->notify_admin($logs);
+        $Tasks->notifyAdmin($logs);
     }
 }

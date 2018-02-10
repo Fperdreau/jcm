@@ -46,7 +46,7 @@ class Tasks extends BaseModel
      * @var array
      */
     protected $settings = array(
-        'notifyAdmin_task'=>'yes'
+        'notify_admin_task'=>'yes'
     );
 
     /**
@@ -148,9 +148,6 @@ class Tasks extends BaseModel
      */
     public function activate($name)
     {
-        if (isset($_POST['name'])) {
-            $name = $_POST['name'];
-        }
         if ($this->isInstalled($name)) {
             $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
             $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
@@ -220,8 +217,8 @@ class Tasks extends BaseModel
 
     /**
      * Run scheduled tasks and send a notification to the admins
+     *
      * @return array
-     * @throws Exception
      */
     public function executeAll()
     {
@@ -229,7 +226,7 @@ class Tasks extends BaseModel
         $nbJobs = count($runningCron);
         $logs = array();
         if ($nbJobs > 0) {
-            $logs['msg'] = self::$logger->log("There are $nbJobs task(s) to run.");
+            $logs['msg'] = self::$logger->log("There are {$nbJobs} task(s) to run.");
             foreach ($runningCron as $job) {
                 $result = $this->execute($job);
                 $logs[$job] = $result['logs'];
@@ -335,8 +332,6 @@ class Tasks extends BaseModel
      */
     public function notifyAdmin(array $logs)
     {
-        $MailManager = new includes\MailManager();
-
         // Convert array to string
         $string = "<p>{$logs['msg']}</p>";
         foreach ($logs as $job => $info) {
@@ -350,13 +345,15 @@ class Tasks extends BaseModel
         }
 
         // Get admins email
-        $adminMails = $this->db->resultSet($this->db->tablesname['Users'],array('email'),array('status'=>"admin"));
-        if (!is_array($adminMails)) {
-            $adminMails = array($adminMails);
+        $Users = new Users();
+        $emails = array();
+        foreach ($Users->all(array('status'=>'admin')) as $key => $item) {
+            $emails[] = $item['email'];
         }
         $content = self::logsEmailContent($string);
        
-        if ($MailManager->send($content, $adminMails)) {
+        $MailManager = new MailManager();
+        if ($MailManager->send($content, $emails)) {
             return true;
         } else {
             return false;
@@ -376,7 +373,7 @@ class Tasks extends BaseModel
         }
 
         foreach ($data as $prop => $value) {
-            $value = ($prop == "options") ? json_decode($value,true) : $value;
+            $value = ($prop == "options") ? json_decode($value, true) : $value;
             $this->$prop = $value;
         }
         return true;
@@ -391,8 +388,8 @@ class Tasks extends BaseModel
     private static function parseTime($time, array $frequency)
     {
         $str_time = date('Y-m-d H:i:s', strtotime($time));
-        $date = new DateTime($str_time);
-        $date->add(new DateInterval("P{$frequency[0]}M{$frequency[1]}DT{$frequency[2]}H{$frequency[3]}M0S"));
+        $date = new \DateTime($str_time);
+        $date->add(new \DateInterval("P{$frequency[0]}M{$frequency[1]}DT{$frequency[2]}H{$frequency[3]}M0S"));
         return $date->format('Y-m-d H:i:s');
     }
 
@@ -520,7 +517,7 @@ class Tasks extends BaseModel
         $content = "<h4 style='font-weight: 600;'>Options</h4>";
         if (!empty($options)) {
             $content .= "
-                <form method='post' action='php/router.php?controller=". __CLASS__ . "&action=updateOptions&name={$name}'>
+                <form method='post' action='php/router.php?controller=". self::getClassName() . "&action=updateOptions&name={$name}'>
                     " . self::renderOptions($options) . "
                     <div class='submit_btns'>
                         <input type='submit' class='processform' value='Modify'>
@@ -638,7 +635,7 @@ class Tasks extends BaseModel
                 <h2>General settings</h2>
                 <div class='section_content'>
                     <p>You have the possibility to receive logs by email every time a task is executed.</p>
-                    <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateSettings'>
+                    <form method='post' action='php/router.php?controller=" . self::getClassName() . "&action=updateSettings'>
                         <div class='form-group' style='width: 300px;'>
                             <select name='notifyAdmin_task'>
                                 <option value='{$notify}' selected>{$notify}</option>
@@ -699,6 +696,8 @@ class Tasks extends BaseModel
         // Scheduler
         $frequency = (!empty($info['frequency'])) ? explode(',', $info['frequency']): array(0, 0, 0, 0);
 
+        $optUrl = Router::buildUrl(self::getClassName(), 'getOptions', array('name'=>$info['name']));
+        $formUrl = Router::buildUrl(self::getClassName(), 'updateTime');
         return "
             <div class='plugDiv' id='cron_{$info['name']}'>
                 <div class='plugHeader'>
@@ -707,10 +706,8 @@ class Tasks extends BaseModel
                         <div class='plugTime' id='cron_time_{$info['name']}'>{$datetime}</div>
                     </div>
                     <div class='optBar'>
-                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' 
-                        data-action='getOptions' data-destination='.plugOpt#{$info['name']}' 
-                        data-name='{$info['name']}'>
-                        </div>
+                        <div class='loadContent workBtn settingsBtn' data-url='{$optUrl}' 
+                        data-destination='.plugOpt#{$info['name']}'></div>
                         {$install_btn}
                         {$activate_btn}
                         {$runBtn}
@@ -724,10 +721,8 @@ class Tasks extends BaseModel
                         {$pluginDescription}
                     </div>
                     <div>
-    
                         <div class='settings'>
-                            <form method='post' action='php/router.php?controller=" . __CLASS__ . "&action=updateTime'>
-                            
+                            <form method='post' action='{$formUrl}'>
                                 <div class='plug_settings_panel'>
                                     <div>Date & Time</div>
                                     <div class='form-group field_small'>
@@ -852,10 +847,10 @@ class Tasks extends BaseModel
     private static function installButton($name, $installed)
     {
         if ($installed) {
-            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' 
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . self::getClassName() . "' 
             data-action='uninstall' data-name='{$name}'></div>";
         } else {
-            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' 
+            return "<div class='installDep workBtn installBtn' data-controller='" . self::getClassName() . "' 
             data-action='install' data-name='{$name}'></div>";
         }
     }
@@ -870,9 +865,9 @@ class Tasks extends BaseModel
     private static function activateButton($name, $status)
     {
         if ($status === '1') {
-            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='{$name}'></div>";
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . self::getClassName() . "' data-action='deactivate' data-name='{$name}'></div>";
         } else {
-            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ . "' data-action='activate' data-name='{$name}'></div>";
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . self::getClassName() . "' data-action='activate' data-name='{$name}'></div>";
         }
     }
 }
