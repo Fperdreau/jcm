@@ -57,7 +57,8 @@ class App
      * App constructor.
      * @param bool $get
      */
-    private function __construct($get=true) {
+    private function __construct($get = true)
+    {
         $this->db = Db::getInstance();
         if ($get) {
             $this->loadSettings();
@@ -144,8 +145,8 @@ class App
         self::setLocalPaths();
 
         // Register autoloader
-        require 'Autoloader.php';
-        Autoloader::register();
+        require PATH_TO_INCLUDES . 'Autoloader.php';
+        \includes\Autoloader::register();
 
         // Get application url
         self::getAppUrl();
