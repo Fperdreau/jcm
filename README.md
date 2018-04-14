@@ -1,8 +1,10 @@
 # Journal club Manager
-##Author:
+
+## Author:
 Florian Perdreau - [www.florianperdreau.fr](http://www.florianperdreau.fr)
 
-##Description:
+## Description:
+
 *Journal Club Manager* is a web-application developed in order to help labs in managing their journal clubs or talks.
 Users who created an account on this application can schedule, modify or delete their presentations.
 Also, presentation/talks can be suggested to the other users of the application.
@@ -12,7 +14,8 @@ about upcoming journal club sessions, recent news posted by admins or the last w
 An administration interface allows admins and organizers of the journal club to manage the different presentations, users,
 to export/back-up the database, to configure the application (frequency of email notifications, etc.).
 
-##License:
+## License:
+
 Copyright &copy; 2014 Florian Perdreau
 
 *Journal Club Manager* is free software: you can redistribute it and/or modify
@@ -28,18 +31,21 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 
-###External sources
+### External sources
+
 *Journal Club Manager* also depends on several external free softwares:
 
 * PHPMailer, Copyright &copy; 2014 Marcus Bointon, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
 * html2text, Copyright &copy; 2010 Jevon Wright and others, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
 * TinyMCE Copyright &copy; Moxiecode Systems AB, licenced under the [LGPL 2.1 ](http://www.gnu.org/licenses/lgpl-2.1.html "LGPL 2.1").
 
-##Requirements:
+## Requirements:
+
 * A web server running PHP 5.2 or later
 * MySQLi (5.0 or later)
 * CRON table (Linux)/Scheduled task (Windows) *(required for email notifications)*
 * SMTP server or a Google Mail account
 
-##Instructions
+## Instructions
+
 Instructions about how to install and use the *Journal Club Manager* can be found in the [manual](manual.md).
