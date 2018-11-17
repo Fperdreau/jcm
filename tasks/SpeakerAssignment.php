@@ -98,13 +98,14 @@ class SpeakerAssignment extends Task
         $dueDate = date('Y-m-d', strtotime($today . " + {$this->options['Days']['value']} day"));
         $session = new Session($dueDate);
 
-        if (!$session->is_available(array('date'=>$dueDate))) {
+        if (!$session->isAvailable(array('date'=>$dueDate))) {
             $n = 0;
             foreach ($session->presids as $presid) {
                 $Presentation = new Presentation($presid);
                 $speaker = new Users($Presentation->username);
                 $content = $this->reminderEmail($speaker, array('date'=>$session->date, 'type'=>$session->type));
-                if ($MailManager->send($content, array($speaker->email))) {
+                $content['emails'] = $speaker->id;
+                if ($MailManager->addToQueue($content)) {
                     $result['status'] = true;
                     $n++;
                 } else {
