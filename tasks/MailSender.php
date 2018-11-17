@@ -92,6 +92,6 @@ class MailSender extends Task
         // Clean queue
         $this->getMailer()->cleanQueue($this->options['nb_version']['value']);
 
-        return array('status'=>true, 'msg'=>$result);
+        return $result;
     }
 }
