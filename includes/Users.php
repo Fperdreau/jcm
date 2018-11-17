@@ -34,7 +34,8 @@ use includes\MailManager;
  *
  * Handle user-related methods (generate users list/ get organizers list)
  */
-class Users extends BaseModel {
+class Users extends BaseModel
+{
 
     /**
      * @var int
@@ -156,19 +157,19 @@ class Users extends BaseModel {
         try {
             if ($status !=  "admin") {
                 // Send verification email to admins/organizer
-                if ($this->send_verification_mail($this->hash, $this->email, $this->fullname)) {
+                if ($this->sendVerificationMail($this->hash, $this->email, $this->fullname)) {
                     $result['status'] = true;
                     $result['msg'] = "Your account has been created. You will receive an email after
                     its validation by our admins.";
                 } else {
-                    $this->delete_user($this->username);
+                    $this->deleteUser($this->username);
                     $result['status'] = false;
                     $result['msg'] = "Sorry, we have not been able to send a verification email to the organizers.
                     Your registration cannot be validated for the moment. Please try again later.";
                 }
             } else {
                 // Send confirmation email to the user directly
-                if ($this->send_confirmation_mail($post)) {
+                if ($this->sendConfirmationMail($post)) {
                     $result['status'] = true;
                     $result['msg'] = "Your account has been successfully created!";
                 } else {
@@ -179,7 +180,7 @@ class Users extends BaseModel {
             }
         } catch (Exception $e) {
             Logger::getInstance('jcm')->error($e->getMessage());
-            $this->delete_user($this->username);
+            $this->deleteUser($this->username);
             $result['status'] = false;
             $result['msg'] = "Sorry, something went wrong and we were not able to create your account. Please try again later.";
         }
@@ -200,7 +201,7 @@ class Users extends BaseModel {
             $this->firstname = ucfirst(strtolower($this->firstname));
             $this->lastname = ucfirst(strtolower($this->lastname));
             $this->fullname = $this->firstname." ".$this->lastname;
-            $this->nbpres = self::get_nbPres($prov_username);
+            $this->nbpres = self::getNbPres($prov_username);
             $this->update(array('nbpres'=>$this->nbpres), array('username'=>$prov_username));
             return true;
         } else {
@@ -237,7 +238,7 @@ class Users extends BaseModel {
      * Get all activated members except admins
      * @return array
      */
-    public function all_but_admin()
+    public function allButAdmin()
     {
         return $this->all(
             array(
@@ -254,7 +255,7 @@ class Users extends BaseModel {
      */
     public function generateuserslist($filter = 'lastname')
     {
-        return self::users_list($this->all(array(), array('dir'=>'ASC', 'filter'=>$filter)));
+        return self::usersList($this->all(array(), array('dir'=>'ASC', 'filter'=>$filter)));
     }
 
     /**
@@ -277,7 +278,7 @@ class Users extends BaseModel {
      * @param $activate
      * @return array
      */
-    public function validate_account($hash, $email, $activate)
+    public function validateAccount($hash, $email, $activate)
     {
         // Get user data from DB
         $data = $this->get(array('email'=>$email));
@@ -300,7 +301,7 @@ class Users extends BaseModel {
                 $result['msg'] = "This account has already been activated.";
             }
         } else {
-            $result = $this->delete_user($data['username']);
+            $result = $this->deleteUser($data['username']);
             $result['msg'] = "Permission denied by the admin. Account successfully deleted.";
         }
         Logger::getInstance(APP_NAME, get_class($this))->log($result);
@@ -316,7 +317,7 @@ class Users extends BaseModel {
     {
         $data = $this->get(array('username'=>$data['username']));
         if ($this->db->update($this->tablename, array('active'=>1), array("username"=>$data['username']))) {
-            if ($this->send_confirmation_mail($data)) {
+            if ($this->sendConfirmationMail($data)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully activated. An email has been sent to the user!";
             } else {
@@ -343,7 +344,7 @@ class Users extends BaseModel {
     {
         $data = $this->get(array('username'=>$data['username']));
         if ($this->db->update($this->tablename, array('active'=>0), array("username"=>$data['username']))) {
-            if ($this->send_activation_mail($data)) {
+            if ($this->sendActivationMail($data)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully deactivated. An email has been sent to the user!";
             } else {
@@ -392,7 +393,7 @@ class Users extends BaseModel {
      * @throws Exception
      * @throws phpmailerException
      */
-    public function send_verification_mail($hash, $user_mail, $username)
+    public function sendVerificationMail($hash, $user_mail, $username)
     {
         $Users = new self();
         $admins = $Users->getadmin('admin');
@@ -422,11 +423,11 @@ class Users extends BaseModel {
      * @param array $data: user data
      * @return bool
      */
-    public function send_confirmation_mail(array $data)
+    public function sendConfirmationMail(array $data)
     {
         $MailManager = new MailManager();
         $fullname = isset($data['fullname']) ? $data['fullname'] : $data['username'];
-        $body = self::confirmation_mail($fullname, $data['username']);
+        $body = self::confirmationMail($fullname, $data['username']);
         return $MailManager->send(array(
             'body'=>$body,
             'subject'=>'Sign up | Confirmation'
@@ -438,7 +439,7 @@ class Users extends BaseModel {
      * @param array $data: user data
      * @return bool
      */
-    public function send_activation_mail(array $data)
+    public function sendActivationMail(array $data)
     {
         $MailManager = new MailManager();
         $body = self::deactivationEmail($data['fullname'], $data['email'], $data['hash']);
@@ -453,7 +454,7 @@ class Users extends BaseModel {
      * @param $email
      * @return array: array('status'=>bool, 'msg"=>string)
      */
-    public function request_password_change($email)
+    public function requestPasswordChange($email)
     {
         if ($this->isExist(array('email'=>$email))) {
             $username = $this->db->single($this->tablename, array('username'), array("email"=>$email));
@@ -461,7 +462,7 @@ class Users extends BaseModel {
 
             $MailManager = new MailManager();
             $body = $MailManager->formatmail(
-                self::password_request_email($this->fullname, $this->hash, $this->email)
+                self::passwordRequestEmail($this->fullname, $this->hash, $this->email)
             );
             if ($MailManager->send(array('body'=>$body, 'subject'=>'Change password request'), array($email))) {
                 $result['msg'] = "An email has been sent to your address with further instructions";
@@ -490,15 +491,15 @@ class Users extends BaseModel {
             $data = $this->get(array('email'=>$email));
             if ($data) {
                 if ($hash === $hash) {
-                    $result = self::password_form($data, $view);
+                    $result = self::passwordForm($data, $view);
                 } else {
-                    $result = self::incorrect_hash();
+                    $result = self::incorrectHash();
                 }
             } else {
-                $result = self::incorrect_hash();
+                $result = self::incorrectHash();
             }
         } else {
-            $result = self::incorrect_hash();
+            $result = self::incorrectHash();
         }
         return $result;
     }
@@ -509,7 +510,7 @@ class Users extends BaseModel {
      * @param $password
      * @return mixed
      */
-    public function password_change($username, $password)
+    public function passwordChange($username, $password)
     {
         if ($this->isExist(array('username'=>$username))) {
             if ($this->update(array('password' => Auth::cryptPwd($password)), array('username' => $username))) {
@@ -530,7 +531,7 @@ class Users extends BaseModel {
      * @param string $username: user's name
      * @return bool
      */
-    public function is_admin($username)
+    public function isAdmin($username)
     {
         foreach ($this->all(array('status'=>'admin')) as $key => $admin) {
             if ($admin['username'] == $username) {
@@ -547,16 +548,16 @@ class Users extends BaseModel {
      * @param null $username: provided username
      * @return array
      */
-    public function delete_user($username = null, $current_user = null)
+    public function deleteUser($username = null, $current_user = null)
     {
         if (is_null($current_user) && isset($_SESSION['username'])) {
             $current_user = $_SESSION['username'];
         }
 
         // check if user has admin status and if there will be remaining admins after we delete this account.
-        $is_admin = false;
+        $isAdmin = false;
         $data = $this->get(array('username'=>$username));
-        $is_admin = $data['status'] == 'admin';
+        $isAdmin = $data['status'] == 'admin';
         $admins = $this->all(array('status'=>'admin'));
 
         // Check if current user has necessary credentials
@@ -564,7 +565,7 @@ class Users extends BaseModel {
         $is_authorized = !is_null($current_user) && $Account->isAuthorized($current_user, 'organizer');
 
         if (!is_null($current_user) && ($current_user === $username || $is_authorized)) {
-            if ($is_admin and count($admins) === 1) {
+            if ($isAdmin and count($admins) === 1) {
                 return array(
                     'status'=>false,
                     'msg'=>'This account has an admin status and there must be at least one admin account registered'
@@ -588,17 +589,17 @@ class Users extends BaseModel {
     public function setStatus(array $data)
     {
         // check if user has admin status and if there will be remaining admins after we delete this account.
-        $is_admin = false;
+        $isAdmin = false;
         $admins = $this->all(array('status'=>'admin'));
         foreach ($admins as $key => $admin) {
             if ($admin['username'] == $data['username']) {
-                $is_admin = true;
+                $isAdmin = true;
                 break;
             }
         }
 
         // If target account has admin status, check if there is at least one admin account remaining after status modification
-        if ($is_admin and count($admins) <= 1) {
+        if ($isAdmin and count($admins) <= 1) {
             return array(
                 'status'=>false,
                 'msg'=>'This account has an admin status and there must be at least one admin account registered'
@@ -630,7 +631,7 @@ class Users extends BaseModel {
     public function getPublicationList()
     {
         $pub = new Presentation();
-        return self::user_assignments($pub->getUserPresentations($this->username, 'previous'));
+        return self::userAssignments($pub->getUserPresentations($this->username, 'previous'));
     }
 
     /**
@@ -640,7 +641,7 @@ class Users extends BaseModel {
     public function getAssignments()
     {
         $pub = new Presentation();
-        return self::user_assignments($pub->getUserPresentations($this->username, 'next'));
+        return self::userAssignments($pub->getUserPresentations($this->username, 'next'));
     }
 
     /**
@@ -685,7 +686,7 @@ class Users extends BaseModel {
      * @param string $username: user name
      * @return int
      */
-    private static function get_nbPres($username)
+    private static function getNbPres($username)
     {
         $pub = new Presentation();
         return count($pub->all(array('orator'=>$username, 'type !='=>'wishlist')));
@@ -697,11 +698,11 @@ class Users extends BaseModel {
      * @param array $data
      * @return string
      */
-    private static function users_list(array $data = array())
+    private static function usersList(array $data = array())
     {
         $content = null;
         foreach ($data as $key => $item) {
-            $content .= self::user_in_list($item);
+            $content .= self::userInList($item);
         }
         return "
             <div class='list-container list-heading'>
@@ -764,7 +765,7 @@ class Users extends BaseModel {
             data-destination='#user_list' style='max-width: 75%;'>
                 <option selected disabled>Select an action</option>
                 {$activOption}
-                <option value='delete_user' style='background-color: rgba(207, 81, 81, 1); 
+                <option value='deleteUser' style='background-color: rgba(207, 81, 81, 1); 
                 color: white;'>Delete</option>
             </select>
         </form>
@@ -804,7 +805,7 @@ class Users extends BaseModel {
      * @param array $item
      * @return string
      */
-    private static function user_in_list(array $item)
+    private static function userInList(array $item)
     {
         return "
             <div class='list-container' id='section_{$item['username']}->username'>
@@ -1038,7 +1039,7 @@ class Users extends BaseModel {
      * @param $content
      * @return string
      */
-    private static function user_assignments($content)
+    private static function userAssignments($content)
     {
         if (empty($content)) {
             return "You don't have any upcoming presentations.";
@@ -1060,13 +1061,13 @@ class Users extends BaseModel {
      * @param array $data
      * @return string
      */
-    private static function password_form(array $data, $view)
+    private static function passwordForm(array $data, $view)
     {
         return "
             <section>
                 <div class='section_content'>
                     <h2>Change password</h2>
-                    <form action='php/router.php?controller=Users&action=password_change' method='post'>
+                    <form action='php/router.php?controller=Users&action=passwordChange' method='post'>
                         <input type='hidden' name='password_change' value='true'/>
                         <input type='hidden' name='username' value='{$data['username']}' id='ch_username'/>
                         <div class='form-group'>
@@ -1090,7 +1091,7 @@ class Users extends BaseModel {
      * Error message if hash does not match user information
      * @return string
      */
-    private static function incorrect_hash()
+    private static function incorrectHash()
     {
         return "
             <section>
@@ -1107,7 +1108,7 @@ class Users extends BaseModel {
      * @param $username: user username
      * @return string
      */
-    private static function confirmation_mail($fullname, $username)
+    private static function confirmationMail($fullname, $username)
     {
         $login_url = App::$site_url . "index.php";
 
@@ -1160,7 +1161,7 @@ class Users extends BaseModel {
      * @param $email
      * @return string
      */
-    private static function password_request_email($full_name, $hash, $email)
+    private static function passwordRequestEmail($full_name, $hash, $email)
     {
         $reset_url = URL_TO_APP . "index.php?page=renew&hash={$hash}&email={$email}";
         return "

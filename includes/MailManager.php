@@ -442,7 +442,7 @@ class MailManager extends BaseModel
         }
 
         $mailing_list = "";
-        foreach ($user->all_but_admin() as $key => $info) {
+        foreach ($user->allButAdmin() as $key => $info) {
             $selected = (!is_null($recipients_list) && $info['fullname'] === $recipients_list[0]['fullname']) ?
                 'selected' : null;
             if (!empty($info['fullname'])) {
@@ -467,7 +467,7 @@ class MailManager extends BaseModel
         $id = htmlspecialchars($data['add_emails']);
         $user = new Users();
         if (strtolower($id) === 'all') {
-            $users = $user->all_but_admin();
+            $users = $user->allButAdmin();
             $content = "";
             $ids = array();
             foreach ($users as $key => $info) {

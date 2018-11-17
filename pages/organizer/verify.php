@@ -28,7 +28,7 @@ if (!empty($pageParameters['hash']) && !empty($pageParameters['email']) && !empt
     $email = htmlspecialchars($pageParameters['email']);
     $result = htmlspecialchars($pageParameters['result']);
     $user = new Users();
-    $valid = $user->validate_account($hash, $email, $result);
+    $valid = $user->validateAccount($hash, $email, $result);
     $msg = ($valid['status']) ? "<div class='sys_msg success'>".$valid['msg']."</div>":"<div class='sys_msg warning'>".$valid['msg']."</div>";
     $result = Template::section(array('title'=>"Account Activation", "body"=>$msg));
 } else {

@@ -186,7 +186,7 @@ class AutoAssignment extends Plugin
 
         // Check if there is enough users
         $User = new Users();
-        $usersList = $User->all_but_admin();
+        $usersList = $User->allButAdmin();
         if (empty($usersList)) {
             $result['msg'] = 'There is not enough assignable members';
             $result['status'] = false;

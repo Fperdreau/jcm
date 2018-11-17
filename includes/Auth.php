@@ -154,7 +154,7 @@ class Auth extends BaseModel
         // If amount of attempts exceeds authorized limit, then deactivate user account and notify by email
         if ($data['attempt'] >= $this->settings['max_nb_attempt']) {
             $this->Users->deactivate($data); // We deactivate the user's account
-            $this->Users->send_activation_mail($user);
+            $this->Users->sendActivationMail($user);
             return false;
         }
         $data['last_login'] = date('Y-m-d H:i:s');
