@@ -10,7 +10,8 @@ use includes\BaseModel;
  * Date: 23/02/2017
  * Time: 08:19
  */
-class Bookmark extends BaseModel {
+class Bookmark extends BaseModel
+{
 
     public $id;
     public $ref_id;
@@ -20,7 +21,8 @@ class Bookmark extends BaseModel {
     /**
      * Constructor
      */
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -29,12 +31,13 @@ class Bookmark extends BaseModel {
      * @param array $post
      * @return mixed
      */
-    public function add(array $post) {
+    public function add(array $post)
+    {
         if (SessionInstance::isLogged() && !$this->isExist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
             $post['username'] = $_SESSION['username'];
             $result['status'] = $this->db->insert($this->tablename, $this->parseData($post)) !== false;
             if ($result['status']) {
-                $info = $this->get_summary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
+                $info = $this->getSummary($post['ref_id'], $post['ref_obj'], $_SESSION['username']);
                 $result['state'] = $info['status'];
             }
         } else {
@@ -48,7 +51,8 @@ class Bookmark extends BaseModel {
      * @param array $post
      * @return mixed
      */
-    public function delete(array $post) {
+    public function delete(array $post)
+    {
         $result = array();
         if (SessionInstance::isLogged()) {
             $result['status'] = $this->db->delete($this->tablename, array('id'=>$post['id']));
@@ -66,7 +70,8 @@ class Bookmark extends BaseModel {
      * @param $username: username
      * @return array: array('count'=>int, 'status'=>boolean)
      */
-    public function get_summary($id, $ref_obj, $username) {
+    public function getSummary($id, $ref_obj, $username)
+    {
         return array(
             'status' => $this->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
         );
@@ -79,7 +84,8 @@ class Bookmark extends BaseModel {
      * @param $username
      * @return string
      */
-    public function getIcon($id, $ref_obj, $username) {
+    public function getIcon($id, $ref_obj, $username)
+    {
         return self::show(
             array('ref_id'=>$id, 'ref_obj'=>$ref_obj),
             $this->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
@@ -90,9 +96,10 @@ class Bookmark extends BaseModel {
      * @param $username
      * @return null|string
      */
-    public function getList($username) {
+    public function getList($username)
+    {
         $content = null;
-        foreach ($this->all(array('username'=>$username)) as $key=>$item) {
+        foreach ($this->all(array('username'=>$username)) as $key => $item) {
 
             /**
              * @var $Controller BaseModel
@@ -106,7 +113,9 @@ class Bookmark extends BaseModel {
             }
         }
 
-        if (is_null($content)) $content = self::nothing();
+        if (is_null($content)) {
+            $content = self::nothing();
+        }
         return $content;
     }
 
@@ -117,7 +126,8 @@ class Bookmark extends BaseModel {
      * @param bool $status : bookmarked or not by current user
      * @return string
      */
-    public static function show(array $data, $status) {
+    public static function show(array $data, $status)
+    {
         if ($status) {
             $css_icon = 'bookmark_on';
             $operation = 'delete';
@@ -126,7 +136,8 @@ class Bookmark extends BaseModel {
             $operation = 'add';
         }
         return "
-        <div class='tiny_icon bookmark_container {$css_icon}' data-controller='Bookmark' data-ref_id='{$data['ref_id']}' data-ref_obj='{$data['ref_obj']}' data-operation='{$operation}'>
+        <div class='tiny_icon bookmark_container {$css_icon}' data-controller='Bookmark' 
+        data-ref_id='{$data['ref_id']}' data-ref_obj='{$data['ref_obj']}' data-operation='{$operation}'>
         </div>";
     }
 
@@ -136,7 +147,8 @@ class Bookmark extends BaseModel {
      * @param array $data : target information
      * @return string
      */
-    public static function inList(array $bookmark, array $data) {
+    public static function inList(array $bookmark, array $data)
+    {
         $url = App::getAppUrl() . "index.php?page=". strtolower($bookmark['ref_obj']). "&id={$bookmark['ref_id']}";
         return "
             <div class='bookmark_list_container'>
@@ -154,10 +166,10 @@ class Bookmark extends BaseModel {
         ";
     }
 
-    private static function nothing() {
+    private static function nothing()
+    {
         return "
         <div class='bookmark_list_container'>Sorry, there is nothing to show here yet.</div>
         ";
     }
-
 }
