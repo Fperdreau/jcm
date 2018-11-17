@@ -55,7 +55,7 @@ class Mailing extends Task
         $DigestMaker = new DigestMaker();
 
         // Count number of users
-        $users = $MailManager->get_mailinglist("notification");
+        $users = $MailManager->getMailingList("notification");
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username => $user) {
