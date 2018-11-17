@@ -30,7 +30,8 @@ namespace includes;
 /**
  * Class AppLogger
  */
-class Logger {
+class Logger
+{
 
     /**
      * @var string: log file name
@@ -79,16 +80,17 @@ class Logger {
      * @param null $file_name
      * @param null $class_name
      */
-    private function __construct($file_name=null, $class_name=null) {
+    private function __construct($file_name = null, $class_name = null)
+    {
         $this->file_name = (is_null($file_name)) ? self::$default_name : $file_name;
-        $this->set_class($class_name);
+        $this->setClass($class_name);
 
         $now = date('Ymd');
-        $this->file = self::get_path() . "{$this->file_name}_{$now}.log";
+        $this->file = self::getPath() . "{$this->file_name}_{$now}.log";
 
         # Create log folder if it does not exist yet
-        if (!is_dir(self::get_path())) {
-            mkdir(self::get_path(), 0777);
+        if (!is_dir(self::getPath())) {
+            mkdir(self::getPath(), 0777);
         }
     }
 
@@ -97,9 +99,10 @@ class Logger {
      * @param string $class_name
      * @return array
      */
-    public static function get_logs($class_name) {
+    public static function getLogs($class_name)
+    {
         $files = array();
-        foreach (scandir(self::get_path()) as $item) {
+        foreach (scandir(self::getPath()) as $item) {
             if (preg_match("/{$class_name}/i", $item)) {
                 $files[] = $item;
             }
@@ -111,7 +114,8 @@ class Logger {
      * Verbose level setter
      * @param string $level
      */
-    public static function set_level($level) {
+    public static function setLevel($level)
+    {
         self::$level = $level;
     }
 
@@ -119,8 +123,9 @@ class Logger {
      * Get path to log files
      * @return string
      */
-    public static function get_path() {
-        return PATH_TO_APP . DS . "logs" . DS;
+    public static function getPath()
+    {
+        return PATH_TO_APP . "logs" . DS;
     }
 
     /**
@@ -129,21 +134,25 @@ class Logger {
      * @param null|string $class_name
      * @return Logger
      */
-    public static function getInstance($log_name=null, $class_name=null) {
-        if (is_null($log_name)) $log_name = APP_NAME;
+    public static function getInstance($log_name = null, $class_name = null)
+    {
+        if (is_null($log_name)) {
+            $log_name = APP_NAME;
+        }
 
-        if (is_null(self::$instances) or !isset(self::$instances[$log_name]) ) {
+        if (is_null(self::$instances) or !isset(self::$instances[$log_name])) {
             self::$instances[$log_name] = new self($log_name, $class_name);
         } else {
             if (!is_null($class_name)) {
-                self::$instances[$log_name]->set_class($class_name);
+                self::$instances[$log_name]->setClass($class_name);
             }
         }
 
         return self::$instances[$log_name];
     }
 
-    public function set_class($class_name) {
+    public function setClass($class_name)
+    {
         self::$class_name = (is_null($class_name)) ? self::$default_name : $class_name;
     }
 
@@ -152,7 +161,8 @@ class Logger {
      * @param $msg
      * @param bool $echo
      */
-    public function info($msg, $echo=false) {
+    public function info($msg, $echo = false)
+    {
         $this->log($msg, $echo, Logger::INFO);
     }
 
@@ -161,7 +171,8 @@ class Logger {
      * @param $msg
      * @param bool $echo
      */
-    public function debug($msg, $echo=false) {
+    public function debug($msg, $echo = false)
+    {
         $this->log($msg, $echo, Logger::DEBUG);
     }
 
@@ -170,7 +181,8 @@ class Logger {
      * @param $msg
      * @param bool $echo
      */
-    public function warning($msg, $echo=false) {
+    public function warning($msg, $echo = false)
+    {
         $this->log($msg, $echo, Logger::WARN);
     }
 
@@ -179,7 +191,8 @@ class Logger {
      * @param $msg
      * @param bool $echo
      */
-    public function critical($msg, $echo=false) {
+    public function critical($msg, $echo = false)
+    {
         $this->log($msg, $echo, Logger::CRIT);
     }
 
@@ -188,7 +201,8 @@ class Logger {
      * @param $msg
      * @param bool $echo
      */
-    public function fatal($msg, $echo=false) {
+    public function fatal($msg, $echo = false)
+    {
         $this->log($msg, $echo, Logger::FATAL);
     }
 
@@ -197,7 +211,8 @@ class Logger {
      * @param $msg
      * @param bool $echo
      */
-    public function error($msg, $echo=false) {
+    public function error($msg, $echo = false)
+    {
         $this->log($msg, $echo, Logger::ERROR);
     }
 
@@ -208,18 +223,19 @@ class Logger {
      * @param string $level
      * @return string
      */
-    public function log($msg, $echo=false, $level=null) {
-        if (is_null($string = self::parse_msg($msg))) {
+    public function log($msg, $echo = false, $level = null)
+    {
+        if (is_null($string = self::parseMsg($msg))) {
             return null;
         }
 
         if (is_null($level)) {
-            $level = self::parse_level($msg);
+            $level = self::parseLevel($msg);
         }
 
         // Echo message
         if ($echo or php_sapi_name() === "cli") {
-            self::echo_msg($string);
+            self::echoMsg($string);
         }
 
         // Format message
@@ -237,7 +253,8 @@ class Logger {
      * @param $msg
      * @return string
      */
-    private static function parse_level($msg) {
+    private static function parseLevel($msg)
+    {
         if (is_array($msg)) {
             $level = (isset($msg['status']) & $msg['status'] === false) ? self::ERROR : self::INFO;
         } else {
@@ -251,7 +268,8 @@ class Logger {
      * @param $msg
      * @return mixed|null
      */
-    private static function parse_msg($msg) {
+    private static function parseMsg($msg)
+    {
         if (is_array($msg)) {
             if (isset($msg['msg'])) {
                 return $msg['msg'];
@@ -267,7 +285,8 @@ class Logger {
      * Open log file
      * @return null|resource
      */
-    private function open() {
+    private function open()
+    {
         if (!is_null($this->handler)) {
             return $this->handler;
         } else {
@@ -275,7 +294,7 @@ class Logger {
                 $mode = !is_file($this->file) ? "w+" : "a+";
                 $this->handler = fopen($this->file, $mode);
             } catch (Exception $e) {
-                self::echo_msg("Could not open file '{$this->file}':<br>" . $e->getMessage());
+                self::echoMsg("Could not open file '{$this->file}':<br>" . $e->getMessage());
             }
             return $this->handler;
         }
@@ -285,20 +304,22 @@ class Logger {
      * Write into log file
      * @param string $msg
      */
-    private function write($msg) {
+    private function write($msg)
+    {
         $this->open();
         try {
             fwrite($this->handler, $msg);
             $this->close();
         } catch (Exception $e) {
-            self::echo_msg("Could not write into file '{$this->file}':<br>" . $e->getMessage());
+            self::echoMsg("Could not write into file '{$this->file}':<br>" . $e->getMessage());
         }
     }
 
     /**
      * Close log file and set handler to null
      */
-    private function close() {
+    private function close()
+    {
         fclose($this->handler);
         $this->handler = null;
     }
@@ -307,7 +328,8 @@ class Logger {
      * Choose right format to echo string
      * @param string $string
      */
-    public static function echo_msg($string) {
+    public static function echoMsg($string)
+    {
         if (php_sapi_name() === "cli") {
             echo $string  . PHP_EOL;
         } elseif (self::isAjax()) {
@@ -321,8 +343,10 @@ class Logger {
      * Check if it is an AJAX request
      * @return bool
      */
-    private static function isAjax() {
-        return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+    private static function isAjax()
+    {
+        return (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+         && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     }
 
     /**
@@ -330,9 +354,10 @@ class Logger {
      * @param $file: log file name
      * @return bool
      */
-    public static function delete($file) {
-        if (is_file(self::get_path() . $file)) {
-            return unlink(self::get_path() . $file);
+    public static function delete($file)
+    {
+        if (is_file(self::getPath() . $file)) {
+            return unlink(self::getPath() . $file);
         } else {
             return false;
         }
@@ -344,15 +369,18 @@ class Logger {
      * @param string $level
      * @return string
      */
-    private static function format($message, $level) {
-        return "[" . date('Y-m-d H:i:s') . "] - [User: ". self::get_user() ."] - ". strtoupper($level) . " - [" . self::$class_name . "] : {$message}.\r\n";
+    private static function format($message, $level)
+    {
+        return "[" . date('Y-m-d H:i:s') . "] - [User: ". self::getUser() ."] - "
+         . strtoupper($level) . " - [" . self::$class_name . "] : {$message}.\r\n";
     }
 
     /**
      * Get user
      * @return string
      */
-    private static function get_user() {
+    private static function getUser()
+    {
         if (php_sapi_name() === "cli") {
             return "system";
         } elseif (isset($_SESSION['username'])) {
@@ -367,10 +395,11 @@ class Logger {
      * @param string $name: Task's name
      * @return null|string: logs
      */
-    public static function delete_all($name=null) {
+    public static function deleteAll($name = null)
+    {
         $name = (is_null($name)) ? get_class() : $name;
         $result = false;
-        foreach (Logger::get_logs($name) as $path) {
+        foreach (Logger::getLogs($name) as $path) {
             $result = self::delete($path);
         }
         return $result;
@@ -381,8 +410,9 @@ class Logger {
      * @param string $class
      * @return null
      */
-    public static function last($class) {
-        $logs = Logger::get_logs($class);
+    public static function last($class)
+    {
+        $logs = Logger::getLogs($class);
         if (empty($logs)) {
             return null;
         }
@@ -395,8 +425,9 @@ class Logger {
      * @param string|null $search
      * @return string
      */
-    public static function getManager($log_name, $search=null) {
-        $log_files = self::get_logs($log_name);
+    public static function getManager($log_name, $search = null)
+    {
+        $log_files = self::getLogs($log_name);
         if (!empty($log_files)) {
             // Log file name
             $name = $log_files[0];
@@ -404,13 +435,12 @@ class Logger {
             return self::manager(
                 $name,
                 $log_name,
-                self::show_list($log_files, $name, $search),
+                self::showList($log_files, $name, $search),
                 self::getContent($name, $search)
             );
         } else {
             return self::nothing($search);
         }
-
     }
 
     /**
@@ -419,14 +449,15 @@ class Logger {
      * @param string $search : search
      * @return string : logs
      */
-    private static function getContent($name, $search=null) {
+    private static function getContent($name, $search = null)
+    {
         $logs = array();
-        $path_to_file = self::get_path() . $name;
+        $path_to_file = self::getPath() . $name;
         if (is_file($path_to_file)) {
             $content = file_get_contents($path_to_file);
             $pattern = !is_null($search) ? "/[^\\n]*{$search}[^\\n]*/" : "/[^\\n]*[^\\n]*/";
             preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
-            foreach ($matches[0] as $res=>$line) {
+            foreach ($matches[0] as $res => $line) {
                 $logs[] = $line[0];
             }
         }
@@ -443,7 +474,8 @@ class Logger {
      * @param $search: search
      * @return string
      */
-    public static function showContent($log_name, $search=null) {
+    public static function showContent($log_name, $search = null)
+    {
         return self::getContent($log_name, $search);
     }
 
@@ -452,12 +484,13 @@ class Logger {
      * @param $class
      * @return null|string
      */
-    public static function all($class) {
-        $logs = Logger::get_logs($class);
+    public static function all($class)
+    {
+        $logs = Logger::getLogs($class);
         if (empty($logs)) {
             return null;
         }
-        return self::show_list($logs);
+        return self::showList($logs);
     }
 
     // VIEWS
@@ -470,11 +503,13 @@ class Logger {
      * @param null $id: container id (optional)
      * @return string
      */
-    private static function manager($log_name, $id, $list, $logs) {
+    private static function manager($log_name, $id, $list, $logs)
+    {
         return "
             <div class='log_container' id='{$id}'>
                 <div class='log_search_bar'>
-                    <form method='post' action='php/router.php?controller=Logger&action=showContent&log_name={$log_name}&search='>
+                    <form method='post' 
+                    action='php/router.php?controller=Logger&action=showContent&log_name={$log_name}&search='>
                         <input type='search' name='search' value='' placeholder='Search...'/>
                         <input type='hidden' name='name' value='$log_name'/>
                         <input type='button' class='search_log' id='{$id}' />
@@ -492,7 +527,8 @@ class Logger {
      * @param array $logs
      * @return string
      */
-    private static function formatLog(array $logs) {
+    private static function formatLog(array $logs)
+    {
         $str = "";
         foreach ($logs as $line) {
             $str .= "<pre>{$line}</pre>";
@@ -505,7 +541,8 @@ class Logger {
      * @param $name
      * @return string
      */
-    private static function nothing($name) {
+    private static function nothing($name)
+    {
         return "
             <div class='log_container' id='{$name}'>
                 Sorry, there is nothing to show
@@ -513,7 +550,8 @@ class Logger {
             ";
     }
 
-    public static function emptySearch() {
+    public static function emptySearch()
+    {
         return "<div>No result to show</div>";
     }
 
@@ -524,11 +562,12 @@ class Logger {
      * @param null|string $search: search query
      * @return null|string
      */
-    public static function show_list(array $data, $selected=null, $search=null) {
+    public static function showList(array $data, $selected = null, $search = null)
+    {
         $content = null;
-        foreach ($data as $key=>$item) {
+        foreach ($data as $key => $item) {
             $active = (!is_null($selected) & $item == $selected);
-            $content .= self::show_in_list($item, $active, $search);
+            $content .= self::showInList($item, $active, $search);
         }
         return $content;
     }
@@ -540,7 +579,8 @@ class Logger {
      * @param $search $log_name
      * @return string
      */
-    public static function show_in_list($item, $selected=false, $search=null) {
+    public static function showInList($item, $selected = false, $search = null)
+    {
         $split = explode('_', $item);
         $ext = explode('.', $split[1]);
         $name = $split[0];
@@ -549,8 +589,17 @@ class Logger {
         $search = (!is_null($search)) ? "&search={$search}" : null;
         return "
             <div class='log_list_item_container {$active}' id='{$item}'>
-                <div class='log_info'><a href='php/router.php?controller=Logger&action=showContent&log_name={$item}{$search}' class='show_log' data-destination='.log_content_container#{$name}'><span class='log_name'>{$name}</span> - <span class='log_date'>{$date}</span></a></div>
-                <div class='log_icon'><a href='php/router.php?controller=Logger&action=delete&file={$item}' class='delete'><img src='" . URL_TO_IMG . "trash.png' alt='Delete log'></a></div>
+                <div class='log_info'>
+                    <a href='php/router.php?controller=Logger&action=showContent&log_name={$item}{$search}' 
+                    class='show_log' data-destination='.log_content_container#{$name}'>
+                        <span class='log_name'>{$name}</span> - <span class='log_date'>{$date}</span>
+                    </a>
+                </div>
+                <div class='log_icon'>
+                    <a href='php/router.php?controller=Logger&action=delete&file={$item}' class='delete'>
+                        <img src='" . URL_TO_IMG . "trash.png' alt='Delete log'>
+                    </a>
+                </div>
             </div>
         ";
     }
