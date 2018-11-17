@@ -26,6 +26,8 @@
 
 namespace includes;
 
+use \ZipArchive;
+
 /**
  * Class Backup
  * @package Includes\Backup
