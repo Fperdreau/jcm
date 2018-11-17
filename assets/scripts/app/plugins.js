@@ -206,7 +206,7 @@ function runTask(el) {
             $(el).toggleClass('loadBtn runBtn');
         },
         success: function(data) {
-            validsubmitform(div,data);
+            validsubmitform(div, jQuery.parseJSON(data));
         }
     });
 }
