@@ -234,7 +234,7 @@ class MailManager extends BaseModel
             if (empty($email['attachments'])) {
                 $email['attachments'] = null;
             }
-            if ($this->send($email, $recipients, $data['undisclosed'], null)) {
+            if ($this->send($email, $recipients, $email['undisclosed'], null)) {
                 $this->update(array('status'=>1), array('id'=>$email['id']));
                 $sent += 1;
             }
@@ -336,7 +336,7 @@ class MailManager extends BaseModel
         if ($result['status']) {
             $result['msg'] = "Your message has been sent!";
         } else {
-            Logger::getInstance(APP_NAME, get_class($this))->error($result['msg']);
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['logs']);
             $result['msg'] = 'Oops, something went wrong!';
         }
 
