@@ -1,7 +1,9 @@
 # Journal Club Manager &copy; 2014
 
 ## Release: 1.5.0
+
 ### Changes
+
 - Corrected minor errors (PHP STRICT errors)
 - Fixed compatibility issues with Php 5.4
 - Improved user interface and page loading speed
@@ -12,6 +14,7 @@
 - Added pagination for News page.
 
 ### Mailing
+
 - Added possibility to hide recipients list.
 - Added possibility to test email host settings without modifying JCM's configuration during the installation process
  and on Admin>Settings page.
@@ -20,39 +23,51 @@
 - Automatically add recipients to list when selected from dropdown menu (no need to click the 'add' button)
 
 ### Assignments
+
 - Send reminder to user about his/her upcoming presentation
 - Speakers are now notified by email if the type of their session has been modified.
 
 ### Plugins
+
 - Groups: only make groups for the next session 1) if a session is planned on this day and 2) if groups have not already
  been made.
   
 ## Release: 1.4.3
+
 ### Changes
+
 - Corrected minor bugs introduced with JCM 1.4.2
 - Improved styling of submission menu
 - Mailing: recipients list now also includes every member.
 - Mailing: added warning message in case no recipients have been added.
 
 ### Scheduled tasks
+
 Improved management of scheduled tasks.
+
 - Improved handling of plugins/scheduled tasks options
 - Added possibility to display or delete scheduled tasks logs from Admin>Scheduled task page
 
 ### Mailing
+
 - Added possibility to attach files to emails (Admin>Mailing page)
 
 ### Assignments
+
 - Corrected bug in automatic assignment
 
 ### ReminderMaker
+
 - New feature: Organizers can select what to display in the reminder emails (admin>reminder)
 
 ### Group plugin
+
 - Added possibility to send an email to group members
 
 ## Release: 1.4.2
+
 ### Changes
+
 - Updated TinyMCE version to 4.3.8
 - Mailing tool: Add possibility to select recipients
 - Removed signature from the emails. OK
@@ -66,13 +81,17 @@ Improved management of scheduled tasks.
 - New feature: With the DigestMaker, now you can customize the weekly digest that will be sent to JCM members.
 
 ## Release: 1.4.1
+
 ### Changes
+
 - fixed bugs in scheduled task execution
 - Added an option on the profile page to leave the user the choice to be automatically assigned as a speaker.
 - Improved automatic assignment of speakers and added work-around to prevent maximum execution time limit.
 
 ## Release: 1.4
-### Changes:
+
+### Changes
+
 - Major bugs corrections
 - New responsive design (better compatibility with mobile devices and small screens)
 - Simpler procedure to submit presentations
@@ -82,17 +101,21 @@ Improved management of scheduled tasks.
 - Simpler management of sessions
 
 ### Notes
+
 This new version should be considered as a transition to the version 2.0.
 Remaining issues:
+
 - find a more efficient way to structure the application (handling of dependencies, classes structures)
 - Use PDO instead of MySqli to handle database connections.
 - make the application a javascript application instead of Php-driven application?
-- Simplify (again) the submission process: the application will actually work as a calendar. Users will then be able to browse through the calendar in order to select the day of their
-presentation or to get details about previous/upcoming presentations.
+- Simplify (again) the submission process: the application will actually work as a calendar. Users will then be able to browse through the calendar in order to select the day of their presentation or to get details about previous/upcoming presentations.
 
 ## Release: 1.3
-### Changes:
+
+### Changes
+
 New design, improved installer and new features!
+
 - Now, journal club sessions can hold several presentations and the amount of presentation can be set by the admin or the organizers.
 - Multiple files can now be attached to a presentation, either during the submission, or later by modifying the past presentation.
 - Possibility to manage the sessions, their type or time, individually.
