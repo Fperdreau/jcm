@@ -33,7 +33,8 @@ use includes\BaseModel;
  *
  * Handle plugins settings and routines (installation, running, ect.)
  */
-class Plugins extends BaseModel {
+class Plugins extends BaseModel
+{
 
     /**
      * Container for plugins instance
@@ -46,7 +47,8 @@ class Plugins extends BaseModel {
      */
     private $plugins;
 
-    public function __construct($plugin = False) {
+    public function __construct($plugin = false)
+    {
         parent::__construct($plugin);
     }
 
@@ -55,7 +57,8 @@ class Plugins extends BaseModel {
      * @param array $post
      * @return bool|mysqli_result
      */
-    public function make($post=array()) {
+    public function make($post = array())
+    {
         return $this->add($post);
     }
 
@@ -65,8 +68,11 @@ class Plugins extends BaseModel {
      * @param string $name: plugin name
      * @return array: array("msg"=>string, "status"=>bool)
      */
-    public function install($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function install($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         $result['status'] = false;
         $data = $this->getPlugin($name)->getInfo();
         if ($this->add($data)) {
@@ -82,8 +88,11 @@ class Plugins extends BaseModel {
      * @param string $name: plugin name
      * @return array: array("msg"=>string, "status"=>bool)
      */
-    public function uninstall($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function uninstall($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         $result['status'] = false;
         if ($this->delete(array('name'=>$name))) {
             $result = $this->getPlugin($name)->uninstall();
@@ -98,8 +107,12 @@ class Plugins extends BaseModel {
      * @param string $name: plugin name
      * @return array: array("msg"=>string, "status"=>bool)
      */
-    public function activate($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function activate($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
+
         $result['status'] = $this->update(array('status'=>1), array('name'=>$name));
         $result['msg'] = $result['status'] ? $name . " has been activated" : "Oops, something went wrong";
         return $result;
@@ -111,8 +124,11 @@ class Plugins extends BaseModel {
      * @param string $name: plugin name
      * @return array: array("msg"=>string, "status"=>bool)
      */
-    public function deactivate($name) {
-        if (isset($_POST['name'])) $name = $_POST['name'];
+    public function deactivate($name)
+    {
+        if (isset($_POST['name'])) {
+            $name = $_POST['name'];
+        }
         $result['status'] =  $this->update(array('status'=>0), array('name'=>$name));
         $result['msg'] = $result['status'] ? $name . " has been deactivated" : "Oops, something went wrong";
         return $result;
@@ -123,7 +139,8 @@ class Plugins extends BaseModel {
      * @param string $name: plugin name
      * @return bool
      */
-    public function isInstalled($name) {
+    public function isInstalled($name)
+    {
         return $this->isExist(array('name'=>$name));
     }
 
@@ -146,12 +163,13 @@ class Plugins extends BaseModel {
      * @param $page
      * @return array
      */
-    private function getPluginsList($page) {
-        if ($page == False) {
+    private function getPluginsList($page)
+    {
+        if ($page == false) {
             $pluginList = array_diff(scandir(PATH_TO_PLUGINS), array('.', '..'));
         } else {
             $pluginList = array();
-            foreach ($this->all(array("page"=>$page)) as $key=>$item) {
+            foreach ($this->all(array("page" => $page)) as $key => $item) {
                 $pluginList[] = $item['name'];
             }
         }
@@ -218,14 +236,15 @@ class Plugins extends BaseModel {
 
     /**
      * Update plugin's options
-     * 
+     *
      * @param array $data
      * @return mixed
      */
-    public function updateOptions(array $data) {
+    public function updateOptions(array $data)
+    {
         $name = htmlspecialchars($data['name']);
         if ($this->isInstalled($name)) {
-            foreach ($data as $key=>$setting) {
+            foreach ($data as $key => $setting) {
                 $this->getPlugin($name)->setOption($key, $setting);
             }
 
@@ -249,11 +268,13 @@ class Plugins extends BaseModel {
      * @param array $options
      * @return string
      */
-    public function displayOpt($name, array $options) {
+    public function displayOpt($name, array $options)
+    {
         $content = "<h4 style='font-weight: 600;'>Options</h4>";
         if (!empty($options)) {
             $content .= "
-                <form method='post' action='php/router.php?controller=". __CLASS__ . "&action=updateOptions&name={$name}'>
+                <form method='post' action='php/router.php?controller=". __CLASS__ .
+                 "&action=updateOptions&name={$name}'>
                     " . self::renderOptions($options) . "
                     <div class='submit_btns'>
                         <input type='submit' class='processform' value='Modify'>
@@ -271,18 +292,20 @@ class Plugins extends BaseModel {
      * Show plugins list
      * @return string
      */
-    public function show() {
+    public function show()
+    {
         return self::showAll($this->loadAll());
     }
 
     /* VIEWS */
 
-    private static function renderOptions(array $options) {
+    private static function renderOptions(array $options)
+    {
         $opt = '';
-        foreach ($options as $optName=>$settings) {
+        foreach ($options as $optName => $settings) {
             if (isset($settings['options']) && !empty($settings['options'])) {
                 $options = "";
-                foreach ($settings['options'] as $prop=>$value) {
+                foreach ($settings['options'] as $prop => $value) {
                     $options .= "<option value='{$value}'>{$prop}</option>";
                 }
                 $optProp = "<select name='{$optName}'>{$options}</select>";
@@ -305,11 +328,16 @@ class Plugins extends BaseModel {
      * @param $installed
      * @return string
      */
-    private static function install_button($pluginName, $installed) {
+    private static function installButton($pluginName, $installed)
+    {
         if ($installed) {
-            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ . "' data-action='uninstall' data-name='$pluginName'></div>";
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ .
+             "' data-action='uninstall' 
+            data-name='$pluginName'></div>";
         } else {
-            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ . "' data-action='install' data-name='$pluginName'></div>";
+            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ .
+             "' data-action='install' 
+            data-name='$pluginName'></div>";
         }
     }
 
@@ -319,11 +347,16 @@ class Plugins extends BaseModel {
      * @param $status
      * @return string
      */
-    private static function activate_button($pluginName, $status) {
+    private static function activateButton($pluginName, $status)
+    {
         if ($status === 1) {
-            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ . "' data-action='deactivate' data-name='$pluginName'></div>";
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ .
+            "' data-action='deactivate' 
+            data-name='$pluginName'></div>";
         } else {
-            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ . "' data-action='activate' data-name='$pluginName'></div>";
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ .
+            "' data-action='activate' 
+            data-name='$pluginName'></div>";
         }
     }
 
@@ -332,13 +365,13 @@ class Plugins extends BaseModel {
      * @param array $pluginsList
      * @return string
      */
-    private static function showAll(array $pluginsList) {
+    private static function showAll(array $pluginsList)
+    {
         $plugin_list = "";
         foreach ($pluginsList as $pluginName => $info) {
-
             $pluginDescription = (!empty($info['description'])) ? $info['description'] : null;
-            $install_btn = self::install_button($pluginName, $info['installed']);
-            $activate_btn = self::activate_button($pluginName, $info['status']);
+            $install_btn = self::installButton($pluginName, $info['installed']);
+            $activate_btn = self::activateButton($pluginName, $info['status']);
 
             $plugin_list .= "
             <div class='plugDiv' id='plugin_{$pluginName}'>
@@ -347,7 +380,9 @@ class Plugins extends BaseModel {
                         <div class='plugName'>{$pluginName}</div>
                     </div>
                     <div class='optBar'>
-                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ . "' data-action='getOptions' data-destination='.plugOpt#{$pluginName}' data-name='{$pluginName}'></div>
+                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ .
+                        "' data-action='getOptions' data-destination='.plugOpt#{$pluginName}' 
+                        data-name='{$pluginName}'></div>
                         {$install_btn}
                         {$activate_btn}
                     </div>
