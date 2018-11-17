@@ -63,7 +63,7 @@ class FullBackup extends Task
     {
         // db backup
         $backupFile = Backup::backupDb($this->options['nb_version']['value']); // backup database
-        Backup::mail_backup($backupFile); // Send backup file to admins
+        Backup::mailBackup($backupFile); // Send backup file to admins
 
         // file backup
         $zipFile = Backup::backupFiles(); // Backup site files (archive)

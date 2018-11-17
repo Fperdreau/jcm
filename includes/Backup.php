@@ -223,7 +223,7 @@ class Backup
      * @param array $data
      * @return bool
      */
-    public static function mail_backup(array $data)
+    public static function mailBackup(array $data)
     {
         $mail = new MailManager();
         $user = new Users();
