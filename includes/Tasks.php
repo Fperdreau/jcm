@@ -587,7 +587,7 @@ class Tasks extends BaseModel
      */
     public function index()
     {
-        return self::indexPage($this->show(), $this->settings['notifyAdmin_task']);
+        return self::indexPage($this->show(), $this->settings['notify_admin_task']);
     }
     
     /**
@@ -639,7 +639,7 @@ class Tasks extends BaseModel
                     <p>You have the possibility to receive logs by email every time a task is executed.</p>
                     <form method='post' action='{$url}'>
                         <div class='form-group' style='width: 300px;'>
-                            <select name='notifyAdmin_task'>
+                            <select name='notify_admin_task'>
                                 <option value='{$notify}' selected>{$notify}</option>
                                 <option value='yes'>Yes</option>
                                 <option value='no'>No</option>
