@@ -515,9 +515,10 @@ class Tasks extends BaseModel
     public function displayOpt($name, array $options)
     {
         $content = "<h4 style='font-weight: 600;'>Options</h4>";
+        $url = Router::buildUrl(self::getClassName(), 'updateOptions', array('name'=>$name));
         if (!empty($options)) {
             $content .= "
-                <form method='post' action='php/router.php?controller=". self::getClassName() . "&action=updateOptions&name={$name}'>
+                <form method='post' action='{$url}'>
                     " . self::renderOptions($options) . "
                     <div class='submit_btns'>
                         <input type='submit' class='processform' value='Modify'>
@@ -623,6 +624,7 @@ class Tasks extends BaseModel
      */
     private static function indexPage($content, $notify)
     {
+        $url = Router::buildUrl(self::getClassName(), 'updateSettings');
         return "
             <div class='page_header'>
             <p class='page_description'>Here you can install, activate or deactivate scheduled tasks 
@@ -635,7 +637,7 @@ class Tasks extends BaseModel
                 <h2>General settings</h2>
                 <div class='section_content'>
                     <p>You have the possibility to receive logs by email every time a task is executed.</p>
-                    <form method='post' action='php/router.php?controller=" . self::getClassName() . "&action=updateSettings'>
+                    <form method='post' action='{$url}'>
                         <div class='form-group' style='width: 300px;'>
                             <select name='notifyAdmin_task'>
                                 <option value='{$notify}' selected>{$notify}</option>
@@ -865,9 +867,11 @@ class Tasks extends BaseModel
     private static function activateButton($name, $status)
     {
         if ($status === '1') {
-            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . self::getClassName() . "' data-action='deactivate' data-name='{$name}'></div>";
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . self::getClassName() . "' 
+            data-action='deactivate' data-name='{$name}'></div>";
         } else {
-            return "<div class='activateDep workBtn activateBtn' data-controller='" . self::getClassName() . "' data-action='activate' data-name='{$name}'></div>";
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . self::getClassName() . "' 
+            data-action='activate' data-name='{$name}'></div>";
         }
     }
 }
