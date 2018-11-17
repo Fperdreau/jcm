@@ -31,18 +31,21 @@ use includes\BaseMailMaker;
 /**
  * Class DigestMaker
  */
-class DigestMaker extends BaseMailMaker {
+class DigestMaker extends BaseMailMaker
+{
 
     /**
      * Constructor
      * @param bool $name
      */
-    public function __construct($name=False) {
+    public function __construct($name = false)
+    {
         parent::__construct($name);
     }
 
     // VIEW
-    protected static function pageHeader() {
+    protected static function pageHeader()
+    {
         return "<p class='page_description'>Here you can customize and preview the 
         weekly digest email that will be sent to the JCM members.</p>";
     }
@@ -52,7 +55,8 @@ class DigestMaker extends BaseMailMaker {
      *
      * @return string
      */
-    protected static function header() {
+    protected static function header()
+    {
         return "Weekly digest - ".date('d M Y');
     }
 
@@ -63,7 +67,8 @@ class DigestMaker extends BaseMailMaker {
      * @param string $content: email content
      * @return string
      */
-    protected static function body(Users $user, $content) {
+    protected static function body(Users $user, $content)
+    {
         return "
         <div style='width: 100%; margin: auto;'>
             <p>Hello {$user->firstname},</p>
@@ -72,5 +77,4 @@ class DigestMaker extends BaseMailMaker {
         {$content}
         ";
     }
-    
 }

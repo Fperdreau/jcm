@@ -31,7 +31,8 @@ use includes\BaseModel;
 /**
  * Class DigestMaker
  */
-abstract class BaseMailMaker extends BaseModel {
+abstract class BaseMailMaker extends BaseModel
+{
 
     public $name;
     public $position;
@@ -41,9 +42,10 @@ abstract class BaseMailMaker extends BaseModel {
      * Constructor
      * @param bool $name
      */
-    public function __construct($name=False) {
+    public function __construct($name = false)
+    {
         parent::__construct();
-        if ($name !== False) {
+        if ($name !== false) {
             $this->name = $name;
             $this->get(array('name'=>$name));
         }
@@ -53,10 +55,11 @@ abstract class BaseMailMaker extends BaseModel {
 
     /**
      * Render Mail maker index page
-     * 
+     *
      * @return string
      */
-    public function index() {
+    public function index()
+    {
         $section = Template::section(array(
             'body'=>$this->edit(),
             'title'=>'Email sections'
@@ -69,7 +72,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param bool $op
      * @return bool
      */
-    public function setup($op=False) {
+    public function setup($op = false)
+    {
         return self::registerAll();
     }
 
@@ -79,9 +83,12 @@ abstract class BaseMailMaker extends BaseModel {
      * @param array $data
      * @return void
      */
-    public function modify(array $data) {
-        $result['status'] = $this->update($data, array('name'=>$data['name']));
-        return $result;
+    public function modify(array $data)
+    {
+        return array('status'=> $this->update(
+            $data,
+            array('name'=>$data['name'])
+        ));
     }
 
     /**
@@ -89,15 +96,17 @@ abstract class BaseMailMaker extends BaseModel {
      * @param string $username
      * @return mixed
      */
-    public function makeMail($username) {
+    public function makeMail($username)
+    {
         $user = new Users($username);
         $string = "";
-        foreach ($this->all() as $key=>$item) {
+        foreach ($this->all() as $key => $item) {
             if ($item['display'] == 1) {
                 if (class_exists($item['name'])) {
                     $section = new $item['name']();
-                    if (method_exists($section, 'makeMail'))
+                    if (method_exists($section, 'makeMail')) {
                         $string .= self::showSection($section->makeMail($username));
+                    }
                 }
             }
         }
@@ -112,8 +121,12 @@ abstract class BaseMailMaker extends BaseModel {
      * Show form
      * @return string
      */
-    public function edit() {
-        $data = $this->all(array(), array('dir'=>'asc', 'order'=>'position'));
+    public function edit()
+    {
+        $data = $this->all(
+            array(),
+            array('dir'=>'asc', 'order'=>'position')
+        );
         return self::form($data);
     }
 
@@ -121,11 +134,12 @@ abstract class BaseMailMaker extends BaseModel {
     
     /**
      * Get info from db
-     * 
+     *
      * @param $name
      * @return $this|bool
      */
-    public function getInfo($name) {
+    public function getInfo($name)
+    {
         $data = $this->get(array('name'=>$name));
         if (!empty($data)) {
             $this->map($data);
@@ -140,7 +154,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param $name: module name
      * @return void
      */
-    public function register($name) {
+    public function register($name)
+    {
         if (!$this->getInfo($name)) {
             if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
                 Logger::getInstance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into table");
@@ -154,7 +169,8 @@ abstract class BaseMailMaker extends BaseModel {
      * Search for module that must be registered.
      * @return bool
      */
-    public static function registerAll() {
+    public static function registerAll()
+    {
         $includeList = scandir(PATH_TO_INCLUDES);
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..'))) {
@@ -173,7 +189,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param array $data
      * @return array
      */
-    public function preview() {
+    public function preview()
+    {
         $result = $this->makeMail($_SESSION['username']);
         $AppMail = new MailManager();
         return $AppMail->formatmail($result['body']);
@@ -186,7 +203,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param string $section
      * @return string
      */
-    private function pageTemplate($section) {
+    private function pageTemplate($section)
+    {
         return "
             <div class='page_header'>
                 " . $this::pageHeader() . "
@@ -208,7 +226,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param $position
      * @return string
      */
-    private static function getPositions(array $data, $position) {
+    private static function getPositions(array $data, $position)
+    {
         $nb_sections = count($data);
         $content = "";
         for ($i=0; $i<$nb_sections; $i++) {
@@ -223,13 +242,16 @@ abstract class BaseMailMaker extends BaseModel {
      * @param array $data
      * @return string
      */
-    public static function showSection(array $data) {
+    public static function showSection(array $data)
+    {
         if (empty($data)) {
             return null;
         }
         return "
-           <div style='display: block; padding: 10px; margin: 0 auto 20px auto; border: 1px solid #ddd; background-color: rgba(255,255,255,1);'>
-                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; font-size: 1.2em;'>
+           <div style='display: block; padding: 10px; margin: 0 auto 20px auto; border: 1px solid #ddd; 
+           background-color: rgba(255,255,255,1);'>
+                <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; font-weight: 500; 
+                font-size: 1.2em;'>
                     {$data['title']}
                 </div>
 
@@ -245,13 +267,14 @@ abstract class BaseMailMaker extends BaseModel {
      * @param array $data
      * @return string
      */
-    public static function form(array $data) {
+    public static function form(array $data)
+    {
         $content = "";
-        foreach ($data as $key=>$info) {
+        foreach ($data as $key => $info) {
             $positions = self::getPositions($data, $info['position']);
             $display = "";
             $opt = array('Yes'=>1, 'No'=>0);
-            foreach ($opt as $label=>$value) {
+            foreach ($opt as $label => $value) {
                 $selected = ($value == $info['display']) ? "selected":null;
                 $display .= "<option value='{$value}' {$selected}>{$label}</option>";
             }
@@ -268,7 +291,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param string $display: display input
      * @return void
      */
-    protected static function formSection(array $info, $positions, $display) {
+    protected static function formSection(array $info, $positions, $display)
+    {
         return "
             <div class='digest_section'>
                 <div id='name'>{$info['name']}</div>
@@ -301,7 +325,8 @@ abstract class BaseMailMaker extends BaseModel {
      *
      * @return string
      */
-    protected static function pageHeader() {
+    protected static function pageHeader()
+    {
         throw new Exception('Must be implemented by child class');
     }
 
@@ -311,7 +336,8 @@ abstract class BaseMailMaker extends BaseModel {
      *
      * @return string
      */
-    protected static function header() {
+    protected static function header()
+    {
         throw new Exception('Must be implemented by child class');
     }
 
@@ -322,8 +348,8 @@ abstract class BaseMailMaker extends BaseModel {
      * @param string $content: email content
      * @return string
      */
-    protected static function body(Users $user, $content) {
+    protected static function body(Users $user, $content)
+    {
         throw new Exception('Must be implemented by child class');
     }
-
 }

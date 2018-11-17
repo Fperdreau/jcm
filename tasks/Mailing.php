@@ -59,8 +59,9 @@ class Mailing extends Task
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username => $user) {
-            $content = $DigestMaker->makeDigest($user['username']);
-            if ($MailManager->send($content, array($user['email']))) {
+            $data = $DigestMaker->makeMail($user['username']);
+            $data['emails'] = $user['id'];
+            if ($MailManager->addToQueue($data)) {
                 $sent += 1;
             }
         }

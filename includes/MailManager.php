@@ -189,6 +189,10 @@ class MailManager extends BaseModel
             $data['mail_from_name'] = $userData['firstname'] . ' ' . $userData['lastname'];
         }
 
+        if (!isset($data['undisclosed'])) {
+            $data['undisclosed'] = 'no';
+        }
+
         $mail_from = isset($data['mail_from']) ? $data['mail_from'] : null;
         $mail_from_name = isset($data['mail_from_name']) ? $data['mail_from_name'] : null;
 
@@ -406,6 +410,7 @@ class MailManager extends BaseModel
         $mailing_list = array();
         foreach ($User->all($criteria, array('order'=>'fullname')) as $key => $item) {
             $mailing_list[$item['fullname']] = array(
+                'id'=>$item['id'],
                 'email'=>$item['email'],
                 'username'=>$item['username']
             );
