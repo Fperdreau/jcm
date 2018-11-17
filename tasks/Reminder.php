@@ -36,7 +36,8 @@ use includes\Session;
  *
  * Scheduled tasks that send reminders to the users regarding the upcomming session
  */
-class Reminder extends Task {
+class Reminder extends Task
+{
 
     public $name = 'Reminder';
     public $status = 'Off';
@@ -57,10 +58,12 @@ class Reminder extends Task {
     public function run()
     {
         $Session = new Session();
-        $data = $Session->getNext(1);
+        $data = $Session->getUpcoming(1);
         if (!empty($data)) {
+            reset($data);
+            $id = key($data);
             $now = strtotime(date('Y-m-d H:i:s'));
-            $dueTime = $data[0]['date'] . ' ' . $data[0]['start_time'];
+            $dueTime = $data[$id]['date'] . ' ' . $data[$id]['start_time'];
             if ($now >= $dueTime) {
                 return self::sendDigest();
             }
@@ -78,12 +81,13 @@ class Reminder extends Task {
         $ReminderMaker = new ReminderMaker();
 
         // Count number of users
-        $users = $MailManager->get_mailinglist("reminder");
+        $users = $MailManager->getMailingList("reminder");
         $nusers = count($users);
         $sent = 0;
         foreach ($users as $username => $user) {
-            $content = $ReminderMaker->makeDigest($user['username']);
-            if ($MailManager->send($content, array($user['email']))) {
+            $content = $ReminderMaker->makeMail($user['username']);
+            $content['emails'] = $user['id'];
+            if ($MailManager->addToQueue($content)) {
                 $sent += 1;
             }
         }
