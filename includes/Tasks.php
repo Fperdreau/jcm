@@ -88,7 +88,8 @@ class Tasks extends BaseModel
      */
     public static function getLogger()
     {
-        self::$logger = Logger::getInstance(get_class());
+        $reflect = new \ReflectionClass(get_class());
+        self::$logger = Logger::getInstance($reflect->getShortName());
         return self::$logger;
     }
 
