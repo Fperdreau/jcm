@@ -1053,7 +1053,8 @@ class Session extends BaseModel
                     <div class='session_info'>
                         <div>
                             <div><img src='".URL_TO_IMG . 'clock_bk.png'."'/></div>
-                            <div>" . date('H:i', strtotime($data['start_time'])) . '-' . date('H:i', strtotime($data['end_time'])) . "</div>
+                            <div>" . date('H:i', strtotime($data['start_time'])) . '-'
+                             . date('H:i', strtotime($data['end_time'])) . "</div>
                         </div>
                         <div>
                             <div><img src='".URL_TO_IMG . 'location_bk.png'."'/></div>
@@ -1131,20 +1132,20 @@ class Session extends BaseModel
                 </div>
                 <div class='session_info' style='text-align: right; width: 100%; font-size: 12px;'>
                     <div id='pub_date'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='" . URL_TO_IMG . 'calendar_bk.png' . "' 
-                        style='width: 100%; vertical-align:middle;'/></div>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='"
+                         . URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/></div>
                         <div style='display: inline-block; vertical-align: middle;'>{$data['date']}</div>
                     </div>
                     <div id='pub_date'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='" . URL_TO_IMG . 'clock_bk.png' . "' 
-                        style='width: 100%; vertical-align:middle;'/></div>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='"
+                         . URL_TO_IMG . 'clock_bk.png' . "' style='width: 100%; vertical-align:middle;'/></div>
                         <div style='display: inline-block; vertical-align: middle;'>
                         " . date('H:i', strtotime($data['date'])) . ' - ' . date('H:i', strtotime($data['date'])) . "
                         </div>
                     </div>
                     <div id='pub_date'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='" . URL_TO_IMG . 'location_bk.png' . "' 
-                        style='width: 100%; vertical-align:middle;'/></div>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='"
+                         . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; vertical-align:middle;'/></div>
                         <div style='display: inline-block; vertical-align: middle;'>{$data['room']}</div>
                     </div>
                 </div>  
