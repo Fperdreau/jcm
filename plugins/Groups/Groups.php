@@ -117,9 +117,9 @@ class Groups extends Plugin
     public function run()
     {
         $next_session = $this->getNextSession();
-
+        
         // 1: Check if group has not been made yet for the next session
-        if ($next_session !== false && $next_session[0]['type'] !== 'none'
+        if (!empty($next_session) & $next_session !== false && $next_session[0]['type'] !== 'none'
         && !$this->groupExist($next_session[0]['date'])) {
             // 2: Clear the group table
             $this->clearTable();
