@@ -28,6 +28,7 @@ namespace Tasks;
  
 use includes\Task;
 use includes\MailManager;
+use includes\Presentation;
 
 /**
  * Class Notification
@@ -51,7 +52,7 @@ class Notification extends Task
         $MailManager = new MailManager();
 
         // Number of users
-        $mailing_list = $MailManager->get_mailinglist("notification");
+        $mailing_list = $MailManager->getMailingList("notification");
         $nusers = count($mailing_list);
 
         // Get presentation list
@@ -59,22 +60,28 @@ class Notification extends Task
         $presentationList = $presentation->getLatest();
 
         if (!empty($presentationList)) {
-            $result = false;
+            $status = false;
             foreach ($mailing_list as $fullname => $data) {
                 $content = $this->makeMail($presentationList, $fullname);
-
-                if ($result = $MailManager->send($content, array($data['email']))) {
+                $content['emails'] = $data['id'];
+                $result = $MailManager->addToQueue($content);
+                if ($result['status'] == true) {
                     // Tell to the db that notifications have been sent about the new presentations
                     foreach ($presentationList as $presid) {
                         $pres = new Presentation();
-                        $pres->update(array('notified'=>1), array('id_pres'=>$presid));
+                        $pres->update(
+                            array('notified'=>1),
+                            array('id'=>$presid)
+                        );
                     }
+                    $status = $result['status'];
                 } else {
-                    $result = false;
+                    $status = false;
                 }
             }
-
-            return array('status'=>$result, 'msg'=>$result ? "message sent successfully to $nusers users." : "ERROR message not sent.");
+            return array(
+                'status'=>$status,
+                'msg'=>$status ? "message sent successfully to {$nusers} users." : "ERROR message not sent.");
         } else {
             return array('status'=>true, 'msg'=>"No new presentations");
         }
@@ -93,7 +100,7 @@ class Notification extends Task
         $list = "";
         foreach ($presentationList as $id) {
             $Presentation = new Presentation();
-            $list .= $Presentation->mail_details($Presentation->getInfo($id), true);
+            $list .= $Presentation->mailDetails($Presentation->getInfo($id), true);
         }
         $content['body'] = "
         <div style='width: 100%; margin: auto;'>
