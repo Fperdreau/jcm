@@ -53,13 +53,20 @@ class Bookmark extends BaseModel
      */
     public function delete(array $post)
     {
-        $result = array();
         if (SessionInstance::isLogged()) {
-            $result['status'] = $this->db->delete($this->tablename, array('id'=>$post['id']));
+            $data = $this->get(array(
+                'ref_id'=>$post['ref_id'],
+                'ref_obj'=>$post['ref_obj'],
+                'username'=>$_SESSION['username']
+            ));
+            $result['status'] = $this->db->delete(
+                $this->tablename,
+                array('id'=>$data['id'])
+            );
+            $result['state'] = $this->isExist(array('id'=>$data['id']));
         } else {
-            $result['status'] = false;
+            $result = array('status'=>false, 'state'=>false);
         }
-        $result['state'] = $this->isExist(array('id'=>$post['id']));
         return $result;
     }
 
@@ -104,8 +111,9 @@ class Bookmark extends BaseModel
             /**
              * @var $Controller BaseModel
              */
-            $Controller = new $item['ref_obj']();
-            $data = $Controller->get(array('id_pres'=>$item['ref_id']));
+            $controllerName = "\\includes\\" . $item['ref_obj'];
+            $Controller = new $controllerName();
+            $data = $Controller->get(array('id'=>$item['ref_id']));
             if (!empty($data)) {
                 $content .= self::inList($item, $data);
             } else {
@@ -150,12 +158,19 @@ class Bookmark extends BaseModel
     public static function inList(array $bookmark, array $data)
     {
         $url = App::getAppUrl() . "index.php?page=". strtolower($bookmark['ref_obj']). "&id={$bookmark['ref_id']}";
+        $routerUrl = Router::buildUrl(
+            $bookmark['ref_obj'],
+            'showDetails',
+            array('id'=>$bookmark['ref_id'], 'view'=>'modal')
+        );
         return "
             <div class='bookmark_list_container'>
                 <div class='bookmark_title'>
-                   <a href='$url' class='leanModal' data-controller='{$bookmark['ref_obj']}' data-action='show_details' 
-                   data-section='suggestion' data-params='{$bookmark['ref_id']},modal' data-id='{$bookmark['ref_id']}'>
-                    {$data['title']}</a>
+                   <a href='{$url}' class='leanModal' data-url='{$routerUrl}' data-controller='{$bookmark['ref_obj']}' 
+                   data-action='showDetails' data-section='suggestion' data-params='{$bookmark['ref_id']},modal' 
+                   data-id='{$bookmark['ref_id']}'>
+                    {$data['title']}
+                    </a>
                 </div>
                 <div class='bookmark_action'>
                     <div class='pub_btn icon_btn'><a href='#' data-id='{$bookmark['id']}' 
