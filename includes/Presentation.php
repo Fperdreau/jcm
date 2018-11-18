@@ -388,13 +388,16 @@ class Presentation extends BaseSubmission
         $view_button = "<a href='#' class='leanModal pub_btn icon_btn' 
         data-url='{$leanModalUrl}' data-section='presentation' data-title='Presentation'>
         <img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
+        $selectable = $_SESSION['username'] == $data['username']
+         || Account::isAuthorized($_SESSION['username'], 'organizer');
         return array(
             "content"=>"  
                 <div style='display: block !important;'>{$data['title']}</div>
                 <div>
                     <span style='font-size: 12px; font-style: italic;'>Presented by </span>
-                    <span style='font-size: 14px; font-weight: 500; color: #777;'>
-                    " . self::speakerList($data['username']) ."</span>
+                    <div class='form-group field_small inline_field' 
+                    style='font-size: 14px; font-weight: 500; color: #777;'>
+                    " . self::speakerList($data['username'], $selectable) ."</div>
                 </div>
                 ",
             "name"=>$data['type'],
@@ -550,13 +553,12 @@ class Presentation extends BaseSubmission
         // Get presentation type
         $type = (!empty($data['type']) && $data['type'] !== 'false') ? $data['type'] : null;
 
-        $Account = new Account();
         return Presentation::form(
             new Users($_SESSION['username']),
             (object)$presentationData,
             $operation,
             $data,
-            $Account->isAuthorized($_SESSION['username'], 'organizer')
+            Account::isAuthorized($_SESSION['username'], 'organizer')
         );
     }
 
@@ -586,8 +588,13 @@ class Presentation extends BaseSubmission
      *
      * @return array
      */
-    public static function form(Users $user, $Presentation = null, $operation = "edit", array $data = null, $organizer = true)
-    {
+    public static function form(
+        Users $user,
+        $Presentation = null,
+        $operation = "edit",
+        array $data = null,
+        $organizer = true
+    ) {
 
         // Presentation date
         $date = array_key_exists('date', $data) ? $data['date'] : $Presentation->date;

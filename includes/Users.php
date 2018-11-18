@@ -562,8 +562,7 @@ class Users extends BaseModel
         $admins = $this->all(array('status'=>'admin'));
 
         // Check if current user has necessary credentials
-        $Account = new Account();
-        $is_authorized = !is_null($current_user) && $Account->isAuthorized($current_user, 'organizer');
+        $is_authorized = !is_null($current_user) && Account::isAuthorized($current_user, 'organizer');
 
         if (!is_null($current_user) && ($current_user === $username || $is_authorized)) {
             if ($isAdmin and count($admins) === 1) {

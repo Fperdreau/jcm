@@ -28,8 +28,20 @@ class Account
      */
     public function __construct()
     {
-        // Get Users instance
-        $this::$Users = new \includes\Users();
+    }
+
+    /**
+     * Get Users instance
+     *
+     * @return Users
+     */
+    private static function getUserInstance()
+    {
+        if (!\is_null(self::$Users)) {
+            // Get Users instance
+            self::$Users = new \includes\Users();
+        }
+        return self::$Users;
     }
 
     /**
@@ -38,10 +50,9 @@ class Account
      * @param string $username: username
      * @return string: role
      */
-    public function isAuthorized($username, $minRole = 'member')
+    public static function isAuthorized($username, $minRole = 'member')
     {
-        $data = $this::$Users->get(array('username'=>$username));
-
+        $data = $self::getUserInstance()->get(array('username'=>$username));
         if ($data !== false) {
             return self::$roles[$data['status']] >= self::$roles[$minRole];
         } else {

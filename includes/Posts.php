@@ -183,8 +183,7 @@ class Posts extends BaseModel
         $count = $this->getCount();
 
         // Only show list of news posted by current user if user is not organizer/admin
-        $Account = new Account();
-        $posts_ids = $Account->isAuthorized($user->username, 'organizer') ?
+        $posts_ids = Account::isAuthorized($user->username, 'organizer') ?
                         $this->all(array(), array('limit_start'=>$page_index, 'limit'=>$pp)) :
                         $this->all(array('username'=>$user->username), array('limit_start'=>$page_index, 'limit'=>$pp));
 
