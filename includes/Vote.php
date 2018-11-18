@@ -77,7 +77,7 @@ class Vote extends BaseModel
      */
     public function getSummary($id, $ref_obj, $username)
     {
-        $data = $this->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
+        $data = $this->all(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
         return array(
             'count' => !empty($data) ? count($data) : 0,
             'status' => $this->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username))
@@ -96,23 +96,6 @@ class Vote extends BaseModel
         $info = $this->getSummary($id, $ref_obj, $username);
         return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$info['count']), $info['status']);
     }
-
-    /**
-     * Get vote icon
-     * @param $id
-     * @param $ref_obj
-     * @param $username
-     * @return string
-     */
-    public function getCount($id, $ref_obj, $username)
-    {
-        $self = new self();
-        $data = $self->get(array('ref_id'=>$id, 'ref_obj'=>$ref_obj));
-        $vote = !empty($data) ? count($data) : 0;
-        $status = $self->isExist(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'username'=>$username));
-        return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$vote), $status);
-    }
-
 
     // VIEWS
     /**
