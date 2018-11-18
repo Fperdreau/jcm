@@ -85,7 +85,8 @@ class App
     private function getSettings()
     {
         if (is_null(self::$config)) {
-            self::$config = new Settings(__CLASS__, $this->settings);
+            $className = str_replace(__NAMESPACE__ . '\\', '', __CLASS__);
+            self::$config = new Settings($className, $this->settings);
         }
         return self::$config;
     }
