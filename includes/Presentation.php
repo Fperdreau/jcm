@@ -130,7 +130,11 @@ class Presentation extends BaseSubmission
      */
     public function getAllList($filter = null, $user = null)
     {
-        $year_pub = $this->getByYears($filter, $user);
+        if (is_null($filter) || $filter['year'] == 'all') {
+            $year_pub = $this->getByYears(null, $user);
+        } else {
+            $year_pub = $this->getByYears($filter, $user);
+        }
         if (empty($year_pub)) {
             return "Sorry, there is nothing to display here.";
         }
@@ -689,9 +693,10 @@ class Presentation extends BaseSubmission
         foreach ($data as $year) {
             $options .= "<option value='$year'>$year</option>";
         }
+        $url = Router::buildUrl('Presentation', 'getAllList');
         return "
             <div class='form-group inline_field' style='width: 200px'>
-                <select name='year' class='archive_select'>
+                <select name='year' class='archive_select' data-url='{$url}' data-destination='#archives_list'>
                     {$options}
                 </select>
                 <label>Filter by year</label>

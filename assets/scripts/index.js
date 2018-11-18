@@ -90,6 +90,7 @@ function actionOnSelect(el, final_callback) {
     var url = (el.data('url') !== undefined) ? el.data('url') : form.attr('action');
 
     var callback = function (result) {
+        console.log(result);
         if (destination !== undefined) {
             var html = result.content === undefined ? result : result.content;
             destination
@@ -801,25 +802,6 @@ function process_email() {
 var modalpubform = $('.modal_section#submission_form');
 
 /**
- * Display presentation's information in a modal window
- * @param data
- */
-function show_submission_details (data) {
-    var el = data['destination'] !== undefined ? $(data['destination']) : modalpubform;
-    data['show_submission_details'] = true;
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        async: false,
-        data: data,
-        success: function (data) {
-            var result = jQuery.parseJSON(data);
-            load_section(result);
-        }
-    });
-}
-
-/**
  * Get width of hidden objects (useful to get width of submenus)
  * @param obj (DOM element)
  * @returns {*}
@@ -891,7 +873,7 @@ function process_vote(el) {
     var data = parent.data();
     data['process_vote'] = true;
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Vote&action=' + data['operation'],
         data: data,
         type: 'post',
         async: true,
@@ -921,7 +903,7 @@ function process_bookmark(el) {
     var data = el.data();
     data['process_vote'] = true;
     jQuery.ajax({
-        url: 'php/form.php',
+        url: 'php/router.php?controller=Bookmark&action=' + data['operation'],
         data: data,
         type: 'post',
         async: true,
@@ -1240,19 +1222,15 @@ $(document).ready(function () {
          User Profile
          %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 		// Send a verification email to the user if a change of password is requested
-        .on('click',".change_pwd",function (e) {
+        .on('click', ".change_pwd",function (e) {
             e.preventDefault();
-            var form = $(this).closest('form');
-
-            var email = $(this).attr("id");
-            var data = {request_password_change: true, email: email};
-
             var callback = function(json) {
                 var result = jQuery.parseJSON(json);
                 trigger_modal($(this), false);
                 dialogBox($(this), result, 'Modify event');
             };
-            processAjax(form, data, callback , "php/form.php");
+            processAjax($(this).closest('form'), undefined, callback, 
+                "php/router.php?controller=Users&action=requestPasswordChange&email=" + $(this).attr("id"));
         })
 
 		// Password change form (email + new password)
@@ -1556,7 +1534,6 @@ $(document).ready(function () {
         // Modify session type
         .on('change','.mod_session_type',function (e) {
             e.preventDefault();
-            var prop = $(this).attr('name');
             var value = $(this).val();
             var sessionDiv = $(this).closest('.session_div');
             var sessionID = sessionDiv.data('id');
@@ -1570,12 +1547,10 @@ $(document).ready(function () {
 		.on('change','.archive_select',function (e) {
             e.preventDefault();
             var year = $(this).val();
-            var data = {select_year: year};
             var callback = function (result) {
                 $('#archives_list').html(result);
             };
-            var div = $('#archives_list');
-            processAjax(div, data, callback, "php/form.php");
+            processAjax($('#archives_list'), undefined, callback, $(this).data('url') + '&year=' + year);
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1773,7 +1748,7 @@ $(document).ready(function () {
             var el = $(this);
             confirmationBox(el, 'Are you sure you want to delete your account?', 'Delete my account', function () {
                 jQuery.ajax({
-                    url: 'php/router.php?controller=Users&action=delete_user&username=' + el.data('username'),
+                    url: 'php/router.php?controller=Users&action=deleteUser&username=' + el.data('username'),
                     type: 'post',
                     async: true,
                     success: function(ajax) {
