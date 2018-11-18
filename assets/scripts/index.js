@@ -90,7 +90,6 @@ function actionOnSelect(el, final_callback) {
     var url = (el.data('url') !== undefined) ? el.data('url') : form.attr('action');
 
     var callback = function (result) {
-        console.log(result);
         if (destination !== undefined) {
             var html = result.content === undefined ? result : result.content;
             destination
@@ -1254,19 +1253,11 @@ $(document).ready(function () {
 		.on('click','.user_select',function (e) {
             e.preventDefault();
             var filter = $(this).data('filter');
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                async: true,
-                data: {
-                    user_select: filter
-                    },
-                success: function (data) {
-                    var result = jQuery.parseJSON(data);
-					$('#user_list').html(result);
-                }
-            });
-            return false;
+            var callback = function (result) {
+                $('#user_list').html(result);
+            };
+            processAjax($('#user_list'), undefined, callback, 
+            "php/router.php?controller=Users&action=generateuserslist&filter=" + filter);
         })
 
         // User Management tool: Modify user status

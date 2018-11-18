@@ -255,7 +255,7 @@ class Users extends BaseModel
      */
     public function generateuserslist($filter = 'lastname')
     {
-        return self::usersList($this->all(array(), array('dir'=>'ASC', 'filter'=>$filter)));
+        return self::usersList($this->all(array(), array('dir'=>'ASC', 'order'=>$filter)));
     }
 
     /**
@@ -464,7 +464,8 @@ class Users extends BaseModel
             $body = $MailManager->formatmail(
                 self::passwordRequestEmail($this->fullname, $this->hash, $this->email)
             );
-            if ($MailManager->send(array('body'=>$body, 'subject'=>'Change password request'), array($email))) {
+            $data = array('body'=>$body, 'subject'=>'Change password request', 'emails'=>$this->id);
+            if ($MailManager->addToQueue($data)) {
                 $result['msg'] = "An email has been sent to your address with further instructions";
                 $result['status'] = true;
             } else {
@@ -712,7 +713,7 @@ class Users extends BaseModel
                 <div class='user_select user_position' data-filter='position'>Position</div>
                 <div class='user_select user_small' data-filter='active'>Activated</div>
                 <div class='user_select user_status' data-filter='status'>Status</div>
-                <div class='user_select user_op' data-filter='action'>Action</div>
+                <div class='user_op' data-filter='action'>Action</div>
             </div>
             {$content}
         ";
@@ -1005,15 +1006,19 @@ class Users extends BaseModel
     {
         return "
         <!-- Change password section -->
-        <div class='page_description'>We will send an email to the provided address with further instructions in order to change your password.</div>
+        <div class='page_description'>We will send an email to the provided address with further instructions
+         in order to change your password.</div>
         <form id='modal_change_pwd' method='post' 
-        action='" . URL_TO_APP . "php/router.php?controller=Users&action=request_password_change" . "'>
+        action='" . URL_TO_APP . "php/router.php?controller=Users&action=requestPasswordChange'>
             <div class='form-group'>
                 <input type='email' name='email' value='' required/>
                 <label for='email'>Email</label>
             </div>
             <div class='action_btns'>
-                <div class='first_half'><a href='' class='btn back_btn'><i class='fa fa-angle-double-left'></i> Back</a></div>
+                <div class='first_half'>
+                    <a href='' class='btn back_btn'><i class='fa fa-angle-double-left'>
+                    </i> Back</a>
+                    </div>
                 <div class='last_half'><input type='submit' class='processform' value='Send'></div>
             </div>
         </form>
