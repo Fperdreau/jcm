@@ -260,7 +260,7 @@ function first_load() {
 function testEmailSettings(el) {
     var form = el.length > 0 ? $(el[0].form) : $();
     var data = form.serializeArray();
-    processAjax(form, data, false, 'php/router.php?controller=MailManager&action=send_test_email');
+    processAjax(form, data, false, 'php/router.php?controller=MailManager&action=sendTestEmail');
 }
 
 
