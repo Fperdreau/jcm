@@ -1403,17 +1403,16 @@ $(document).ready(function () {
         })
 
         .on('change', '.modSpeaker', function () {
-            // Do something with the previous value after the change
-            var speaker = $(this).val();
-            var container = $(this).closest('.pres_container');
-            var pres_id = container.attr('id');
-            var session_id = $(this).closest('.session_div').data('id');
-            var data = {
-                speaker: speaker,
-                presid: pres_id,
-                session_id: session_id
-            };
-            processAjax($(this).closest('.pres_container'), data, false, "php/router.php?controller=SessionManager&action=modifySpeaker");
+            // Modify speaker
+            processAjax(
+                $(this).closest('.form-group'),
+                {
+                    speaker: $(this).val(),
+                    presid: $(this).data('id'),
+                },
+                false, 
+                "php/router.php?controller=SessionManager&action=modifySpeaker"
+            );
         })
 
         .on('submit', 'form', function(e) {
