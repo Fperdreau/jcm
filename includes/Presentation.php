@@ -348,7 +348,7 @@ class Presentation extends BaseSubmission
      *
      * @return string
      */
-    public static function speakerList($cur_speaker = null, $selectable = false)
+    public static function speakerList($cur_speaker = null, $selectable = false, $modifiable = false, $idPres = null)
     {
         if (is_null($cur_speaker)) {
             $cur_speaker = $_SESSION['username'];
@@ -363,8 +363,10 @@ class Presentation extends BaseSubmission
         }
 
         $select = $selectable ? null : 'disabled';
+        $class = $modifiable ? "class='modSpeaker'" : null;
+        $dataId = !is_null($idPres) ? "data-id={$idPres}" : null;
         return "
-                <select class='modSpeaker' name='orator' {$select}>
+                <select {$class} {$dataId} name='orator' {$select}>
                     {$speakerOpt}
                 </select>
                 <label>Speaker</label>
@@ -388,8 +390,7 @@ class Presentation extends BaseSubmission
         $view_button = "<a href='#' class='leanModal pub_btn icon_btn' 
         data-url='{$leanModalUrl}' data-section='presentation' data-title='Presentation'>
         <img src='" . URL_TO_IMG . 'view_bk.png' . "' /></a>";
-        $selectable = $_SESSION['username'] == $data['username']
-         || Account::isAuthorized($_SESSION['username'], 'organizer');
+        $selectable = Account::isAuthorized($_SESSION['username'], 'organizer');
         return array(
             "content"=>"  
                 <div style='display: block !important;'>{$data['title']}</div>
@@ -397,7 +398,7 @@ class Presentation extends BaseSubmission
                     <span style='font-size: 12px; font-style: italic;'>Presented by </span>
                     <div class='form-group field_small inline_field' 
                     style='font-size: 14px; font-weight: 500; color: #777;'>
-                    " . self::speakerList($data['username'], $selectable) ."</div>
+                    {$data['fullname']}</div>
                 </div>
                 ",
             "name"=>$data['type'],
@@ -605,12 +606,13 @@ class Presentation extends BaseSubmission
         // Get class of instance
         $controller = !empty($data['controller']) ? $data['controller'] : self::getClassName();
 
-        // Speaker input
-        $orator = \property_exists($Presentation, 'orator') ? $Presentation->orator : $_SESSION['username'];
-        $speakerList = self::speakerList($orator, $organizer);
-
         // Presentation ID
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
+
+        // Speaker input
+        $orator = \property_exists($Presentation, 'orator') ? $Presentation->orator : $_SESSION['username'];
+        $modifiable = $idPres !== 'false' & $organizer;
+        $speakerList = self::speakerList($orator, $organizer, $modifiable, $idPres);
 
         // Make submission's type selection list
         $type_list = TypesManager::getTypeSelectInput('Presentation');

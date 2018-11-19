@@ -286,10 +286,7 @@ class SessionManager
         $nSlots = max(count($data['content']), $data['slots']);
         for ($i=0; $i<$nSlots; $i++) {
             if (isset($data['content'][$i]) && !is_null($data['content'][$i]['id'])) {
-                $content .= self::slotContainer(
-                    Presentation::inSessionEdit($data['content'][$i]),
-                    $data['content'][$i]['id']
-                );
+                $content .= self::slotContainer(Presentation::inSessionSimple($data['content'][$i]));
             } else {
                 $content .= self::emptySlotContainer($data, SessionInstance::isLogged());
             }
