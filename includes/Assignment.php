@@ -413,12 +413,14 @@ class Assignment extends BaseModel
         if ($session_type === 'none') {
             return true;
         }
-        $inc = ($add) ? 1:-1; // increase or decrease number of presentations
+
         $value = $this->db->sendQuery("SELECT {$session_type} 
                                         FROM {$this->tablename} 
                                         WHERE username='{$speaker}'")->fetch_array();
-        $value = ((int)$value > 0) ? (int)$value[$session_type] + $inc: 0; // Assignment number can be negative
-        return $this->db->update($this->tablename, array($session_type=>$value), array("username"=>$speaker));
+
+        $inc = ($add) ? 1:-1; // increase or decrease number of presentations
+        $newValue = max(0, (int)$value[$session_type] + $inc);
+        return $this->db->update($this->tablename, array($session_type=>$newValue), array("username"=>$speaker));
     }
 
     /**
