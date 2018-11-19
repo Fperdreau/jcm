@@ -309,7 +309,14 @@ class SessionManager
         $MailManager = new MailManager();
         if ($assigned) {
             $dueDate = date('Y-m-d', strtotime($info['date'].' - 1 week'));
-            $content = self::invitationEmail($user->username, $user->fullname, $dueDate, $info['date'], $info['type'], $info['presid']);
+            $content = self::invitationEmail(
+                $user->username,
+                $user->fullname,
+                $dueDate,
+                $info['date'],
+                $info['type'],
+                $info['presid']
+            );
         } else {
             $content = self::cancelationUserEmail($user->fullname, $info['date']);
         }
@@ -334,9 +341,9 @@ class SessionManager
     public static function notifyOrganizers(Users $user, array $info)
     {
         $MailManager = new MailManager();
-        foreach ($user->getAdmin() as $key => $info) {
-            $content = self::cancelationOrganizerEmail($info['fullname'], $user->fullname, $info['date']);
-            $content['emails'] = $info['id'];
+        foreach ($user->getAdmin() as $key => $userInfo) {
+            $content = self::cancelationOrganizerEmail($userInfo['fullname'], $user->fullname, $info['date']);
+            $content['emails'] = $userInfo['id'];
             if (!$MailManager->addToQueue($content)) {
                 return false;
             }
@@ -464,12 +471,13 @@ class SessionManager
         $speaker = new Users($data['speaker']);
 
         // Get session info
-        $session = new Session($presData['session_id']);
+        $session = new Session();
+        $sessionData = $session->get(array('id'=>$presData['session_id']));
 
         // Updated info
         $info = array(
-            'type'=>$session->type,
-            'date'=>$session->date,
+            'type'=>$sessionData['type'],
+            'date'=>$sessionData['date'],
             'presid'=>$data['presid']
         );
 
