@@ -431,11 +431,7 @@ class Assignment extends BaseModel
      */
     public function updateAssignment(Users $user, array $info, $assign = true, $notify = false)
     {
-        $session = new Session($info['date']);
         if ($this->updateTable(self::prettyName($info['type'], true), $user->username, $assign)) {
-            if ($notify) {
-                $session->notify_session_update($user, $info, $assign);
-            }
             Logger::getInstance(APP_NAME, get_class($this))->info(
                 "Assignments for {$user->username} have been updated"
             );

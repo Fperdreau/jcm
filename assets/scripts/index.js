@@ -1402,12 +1402,6 @@ $(document).ready(function () {
             loadContent($(this));
         })
 
-        // Modify speaker
-        .on('focus','.modSpeaker', function () {
-            // Store the current value on focus and on change
-            previous = $(this).val();
-        })
-
         .on('change', '.modSpeaker', function () {
             // Do something with the previous value after the change
             var speaker = $(this).val();
@@ -1415,12 +1409,11 @@ $(document).ready(function () {
             var pres_id = container.attr('id');
             var session_id = $(this).closest('.session_div').data('id');
             var data = {
-                modSpeaker: speaker,
-                previous: previous,
+                speaker: speaker,
                 presid: pres_id,
                 session_id: session_id
             };
-            processAjax($(this).closest('.session_div'), data, null, "php/form.php");
+            processAjax($(this).closest('.pres_container'), data, false, "php/router.php?controller=SessionManager&action=modifySpeaker");
         })
 
         .on('submit', 'form', function(e) {

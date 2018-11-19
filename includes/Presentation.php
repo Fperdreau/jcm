@@ -364,7 +364,7 @@ class Presentation extends BaseSubmission
 
         $select = $selectable ? null : 'disabled';
         return "
-                <select name='orator' {$select}>
+                <select class='modSpeaker' name='orator' {$select}>
                     {$speakerOpt}
                 </select>
                 <label>Speaker</label>

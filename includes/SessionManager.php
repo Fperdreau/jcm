@@ -70,7 +70,6 @@ class SessionManager
         }
     }
 
-    
     /**
      * Get editor content
      *
@@ -310,7 +309,7 @@ class SessionManager
         $MailManager = new MailManager();
         if ($assigned) {
             $dueDate = date('Y-m-d', strtotime($info['date'].' - 1 week'));
-            $content = self::invitationEmail($user->fullname, $dueDate, $info['date'], $info['type']);
+            $content = self::invitationEmail($user->username, $user->fullname, $dueDate, $info['date'], $info['type'], $info['presid']);
         } else {
             $content = self::cancelationUserEmail($user->fullname, $info['date']);
         }
@@ -321,7 +320,8 @@ class SessionManager
         }
 
         // Send email
-        $result = $MailManager->send($content, array($user->email));
+        $content['emails'] = $user->id;
+        $result = $MailManager->addToQueue($content);
         return $result;
     }
 
@@ -336,7 +336,8 @@ class SessionManager
         $MailManager = new MailManager();
         foreach ($user->getAdmin() as $key => $info) {
             $content = self::cancelationOrganizerEmail($info['fullname'], $user->fullname, $info['date']);
-            if (!$MailManager->send($content, array($info['email']))) {
+            $content['emails'] = $info['id'];
+            if (!$MailManager->addToQueue($content)) {
                 return false;
             }
         }
@@ -431,7 +432,7 @@ class SessionManager
             // Notify user about the change of session type
             $MailManager = new MailManager();
             $date = $info['date'];
-            $contactURL = URL_TO_APP."index.php?page=contact";
+            $contactURL = URL_TO_APP . "index.php?page=contact";
 
             $content['body'] = "
             <div style='width: 100%; margin: auto;'>
@@ -443,9 +444,71 @@ class SessionManager
             </div>
             ";
             $content['subject'] = "Your session ($date) has been modified";
-
-            $result = $MailManager->send($content, array($speaker->email));
+            $content['emails'] = $speaker->id;
+            $result = $MailManager->addToQueue($content);
         }
+        return $result;
+    }
+
+    public function modifySpeaker(array $data)
+    {
+
+        // Get presentation info
+        $Presentation = new \includes\Presentation();
+        $presData = $Presentation->get(array('id'=>$data['presid']));
+
+        // Get previous speaker info
+        $previous = new Users($presData['username']);
+
+        // get new speaker info
+        $speaker = new Users($data['speaker']);
+
+        // Get session info
+        $session = new Session($presData['session_id']);
+
+        // Updated info
+        $info = array(
+            'type'=>$session->type,
+            'date'=>$session->date,
+            'presid'=>$data['presid']
+        );
+
+        $Assignment = new Assignment();
+
+        // Send notification to previous speaker
+        if (!is_null($previous->username)) {
+            // Only send notification to real users
+            $result['status'] = $Assignment->updateAssignment($previous, $info, false, true);
+        } else {
+            $result['status'] = true;
+        }
+
+        // Send notification to new speaker
+        if ($result['status']) {
+            if (!is_null($speaker->username)) {
+                // Only send notification to real users
+                $result['status'] = $Assignment->updateAssignment($speaker, $info, true, true);
+            } else {
+                $result['status'] = true;
+            }
+
+            // Update Presentation info
+            if ($result['status']) {
+                if ($Presentation->update(array('username'=>$speaker->username), array('id'=>$data['presid']))) {
+                    $result['msg'] = "{$speaker->fullname} is the new speaker!";
+                    $result['status'] = true;
+                } else {
+                    $result['status'] = false;
+                }
+            }
+        }
+
+        // Notify previous speaker
+        $this->notifyUpdate($previous, $info, $assigned = false);
+
+        // Notify previous speaker
+        $this->notifyUpdate($speaker, $info, $assigned = true);
+
         return $result;
     }
 
@@ -846,10 +909,10 @@ class SessionManager
      *
      * @return array: array('body'=>content of email, 'subject'=>email's title)
      */
-    private static function invitationEmail($fullname, $dueDate, $date, $session_type)
+    private static function invitationEmail($username, $fullname, $dueDate, $date, $session_type, $presId)
     {
         $contactURL = URL_TO_APP."index.php?page=contact";
-        $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$info['presid']}&user={$user->username}";
+        $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$presId}&user={$username}";
         return array(
             'body'=> "<div style='width: 100%; margin: auto;'>
                     <p>Hello {$fullname},</p>
@@ -906,9 +969,9 @@ class SessionManager
         $url = URL_TO_APP . 'index.php?page=organizer/sessions';
         return array(
             'body'=>"<div style='width: 100%; margin: auto;'>
-                <p>Hello {$info['fullname']},</p>
+                <p>Hello {$fullname},</p>
                 <p>This is to inform you that the presentation of 
-                <strong>{$user->fullname}</strong> planned on the <strong>{$date}</strong> has been canceled. 
+                <strong>{$speaker}</strong> planned on the <strong>{$date}</strong> has been canceled. 
                 You can either manually assign another speaker on this day in the 
                 <a href='{$url}'>Admin>Session</a> section or let the automatic 
                 assignment select a member for you.</p>

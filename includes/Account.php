@@ -12,7 +12,7 @@ class Account
      *
      * @var Users
      */
-    private static $Users;
+    private static $Users = null;
 
     /**
      * Account types
@@ -37,7 +37,7 @@ class Account
      */
     private static function getUserInstance()
     {
-        if (!\is_null(self::$Users)) {
+        if (is_null(self::$Users)) {
             // Get Users instance
             self::$Users = new \includes\Users();
         }
@@ -52,7 +52,7 @@ class Account
      */
     public static function isAuthorized($username, $minRole = 'member')
     {
-        $data = $self::getUserInstance()->get(array('username'=>$username));
+        $data = self::getUserInstance()->get(array('username'=>$username));
         if ($data !== false) {
             return self::$roles[$data['status']] >= self::$roles[$minRole];
         } else {
