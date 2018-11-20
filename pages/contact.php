@@ -26,11 +26,10 @@ $Users = new includes\Users();
 $mail_option = "";
 $msg = "";
 $organizers = "";
-foreach ($Users->getAdmin() as $key=>$item) {
+foreach ($Users->getAdmin() as $key => $item) {
     if ($item['username'] != "admin") {
-        $admin_mail = $item['email'];
         $admin_name = $item['firstname'].' '.$item['lastname'];
-        $mail_option .= "<option value='$admin_mail'>$admin_name</option>";
+        $mail_option .= "<option value='{$item['id']}'>$admin_name</option>";
         $organizers .= "<div>$admin_name</div>";
     }
 }
