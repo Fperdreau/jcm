@@ -582,20 +582,21 @@ class MailManager extends BaseModel
      */
     public function sendMessage(array $data)
     {
-        $sel_admin_mail = htmlspecialchars($data['recipients']);
-        $usr_msg = htmlspecialchars($data["body"]);
+        $sel_admin_mail = htmlspecialchars($data['admin_mail']);
+        $usr_msg = htmlspecialchars($data["message"]);
         $usr_mail = htmlspecialchars($data["email"]);
         $usr_name = htmlspecialchars($data["name"]);
 
-        $content = "
+        $content['body'] = "
             <div>Message sent by {$data['name']} ({$data['email']}):</div>
-            <div><p>{$data['body']}</p></div>";
-        $subject = "Contact from $usr_name";
+            <div><p>{$data['message']}</p></div>";
+        $content['subject'] = "Contact from {$usr_name}";
 
-        $settings['mail_from'] = $usr_mail;
-        $settings['mail_from_name'] = $usr_mail;
+        $content['mail_from'] = $usr_mail;
+        $content['mail_from_name'] = $usr_mail;
+        $content['emails'] = $sel_admin_mail;
 
-        if ($this->addToQueue(array('body'=>$content, 'subject'=>$subject))) {
+        if ($this->addToQueue($content)) {
             $result['status'] = true;
             $result['msg'] = "Your message has been sent!";
         } else {
