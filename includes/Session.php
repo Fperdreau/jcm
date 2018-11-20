@@ -764,7 +764,7 @@ class Session extends BaseModel
     }
 
     /**
-     * Get list of sessions to repeatAll
+     * Get list of sessions to repeat
      * @return array: list of sessions to be repeated
      */
     public function getRepeated()
@@ -779,7 +779,7 @@ class Session extends BaseModel
         return $data;
     }
 
-/**
+    /**
      * Get upcoming sessions information
      *
      * @param null|int $limit: number of sessions to retrieve (all by default)
