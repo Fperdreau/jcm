@@ -132,7 +132,11 @@ class Db
 
         if (!$this->connected) {
             try {
-                if (!$this->bdd = @mysqli_connect($this->config['host'], $this->config['username'], $this->config['passw'])) {
+                if (!$this->bdd = @mysqli_connect(
+                    $this->config['host'],
+                    $this->config['username'],
+                    $this->config['passw']
+                )) {
                     throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
                 }
             } catch (Exception $e) {
@@ -143,7 +147,8 @@ class Db
             }
 
             if (!mysqli_select_db($this->bdd, $this->config['dbname'])) {
-                $result['msg'] = "Database '" . $this->config['dbname'] . "' cannot be selected<br/>".mysqli_error($this->bdd);
+                $result['msg'] = "Database '" . $this->config['dbname'] . "' cannot be selected<br/>"
+                 . mysqli_error($this->bdd);
                 Logger::getInstance(APP_NAME)->critical($result['msg']);
                 die(json_encode($result['msg']));
             }
@@ -628,7 +633,7 @@ class Db
      * @param string $table_name
      * @param string $column_name : column name
      * @param array $where : e.g. array('city'=>'Paris')
-     * @param array|null $op : Array describing logical operators corresponding to the $where array. e.g. array('=','!=')
+     * @param array|null $op : logical operators corresponding to the $where array. e.g. array('=','!=')
      * @param null|string $opt : options (e.g. "ORDER BY year")
      * @return array : associate array
      * @throws Exception

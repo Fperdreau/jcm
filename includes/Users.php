@@ -182,7 +182,8 @@ class Users extends BaseModel
             Logger::getInstance('jcm')->error($e->getMessage());
             $this->deleteUser($this->username);
             $result['status'] = false;
-            $result['msg'] = "Sorry, something went wrong and we were not able to create your account. Please try again later.";
+            $result['msg'] = "Sorry, something went wrong and we were not able to create your account.
+             Please try again later.";
         }
         return $result;
     }
@@ -598,7 +599,8 @@ class Users extends BaseModel
             }
         }
 
-        // If target account has admin status, check if there is at least one admin account remaining after status modification
+        // If target account has admin status, check if there is at least one admin account
+        // remaining after status modification
         if ($isAdmin and count($admins) <= 1) {
             return array(
                 'status'=>false,
@@ -755,7 +757,7 @@ class Users extends BaseModel
     private static function actionsList(array $item)
     {
         // Account activation/deactivation option
-        $activOption = $item['active'] == 1 ? "<option value='deactivate'>Deactivate</option>" 
+        $activOption = $item['active'] == 1 ? "<option value='deactivate'>Deactivate</option>"
         : "<option value='activate'>Activate</option>";
         
         return "
