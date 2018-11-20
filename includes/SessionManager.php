@@ -454,6 +454,12 @@ class SessionManager
         return $result;
     }
 
+    /**
+     * Modify speaker associated with a presentation and send notification email to previous and new speakers
+     *
+     * @param array $data: array('presid'=>presentation id, 'speaker'=>username of new speaker)
+     * @return array
+     */
     public function modifySpeaker(array $data)
     {
 
