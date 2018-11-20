@@ -228,7 +228,7 @@ class Tasks extends BaseModel
         $logs = array();
         $c = 0;
         if ($nbJobs > 0) {
-            self::$logger->log("There are {$nbJobs} task(s) to run.");
+            self::$logger->log("There are {$nbJobs} task(s) to run");
             foreach ($runningCron as $job) {
                 $result = $this->execute($job);
                 if (!empty($result['log'])) {
@@ -239,7 +239,7 @@ class Tasks extends BaseModel
         }
 
         if (!empty($logs)) {
-            $logs['msg'] = self::$logger->log("{$c}/{$nbJobs} task(s) were run.");
+            $logs['msg'] = self::$logger->log("{$c}/{$nbJobs} task(s) were run");
         }
     }
 
