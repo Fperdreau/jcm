@@ -809,7 +809,7 @@ class Session extends BaseModel
         if (is_null($date)) {
             $date = date('Y-m-d');
         }
-        $sql = "SELECT DISTINCT date FROM {$this->tablename} WHERE date>={$date} ORDER BY date ASC";
+        $sql = "SELECT DISTINCT date FROM {$this->tablename} WHERE date>='{$date}' ORDER BY date ASC";
         $sql .= !is_null($limit) ? " LIMIT {$limit}": null;
         $req = $this->db->sendQuery($sql);
 
