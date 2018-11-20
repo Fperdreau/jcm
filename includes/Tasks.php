@@ -274,7 +274,7 @@ class Tasks extends BaseModel
             }
 
             // Update new running time
-            $newTime = $this->updateTime($thisJob->name, $thisJob->time, $thisJob->frequency);
+            $newTime = $this->updateTime($thisJob->name, date('Y-m-d H:i:s'), $thisJob->frequency);
             if ($newTime['status']) {
                 $logs[] = $this::$logger->log("{$name}: Next running time: {$newTime['msg']}");
             } else {
@@ -406,7 +406,7 @@ class Tasks extends BaseModel
     {
         if (is_null($time)) {
             $name = $_POST['name'];
-            $time = date('Y-m-d H:i:s', strtotime($_POST['date'] . ' ' . $_POST['time']));
+            $time = date('Y-m-d H:i:s');
         }
 
         if (is_null($frequency)) {
