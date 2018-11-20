@@ -226,15 +226,20 @@ class Tasks extends BaseModel
         $runningCron = $this->getRunningJobs();
         $nbJobs = count($runningCron);
         $logs = array();
+        $c = 0;
         if ($nbJobs > 0) {
-            $logs['msg'] = self::$logger->log("There are {$nbJobs} task(s) to run.");
+            self::$logger->log("There are {$nbJobs} task(s) to run.");
             foreach ($runningCron as $job) {
                 $result = $this->execute($job);
-                $logs[$job] = $result['logs'];
+                if (!empty($result['log'])) {
+                    $logs[$job] = $result['logs'];
+                    $c += 1;
+                }
             }
-            return $logs;
-        } else {
-            return $logs;
+        }
+
+        if (!empty($logs)) {
+            $logs['msg'] = self::$logger->log("{$c}/{$nbJobs} task(s) were run.");
         }
     }
 
