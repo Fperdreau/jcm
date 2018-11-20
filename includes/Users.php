@@ -400,7 +400,7 @@ class Users extends BaseModel
         $admins = $Users->getadmin('admin');
         $to = array();
         foreach ($admins as $key => $admin) {
-            $to[] = $admin['email'];
+            $to[] = $admin['id'];
         }
 
         $content['subject'] = 'Sign up | Verification';
@@ -409,14 +409,15 @@ class Users extends BaseModel
 
         $content['body'] = "
         Hello,<br><br>
-        <p><b>$username</b> wants to create an account.</p>
-        <p><a href='$authorize_url'>Authorize</a></p>
+        <p><b>{$username}</b> wants to create an account.</p>
+        <p><a href='{$authorize_url}'>Authorize</a></p>
         or
-        <p><a href='$deny_url'>Deny</a></p>
+        <p><a href='{$deny_url}'>Deny</a></p>
         ";
 
         $mail = new MailManager();
-        return $mail->send($content, $to);
+        $content['emails'] = $to;
+        return $mail->addToQueue($content);
     }
 
     /**
@@ -429,10 +430,11 @@ class Users extends BaseModel
         $MailManager = new MailManager();
         $fullname = isset($data['fullname']) ? $data['fullname'] : $data['username'];
         $body = self::confirmationMail($fullname, $data['username']);
-        return $MailManager->send(array(
+        return $MailManager->addToQueue(array(
             'body'=>$body,
-            'subject'=>'Sign up | Confirmation'
-        ), array($data['email']));
+            'subject'=>'Sign up | Confirmation',
+            'emails'=>$data['id']
+        ));
     }
 
     /**
@@ -444,10 +446,11 @@ class Users extends BaseModel
     {
         $MailManager = new MailManager();
         $body = self::deactivationEmail($data['fullname'], $data['email'], $data['hash']);
-        return $MailManager->send(array(
+        return $MailManager->addToQueue(array(
             'body'=>$body,
-            'subject'=>'Your account has been deactivated'
-        ), array($data['email']));
+            'subject'=>'Your account has been deactivated',
+            'emails'=>$data['id']
+        ));
     }
 
     /**

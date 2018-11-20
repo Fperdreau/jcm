@@ -238,7 +238,8 @@ class Backup
                         database in attachment.</p>",
                     'subject'=>"Automatic Database backup"
                 );
-                $mail->send($content, array($item['email']));
+                $content['emails'] = $item['id'];
+                $mail->addToQueue($content);
             } catch (\Exception $e) {
                 Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             }

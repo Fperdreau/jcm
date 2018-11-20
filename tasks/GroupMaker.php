@@ -84,7 +84,8 @@ class GroupMaker extends Task
         $sent = 0;
         foreach ($users as $username => $user) {
             $content = $Group->makeMail($user['username']);
-            if ($MailManager->send($content, array($user['email']))) {
+            $content['emails'] = $user['id'];
+            if ($MailManager->addToQueue($content)) {
                 $sent += 1;
             }
         }

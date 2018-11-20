@@ -495,7 +495,11 @@ class MailManager extends BaseModel
     private static function processRecipientsList($data)
     {
         $user = new Users();
-        $ids = explode(',', $data);
+        if (!is_array($data)) {
+            $ids = explode(',', $data);
+        } else {
+            $ids = $data;
+        }
         $mailing_list = array();
         foreach ($ids as $id) {
             $tmp = $user->getById($id);

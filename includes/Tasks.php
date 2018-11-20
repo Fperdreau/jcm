@@ -283,11 +283,11 @@ class Tasks extends BaseModel
 
             $this->unlock($name);
             $logs[] = $this::$logger->log("Task '{$name}' completed");
+            return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>$logs[0]);
         } else {
             $this::$logger->log("Task '{$name}' is already running");
+            return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>null);
         }
-
-        return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>$logs[0]);
     }
 
     /**
@@ -349,12 +349,13 @@ class Tasks extends BaseModel
         $Users = new Users();
         $emails = array();
         foreach ($Users->all(array('status'=>'admin')) as $key => $item) {
-            $emails[] = $item['email'];
+            $emails[] = $item['id'];
         }
         $content = self::logsEmailContent($string);
        
         $MailManager = new MailManager();
-        if ($MailManager->send($content, $emails)) {
+        $content['emails'] = $emails;
+        if ($MailManager->addToQueue($content)) {
             return true;
         } else {
             return false;
