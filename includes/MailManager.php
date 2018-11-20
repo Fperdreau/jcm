@@ -304,13 +304,16 @@ class MailManager extends BaseModel
         }
 
         // Set sender
-        if (isset($data['mail_from'])) {
+        if (isset($data['mail_from']) && !empty($data['mail_from'])) {
             // Add custom settings
             $settings['mail_from'] = $data['mail_from'];
             $settings['mail_from_name'] = $data['mail_from_name'];
 
             // Email title
             $data['subject'] = "{$data['subject']} (Sent by {$settings['mail_from_name']})";
+        } else {
+            $settings['mail_from'] = $this->settings['mail_from'];
+            $settings['mail_from_name'] = $this->settings['mail_from_name'];
         }
 
         // Set email subject
