@@ -48,7 +48,8 @@ class Presentation
             if ($Session->isExist(array('date'=>$item['date']))) {
                 $session_info = $Session->getInfo(array('date'=>$item['date']));
                 if (!$Publications->update(array('session_id'=>$session_info[0]['id']), array('id'=>$item['id']))) {
-                    Logger::getInstance(APP_NAME, __CLASS__)->error('Could not update publication table with new session id');
+                    Logger::getInstance(APP_NAME, __CLASS__)->error('Could not update publication 
+                    table with new session id');
                     return false;
                 }
             }
