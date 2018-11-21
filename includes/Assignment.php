@@ -365,25 +365,22 @@ class Assignment extends BaseModel
     public function getAssignable($session_type, $max, $date)
     {
         $req = $this->db->sendQuery("
-            SELECT * 
-            FROM {$this->tablename} a
-            INNER JOIN ".$this->db->tablesname['Users']." u
-            ON a.username=u.username
-            WHERE (a.$session_type<$max)
-                AND u.assign=1 AND u.status!='admin'
+            SELECT DISTINCT(u.username) 
+            FROM " . $this->db->getAppTables('Users') . " u
+            INNER JOIN  " . $this->db->getAppTables('Assignment') . " p
+            ON u.username=p.username
+            WHERE u.assign=1 AND u.status!='admin' AND p.{$session_type}<{$max}
+                AND u.username IN (
+                    SELECT username
+                    FROM " . $this->db->getAppTables('Availability') . " a
+                    WHERE a.date!='{$date}'
+                )
             ");
 
-        // Check users availability for this day
-        $Availability = new Availability($this->db);
+        // Get list of usernames
         $data = array();
         while ($row = $req->fetch_assoc()) {
-            $availability = array();
-            foreach ($Availability->get(array('username'=>$row['username'])) as $key => $info) {
-                $availability[] = $info['date'];
-            }
-            if (empty($availability) || !in_array($date, $availability)) {
-                $data[] = $row;
-            }
+            $data[] = $row['username'];
         }
         return $data;
     }
