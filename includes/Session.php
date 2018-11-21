@@ -654,66 +654,6 @@ class Session extends BaseModel
     }
 
     /**
-     * Retrieve all elements from the selected table
-     * @param array $id
-     * @param array $filter
-     * @return array|mixed
-     */
-    public function allOld(array $id = null, array $filter = null)
-    {
-        $dir = (!is_null($filter) && isset($filter['dir'])) ? strtoupper($filter['dir']):'DESC';
-        $param = (!is_null($filter) && isset($filter['order'])) ? "ORDER BY {$filter['order']} " . $dir
-        : "ORDER BY start_time ASC";
-        $limit = (!is_null($filter) && isset($filter['limit'])) ? " LIMIT {$filter['limit']} " : null;
-
-        if (!is_null($id)) {
-            $search = $this->db->parse(array(), $id);
-        } else {
-            $search = null;
-        }
-
-        $sql = "SELECT *, id as session_id, type as session_type
-                FROM {$this->tablename} s
-                 LEFT JOIN 
-                    (SELECT date as pres_date, type as pres_type, session_id as p_session_id, id as id_pres, 
-                    title, orator, username  
-                    FROM " . $this->db->getAppTables('Presentation') . ") p
-                        ON s.id=p.p_session_id
-                 LEFT JOIN 
-                    (SELECT username, fullname FROM " . $this->db->getAppTables('Users'). ") u
-                        ON u.username=p.username
-                 {$search['cond']} {$param} {$limit}";
-
-        $req = $this->db->sendQuery($sql);
-        $data = array();
-        if ($req !== false) {
-            while ($row = $req->fetch_assoc()) {
-                if (!isset($data[$row['session_id']])) {
-                    $data[$row['session_id']] = array(
-                        'id'=>$row['session_id'],
-                        'date'=>$row['date'],
-                        'type'=>$row['type'],
-                        'room'=>$row['room'],
-                        'slots'=>$row['slots'],
-                        'repeated'=>$row['repeated'],
-                        'frequency'=>$row['frequency'],
-                        'start_date'=>$row['start_date'],
-                        'end_date'=>$row['end_date'],
-                        'start_time'=>$row['start_time'],
-                        'end_time'=>$row['end_time'],
-                        'event_id'=>$row['event_id'],
-                        'recurrent'=>$row['recurrent'],
-                        'content'=>array()
-                    );
-                } else {
-                    $data[$row['session_id']]['content'][] = $row;
-                }
-            }
-        }
-        return $data;
-    }
-
-    /**
      * Get slots related to session
      *
      * @param string $id: session id
@@ -747,7 +687,7 @@ class Session extends BaseModel
      */
     private function getPresids(array $data)
     {
-        $sql = "SELECT p.id,u.fullname 
+        $sql = "SELECT p.id, u.fullname, p.username AS speaker_username
             FROM " . Db::getInstance()->getAppTables('Presentation') . " p
                 INNER JOIN " . Db::getInstance()->getAppTables('Users'). " u
                 ON p.username=u.username                
@@ -755,9 +695,11 @@ class Session extends BaseModel
         $req = $this->db->sendQuery($sql);
         $data['presids'] = array();
         $data['speakers'] = array();
+        $data['usernames'] = array();
         while ($row = $req->fetch_assoc()) {
             $data['presids'][] = $row['id'];
             $data['speakers'][] = $row['fullname'];
+            $data['usernames'][] = $row['speaker_username'];
         }
         $data['nbpres'] = count($data['presids']);
         return $data;
