@@ -66,7 +66,7 @@ class Presentation extends BaseSubmission
     {
         $Session = new Session();
         if (!$Session->isFull($data['session_id'])) {
-            if ($this->isExist(array('title'=>$data['title'])) === false) {
+            if ($data['title'] === 'TBA' || $this->isExist(array('title'=>$data['title'])) === false) {
                 // Create an unique ID
                 //$post['id_pres'] = $this->generateID('id_pres');
 
