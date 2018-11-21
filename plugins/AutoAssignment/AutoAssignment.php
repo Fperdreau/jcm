@@ -114,38 +114,36 @@ class AutoAssignment extends Plugin
     /**
      * Get new speaker
      *
-     * @param Session $session
+     * @param array $session: session data
+     * @param array $plannedSpeakers: List of planned speakers for this session
      * @return string
      */
-    private function getSpeaker(Session $session)
+    private function getSpeaker(array $session, $plannedSpeakers)
     {
         set_time_limit(10);
 
         // Prettify session type
-        $session_type = Assignment::prettyName($session->type, true);
+        $session_type = Assignment::prettyName($session['type'], true);
 
         // Get maximum number of presentations
         $max = self::$Assignment->getMax($session_type);
 
         // Get speakers planned for this session
-        $speakers = array_diff($session->speakers, array('TBA'));
+        $speakers = array_diff($plannedSpeakers, array('TBA'));
 
         // Get assignable users
-        $assignable_users = array();
-        while (empty($assignable_users)) {
-            $assignable_users = self::$Assignment->getAssignable($session_type, $max, $session->date);
-            $max += 1;
-        }
-
         $usersList = array();
-        foreach ($assignable_users as $key => $user) {
-            $usersList[] = $user['username'];
+        $n = 0;
+        while (empty($usersList) & $n < 2) {
+            $usersList = self::$Assignment->getAssignable($session_type, $max, $session['date']);
+            $max += 1;
+            $n += 1;
         }
 
         // exclude the already assigned speakers for this session from the list of possible speakers
         $assignable = array_values(array_diff($usersList, $speakers));
 
-        if (empty($assignable)) {
+        if (empty($usersList) || empty($assignable)) {
             // If there are no users registered yet, the speaker is to be announced.
             $newSpeaker = 'TBA';
         } else {
@@ -164,7 +162,6 @@ class AutoAssignment extends Plugin
         return $newSpeaker;
     }
 
-
     /**
      * Assigns speakers to the $nb_session future sessions
      * @param null|int $nb_session: number of sessions
@@ -175,10 +172,6 @@ class AutoAssignment extends Plugin
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
         $result = array('status'=>true, 'msg'=>null, 'content'=>null);
-
-        // Get future sessions dates
-        $jc_day = $this->getSession()->getSettings('jc_day');
-        $jc_days = $this->getSession()->getJcDates($jc_day, intval($nb_session));
 
         $created = 0;
         $updated = 0;
@@ -195,28 +188,31 @@ class AutoAssignment extends Plugin
 
         // Update assignment table
         self::$Assignment->check();
+
+        $Presentation = new Presentation();
+
+        $Users = new Users();
         
         // Loop over sessions
-        foreach ($jc_days as $day) {
+        foreach ($this->getSession()->getUpcoming(intval($nb_session)) as $key => $item) {
             // If session does not exist yet, we create a new one
-            $session = new Session($day);
 
-            // Do nothing if nothing is planned on that day
-            if ($session->type === "none") {
-                continue;
-            }
+            $session = $this->getSession()->getInfo(array('id'=>$item['id']));
 
+            // Get list of planned speakers
+            $plannedSpeakers = $session['usernames'];
+            
             // If a session is planned for this day, we assign 1 speaker by slot
-            for ($p=0; $p<self::$session->slots; $p++) {
+            for ($p=0; $p<$session['slots']; $p++) {
                 // If there is already a presentation planned for this day,
                 // check if the speaker is a real member, otherwise
                 // we will assign a new one
-                if (isset($session->presids[$p])) {
-                    $Presentation = new Presentation($session->presids[$p]);
-                    $doAssign = $Presentation->orator === 'TBA';
+
+                if (!empty($session['content']) && isset($session['content'][$p])) {
+                    $PresentationId = $session['content'][$p]['id'];
+                    $doAssign = $$session['content'][$p]['orator'] === 'TBA';
                     $new = false;
                 } else {
-                    $Presentation = new Presentation();
                     $doAssign = true;
                     $new = true;
                 }
@@ -226,24 +222,27 @@ class AutoAssignment extends Plugin
                 }
 
                 // Get & assign new speaker
-                if (!$Newspeaker = $this->getSpeaker($session)) {
+                if (!$newSpeaker = $this->getSpeaker($session, $plannedSpeakers)) {
                     $result['status'] = false;
                     $result['msg'] = 'Could not assign speakers';
                     return $result;
                 }
+                $plannedSpeakers[] = $newSpeaker;
 
                 // Get speaker information
-                $speaker = new Users($Newspeaker);
+                $speaker = $Users->get(array('username'=>$newSpeaker));
 
                 // Create/Update presentation
                 if ($new) {
                     $post = array(
                         'title'=>'TBA',
-                        'date'=>$day,
+                        'date'=>$session['date'],
                         'type'=>'paper',
-                        'username'=>$speaker->username,
-                        'orator'=>$speaker->username);
-                    if ($presid = $Presentation->make($post)) {
+                        'username'=>$speaker['username'],
+                        'orator'=>$speaker['username'],
+                        'session_id'=>$session['id']
+                    );
+                    if ($PresentationId = $Presentation->make($post)) {
                         $created += 1;
                     } else {
                         $result['status'] = false;
@@ -251,32 +250,34 @@ class AutoAssignment extends Plugin
                 } else {
                     $post = array(
                         'date'=>$day,
-                        'username'=>$speaker->username,
-                        'orator'=>$speaker->username);
-                    if ($result['status'] = $Presentation->update($post, array('id_pres'=>$Presentation->id_pres))) {
+                        'username'=>$speaker['username'],
+                        'orator'=>$speaker['username']
+                    );
+                    if ($result['status'] = $Presentation->update($post, array('id'=>$PresentationId))) {
                         $updated += 1;
                     }
                 }
-
-                // Update session info
-                $data = $session->getInfo(array('id'=>$session->id));
                 
                 // Notify assigned user
                 $info = array(
-                    'speaker'=>$speaker->username,
-                    'type'=>$data[0]['type'],
-                    'presid'=>$Presentation->id_pres,
-                    'date'=>$data[0]['date']->date
+                    'speaker'=>$speaker['username'],
+                    'type'=>$session['type'],
+                    'presid'=>$PresentationId,
+                    'date'=>$session['date']
                 );
-                $session->notify_session_update($speaker, $info);
 
-                $assignedSpeakers[$day][] = $info;
+                if ($newSpeaker !== 'TBA') {
+                    \includes\SessionManager::notifyUpdate(
+                        new Users($speaker['username']),
+                        $info
+                    );
+                }
+
+                $assignedSpeakers[$session['date']][] = $info;
             }
-
         }
         $result['content'] = $assignedSpeakers;
         $result['msg'] = "$created chair(s) created<br>$updated chair(s) updated";
         return $result;
     }
-
 }
