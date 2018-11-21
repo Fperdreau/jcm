@@ -929,7 +929,7 @@ class SessionManager
                     <p>Hello {$fullname},</p>
                     <p>You have been automatically invited to present at a 
                     <span style='font-weight: 500'>{$session_type}</span> 
-                    session on the <span style='font-weight: 500'>$date</span>.</p>
+                    session on the <span style='font-weight: 500'>{$date}</span>.</p>
                     <p>Please, submit your presentation on the Journal Club Manager before the 
                     <span style='font-weight: 500'>{$dueDate}</span>.</p>
                     <p>If you think you will not be able to present on the assigned date, please 
@@ -939,7 +939,7 @@ class SessionManager
                     </div>
                 </div>
             ",
-            'subject'=> "Invitation to present on the $date"
+            'subject'=> "Invitation to present on the {$date}"
         );
     }
 
