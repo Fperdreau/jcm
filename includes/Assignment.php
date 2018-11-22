@@ -63,6 +63,36 @@ class Assignment extends BaseModel
     }
 
     /**
+     * Reset assignment table
+     *
+     * @return string
+     */
+    public function resetTable()
+    {
+        $data = $this->all();
+        $session_types = $this->getSessionTypes('app');
+        $values = array_fill(0, count($session_types), 0);
+        $newValues = array_combine($session_types, $values);
+        foreach ($this->all() as $key => $item) {
+            $this->update($newValues, array('id'=>$item['id']));
+        }
+
+        return $this->showList($this->all());
+    }
+
+    /**
+     * Update assignment table based on submission records
+     *
+     * @return string
+     */
+    public function updateAssignmentTable()
+    {
+        $this->getPresentations();
+
+        return $this->showList($this->all());
+    }
+
+    /**
      * Add missing session types and remove deleted ones
      */
     private function updateTypes()
@@ -210,17 +240,18 @@ class Assignment extends BaseModel
         $sql = "SELECT * FROM " . $this->db->genName('Presentation');
         $req = $this->db->sendQuery($sql);
         $list = array();
+        $Session = new Session();
 
         while ($row = $req->fetch_assoc()) {
-            $Session = new Session($row['date']);
-            if ($Session->type === 'none' || empty($row['orator'])) {
+            $session = $Session->getInfo(array('id'=>$row['session_id']));
+            if ($session['type'] === 'none' || empty($row['orator'])) {
                 continue;
             }
 
-            if (!isset($list[$row['orator']][$Session->type])) {
-                $list[$row['orator']][$Session->type] = 1;
+            if (!isset($list[$row['orator']][$session['type']])) {
+                $list[$row['orator']][$session['type']] = 1;
             } else {
-                $list[$row['orator']][$Session->type] += 1;
+                $list[$row['orator']][$session['type']] += 1;
             }
         }
 
@@ -461,8 +492,53 @@ class Assignment extends BaseModel
      */
     public function showAll()
     {
-        $data = $this->all();
-        return self::showList($data);
+        return self::showTable($this->all());
+    }
+
+    /**
+     * Render assignments table
+     *
+     * @param array $data
+     * @return string
+     */
+    public static function showTable(array $data)
+    {
+        $buttons = self::tableButtons();
+        $table = self::showList($data);
+
+        return "
+        {$buttons}
+        <div id='tableAssignments'>
+        {$table}
+        </div>
+        ";
+    }
+
+    private static function tableButtons()
+    {
+        $leanModalUrlReset = Router::buildUrl(
+            'Assignment',
+            'resetTable'
+        );
+
+        $leanModalUrlUpdate = Router::buildUrl(
+            'Assignment',
+            'updateAssignmentTable'
+        );
+
+        return "
+        <div class='button_container'>
+            <div>
+                <a class='loadContent' data-url='{$leanModalUrlUpdate}' data-destination='#tableAssignments'>
+                    <input type='submit' value='Update' />
+                </a>
+            </div>
+            <div>
+                <a class='loadContent' data-url='{$leanModalUrlReset}' data-destination='#tableAssignments'>
+                    <input type='submit' value='Reset' />
+                </a>
+            </div>
+        </div>";
     }
 
     /**
@@ -482,7 +558,7 @@ class Assignment extends BaseModel
         foreach ($headers as $heading) {
             $headings .= "<div>" . self::prettyName($heading, false) . "</div>";
         }
-        
+
         return "
         <div class='table_container'>
             <div class='list-heading'>

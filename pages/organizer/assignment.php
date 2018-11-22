@@ -26,13 +26,13 @@ use includes\Template;
 // Declare classes
 $Assignment = new Assignment();
 $Assignment->check();
-$section_content = $Assignment->showAll();
+
 // Send mail
 $result = "
     <div class='page_header'>
     <p class='page_description'>List of members's number of assignments per sessions' type.</p>
     </div>
-    " . Template::section(array('body'=>$Assignment->showAll(), 'title'=>'Members list' )) . "
+    " . Template::section(array('body'=>$Assignment->showAll(), 'title'=>'Members Assignments'), 'assignments') . "
 ";
 
 echo $result;
