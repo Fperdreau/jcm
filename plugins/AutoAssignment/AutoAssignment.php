@@ -207,10 +207,10 @@ class AutoAssignment extends Plugin
                 // If there is already a presentation planned for this day,
                 // check if the speaker is a real member, otherwise
                 // we will assign a new one
-
-                if (!empty($session['content']) && isset($session['content'][$p])) {
-                    $PresentationId = $session['content'][$p]['id'];
-                    $doAssign = $$session['content'][$p]['orator'] === 'TBA';
+                var_dump($session);
+                if (!empty($session['presids']) && isset($session['presids'][$p])) {
+                    $PresentationId = $session['presids'][$p];
+                    $doAssign = $session['usernames'][$p] === 'TBA';
                     $new = false;
                 } else {
                     $doAssign = true;
