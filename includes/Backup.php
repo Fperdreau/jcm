@@ -42,59 +42,22 @@ class Backup
      */
     public static function backupDb($nbVersion)
     {
+        // Create Backup Folder
+        $mysqlrelativedir = 'backup/mysql';
+        $mysqlSaveDir = PATH_TO_APP . DS . $mysqlrelativedir;
+        $fileNamePrefix = 'fullbackup_' . date('Y-m-d_H-i-s');
+        $filename = $mysqlSaveDir. DS .$fileNamePrefix.".sql";
+
+        if (!is_dir(PATH_TO_APP . '/backup')) {
+            mkdir(PATH_TO_APP . '/backup', 0777);
+        }
+
+        if (!is_dir($mysqlSaveDir)) {
+            mkdir($mysqlSaveDir, 0777);
+        }
+
         try {
-            $db = Db::getInstance();
-            // Create Backup Folder
-            $mysqlrelativedir = 'backup/mysql';
-            $mysqlSaveDir = PATH_TO_APP .'/'. $mysqlrelativedir;
-            $fileNamePrefix = 'fullbackup_' . date('Y-m-d_H-i-s');
-
-            if (!is_dir(PATH_TO_APP . '/backup')) {
-                mkdir(PATH_TO_APP . '/backup', 0777);
-            }
-
-            if (!is_dir($mysqlSaveDir)) {
-                mkdir($mysqlSaveDir, 0777);
-            }
-
-            // Do backup
-            /* Store All AppTable name in an Array */
-            $allTables = Db::getInstance()->getapptables();
-
-            $return = "";
-            //cycle through
-            foreach ($allTables as $table) {
-                $result = $db->sendQuery('SELECT * FROM '.$table);
-                $num_fields = mysqli_num_fields($result);
-
-                $return.= 'DROP TABLE '.$table.';';
-                $row = $db->sendQuery('SHOW CREATE TABLE '.$table);
-                $row2 = mysqli_fetch_row($row);
-                $return.= "\n\n".$row2[1].";\n\n";
-
-                for ($i = 0; $i < $num_fields; $i++) {
-                    while ($row = mysqli_fetch_row($result)) {
-                        $return.= 'INSERT INTO '.$table.' VALUES(';
-                        for ($j=0; $j<$num_fields; $j++) {
-                            $row[$j] = addslashes($row[$j]);
-                            $row[$j] = preg_replace("/\n/", "\\n", $row[$j]);
-                            if (isset($row[$j])) {
-                                $return.= '"'.$row[$j].'"' ;
-                            } else {
-                                $return.= '""';
-                            }
-                            if ($j<($num_fields-1)) {
-                                $return.= ',';
-                            }
-                        }
-                        $return.= ");\n";
-                    }
-                }
-                $return.="\n\n\n";
-            }
-            $handle = fopen($mysqlSaveDir."/".$fileNamePrefix.".sql", 'w+');
-            fwrite($handle, $return);
-            fclose($handle);
+            self::performBackup($filename);
 
             self::cleanBackups($mysqlSaveDir, $nbVersion);
 
@@ -111,6 +74,56 @@ class Backup
                 'filename'=>null
             );
         }
+    }
+
+    /**
+     * Perform backup
+     * 
+     * @param string performBackup
+     */
+    private static function performBackup($filename)
+    {        
+
+        // Do backup
+        $db = Db::getInstance();
+
+        /* Store All AppTable name in an Array */
+        $allTables = $db->getapptables();
+
+        $return = "";
+        //cycle through
+        foreach ($allTables as $table) {
+            $result = $db->sendQuery('SELECT * FROM '.$table);
+            $num_fields = mysqli_num_fields($result);
+
+            $return.= 'DROP TABLE '.$table.';';
+            $row = $db->sendQuery('SHOW CREATE TABLE '.$table);
+            $row2 = mysqli_fetch_row($row);
+            $return.= "\n\n".$row2[1].";\n\n";
+
+            for ($i = 0; $i < $num_fields; $i++) {
+                while ($row = mysqli_fetch_row($result)) {
+                    $return.= 'INSERT INTO '.$table.' VALUES(';
+                    for ($j=0; $j<$num_fields; $j++) {
+                        $row[$j] = addslashes($row[$j]);
+                        $row[$j] = preg_replace("/\n/", "\\n", $row[$j]);
+                        if (isset($row[$j])) {
+                            $return.= '"'.$row[$j].'"' ;
+                        } else {
+                            $return.= '""';
+                        }
+                        if ($j<($num_fields-1)) {
+                            $return.= ',';
+                        }
+                    }
+                    $return.= ");\n";
+                }
+            }
+            $return.="\n\n\n";
+        }
+        $handle = fopen($filename, 'w+');
+        fwrite($handle, $return);
+        fclose($handle);
     }
 
     /**
