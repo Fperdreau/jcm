@@ -36,7 +36,7 @@ if (isset($pageParameters['op'])) {
     $op = htmlspecialchars($pageParameters['op']);
     $result = "Oops";
     $date = (!empty($pageParameters['date'])) ? htmlspecialchars($pageParameters['date']) : null;
-// Submit a new presentation
+    // Submit a new presentation
     if ($op == 'edit') {
         if (!empty($pageParameters['id'])) {
             $id_pres = htmlspecialchars($pageParameters['id']);
@@ -47,11 +47,11 @@ if (isset($pageParameters['op'])) {
         }
         $section_content = Presentation::form($user, null, 'edit', null, $date);
 
-// Suggest a presentation
+    // Suggest a presentation
     } elseif ($op == 'suggest') {
         $section_content = Suggestion::form($user, null, "suggest");
 
-// Select from the wish list
+    // Select from the wish list
     } elseif ($op == 'wishpick') {
         if (!empty($pageParameters['id'])) {
             $id_pres = htmlspecialchars($pageParameters['id']);
@@ -72,7 +72,7 @@ if (isset($pageParameters['op'])) {
         $section_content['description'] = Suggestion::description('wishpick');
         $section_content['content'] = $selectopt;
 
-// Modify a presentation
+    // Modify a presentation
     } elseif ($op == 'mod_pub') {
         $Presentation = new Presentation($pageParameters['id']);
         $section_content = Presentation::form($user, $Presentation, 'submit');

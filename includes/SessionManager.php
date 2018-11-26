@@ -923,7 +923,7 @@ class SessionManager
     private static function invitationEmail($username, $fullname, $dueDate, $date, $session_type, $presId)
     {
         $contactURL = URL_TO_APP."index.php?page=contact";
-        $editUrl = URL_TO_APP."index.php?page=submission&op=edit&id={$presId}&user={$username}";
+        $editUrl = URL_TO_APP."index.php?page=presentation&id={$presId}";
         return array(
             'body'=> "<div style='width: 100%; margin: auto;'>
                     <p>Hello {$fullname},</p>
