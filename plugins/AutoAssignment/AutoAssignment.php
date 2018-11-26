@@ -125,23 +125,27 @@ class AutoAssignment extends Plugin
         // Prettify session type
         $session_type = Assignment::prettyName($session['type'], true);
 
-        // Get maximum number of presentations
+        // Get maximum number of assignments
         $max = self::$Assignment->getMax($session_type);
+
+        // Get all assignable users
+        $allUsers = self::$Assignment->getAssignable($session_type, $max+1, $session['date']);
+        $N = count($allUsers);
 
         // Get speakers planned for this session
         $speakers = array_diff($plannedSpeakers, array('TBA'));
 
         // Get assignable users
-        $usersList = array();
+        $assignable = array();
         $n = 0;
-        while (empty($usersList) & $n < 2) {
+        while (empty($assignable) & $n <= $N) {
             $usersList = self::$Assignment->getAssignable($session_type, $max, $session['date']);
             $max += 1;
             $n += 1;
-        }
 
-        // exclude the already assigned speakers for this session from the list of possible speakers
-        $assignable = array_values(array_diff($usersList, $speakers));
+            // exclude the already assigned speakers for this session from the list of possible speakers
+            $assignable = array_values(array_diff($usersList, $speakers));
+        }
 
         if (empty($usersList) || empty($assignable)) {
             // If there are no users registered yet, the speaker is to be announced.
@@ -204,51 +208,55 @@ class AutoAssignment extends Plugin
             
             // If a session is planned for this day, we assign 1 speaker by slot
             for ($p=0; $p<$session['slots']; $p++) {
+                // Update info array
+                $session = $this->getSession()->getInfo(array('id'=>$item['id']));
+
                 // If there is already a presentation planned for this day,
                 // check if the speaker is a real member, otherwise
                 // we will assign a new one
-                if (!empty($session['presids']) && isset($session['presids'][$p])) {
+
+                if (isset($session['presids'][$p])) {
                     $PresentationId = $session['presids'][$p];
-                    $doAssign = $session['usernames'][$p] === 'TBA';
+                    $doAssign = empty($session['usernames'][$p]);
                     $new = false;
                 } else {
                     $doAssign = true;
                     $new = true;
                 }
 
+                // Skip if no assignment is needed
                 if (!$doAssign) {
                     continue;
                 }
 
                 // Get & assign new speaker
-                if (!$newSpeaker = $this->getSpeaker($session, $plannedSpeakers)) {
+                $newSpeaker = $this->getSpeaker($session, $session['usernames']);
+                if (!$newSpeaker) {
                     $result['status'] = false;
                     $result['msg'] = 'Could not assign speakers';
                     return $result;
                 }
-                $plannedSpeakers[] = $newSpeaker;
 
                 // Get speaker information
                 $speaker = $Users->get(array('username'=>$newSpeaker));
 
                 // Create/Update presentation
                 if ($new) {
-                    $post = array(
+                    $result= $Presentation->edit(array(
+                        'id'=>'false',
                         'title'=>'TBA',
                         'date'=>$session['date'],
                         'type'=>'paper',
                         'username'=>$speaker['username'],
                         'orator'=>$speaker['username'],
                         'session_id'=>$session['id']
-                    );
-                    if ($PresentationId = $Presentation->make($post)) {
+                    ));
+                    if ($result['status']) {
                         $created += 1;
-                    } else {
-                        $result['status'] = false;
                     }
                 } else {
                     $post = array(
-                        'date'=>$day,
+                        'date'=>$session['date'],
                         'username'=>$speaker['username'],
                         'orator'=>$speaker['username']
                     );

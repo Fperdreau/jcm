@@ -687,11 +687,22 @@ class Session extends BaseModel
      */
     private function getPresids(array $data)
     {
-        $sql = "SELECT p.id, u.fullname, p.username AS speaker_username
+        $sql = "
+        SELECT p.id, u.fullname, p.username AS speaker_username
             FROM " . Db::getInstance()->getAppTables('Presentation') . " p
-                INNER JOIN " . Db::getInstance()->getAppTables('Users'). " u
-                ON p.username=u.username                
-            WHERE p.session_id='{$data['id']}'";
+                LEFT JOIN " . Db::getInstance()->getAppTables('Users'). " u
+                ON p.username=u.username   
+            WHERE p.session_id='{$data['id']}'
+
+        UNION
+
+        SELECT p.id, u.fullname, p.username AS speaker_username
+        FROM " . Db::getInstance()->getAppTables('Presentation') . " p
+            RIGHT JOIN " . Db::getInstance()->getAppTables('Users'). " u
+            ON p.username=u.username
+            WHERE p.session_id='{$data['id']}'
+        ";
+        
         $req = $this->db->sendQuery($sql);
         $data['presids'] = array();
         $data['speakers'] = array();
@@ -702,6 +713,7 @@ class Session extends BaseModel
             $data['usernames'][] = $row['speaker_username'];
         }
         $data['nbpres'] = count($data['presids']);
+
         return $data;
     }
 
