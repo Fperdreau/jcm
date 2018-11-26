@@ -1,19 +1,26 @@
 <?php
 
-namespace Patch;
+namespace Patches;
 
-class Session
+class Posts
 {
+
+    public static function patch()
+    {
+        self::patchTable();
+    }
     
     /**
      * Convert post username
      */
-    public static function patchTable()
+    private static function patchTable()
     {
-        $self = new self();
-        $sql = "SELECT * FROM {$self->tablename}";
-        $req = $self->db->sendQuery($sql);
-        $user = new Users();
+        $db = \includes\Db::getInstance();
+        $db->getAppTables('Posts');
+        $self = new \includes\Posts();
+        $sql = "SELECT * FROM {$db->getAppTables('Posts')}";
+        $req = $db->sendQuery($sql);
+        $user = new \includes\Users();
         while ($row = mysqli_fetch_assoc($req)) {
             $data = $user->get(array('fullname'=>$row['username']));
             if (!empty($data)) {

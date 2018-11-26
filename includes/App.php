@@ -159,7 +159,7 @@ class App
         require PATH_TO_PLUGINS . 'Autoloader.php';
         \Plugins\Autoloader::register();
 
-        // Register Plugins autoloader
+        // Register Scheduled-tasks autoloader
         require PATH_TO_TASKS . 'Autoloader.php';
         \Tasks\Autoloader::register();
 

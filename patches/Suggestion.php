@@ -10,8 +10,13 @@ class Suggestion
      */
     public static function patch()
     {
+        self::convert();
+    }
+
+    private static function convert()
+    {
         $self = new self();
-        $Presentations = new Presentation();
+        $Presentations = new \includes\Presentation();
 
         foreach ($Presentations->all(array('type' => 'wishlist')) as $key => $item) {
             $item['type'] = 'paper'; // Set type as paper by default

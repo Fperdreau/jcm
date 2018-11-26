@@ -169,6 +169,7 @@ function process(input) {
         {url: 'php/router.php?controller=Config&action=createConfig', operation: 'do_conf', data: data, text: 'Creating configuration file'},
         {url: 'php/router.php?controller=Backup&action=backupDb', operation: 'backup', data: data, text: 'Backup files and database'},
         {url: 'php/router.php?controller=App&action=install', operation: 'install_db', data: data, text: 'Installing application'},
+        {url: 'php/router.php?controller=Patcher&action=patching', operation: 'apply_patch', data: data, text: 'Applying patch'},
         {url: 'php/router.php?controller=Session&action=checkDb', operation: 'checkDb', data: data, text: 'Checking database integrity'}
     ];
 

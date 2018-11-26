@@ -1,18 +1,24 @@
 <?php
 
-namespace Patch;
+namespace Patches;
 
 class Session
 {
+
+    public static function patch()
+    {
+        self::patchTime();
+    }
     
     /**
      * Patch session table and update start and end time/date if not specified yet
      * @return bool
      */
-    public static function patchTime()
+    private static function patchTime()
     {
-        $Session = new self();
-        if (Db::getInstance()->isColumn($Session->tablename, 'time')) {
+        $Session = new \includes\Session();
+        $db = \includes\Db::getInstance();
+        if ($db->isColumn($db->getAppTables('Session'), 'time')) {
             foreach ($Session->all() as $key => $item) {
                 if (is_null($item['start_time'])) {
                     $time = explode(',', $item['time']);
@@ -22,12 +28,13 @@ class Session
                     $new_data['start_date'] = $item['date'];
                     $new_data['end_date'] = $item['date'];
                     if (!$Session->update($new_data, array('id'=>$item['id']))) {
-                        Logger::getInstance(APP_NAME, __CLASS__)->info("Session {$item['id']} could not be updated");
+                        \includes\Logger::getInstance(APP_NAME, __CLASS__)->info("Session {$item['id']} could not be 
+                        updated");
                         return false;
                     }
                 }
             }
-            return Db::getInstance()->delete_column($Session->tablename, 'time');
+            return $db->deleteColumn($db->getAppTables('Session'), 'time');
         } else {
             return true;
         }

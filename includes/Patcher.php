@@ -11,7 +11,8 @@ namespace includes;
 /**
  * Undocumented class
  */
-class Patcher {
+class Patcher
+{
 
     /**
      * @var $directory string: path to patch files
@@ -21,7 +22,8 @@ class Patcher {
     /**
      * Patcher constructor.
      */
-    public function __construct() {
+    public function __construct()
+    {
         self::$directory = PATH_TO_APP . DS . 'patches';
     }
 
@@ -29,18 +31,26 @@ class Patcher {
      * Patch application
      * @return mixed
      */
-    public function patching()
+    public function patching($op)
     {
-        $op = $_POST['op'] === "new";
-        if ($op === false) {
-            patching();
-            Suggestion::patch();
-            Presentation::patch_uploads();
-            Presentation::patch_session_id();
-            Session::patch_time();
-            Posts::patch_table();
+        if ($op === 'update') {
+            // Register Patches autoloader
+            require_once PATH_TO_APP . 'patches' . DS . 'Autoloader.php';
+            \Patches\Autoloader::register();
 
-            $result['msg'] = "Patch successfully applied!";
+            // Install all tables
+            $patchesList = scandir(PATH_TO_APP . 'patches');
+            foreach ($patchesList as $patchFile) {
+                if (!in_array($patchFile, array('.', '..', 'Autoloader.php'))) {
+                    $class_name = explode('.', $patchFile);
+                    $result = self::loadClass($class_name[0])->patch();
+                    if ($result['status'] === false) {
+                        return $result;
+                    }
+                }
+            }
+                
+            $result['msg'] = "Patch successfully applied";
             $result['status'] = true;
         } else {
             $result['msg'] = 'Skipped, because unnecessary.';
@@ -49,7 +59,18 @@ class Patcher {
         return $result;
     }
 
-    
+    /**
+     * Load class function
+     *
+     * @param string $name
+     * @return stdClass
+     */
+    private static function loadClass($name)
+    {
+        $className = '\\Patches\\' . $name;
+        return new $className();
+    }
+
     /**
      * Patching database tables for version older than 1.2.
      */
@@ -58,7 +79,6 @@ class Patcher {
         $db = Db::getInstance();
         $version = (float)$_SESSION['installed_version'];
         if ($version <= 1.2) {
-
             // Patch Presentation table
             // Set username of the uploader
             $sql = 'SELECT * FROM ' . $db->tablesname['Presentation'];
