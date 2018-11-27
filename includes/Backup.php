@@ -57,8 +57,13 @@ class Backup
         }
 
         try {
+            // Export DB
             self::performBackup($filename);
 
+            // Compress output file
+            self::gzipBackupFile($filename, $level = 9);
+
+            // Remove old versions
             self::cleanBackups($mysqlSaveDir, $nbVersion);
 
             return array(
@@ -78,52 +83,93 @@ class Backup
 
     /**
      * Perform backup
-     * 
+     *
      * @param string performBackup
      */
     private static function performBackup($filename)
-    {        
+    {
+        set_time_limit(600);
 
         // Do backup
         $db = Db::getInstance();
 
-        /* Store All AppTable name in an Array */
-        $allTables = $db->getapptables();
+        // Batch size
+        $batchSize = 100;
 
-        $return = "";
+        $sql = "CREATE DATABASE IF NOT EXISTS `{$db->config['dbname']}`;\n\n";
+        $sql .= "USE `{$db->config['dbname']}`;\n\n";
+        self::saveToFile($filename, $sql);
+
         //cycle through
-        foreach ($allTables as $table) {
-            $result = $db->sendQuery('SELECT * FROM '.$table);
-            $num_fields = mysqli_num_fields($result);
+        foreach ($db->getAppTables() as $table) {
+            // Get number of rows
+            $result = $db->sendQuery('SELECT count(*) FROM ' . $table)->fetch_row();
+            $totRows = max(intval($result[0]), 1);
+            $maxRowNb = min($batchSize, $totRows);
 
-            $return.= 'DROP TABLE '.$table.';';
-            $row = $db->sendQuery('SHOW CREATE TABLE '.$table);
-            $row2 = mysqli_fetch_row($row);
-            $return.= "\n\n".$row2[1].";\n\n";
+            $nBatch = max(ceil($totRows/($maxRowNb)), 1);
 
-            for ($i = 0; $i < $num_fields; $i++) {
-                while ($row = mysqli_fetch_row($result)) {
-                    $return.= 'INSERT INTO '.$table.' VALUES(';
-                    for ($j=0; $j<$num_fields; $j++) {
-                        $row[$j] = addslashes($row[$j]);
-                        $row[$j] = preg_replace("/\n/", "\\n", $row[$j]);
-                        if (isset($row[$j])) {
-                            $return.= '"'.$row[$j].'"' ;
+            self::saveToFile($filename, "DROP TABLE IF EXISTS `{$table}`;");
+
+            $row = $db->sendQuery("SHOW CREATE TABLE " . $table)->fetch_row();
+            self::saveToFile($filename, "\n\n" . $row[1] . ";\n\n");
+
+            // Loop over batch
+            for ($b = 0; $b <= $nBatch; $b++) {
+                $sql = "SELECT * FROM `{$table}` LIMIT " . ((($b+1) * $maxRowNb) - $maxRowNb) . ", {$maxRowNb}";
+                $req = $db->sendQuery($sql);
+                $num_fields = $req->field_count;
+
+                $out = '';
+                // Write rows
+                while ($row = $req->fetch_row()) {
+                    $j = 0;
+                    $rowStr = "";
+                    foreach ($row as $field) {
+                        $field = addslashes($field);
+                        $field = preg_replace("/\n/", "\\n", $field);
+                        $field = json_encode($field);
+
+                        if (isset($field)) {
+                            $rowStr .= $field;
                         } else {
-                            $return.= '""';
+                            $rowStr .= "''";
                         }
                         if ($j<($num_fields-1)) {
-                            $return.= ',';
+                            $rowStr .= ',';
                         }
+                        $j += 1;
                     }
-                    $return.= ");\n";
+                    $out .= "INSERT INTO `{$table}` VALUES({$rowStr});\n";
                 }
+                $out .= "\n\n\n";
+
+                // Write to SQL file
+                self::saveToFile($filename, $out);
             }
-            $return.="\n\n\n";
         }
-        $handle = fopen($filename, 'w+');
-        fwrite($handle, $return);
-        fclose($handle);
+
+        //$handle = fopen($filename, 'w+');
+        //fwrite($handle, $return);
+        //fclose($handle);
+    }
+
+    /**
+     * Save DB to sql file
+     *
+     * @param string $filename: full path to SQL file
+     * @param string $sql: content to write
+     * @return bool
+     */
+    private static function saveToFile($filename, $sql)
+    {
+        try {
+            file_put_contents($filename, $sql, FILE_APPEND | LOCK_EX);
+        } catch (Exception $e) {
+            print_r($e->getMessage());
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -258,6 +304,37 @@ class Backup
             }
         }
         return true;
+    }
+
+    /*
+     * Gzip backup file
+     *
+     * @param integer $level GZIP compression level (default: 9)
+     * @return string New filename (with .gz appended) if success, or false if operation fails
+     */
+    private static function gzipBackupFile($sqlFileName, $level = 9)
+    {
+        $dest =  $sqlFileName . '.gz';
+
+        $mode = 'wb' . $level;
+        if ($fpOut = gzopen($dest, $mode)) {
+            if ($fpIn = fopen($sqlFileName, 'rb')) {
+                while (!feof($fpIn)) {
+                    gzwrite($fpOut, fread($fpIn, 1024 * 256));
+                }
+                fclose($fpIn);
+            } else {
+                return false;
+            }
+            gzclose($fpOut);
+            if (!unlink($sqlFileName)) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        
+        return $dest;
     }
 
     /**
