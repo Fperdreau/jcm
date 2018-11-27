@@ -213,8 +213,8 @@ class MailManager extends BaseModel
         if ($result['status'] = $id !== false) {
             $result['msg'] = "Your message will be sent shortly!";
         } else {
-            Logger::getInstance(APP_NAME, get_class($this))->error($result['msg']);
             $result['msg'] = 'Oops, something went wrong!';
+            Logger::getInstance(APP_NAME, get_class($this))->error($result['msg']);
         }
         return $result;
     }
