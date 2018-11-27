@@ -125,7 +125,7 @@ class Db
     /**
      * Connects to DB and throws exceptions
      * @return mysqli|null
-     * @throws Exception
+     * @throws \Exception
      */
     public function connect()
     {
@@ -137,9 +137,9 @@ class Db
                     $this->config['username'],
                     $this->config['passw']
                 )) {
-                    throw new Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
+                    throw new \Exception("Failed to connect to the database (" . mysqli_connect_error() . ")");
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $result['status'] = false;
                 $result['msg'] = $e->getMessage();
                 Logger::getInstance(APP_NAME)->critical($result['msg']);
@@ -153,12 +153,14 @@ class Db
                 die(json_encode($result['msg']));
             }
 
-            if (!mysqli_query($this->bdd, "SET NAMES '$this->charset'")) {
-                $result['msg'] = "Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd);
-                Logger::getInstance(APP_NAME)->critical($result['msg']);
-                die(json_encode($result['msg']));
+            if (!mysqli_set_charset($this->bdd, $this->charset)) {
+                if (!mysqli_query($this->bdd, "SET NAMES {$this->charset}")) {
+                    $result['msg'] = "Could not set database charset to '$this->charset'<br/>".mysqli_error($this->bdd);
+                    Logger::getInstance(APP_NAME)->critical($result['msg']);
+                    die(json_encode($result['msg']));
+                }
             }
-
+            
             $this->connected = true;
         }
 
@@ -233,7 +235,7 @@ class Db
      */
     public function tableExists($table)
     {
-        return $this->sendQuery("SHOW TABLES LIKE '%{$table}%'")->num_rows > 0;
+        return $this->sendQuery("SHOW TABLES LIKE '{$table}'")->num_rows > 0;
     }
 
     /**
@@ -375,7 +377,7 @@ class Db
      */
     public function getColumns($tablename)
     {
-        $sql = "SHOW COLUMNS FROM {$tablename}";
+        $sql = "SHOW COLUMNS FROM `{$tablename}`";
         $req = $this->sendQuery($sql);
         $keys = array();
         while ($row = mysqli_fetch_array($req)) {
@@ -636,7 +638,7 @@ class Db
      * @param array|null $op : logical operators corresponding to the $where array. e.g. array('=','!=')
      * @param null|string $opt : options (e.g. "ORDER BY year")
      * @return array : associate array
-     * @throws Exception
+     * @throws \Exception
      */
     public function column($table_name, $column_name, array $where = array(), array $op = null, $opt = null)
     {
@@ -667,7 +669,7 @@ class Db
             return $data;
         } else {
             Logger::getInstance(APP_NAME, __CLASS__)->critical("Database error: COMMAND [{$sql}]");
-            throw new Exception("Database error: COMMAND [{$sql}]");
+            throw new \Exception("Database error: COMMAND [{$sql}]");
         }
     }
 
