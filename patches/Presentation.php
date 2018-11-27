@@ -1,47 +1,84 @@
 <?php
 
+/**
+ *
+ * @author Florian Perdreau (fp@florianperdreau.fr)
+ * @copyright Copyright (C) 2016 Florian Perdreau
+ * @license <http://www.gnu.org/licenses/agpl-3.0.txt> GNU Affero General Public License v3
+ *
+ * This file is part of DropMVC.
+ *
+ * DropMVC is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DropMVC is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with DropMVC.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 namespace Patches;
 
+/**
+ * Patch for Presentation table
+ */
 class Presentation
 {
 
+    /**
+     * Patch presentation table
+     *
+     * @return bool
+     */
     public static function patch()
     {
-        self::patchTable();
-        //self::patchPresentationId();
-        self::patchUploads();
-        self::patchSessionId();
+        $patches = array(
+            'patch1'=>'mergeTable',
+            'patch2'=>'patchUploads',
+            'patch3'=>'patchSessionId'
+        );
+        foreach ($patches as $key => $fun) {
+            if (!$result = call_user_func(array(__class__, $fun))) {
+                return $result;
+            }
+        }
+        return $result;
     }
 
-    private static function patchTable()
+    /**
+     * Copy content of old presentations table to new presentation table
+     *
+     * @return bool
+     */
+    private static function mergeTable()
     {
         $db = \includes\Db::getInstance();
         $self = new \includes\Presentation();
-        var_dump($db->getAppTables('Presentations'));
         if ($db->tableExists($db->getAppTables('Presentations'))) {
             $sql = "SELECT * FROM {$db->getAppTables('Presentations')}";
             $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
             foreach ($data as $key => $item) {
                 if (!$self->get(array('title'=>$item['title']))) {
-                    $self->add($item);
+                    $id = $item['id'];
+                    unset($item['id']);
+                    if ($self->add($item)) {
+                        $sql = "DELETE FROM {$db->getAppTables('Presentations')} WHERE id={$id}";
+                        $res = $db->sendQuery($sql);
+                    } else {
+                        return false;
+                    }
                 }
             }
-        }
-    }
 
-    /**
-     * Add session id to presentation info
-    */
-    private static function patchPresentationId()
-    {
-        $self = new \includes\Presentation();
-        foreach ($self->all() as $key => $item) {
-            $pres_obj = new \includes\Presentation($item['id']);
-            $pres_obj->update(
-                array('session_id'=>$self->get_session_id($pres_obj->date)),
-                array('id'=>$item['id'])
-            );
+            // Drop old Presentation table
+            $db->deletetable($db->getAppTables('Presentations'));
         }
+        return true;
     }
 
     /**
@@ -63,6 +100,7 @@ class Presentation
 
     /**
      * Patch Presentation table by adding session ids if missing
+     *
      * @return bool
      */
     private static function patchSessionId()
