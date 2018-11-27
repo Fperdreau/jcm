@@ -229,7 +229,7 @@ class Db
     /**
      * Check if the table exists
      * @param $table
-     * @return int
+     * @return bool
      */
     public function tableExists($table)
     {
