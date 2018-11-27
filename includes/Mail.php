@@ -118,8 +118,8 @@ class Mail
      */
     public static function domainExists($email, $record = 'MX')
     {
-        list($user, $domain) = explode('@', $email);
-        return empty($domain) ? false : checkdnsrr($domain, $record);
+        $split = explode('@', $email);
+        return count($split)<2 ? false : checkdnsrr($split[1], $record);
     }
 
     /**
