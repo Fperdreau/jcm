@@ -7,20 +7,39 @@ class Presentation
 
     public static function patch()
     {
+        self::patchTable();
+        //self::patchPresentationId();
         self::patchUploads();
         self::patchSessionId();
+    }
+
+    private static function patchTable()
+    {
+        $db = \includes\Db::getInstance();
+        $self = new \includes\Presentation();
+        var_dump($db->getAppTables('Presentations'));
+        if ($db->tableExists($db->getAppTables('Presentations'))) {
+            $sql = "SELECT * FROM {$db->getAppTables('Presentations')}";
+            $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
+            foreach ($data as $key => $item) {
+                if (!$self->get(array('title'=>$item['title']))) {
+                    $self->add($item);
+                }
+            }
+        }
     }
 
     /**
      * Add session id to presentation info
     */
-    public function patchPresentationId()
+    private static function patchPresentationId()
     {
-        foreach ($this->all() as $key => $item) {
-            $pres_obj = new \includes\Presentation($item['presid']);
+        $self = new \includes\Presentation();
+        foreach ($self->all() as $key => $item) {
+            $pres_obj = new \includes\Presentation($item['id']);
             $pres_obj->update(
-                array('session_id'=>$this->get_session_id($pres_obj->date)),
-                array('id'=>$item['presid'])
+                array('session_id'=>$self->get_session_id($pres_obj->date)),
+                array('id'=>$item['id'])
             );
         }
     }
@@ -28,7 +47,7 @@ class Presentation
     /**
      * Patch upload table: add object name ('Presentation').
      */
-    public static function patchUploads()
+    private static function patchUploads()
     {
         $Publications = new \includes\Presentation();
         $Media = new \includes\Media();
@@ -46,7 +65,7 @@ class Presentation
      * Patch Presentation table by adding session ids if missing
      * @return bool
      */
-    public static function patchSessionId()
+    private static function patchSessionId()
     {
         $Publications = new \includes\Presentation();
         $Session = new \includes\Session();
