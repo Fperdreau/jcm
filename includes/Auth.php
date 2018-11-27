@@ -136,15 +136,15 @@ class Auth extends BaseModel
 
         // Get last login timestamp and amount of previous login attempts
         if (empty($auth_inf)) {
-            $last_login = new DateTime();
+            $last_login = new \DateTime();
             $attempt = 0;
         } else {
-            $last_login = new DateTime($auth_inf[0]['last_login']);
-            $attempt = $auth_inf[0]['attempt'];
+            $last_login = new \DateTime($auth_inf['last_login']);
+            $attempt = $auth_inf['attempt'];
         }
 
         // Time interval since last login attempt
-        $now = new DateTime();
+        $now = new \DateTime();
         $diff = $now->diff($last_login);
 
         // Reset the number of attempts if last login attempt was 1 hour ago
