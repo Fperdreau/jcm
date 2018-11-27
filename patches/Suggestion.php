@@ -28,22 +28,22 @@ namespace Patches;
  */
 class Suggestion
 {
+
     /**
-     * Copy wishes from presentation table to suggestion table
+     * List of patches
      *
-     * @return bool: success or failure
+     * @var array
      */
-    public static function patch()
-    {
-        return self::convert();
-    }
+    public static $patches = array(
+        'patch1'=>'convert'
+    );
 
     /**
      * Move 'wishes' to suggestion table
      *
      * @return bool
      */
-    private static function convert()
+    public static function convert()
     {
         $self = new \includes\Suggestion();
         $Presentations = new \includes\Presentation();

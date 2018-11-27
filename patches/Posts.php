@@ -28,23 +28,23 @@ namespace Patches;
  */
 class Posts
 {
-
+    
     /**
-     * Apply patch to table
+     * List of patches
      *
-     * @return bool
+     * @var array
      */
-    public static function patch()
-    {
-        return self::patchTable();
-    }
+    public static $patches = array(
+        'patch1'=>'mergeTable',
+        'patch2'=>'patchTable'
+    );
     
     /**
      * Convert post username
      *
      * @return bool
      */
-    private static function patchTable()
+    public static function patchTable()
     {
         $db = \includes\Db::getInstance();
         $self = new \includes\Posts();
@@ -58,6 +58,37 @@ class Posts
                     return false;
                 }
             }
+        }
+        return true;
+    }
+
+    /**
+     * Copy content of old Post table to new Posts table
+     *
+     * @return bool
+     */
+    public static function mergeTable()
+    {
+        $db = \includes\Db::getInstance();
+        $self = new \includes\Posts();
+        if (!is_null($db->getAppTables('Post'))) {
+            $sql = "SELECT * FROM {$db->getAppTables('Post')}";
+            $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
+            foreach ($data as $key => $item) {
+                $item['title'] = str_replace('\'', '\\\'', $item['title']);
+                if (!$self->get(array('title'=>$item['title']))) {
+                    $id = $item['id'];
+                    unset($item['id']);
+                    if ($self->add($item)) {
+                        $sql = "DELETE FROM {$db->getAppTables('Post')} WHERE id={$id}";
+                        $res = $db->sendQuery($sql);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            // Drop old Presentation table
+            $db->deletetable($db->getAppTables('Post'));
         }
         return true;
     }

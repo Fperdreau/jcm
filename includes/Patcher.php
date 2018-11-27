@@ -61,7 +61,7 @@ class Patcher
             foreach ($patchesList as $patchFile) {
                 if (!in_array($patchFile, array('.', '..', 'Autoloader.php'))) {
                     $class_name = explode('.', $patchFile);
-                    if (!$result['status'] = self::loadClass($class_name[0])->patch()) {
+                    if (!$result['status'] = self::patch(self::loadClass($class_name[0]))) {
                         return $result;
                     }
                 }
@@ -77,9 +77,28 @@ class Patcher
     }
 
     /**
+     * Patch table
+     *
+     * @return bool
+     */
+    private static function patch($obj)
+    {
+        foreach ($obj::$patches as $key => $fun) {
+            if (method_exists($obj, $fun)) {
+                if (!$result = call_user_func(array($obj, $fun))) {
+                    return $result;
+                }
+            } else {
+                return false;
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Load class function
      *
-     * @param string $name
+     * @param string $name: class name
      * @return stdClass
      */
     private static function loadClass($name)

@@ -31,21 +31,20 @@ class Session
 {
 
     /**
-     * Apply patch to table
+     * List of patches
      *
-     * @return bool
+     * @var array
      */
-    public static function patch()
-    {
-        return self::patchTime();
-    }
+    public static $patches = array(
+        'patch1'=>'patchTime'
+    );
     
     /**
      * Patch session table and update start and end time/date if not specified yet
      *
      * @return bool
      */
-    private static function patchTime()
+    public static function patchTime()
     {
         $Session = new \includes\Session();
         $db = \includes\Db::getInstance();

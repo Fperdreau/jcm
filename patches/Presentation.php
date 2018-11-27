@@ -31,17 +31,23 @@ class Presentation
 {
 
     /**
+     * List of patches
+     *
+     * @var array
+     */
+    public static $patches = array(
+        'patch1'=>'mergeTable',
+        'patch2'=>'patchUploads',
+        'patch3'=>'patchSessionId'
+    );
+
+    /**
      * Patch presentation table
      *
      * @return bool
      */
     public static function patch()
     {
-        $patches = array(
-            'patch1'=>'mergeTable',
-            'patch2'=>'patchUploads',
-            'patch3'=>'patchSessionId'
-        );
         foreach ($patches as $key => $fun) {
             if (!$result = call_user_func(array(__class__, $fun))) {
                 return $result;
@@ -55,11 +61,11 @@ class Presentation
      *
      * @return bool
      */
-    private static function mergeTable()
+    public static function mergeTable()
     {
         $db = \includes\Db::getInstance();
         $self = new \includes\Presentation();
-        if ($db->tableExists($db->getAppTables('Presentations'))) {
+        if (!is_null($db->getAppTables('Presentations'))) {
             $sql = "SELECT * FROM {$db->getAppTables('Presentations')}";
             $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
             foreach ($data as $key => $item) {
@@ -84,7 +90,7 @@ class Presentation
     /**
      * Patch upload table: add object name ('Presentation').
      */
-    private static function patchUploads()
+    public static function patchUploads()
     {
         $Publications = new \includes\Presentation();
         $Media = new \includes\Media();
@@ -103,7 +109,7 @@ class Presentation
      *
      * @return bool
      */
-    private static function patchSessionId()
+    public static function patchSessionId()
     {
         $Publications = new \includes\Presentation();
         $Session = new \includes\Session();
