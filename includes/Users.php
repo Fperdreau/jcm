@@ -629,6 +629,37 @@ class Users extends BaseModel
     }
 
     /**
+     * Change the user's assignment status (Yes/No)
+     *
+     * @param array $data: array('username'=>string, 'assign'=>int)
+     * @return array
+     */
+    public function setAssign(array $data)
+    {
+        $result['status'] = $this->db->update(
+            $this->tablename,
+            array('assign'=>$data['assign']),
+            array("username"=>$data['username'])
+        );
+
+        $user = $this->get(array('username'=>$data['username']));
+        if ($result['status']) {
+            if ($data['assign'] == 1) {
+                $result['msg'] = "{$user['fullname']} can be assigned";
+            } else {
+                $result['msg'] = "{$user['fullname']} cannot be assigned anymore";
+            }
+        } else {
+            $result['msg'] = "Oops, something went wrong";
+        }
+        
+        Logger::getInstance(APP_NAME, get_class($this))->log($result);
+        $result['content'] = $this->generateuserslist();
+
+        return $result;
+    }
+
+    /**
      * Get user's list of publications to display it on his/her profile page
      *
      * @return string
@@ -717,6 +748,7 @@ class Users extends BaseModel
                 <div class='user_select user_position' data-filter='position'>Position</div>
                 <div class='user_select user_small' data-filter='active'>Activated</div>
                 <div class='user_select user_status' data-filter='status'>Status</div>
+                <div class='user_select user_small' data-filter='assign'>Assignable</div>
                 <div class='user_op' data-filter='action'>Action</div>
             </div>
             {$content}
@@ -805,6 +837,35 @@ class Users extends BaseModel
     }
 
     /**
+     * Display list of account status
+     *
+     * @param array $item: info
+     * @param string $variable: variable name
+     * @return string: select input
+     */
+    private static function assignList(array $item)
+    {
+        // Generate actions list
+        $list = '';
+        $status = [1, 0];
+        foreach ($status as $value) {
+            $selected = $value == $item['assign'] ? 'selected' : null;
+            $str = $value == 1 ? 'Yes': 'No';
+            $list .= "<option value='{$value}' {$selected}> ". ucfirst($str). "</option>";
+        }
+        
+        $url = Router::buildUrl('Users', 'setAssign');
+        return "
+        <form action='{$url}' method='post'>
+            <input type='hidden' name='username' value='{$item['username']}' />
+            <select name='assign' class='actionOnSelect' data-destination='#user_list' style='max-width: 75%;'>
+                {$list}
+            </select>
+        </form>
+        ";
+    }
+
+    /**
      * Display user information in list
      *
      * @param array $item
@@ -821,6 +882,9 @@ class Users extends BaseModel
                 <div class='user_small'>" . self::ageOfSubscription($item) . "</div>
                 <div class='user_status'>
                     " . self::statusList($item) . "
+                </div>
+                <div class='user_assign'>
+                " . self::assignList($item) . "
                 </div>
                 <div class='user_action'>
                     " . self::actionsList($item) . "
