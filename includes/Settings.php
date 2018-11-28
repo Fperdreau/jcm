@@ -95,12 +95,12 @@ class Settings extends BaseModel
         $includeList = scandir(PATH_TO_INCLUDES);
         $result = array();
         foreach ($includeList as $includeFile) {
-            if (!in_array($includeFile, array('.', '..', 'PasswordHash.php', 'Autoloader.php', 'BaseModel.php'))) {
+            if (!in_array($includeFile, array('.', '..', 'Settings.php', 'PasswordHash.php', 'Autoloader.php', 'BaseModel.php'))) {
                 $split = explode('.', $includeFile);
                 $className = $split[0];
                 $instClassName = '\\includes\\' . $className;
                 if (class_exists($instClassName, true)) {
-                    if (property_exists($instClassName, 'settings')) {
+                    if (property_exists($instClassName, 'settings') && defined("{$instClassName}::CONSTANT_NAME")) {
                         try {
                             $result[$className]= $instClassName::settings;
                         } catch (Exception $e) {
