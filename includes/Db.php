@@ -613,12 +613,16 @@ class Db
                     foreach ($value as $item) {
                         $parsedArg = explode(' ', $item);
                         $thisOp = count($parsedArg) > 1 ? $parsedArg[1] : '=';
-                        $thisCond[] = $col . $thisOp . "'{$parsedArg[0]}'";
+                        $thisOp = $thisOp == 'LIKE' ? ' LIKE ' : $thisOp;
+                        $value = addslashes($parsedArg[0]);
+                        $thisCond[] = $col . $thisOp . "'{$value}'";
                     }
                     $cond[] = implode(' OR ', $thisCond);
                 } else {
                     $parsedArg = explode(' ', $col);
                     $thisOp = count($parsedArg) > 1 ? $parsedArg[1] : '=';
+                    $thisOp = $thisOp == 'LIKE' ? ' LIKE ' : $thisOp;
+                    $value = addslashes($value);
                     $cond[] = $parsedArg[0] . $thisOp . "'{$value}'";
                 }
             }
