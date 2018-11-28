@@ -52,6 +52,9 @@ class Session
             foreach ($Session->all() as $key => $item) {
                 if (is_null($item['start_time'])) {
                     $time = explode(',', $item['time']);
+                    if (count($time) < 2) {
+                        continue;
+                    }
                     $new_data = array();
                     $new_data['start_time'] = date('H:i:s', strtotime($time[0]));
                     $new_data['end_time'] = date('H:i:s', strtotime($time[1]));
