@@ -109,7 +109,6 @@ class Groups extends Plugin
         return self::$session;
     }
 
-
     /**
      * Run scheduled task: Assign users to groups and send them an email with their assigned group and presentation
      * @return array|string
@@ -117,7 +116,7 @@ class Groups extends Plugin
     public function run()
     {
         $next_session = $this->getNextSession();
-        
+
         // 1: Check if group has not been made yet for the next session
         if (!empty($next_session) & $next_session !== false && $next_session['type'] !== 'none'
         && !$this->groupExist($next_session['date'])) {
