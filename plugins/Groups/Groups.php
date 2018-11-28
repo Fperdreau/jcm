@@ -119,8 +119,8 @@ class Groups extends Plugin
         $next_session = $this->getNextSession();
         
         // 1: Check if group has not been made yet for the next session
-        if (!empty($next_session) & $next_session !== false && $next_session[0]['type'] !== 'none'
-        && !$this->groupExist($next_session[0]['date'])) {
+        if (!empty($next_session) & $next_session !== false && $next_session['type'] !== 'none'
+        && !$this->groupExist($next_session['date'])) {
             // 2: Clear the group table
             $this->clearTable();
 
@@ -142,8 +142,8 @@ class Groups extends Plugin
     private function groupExist($session_date)
     {
         $sql = "SELECT date FROM {$this->tablename}";
-        $req = $this->db->send_query($sql);
-        while ($row = mysqli_fetch_assoc($req)) {
+        $req = $this->db->sendQuery($sql);
+        while ($row = $req->fetch_assoc()) {
             if ($row['date'] == $session_date) {
                 return true;
             }
