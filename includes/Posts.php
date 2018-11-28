@@ -83,8 +83,9 @@ class Posts extends BaseModel
     public function add(array $post)
     {
         if ($this->isExist(array('title'=>$post['title'])) === false) {
-            //$post['postid'] = $this->generateID('postid');
-            $post['date'] = date('Y-m-d H:i:s');
+            if (!isset($post['date'])) {
+                $post['date'] = date('Y-m-d H:i:s');
+            }
 
             // Add publication to the database
             if ($this->db->insert($this->tablename, $this->parseData($post, array("link")))) {
