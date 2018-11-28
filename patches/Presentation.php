@@ -69,7 +69,7 @@ class Presentation
             $sql = "SELECT * FROM {$db->getAppTables('Presentations')}";
             $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
             foreach ($data as $key => $item) {
-                if (!$self->get(array('title'=>$item['title']))) {
+                if (!$self->get(array('title LIKE'=>json_encode($item['title'])))) {
                     $id = $item['id'];
                     unset($item['id']);
                     if ($self->add($item)) {
