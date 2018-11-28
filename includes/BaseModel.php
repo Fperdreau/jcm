@@ -76,7 +76,7 @@ abstract class BaseModel
         $this->db = Db::getInstance();
         if ($plugin !== false) {
             $split = explode('\\', $plugin);
-            $this->tablename = $this->db->config['dbprefix'] . '_' . end($split);
+            $this->tablename = $this->db->config['dbprefix'] . '_' . strtolower(end($split));
         } else {
             $this->tablename = $this->getTableName();
         }
