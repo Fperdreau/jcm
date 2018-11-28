@@ -97,13 +97,17 @@ class Tasks extends BaseModel
      * Instantiate a task from class name
      *
      * @param string $name: task name (must be the same as the file name)
-     * @return Task
+     * @return Task|null
      */
     public function getTask($name)
     {
         if (is_null($this->instances) || !in_array($name, array_keys($this->instances))) {
             $className = '\\Tasks\\' . $name;
-            $this->instances[$name] = new $className();
+            if (class_exists($className)) {
+                $this->instances[$name] = new $className();
+            } else {
+                return null;
+            }
         }
         return $this->instances[$name];
     }
@@ -486,7 +490,7 @@ class Tasks extends BaseModel
     /**
      * Load plugin
      * @param string $name
-     * @return array
+     * @return array|null
      */
     public function load($name)
     {
@@ -499,18 +503,21 @@ class Tasks extends BaseModel
 
         // Instantiate plugin
         $thisPlugin = $this->getTask($name);
-
-        return array(
-            'name'=> $name,
-            'installed' => $installed,
-            'status' => $thisPlugin->status,
-            'path'=>$thisPlugin->path,
-            'time'=>$thisPlugin->time,
-            'frequency'=>$thisPlugin->frequency,
-            'options'=>$thisPlugin->options,
-            'description'=>$thisPlugin->description,
-            'running'=>$thisPlugin->running
-        );
+        if (is_null($thisPlugin)) {
+            return null;
+        } else {
+            return array(
+                'name'=> $name,
+                'installed' => $installed,
+                'status' => $thisPlugin->status,
+                'path'=>$thisPlugin->path,
+                'time'=>$thisPlugin->time,
+                'frequency'=>$thisPlugin->frequency,
+                'options'=>$thisPlugin->options,
+                'description'=>$thisPlugin->description,
+                'running'=>$thisPlugin->running
+            );
+        }
     }
 
     /**
