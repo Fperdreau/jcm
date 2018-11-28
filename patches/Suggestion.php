@@ -48,7 +48,7 @@ class Suggestion
         $self = new \includes\Suggestion();
         $Presentations = new \includes\Presentation();
 
-        foreach ($Presentations->all(array('type' => 'wishlist')) as $key => $item) {
+        foreach ($Presentations->all(array('type'=>'wishlist')) as $key => $item) {
             $item['type'] = 'paper'; // Set type as paper by default
             if ($self->make($item) === false) {
                 return false;
