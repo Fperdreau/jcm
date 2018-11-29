@@ -522,7 +522,8 @@ class Session extends BaseModel
         for ($i=0; $i<$data['slots']; $i++) {
             if (isset($data['content'][$i]) && !is_null($data['content'][$i]['id'])) {
                 $content .= Presentation::mailDetails(
-                    $Pres->getInfo($data['content'][$i]['id'])
+                    $Pres->getInfo($data['content'][$i]['id']),
+                    true
                 );
             } else {
                 $content .= self::emptySlot($data);
