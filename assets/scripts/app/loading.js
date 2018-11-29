@@ -68,7 +68,7 @@ function getPage(page, urlparam) {
  * @param data
  */
 var displayPage = function (page, data) {
-    var plugins = data.plugins;
+    var plugins = data.Plugins;
 
     pageTransition(data);
 
