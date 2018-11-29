@@ -24,7 +24,7 @@ use includes\Session;
 
 if (!empty($pageParameters['id'])) {
     $Session = new Session();
-    $content = $Session->showNextSession(true);
+    $content = $Session->showSession($pageParameters['id']);
 } else {
     $content = "Nothing to show here";
 }

@@ -466,28 +466,42 @@ class Session extends BaseModel
     }
 
     /**
-     * Display the upcoming presentation(home page/mail)
+     * Display the details of next session
      * @param bool $mail
      * @return string
      */
     public function showNextSession($mail = false)
     {
-        $date = $this->getUpcoming(1)[0];
-        $data = $this->all(array('s.date'=>$date));
+        $data = $this->getUpcoming(1);
         $data = reset($data);
+        return self::renderSession($data, $mail);
+    }
+
+    /**
+     * Display the details of session
+     * @param bool $mail
+     * @return string
+     */
+    public function showSession($id, $mail = false)
+    {
+        $data = $this->all(array('id'=>$id));
+        $data = reset($data);
+        return self::renderSession($data, true);
+    }
+
+    /**
+     * Render session details
+     * 
+     * @param array $data: session date
+     * @return string
+     */
+    private function renderSession(array $data)
+    {
         if (!empty($data)) {
-            if ($this->isAvailable(array('date'=>$date))) {
-                if (!$mail) {
-                    return self::sessionDetailsBody($data[0], Session::nothingPlannedThisDay());
-                } else {
-                    return self::sessionDetailsEmail($data[0], Session::nothingPlannedThisDay());
-                }
+            if ($this->isAvailable(array('date'=>$data['date']))) {
+                return self::sessionDetails($data, Session::nothingPlannedThisDay());
             } else {
-                if (!$mail) {
-                    return self::sessionDetailsBody($data[0], $this->getSessionDetails($data, $date, $mail));
-                } else {
-                    return self::sessionDetailsEmail($data[0], $this->getSessionDetails($data, $date, $mail));
-                }
+                return self::sessionDetails($data, $this->getSessionDetails($data, $data['date'], $mail));
             }
         } else {
             return self::noUpcomingSession();
@@ -504,15 +518,14 @@ class Session extends BaseModel
     private function getSessionDetails(array $data, $date, $mail = false)
     {
         $content = null;
-        for ($i=0; $i<$data[0]['slots']; $i++) {
-            if (isset($data[$i]) && !is_null($data[$i]['id'])) {
-                if (!$mail) {
-                    $content .= self::slotContainerEmail(Presentation::inSessionSimple($data[$i]));
-                } else {
-                    $content .= self::slotContainerEmail(Presentation::inSessionSimple($data[$i]));
-                }
+        $Pres = new Presentation();
+        for ($i=0; $i<$data['slots']; $i++) {
+            if (isset($data['content'][$i]) && !is_null($data['content'][$i]['id'])) {
+                $content .= Presentation::mailDetails(
+                    $Pres->getInfo($data['content'][$i]['id'])
+                );
             } else {
-                $content .= self::emptyPresentationSlot($data[0], SessionInstance::isLogged());
+                $content .= self::emptySlot($data);
             }
         }
         return $content;
@@ -818,68 +831,44 @@ class Session extends BaseModel
 
     /* VIEWS */
 
-     /**
-     * Get and render session content
-     * @param array $data: session data
-     * @param string $date: selected date
-     * @param bool $edit: Get editor or viewer
-     * @return string
-     */
-    private static function getSessionContent(array $data, $date, $nSlots, $edit = false)
-    {
-        $content = null;
-        $nSlots = max(count($data), $nSlots);
-        for ($i=0; $i<$nSlots; $i++) {
-            if (isset($data[$i]) && !is_null($data[$i]['id'])) {
-                if (!$edit) {
-                    $content .= self::slotContainerBody(Presentation::inSessionSimple($data[$i]), $data[$i]['id']);
-                } else {
-                    $content .= self::slotEditContainer(Presentation::inSessionEdit($data[$i]), $data[$i]['id']);
-                }
-            } else {
-                if ($edit) {
-                    $content .= self::emptySlotEdit();
-                } else {
-                    $content .= self::emptyPresentationSlot($data[0], SessionInstance::isLogged());
-                }
-            }
-        }
-        return $content;
-    }
-
-    private static function renderSession($edit)
-    {
-        if ($edit) {
-            return self::sessionEditContainer($data[0], $content, TypesManager::getTypes(self::getClassName()));
-        } else {
-            return self::sessionContainer(array(
-                'date'=>$date,
-                'content'=>$content,
-                'type'=>$data[0]['session_type'],
-                'start_time'=>$data[0]['start_time'],
-                'end_time'=>$data[0]['end_time'],
-                'room'=>$data[0]['room']
-            ));
-        }
-    }
-
     /**
-     * Render session viewer
-     * @param string $sessions: list of sessions
+     * Show presentation slot as empty
+     *
+     * @param array $data : session data
+     * @param bool $show_button: display add button
+     *
      * @return string
      */
-    public static function sessionViewerContainer($sessions)
+    private static function emptySlot(array $data)
     {
+        $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
+        $leanModalUrl = Router::buildUrl(
+            'Presentation',
+            'getForm',
+            array(
+                'view'=>'modal',
+                'operation'=>'edit',
+                'session_id'=>$data['id']
+            )
+        );
+
         return "
-        <div class='section_content'>
-            <div class='form-group'>
-                <input type='date' class='selectSession datepicker viewerCalendar' data-status='false' 
-                data-view='view' name='date' />
-                <label>Filter</label>
+        <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; 
+        background-color: rgba(255,255,255,.5); border: 1px solid #bebebe;'>
+            <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: justify; 
+            min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
+                <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
+                    <span style='color: #222; font-weight: 900;'>Free slot</span>
+                </div>
             </div>
-            <div id='sessionlist'>{$sessions}</div>
+            <div style='width: 100%; text-align: justify; margin: auto; box-sizing: border-box;'>
+                <div style='max-width: 80%; margin: 5px;'>
+                    <div style='font-weight: bold; font-size: 20px;'>{$leanModalUrl}</div>
+                </div>
+
+            </div>
         </div>
-        ";
+        "; 
     }
 
     /**
@@ -939,133 +928,15 @@ class Session extends BaseModel
     }
 
     /**
-     * Render session editor
-     * @param Session $session
-     * @param string $presentations
-     * @return string
-     */
-    public static function sessionViewer(Session $session, $presentations)
-    {
-        return "
-            <div style='display: block; margin: 10px auto 0 auto;'>
-                <!-- header -->
-                <div style='display: block; margin: 0 0 15px 0; padding: 0; text-align: 
-                justify; min-height: 20px; height: auto; line-height: 20px; width: 100%;'>
-                    <div style='vertical-align: top; text-align: left; margin: 5px; font-size: 16px;'>
-                        <span style='color: #222; font-weight: 900;'>{$session->date}</span>
-                        <span style='color: rgba(207,81,81,.5); font-weight: 900; font-size: 20px;'> . </span>
-                        <span style='color: #777; font-weight: 600;'>{$session->type}</span>
-                    </div>
-                </div>
-
-                <div style='padding: 10px 20px 10px 10px; background-color: rgba(239,239,239,.6); margin: 0 0 0 10px; 
-                border-left: 2px solid rgba(175,175,175,.8);'>
-                    {$presentations}
-                </div>
-            </div>";
-    }
-
-    /**
      * Message displayed when there is no upcoming session planned
      *
      * @return string
      */
-    public static function noUpcomingSession()
+    private static function noUpcomingSession()
     {
         return "
-            <div class='sys_msg status'>There is no upcoming session.</div>
+            <div style='font-size: 16px; font-weight: 600;'>There is no upcoming session.</div>
         ";
-    }
-
-    /**
-     * Message to display when there is no session planned yet
-     *
-     * @return string
-     */
-    public static function nothingPlannedYet()
-    {
-        $url = URL_TO_APP . 'index.php?page=organizer/sessions';
-        return "
-            <div class='sys_msg status'>
-                <p>Sorry, there is nothing planned yet.</p>
-                <p>Add your first session from <a href='{$url}'>Admin>Sessions, 'Default settings'</a></p>
-            </div>
-        ";
-    }
-
-    /**
-     * Render session slot
-     * @param array $data
-     * @return string
-     */
-    public static function sessionContainer(array $data)
-    {
-        return "
-            <div class='session_container'>
-                <div class='session_header'>
-                    <div class='session_type'>{$data['type']}</div>
-                    <div class='session_info'>
-                        <div>
-                            <div><img src='".URL_TO_IMG . 'clock_bk.png'."'/></div>
-                            <div>" . date('H:i', strtotime($data['start_time'])) . '-'
-                             . date('H:i', strtotime($data['end_time'])) . "</div>
-                        </div>
-                        <div>
-                            <div><img src='".URL_TO_IMG . 'location_bk.png'."'/></div>
-                            <div>{$data['room']}</div>
-                        </div>
-                    </div>      
-                </div>
-    
-                <div class='session_content'>
-                    {$data['content']}
-                </div>
-            </div>
-             ";
-    }
-
-    /**
-     * Render day container
-     * @param array $data
-     * @return string
-     */
-    public static function dayContainer(array $data)
-    {
-        $date = date('d M Y', strtotime($data['date']));
-        return "
-            <div class='day_container'>
-                <!-- Day header -->
-                <div class='day_header'>
-                    <div class='day_date'>{$date}</div>
-                </div>
-                
-                <!-- Day content -->
-                <div class='day_content'>{$data['content']}</div>
-            </div>";
-    }
-
-    /**
-     * Render session details in email body
-     * @param array $data
-     * @param $presentations
-     * @return string
-     */
-    public static function sessionDetailsBody(array $data, $presentations)
-    {
-        return "
-            <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
-                <div style='margin: 0 5px 5px 0;'><b>Type: </b>{$data['type']}</div>
-                <div style='display: inline-block; margin: 0 0 5px 0;'><b>Date: </b>{$data['date']}</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'>
-                    <b>From: </b>{$data['start_time']}<b> To: </b>{$data['end_time']}</div>
-                <div style='display: inline-block; margin: 0 5px 5px 0;'><b>Room: </b>{$data['room']}</div><br>
-            </div>
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
-            font-weight: 500; font-size: 1.2em;'>
-            Presentations
-            </div>
-            {$presentations}
-            ";
     }
 
     /**
@@ -1075,31 +946,37 @@ class Session extends BaseModel
      * @param $presentations
      * @return string
      */
-    public static function sessionDetailsEmail(array $data, $presentations)
+    private static function sessionDetails(array $data, $presentations)
     {
         return "
-        <div class='session_details_container'>
-            <div class='session_details_header'>
-                <div style='margin: 0 auto 5px 0; text-align: center; height: 20px; line-height: 20px; width: 100px; 
-                    background-color: #555555; color: #FFF; padding: 5px; border-radius: 5px;'>
+            <div style='display: block; margin: 5px; padding: 0; text-align: justify; min-height: 20px; height: auto;
+                line-height: 20px; width: 100%; color: #222; font-weight: 900; font-size: 16px;'>
+                <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/>
+                </div>
+                <div style='display: inline-block; vertical-align: middle;'>{$data['date']}</div>
+            </div>
+            <div style='display: table;  width: 100%; margin: 0; text-align: left; font-weight: 300; height: 30px; line-height: 30px; 
+                border: 0; padding: 0;'>
+                <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; padding: 5px; 
+                    font-weight: 600; color: #777; font-size:16px;'>
                     {$data['session_type']}
                 </div>
-                <div class='session_info' style='text-align: right; width: 100%; font-size: 12px;'>
-                    <div id='pub_date'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='"
-                         . URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/></div>
-                        <div style='display: inline-block; vertical-align: middle;'>{$data['date']}</div>
-                    </div>
-                    <div id='pub_date'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='"
-                         . URL_TO_IMG . 'clock_bk.png' . "' style='width: 100%; vertical-align:middle;'/></div>
+
+                <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; padding: 5px; 
+                    text-align: right; font-size: 12px;'>
+                    <div style='display: inline-block;'>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                            <img src='" . URL_TO_IMG . 'clock_bk.png' . "' style='width: 100%; vertical-align:middle;'/>
+                        </div>
                         <div style='display: inline-block; vertical-align: middle;'>
                         " . date('H:i', strtotime($data['date'])) . ' - ' . date('H:i', strtotime($data['date'])) . "
                         </div>
                     </div>
-                    <div id='pub_date'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'><img src='"
-                         . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; vertical-align:middle;'/></div>
+                    <div style='display: inline-block;'>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                            <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; vertical-align:middle;'/>
+                        </div>
                         <div style='display: inline-block; vertical-align: middle;'>{$data['room']}</div>
                     </div>
                 </div>  
@@ -1108,7 +985,6 @@ class Session extends BaseModel
             <div class='session_details_content'>
                 {$presentations}
             </div>
-        </div>
         ";
     }
 }
