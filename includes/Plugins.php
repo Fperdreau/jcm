@@ -273,7 +273,7 @@ class Plugins extends BaseModel
         $content = "<h4 style='font-weight: 600;'>Options</h4>";
         if (!empty($options)) {
             $content .= "
-                <form method='post' action='php/router.php?controller=". __CLASS__ .
+                <form method='post' action='php/router.php?controller=". self::getClassName() .
                  "&action=updateOptions&name={$name}'>
                     " . self::renderOptions($options) . "
                     <div class='submit_btns'>
@@ -331,13 +331,13 @@ class Plugins extends BaseModel
     private static function installButton($pluginName, $installed)
     {
         if ($installed) {
-            return "<div class='installDep workBtn uninstallBtn' data-controller='" . __CLASS__ .
+            return "<div class='installDep workBtn uninstallBtn' data-controller='" . self::getClassName() .
              "' data-action='uninstall' 
-            data-name='$pluginName'></div>";
+            data-name='{$pluginName}'></div>";
         } else {
-            return "<div class='installDep workBtn installBtn' data-controller='" . __CLASS__ .
+            return "<div class='installDep workBtn installBtn' data-controller='" . self::getClassName() .
              "' data-action='install' 
-            data-name='$pluginName'></div>";
+            data-name='{$pluginName}'></div>";
         }
     }
 
@@ -350,13 +350,13 @@ class Plugins extends BaseModel
     private static function activateButton($pluginName, $status)
     {
         if ($status === 1) {
-            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . __CLASS__ .
+            return "<div class='activateDep workBtn deactivateBtn' data-controller='" . self::getClassName() .
             "' data-action='deactivate' 
-            data-name='$pluginName'></div>";
+            data-name='{$pluginName}'></div>";
         } else {
-            return "<div class='activateDep workBtn activateBtn' data-controller='" . __CLASS__ .
+            return "<div class='activateDep workBtn activateBtn' data-controller='" . self::getClassName() .
             "' data-action='activate' 
-            data-name='$pluginName'></div>";
+            data-name='{$pluginName}'></div>";
         }
     }
 
