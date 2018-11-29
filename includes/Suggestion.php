@@ -35,7 +35,9 @@ class Suggestion extends BaseSubmission
     public function make(array $post)
     {
         if ($this->isExist(array('title'=>$post['title'])) === false) {
-            $post['up_date'] = date('Y-m-d h:i:s');
+            if (!isset($post['up_date'])) {
+                $post['up_date'] = date('Y-m-d h:i:s');
+            }
 
             // Add publication to the database
             if ($this->db->insert($this->tablename, $this->parseData($post, array("media")))) {
@@ -118,9 +120,10 @@ class Suggestion extends BaseSubmission
     /**
      * Render suggestions section
      * @param null $number: number of wishes to display
+     * @param bool $showButton: show "add" button
      * @return string
      */
-    public function getSuggestionSection($number = null)
+    public function getSuggestionSection($number = null, $showButton = true)
     {
         $limit = (is_null($number)) ? null : " LIMIT {$number}";
         $wish_list = null;
@@ -136,7 +139,7 @@ class Suggestion extends BaseSubmission
         }
 
         $wish_list = is_null($wish_list) ? self::emptyList() : $wish_list;
-        $addButton = SessionInstance::isLogged() ? self::addButton() : null;
+        $addButton = $showButton & SessionInstance::isLogged() ? self::addButton() : null;
 
         return $addButton . $wish_list;
     }
@@ -181,7 +184,7 @@ class Suggestion extends BaseSubmission
      */
     public function makeMail($username = null)
     {
-        $content['body'] = $this->getSuggestionSection(4);
+        $content['body'] = $this->getSuggestionSection(4, false);
         $content['title'] = "Suggestions";
         return $content;
     }
