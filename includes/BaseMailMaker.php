@@ -185,7 +185,7 @@ abstract class BaseMailMaker extends BaseModel
             return false;
         }
 
-        if (!self::registerItems(PATH_TO_PLUGINS, 'plugins', 'register' . $thisClass)) {
+        if (!self::registerItems(PATH_TO_PLUGINS, 'Plugins', 'register' . $thisClass)) {
             return false;
         }
         return true;
@@ -207,7 +207,9 @@ abstract class BaseMailMaker extends BaseModel
             if (!in_array($includeFile, array('.', '..'))) {
                 $split = explode('.', $includeFile);
                 $className = "\\{$namespace}\\" . $split[0];
-                if (class_exists($className) && method_exists($className, $methodName) && method_exists($className, 'makeMail')) {
+                if (class_exists($className)
+                && method_exists($className, $methodName)
+                && method_exists($className, 'makeMail')) {
                     try {
                         $className::$methodName();
                     } catch (\Exception $e) {

@@ -474,7 +474,7 @@ class Session extends BaseModel
     {
         $data = $this->getUpcoming(1);
         $data = reset($data);
-        return self::renderSession($data, $mail);
+        return self::renderSession($data);
     }
 
     /**
@@ -486,7 +486,7 @@ class Session extends BaseModel
     {
         $data = $this->all(array('id'=>$id));
         $data = reset($data);
-        return self::renderSession($data, true);
+        return self::renderSession($data);
     }
 
     /**
@@ -501,7 +501,7 @@ class Session extends BaseModel
             if ($this->isAvailable(array('date'=>$data['date']))) {
                 return self::sessionDetails($data, Session::nothingPlannedThisDay());
             } else {
-                return self::sessionDetails($data, $this->getSessionDetails($data, $data['date'], $mail));
+                return self::sessionDetails($data, $this->getSessionDetails($data, $data['date']));
             }
         } else {
             return self::noUpcomingSession();

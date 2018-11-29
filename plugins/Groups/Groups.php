@@ -82,7 +82,7 @@ class Groups extends Plugin
     /**
      * Register into DigestMaker table
      */
-    private function registerDigest()
+    public static function registerDigest()
     {
         $DigestMaker = new DigestMaker();
         $DigestMaker->register(get_class());
@@ -91,7 +91,7 @@ class Groups extends Plugin
     /**
      * Register into Reminder table
      */
-    private function registerReminder()
+    public static function registerReminder()
     {
         $reminder = new ReminderMaker();
         $reminder->register(get_class());
@@ -185,12 +185,12 @@ class Groups extends Plugin
         $rooms = explode(',', $this->options['room']['value']);
 
         // Do not make group if there is no session planned on the next journal club day
-        if ($session[0]['type'] == 'none') {
+        if ($session['type'] == 'none') {
             return false;
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max(self::getSession()->getSettings('max_nb_session'), count($session));
+        $ngroups = max(self::getSession()->getSettings('max_nb_session'), $session['slots']);
 
         // Get users list
         $Users = new Users();
@@ -199,9 +199,9 @@ class Groups extends Plugin
             $users[] = $user['username'];
         }
 
+        // Check if there is enough members to create the required groups
         $nusers = count($users); // total nb of users
-
-        if (($nusers-$ngroups) < $ngroups || $session[0]['type'] == "none") {
+        if (($nusers-$ngroups) < $ngroups || $session['type'] == "none") {
             $result['status'] = false;
             $result['msg'] = "Not enough members to create groups";
             return $result;
@@ -210,8 +210,8 @@ class Groups extends Plugin
         $excludedusers = array();
         $pregroups = array();
         for ($i=0; $i<$ngroups; $i++) {
-            $speaker = (isset($session->speakers[$i])) ? $session[$i]['speakers'] : 'TBA';
-            $pregroups[$i][] = array("member"=>$speaker,"role"=>"speaker");
+            $speaker = (isset($session['content'][$i]['orator'])) ? $session['content'][$i]['orator'] : 'TBA';
+            $pregroups[$i][] = array("member"=>$speaker, "role"=>"speaker");
             $excludedusers[] = $speaker;
         }
         $remainusers = array_values(array_diff($users, $excludedusers));
@@ -227,7 +227,7 @@ class Groups extends Plugin
         $assigned_groups = array();
         for ($i=0; $i<$ngroups; $i++) {
             $room = (!empty($rooms[$i])) ? $rooms[$i] : 'TBA';
-            $presid = (isset($session->presids[$i])) ? $session[$i]['presids'] : 'TBA';
+            $presid = (isset($session['content'][$i]['id'])) ? $session['content'][$i]['id'] : 'TBA';
             $group = $pregroups[$i];
             foreach ($groups[$i] as $mbr) {
                 $group[] = array("member"=>$mbr,"role"=>false);
@@ -241,7 +241,7 @@ class Groups extends Plugin
                     'username' => $mbr['member'],
                     'role' => $mbr['role'],
                     'presid' => $presid,
-                    'date' => $session[0]['date'],
+                    'date' => $session['date'],
                     'room' => $room
                 ))) {
                     return false;
@@ -255,17 +255,19 @@ class Groups extends Plugin
     }
 
     /**
+     * Make reminder/digest email
      *
-     * @param null $username
-     * @return mixed
+     * @param string|null $username
+     * @return array
      */
     public function makeMail($username = null)
     {
         $data = $this->getGroup($username);
+        $presentation = new \includes\Presentation();
         if ($data !== false) {
             $data['group'] = $this->showList($username);
-            $publication = new Presentation($data['presid']);
-            $data['publication'] = $publication->mail_details(true);
+            $publication = $presentation->getInfo($data['presid']);
+            $data['publication'] = Presentation::mailDetails($publication);
             $content['body'] = self::renderSection($data);
             $content['title'] = 'Your Group assignment';
             $content['subject'] = "Your Group assignment: {$data['date']}";
