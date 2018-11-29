@@ -42,7 +42,7 @@ return array(
 
     "digestmaker"=>array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "name"=>array("CHAR(20)",false),
+        "name"=>array("CHAR(50)",false),
         "position"=>array("INT(5) NOT NULL", 0),
         "display"=>array("INT(1) NOT NULL", 1),
         "primary"=>'id'
@@ -131,7 +131,7 @@ return array(
 
     "remindermaker"=>array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT",false),
-        "name"=>array("CHAR(20)",false),
+        "name"=>array("CHAR(50)",false),
         "position"=>array("INT(5) NOT NULL", 0),
         "display"=>array("INT(1) NOT NULL", 1),
         "primary"=>'id'
