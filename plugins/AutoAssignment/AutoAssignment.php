@@ -203,6 +203,10 @@ class AutoAssignment extends Plugin
 
             $session = $this->getSession()->getInfo(array('id'=>$item['id']));
 
+            if ($session['type'] == 'none') {
+                continue;
+            }
+
             // Get list of planned speakers
             $plannedSpeakers = $session['usernames'];
             
