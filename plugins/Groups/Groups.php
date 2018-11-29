@@ -41,11 +41,11 @@ class Groups extends Plugin
 
     protected $schema = array(
         "id"=>array("INT NOT NULL AUTO_INCREMENT", false),
-        "groups"=>array("INT(2)", false),
+        "groupId"=>array("INT(2)", false),
         "username"=>array("CHAR(15)", false),
         "role"=>array("CHAR(10)", false),
         "presid"=>array("BIGINT(15)", false),
-        "date"=>array("DATE", false),
+        "sessionid"=>array("INT(11)", false),
         "room"=>array("CHAR(10)", false),
         "primary"=>'id'
     );
@@ -61,7 +61,11 @@ class Groups extends Plugin
     public $options = array(
         'room'=>array(
             'options'=>array(),
-            'value'=>'')
+            'value'=>''),
+        'planning'=>array(
+            'options'=>array(),
+            'value'=>5
+        )
     );
 
     /**
@@ -115,54 +119,34 @@ class Groups extends Plugin
      */
     public function run()
     {
-        $next_session = $this->getNextSession();
-
-        // 1: Check if group has not been made yet for the next session
-        if (!empty($next_session) & $next_session !== false && $next_session['type'] !== 'none'
-        && !$this->groupExist($next_session['date'])) {
-            // 2: Clear the group table
-            $this->clearTable();
-
-            // 3: Assign groups
-            $result = $this->makeGroups($next_session); // Make groups
-        } else {
+        $nextSessions = self::getSession()->getUpcoming($this->options['planning']['value']);
+        if (empty($nextSessions) || $nextSessions == false) {
             $result['status'] = false;
-            $result['msg'] = 'Either there is no session plan on the next journal club day, or groups have already been 
-            made.';
+            $result['msg'] = 'There is no upcoming session planned.';
+        } else {
+            foreach ($nextSessions as $key => $session) {
+                // 1: Check if group has not been made yet for the next session
+                if ($session['type'] === 'none') {
+                    continue;
+                } elseif (!$this->groupExist($session['id'])) {
+                    $result = $this->makeGroups($session); // Make groups
+                } else {
+                    $result = $this->updateGroup($session);
+                }
+            }
         }
         return $result;
     }
 
     /**
      * Check if group has been already made for the next session
-     * @param $session_date: next session date
+     * @param $session_id: session id
      * @return bool
      */
-    private function groupExist($session_date)
+    private function groupExist($session_id)
     {
-        $sql = "SELECT date FROM {$this->tablename}";
-        $req = $this->db->sendQuery($sql);
-        while ($row = $req->fetch_assoc()) {
-            if ($row['date'] == $session_date) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Get information about next session
-     * @return array
-     */
-    private function getNextSession()
-    {
-        $nextSession = self::getSession()->getUpcoming(1);
-        if ($nextSession !== false) {
-            reset($nextSession);
-            return $nextSession[key($nextSession)];
-        } else {
-            return array();
-        }
+        $sql = "SELECT sessionid FROM {$this->tablename} WHERE sessionid={$session_id}";
+        return $this->db->sendQuery($sql)->num_rows > 0;
     }
 
     /**
@@ -179,9 +163,9 @@ class Groups extends Plugin
      * @param array $session: next session
      * @return array|bool
      */
-    public function makeGroups(array $session)
+    public function makeGroups(array $session, array $preGroups = array())
     {
-
+        // Get rooms
         $rooms = explode(',', $this->options['room']['value']);
 
         // Do not make group if there is no session planned on the next journal club day
@@ -190,68 +174,210 @@ class Groups extends Plugin
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = max(self::getSession()->getSettings('max_nb_session'), $session['slots']);
+        $ngroups = $session['slots'];
 
-        // Get users list
+        // If there is a mismatch between the number of slots and the number of predefined groups, we start
+        // from scratch
+        if ($ngroups !== count($preGroups)) {
+            $preGroups = array();
+        }
+
+        // Get list of assignable users
         $Users = new Users();
         $users = array();
-        foreach ($Users->all() as $key => $user) {
+        foreach ($Users->all(array('assign'=>'1')) as $key => $user) {
             $users[] = $user['username'];
         }
 
         // Check if there is enough members to create the required groups
         $nusers = count($users); // total nb of users
-        if (($nusers-$ngroups) < $ngroups || $session['type'] == "none") {
+        if (($nusers-$ngroups) < $ngroups) {
             $result['status'] = false;
             $result['msg'] = "Not enough members to create groups";
             return $result;
         }
 
+        // Get speakers for each group
+        $speakers = array();
         $excludedusers = array();
-        $pregroups = array();
         for ($i=0; $i<$ngroups; $i++) {
-            $speaker = (isset($session['content'][$i]['orator'])) ? $session['content'][$i]['orator'] : 'TBA';
-            $pregroups[$i][] = array("member"=>$speaker, "role"=>"speaker");
+            $speaker = (isset($session['content'][$i]['username'])) ? $session['content'][$i]['username'] : 'TBA';
+            $speakers[$i] = $speaker;
             $excludedusers[] = $speaker;
         }
+        
+        // Check pre groups
+        foreach ($preGroups as $groupId => $group) {
+            foreach ($group as $key => $mbr) {
+                if ($mbr['member'] == $speakers[$groupId]) {
+                    // Remove member if he was previously assigned as speaker
+                    unset($preGroups[$groupId][$key]);
+                } else {
+                    $excludedusers[] = $mbr['member'];
+                }
+            }
+        }
+
+        // Add speakers to groups
+        for ($i=0; $i<$ngroups; $i++) {
+            $preGroups[$i][] = array("member"=>$speakers[$i], "role"=>"speaker");
+        }
+
+        // Partition users
         $remainusers = array_values(array_diff($users, $excludedusers));
-
-        // Shuffle the remaining users
-        shuffle($remainusers);
-
-        // Make groups
-        $qtity = ceil(count($remainusers)/$ngroups); // nb of users per group
-        $groups = array_chunk($remainusers, $qtity);
+        $preGroups = self::balanceGroups($preGroups, $remainusers);
 
         // Assign presentation
-        $assigned_groups = array();
         for ($i=0; $i<$ngroups; $i++) {
             $room = (!empty($rooms[$i])) ? $rooms[$i] : 'TBA';
             $presid = (isset($session['content'][$i]['id'])) ? $session['content'][$i]['id'] : 'TBA';
-            $group = $pregroups[$i];
-            foreach ($groups[$i] as $mbr) {
-                $group[] = array("member"=>$mbr,"role"=>false);
-            }
-            $assigned_groups[$i] = array('presid'=>$presid,'group'=>$group);
 
             // Add to the table
-            foreach ($group as $mbr) {
-                if (!$this->db->insert($this->tablename, array(
-                    'groups' => $i,
-                    'username' => $mbr['member'],
-                    'role' => $mbr['role'],
-                    'presid' => $presid,
-                    'date' => $session['date'],
-                    'room' => $room
-                ))) {
-                    return false;
-                };
+            foreach ($preGroups[$i] as $mbr) {
+                $mbrData = $this->get(array('username'=>$mbr['member'], 'sessionId'=>$session['id']));
+                if (!$mbrData) {
+                    if (!$this->db->insert($this->tablename, array(
+                        'groupId' => $i,
+                        'username' => $mbr['member'],
+                        'role' => $mbr['role'],
+                        'presid' => $presid,
+                        'sessionid' => $session['id'],
+                        'room' => $room
+                    ))) {
+                        return false;
+                    };
+                } else {
+                    if (!$this->db->update($this->tablename, array(
+                        'groupId' => $i,
+                        'username' => $mbr['member'],
+                        'role' => $mbr['role'],
+                        'presid' => $presid,
+                        'sessionid' => $session['id'],
+                        'room' => $room
+                    ), array('id'=>$mbrData['id']))) {
+                        return false;
+                    };
+                }
             }
         }
 
         $result['status'] = true;
         $result['msg'] = "{$ngroups} groups have been created.";
         return $result;
+    }
+
+    /**
+     * Balance groups
+     *
+     * @param array $groups
+     * @param array $members
+     * @return array
+     */
+    private static function balanceGroups(array $groups, array $members)
+    {
+        // Shuffle list of new members
+        shuffle($members);
+
+        $counts = self::countUsers($groups);
+        while (!empty($members)) {
+            foreach ($counts['byGroup'] as $groupId => $c) {
+                $key = count($members)-1;
+                $groups[$groupId][] = array("member"=>$members[$key], "role"=>false);
+                unset($members[$key]);
+                if (empty($members)) {
+                    break;
+                }
+            }
+        }
+
+        $counts = self::countUsers($groups);
+        if ($counts['max'] > 1) {
+            $input = self::extractUsers($groups);
+            return self::balanceGroups($input['groups'], $input['excluded']);
+        } else {
+            return $groups;
+        }
+    }
+
+    /**
+     * Remove members from exceeding groups
+     *
+     * @param array $groups
+     * @return array
+     */
+    private static function extractUsers(array $groups)
+    {
+        $counts = self::countUsers($groups);
+        $excluded = array();
+        foreach ($counts['diff'] as $groupId => $count) {
+            $n = 0;
+            while ($n < $count) {
+                foreach ($groups[$groupId] as $key => $mbr) {
+                    if ($mbr['role'] != "speaker") {
+                        $excluded[] = $mbr['member'];
+                        unset($groups[$groupId][$key]);
+                        $n += 1;
+                    }
+                    if ($n >= $count) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return array('excluded'=>$excluded, 'groups'=>$groups);
+    }
+
+    /**
+     * Count the number of users per group and the difference between groups
+     *
+     * @param array $groups
+     * @return array
+     */
+    private static function countUsers(array $groups)
+    {
+        $nbByGroup = array();
+        $count = array();
+        foreach ($groups as $groupId => $group) {
+            $nbByGroup[$groupId] = count($group);
+            $count[] = count($group);
+        }
+        asort($nbByGroup);
+
+        $diff = array();
+        foreach ($nbByGroup as $groupId => $c) {
+            $diff[$groupId] = $c - min($count);
+        }
+        asort($diff);
+
+        return array('byGroup'=>$nbByGroup, 'diff'=>$diff, 'max'=>max($diff));
+    }
+
+    /**
+     * Update groups
+     *
+     * @param array $session
+     * @return array
+     */
+    private function updateGroup(array $session)
+    {
+        $sql = "SELECT * FROM {$this->tablename} WHERE sessionId={$session['id']}";
+        $user = new Users();
+        $groups = array();
+        foreach ($this->db->sendQuery($sql)->fetch_all(MYSQLI_ASSOC) as $key => $item) {
+            $userData = $user->get(array('username'=>$item['username']));
+            if (empty($userData) || intval($userData['assign']) == 0 || $userData['status'] == 'admin') {
+                $this->delete(array('id'=>$item['id']));
+            } else {
+                $groups[$item['groupId']][] = array(
+                    "member"=>$item['username'],
+                    "role"=>$item['role']
+                );
+            }
+        }
+
+        // Remake groups
+        return $this->makeGroups($session, $groups);
     }
 
     /**
