@@ -450,7 +450,9 @@ class Tasks extends BaseModel
         $running_jobs = array();
         foreach ($jobs as $thisJob => $info) {
             $jobTime = strtotime($info['time']);
-            if ($info['installed'] && $info['status'] == 1 && $now >= $jobTime && $now<=($jobTime+(59*60))) {
+            $newTime = self::parseTime($info['time'], explode(',', $info['frequency']));
+
+            if ($info['installed'] && $info['status'] == 1 && $now >= strtotime($newTime)) {
                 $running_jobs[] = $thisJob;
             }
         }
