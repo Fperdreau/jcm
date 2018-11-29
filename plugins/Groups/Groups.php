@@ -557,13 +557,24 @@ class Groups extends Plugin
      * Display user's group (profile page or in email)
      * @return string
      */
-    public function show($sessionId = null)
+    public function show($date = null)
     {
         $username = $_SESSION['username'];
+
+        if (!is_null($date)) {
+            $sessionData = $this->getSession()->get(array('date'=>$date));
+            $sessionId = $sessionData['id'];
+        } else {
+            $sessionData = $this->getSession()->getUpcoming(1);
+            $sessionId = $sessionData[key($sessionData)]['id'];
+            $date = $sessionData[key($sessionData)]['date'];
+        }
+
+        // Get group data
         $data = $this->getGroup($username, $sessionId);
-        $content = $this->showList($data, $username);
-        
+
         if (!empty($data['members'])) {
+            $content = $this->showList($data, $username);
             $ids = array();
             foreach ($data['members'] as $grpmember => $info) {
                 if ($grpmember == 'TBA') {
@@ -573,25 +584,78 @@ class Groups extends Plugin
                 $ids[] = $member->id;
             }
             $ids = implode(',', $ids);
+
             $groupContact = "
-                <div class='div_button'><a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>
+                <div class='div_button'>
+                <a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>
                     Contact my group</a>
                 </div>";
             $groupContent = "
-                <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
+                <div class='group_header'>
+                    <div>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                            <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; 
+                            vertical-align:middle;'/>
+                        </div>
+                        <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
+                    </div>
+                    <div>
+                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                            <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; 
+                            vertical-align:middle;'/>
+                        </div>
+                        <div style='display: inline-block; vertical-align: middle;'>{$data['room']}</div>
+                    </div>
+                    <div class='group_contact_btn'>
+                        {$groupContact}
+                    </div>
+                </div>
                 <div>{$content}</div>
             ";
         } else {
-            $groupContact = null;
-            $groupContent = "You have not been assigned to any group yet.";
+            $groupContent = "
+            <div class='group_header'>
+                <div>
+                    <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                        <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/>
+                    </div>
+                    <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
+                </div>
+            </div>
+            <div class='group_content'>
+                You have not been assigned to any group yet for this session.
+            </div>
+           ";
         }
+
+        // Date input
+        $sessionSelecter = self::dateInput($date);
         
         return "
                 <h2>My group</h2>
                 <div class='section_content'>
-                {$groupContact}
+                {$sessionSelecter}
                 {$groupContent}
                 </div>
+
             ";
+    }
+
+    /**
+     * Render date selection input
+     *
+     * @param string $selectedDate: selected date (Y-m-d)
+     *
+     * @return string
+     */
+    private static function dateInput($selectedDate = null)
+    {
+        $url = \includes\Router::buildUrl('Groups', 'show', null, 'Plugins');
+        return "
+        <div class='form-group'>
+            <input type='date' class='selectSession datepicker viewerCalendar' data-url='{$url}'
+            name='date' value='{$selectedDate}' data-destination='.plugin#Groups'/>
+            <label>Filter</label>
+        </div>";
     }
 }
