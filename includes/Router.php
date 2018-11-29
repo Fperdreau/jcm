@@ -140,6 +140,9 @@ class Router
     private static function getController()
     {
         if (isset(self::$data['controller'])) {
+            if (isset(self::$data['namespace'])) {
+                self::$namespace = self::$data['namespace'];
+            }
             self::$controllerName = "\\" . self::$namespace . "\\" . self::$data['controller'];
             unset(self::$data['controller']);
             return true;
@@ -253,7 +256,7 @@ class Router
      * @param array $params
      * @return string
      */
-    public static function buildUrl($controller, $action, array $params = null)
+    public static function buildUrl($controller, $action, array $params = null, $namespace = null)
     {
         $paramStr = '';
         if (!is_null($params)) {
@@ -261,6 +264,11 @@ class Router
                 $paramStr .= "&{$key}={$value}";
             }
         }
-        return "php/router.php?controller={$controller}&action={$action}{$paramStr}";
+
+        if (!is_null($namespace)) {
+            $namespace = "&namespace=" . $namespace;
+        }
+        
+        return "php/router.php?controller={$controller}&action={$action}{$paramStr}{$namespace}";
     }
 }
