@@ -31,18 +31,21 @@ use includes\BaseMailMaker;
 /**
  * ReminderMaker class
  */
-class ReminderMaker extends BaseMailMaker {
+class ReminderMaker extends BaseMailMaker
+{
 
     /**
      * Constructor
      * @param bool $name
      */
-    public function __construct($name=False) {
+    public function __construct($name = false)
+    {
         parent::__construct();
     }
 
     // VIEW
-    protected static function pageHeader() {
+    protected static function pageHeader()
+    {
         return "<p class='page_description'>Here you can customize and preview the 
         reminder email that will be sent to the JCM members.</p>";
     }
@@ -52,7 +55,8 @@ class ReminderMaker extends BaseMailMaker {
      *
      * @return string
      */
-    protected static function header() {
+    protected static function header()
+    {
         return "Reminder - ".date('d M Y');
     }
 
@@ -63,7 +67,8 @@ class ReminderMaker extends BaseMailMaker {
      * @param string $content: email content
      * @return string
      */
-    protected static function body(Users $user, $content) {
+    protected static function body(Users $user, $content)
+    {
         return "
         <div style='width: 100%; margin: auto;'>
             <p>Hello {$user->firstname},</p>
@@ -72,5 +77,4 @@ class ReminderMaker extends BaseMailMaker {
         {$content}
         ";
     }
-
 }

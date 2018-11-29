@@ -85,7 +85,7 @@ class Groups extends Plugin
     private function registerDigest()
     {
         $DigestMaker = new DigestMaker();
-        $DigestMaker->register($this->name);
+        $DigestMaker->register(get_class());
     }
 
     /**
@@ -94,7 +94,7 @@ class Groups extends Plugin
     private function registerReminder()
     {
         $reminder = new ReminderMaker();
-        $reminder->register($this->name);
+        $reminder->register(get_class());
     }
 
     /**

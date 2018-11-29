@@ -85,10 +85,13 @@ abstract class BaseMailMaker extends BaseModel
      */
     public function modify(array $data)
     {
-        return array('status'=> $this->update(
-            $data,
-            array('name'=>$data['name'])
-        ));
+        return array(
+            'status'=> $this->update(
+                $data,
+                array('id'=>$data['id']
+                )
+            )
+        );
     }
 
     /**
@@ -102,8 +105,9 @@ abstract class BaseMailMaker extends BaseModel
         $string = "";
         foreach ($this->all() as $key => $item) {
             if ($item['display'] == 1) {
-                if (class_exists($item['name'])) {
-                    $section = new $item['name']();
+                $className = "\\" . $item['name'];
+                if (class_exists($className)) {
+                    $section = new $className();
                     if (method_exists($section, 'makeMail')) {
                         $string .= self::showSection($section->makeMail($username));
                     }
@@ -123,6 +127,7 @@ abstract class BaseMailMaker extends BaseModel
      */
     public function edit()
     {
+        self::registerAll();
         $data = $this->all(
             array(),
             array('dir'=>'asc', 'order'=>'position')
@@ -160,23 +165,55 @@ abstract class BaseMailMaker extends BaseModel
             if ($this->add(array('name'=>$name, 'display'=>0, 'position'=>0))) {
                 Logger::getInstance(APP_NAME, get_class($this))->info("'{$name}' successfully registered into table");
             } else {
-                Logger::getInstance(APP_NAME, get_class($this))->error("'{$name}' NOT registered into table");
+                Logger::getInstance(APP_NAME, get_class($this))->error("'{$name}' could not be registered into table");
             }
         }
     }
 
     /**
-     * Search for module that must be registered.
+     * Register items to DB
+     *
      * @return bool
      */
     public static function registerAll()
     {
-        $includeList = scandir(PATH_TO_INCLUDES);
+        // Get calling class
+        $thisClass = explode('\\', get_called_class());
+        $thisClass = str_replace('Maker', '', end($thisClass));
+
+        if (!self::registerItems(PATH_TO_INCLUDES, 'includes', 'register' . $thisClass)) {
+            return false;
+        }
+
+        if (!self::registerItems(PATH_TO_PLUGINS, 'plugins', 'register' . $thisClass)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Search for module that must be registered
+     *
+     * @param string $path: path to folder
+     * @param string $namespace: namespace to look in
+     * @param string $methodName: method to inspect
+     *
+     * @return bool
+     */
+    private static function registerItems($path, $namespace, $methodName)
+    {
+        $includeList = scandir($path);
         foreach ($includeList as $includeFile) {
             if (!in_array($includeFile, array('.', '..'))) {
-                $class_name = explode('.', $includeFile);
-                if (method_exists($class_name[0], 'registerDigest')) {
-                    $class_name[0]::registerDigest();
+                $split = explode('.', $includeFile);
+                $className = "\\{$namespace}\\" . $split[0];
+                if (class_exists($className) && method_exists($className, $methodName) && method_exists($className, 'makeMail')) {
+                    try {
+                        $className::$methodName();
+                    } catch (\Exception $e) {
+                        Logger::getInstance(APP_NAME)->critical($e->getMessage());
+                        return false;
+                    }
                 }
             }
         }
@@ -212,7 +249,7 @@ abstract class BaseMailMaker extends BaseModel
             {$section}
             <div class='submit_btns'>
                 <input type='submit' value='Preview' class='loadContent' 
-                    data-url='php/router.php?controller=" . get_called_class() . "&action=preview' 
+                    data-url='php/router.php?controller=" . self::getClassName() . "&action=preview' 
                     data-destination='.mail_preview_container' />
             </div>
             <section class='mail_preview_container' style='display: none;'>
@@ -293,12 +330,14 @@ abstract class BaseMailMaker extends BaseModel
      */
     protected static function formSection(array $info, $positions, $display)
     {
+        $name = explode('\\', $info['name']);
+        $name = end($name);
         return "
             <div class='digest_section'>
-                <div id='name'>{$info['name']}</div>
+                <div id='name'>{$name}</div>
                 <div id='form'>
-                    <form method='post' action='php/router.php?controller=" . get_called_class() . "&action=modify'>
-                        <input type='hidden' name='name' value='{$info['name']}'>
+                    <form method='post' action='php/router.php?controller=" . self::getClassName() . "&action=modify'>
+                        <input type='hidden' name='id' value='{$info['id']}'>
                         <div class='form-group inline_field field_auto'>
                             <select name='display'>
                                 {$display}

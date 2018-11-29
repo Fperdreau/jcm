@@ -71,7 +71,7 @@ class Posts extends BaseModel
     public static function registerDigest()
     {
         $DigestMaker = new DigestMaker();
-        $DigestMaker->register('Posts');
+        $DigestMaker->register(get_class());
     }
 
     /**
