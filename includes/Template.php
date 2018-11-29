@@ -148,12 +148,54 @@ class Template
      */
     private static function cssScripts()
     {
-        return "
-            <link type='text/css' rel='stylesheet' href='assets/styles/stylesheet.css'/>
-            <link type='text/css' rel='stylesheet' href='assets/styles/uploader.min.css'/>
-            <link  type='text/css' rel='stylesheet' 
-            href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
-        ";
+        $list = self::loadCssScripts(PATH_TO_ASSETS . DS . 'styles');
+        $list .= self::loadCssScripts(PATH_TO_PLUGINS);
+        $list .= "<link type='text/css' rel='stylesheet' 
+        href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>";
+
+        return $list;
+    }
+
+    /**
+     * Scan for css scripts
+     *
+     * @param string $path: path to folder to scan
+     * @return string
+     */
+    private static function loadCssScripts($path)
+    {
+        $content = self::browse($path, 'css');
+        $links = "";
+        foreach ($content as $file) {
+            $path = str_replace(PATH_TO_APP . DS, '', $file);
+            $links .= "<link type='text/css' rel='stylesheet' href='{$path}'/>";
+        }
+        return $links;
+    }
+
+    /**
+     * Browse directories
+     * @param string $dir
+     * @param array $dirsNotToSaveArray
+     * @return array
+     */
+    private static function browse($dir, $extension)
+    {
+        $filenames = array();
+        if ($handle = opendir($dir)) {
+            while (false !== ($file = readdir($handle))) {
+                $split = explode('.', $file);
+                $filename = $dir ."/". $file;
+                if (end($split) == $extension) {
+                    $filenames[] = $filename;
+                } elseif ($file != "." && $file != ".." && is_dir($dir.$file)) {
+                    $newfiles = self::browse($dir.$file, $extension);
+                    $filenames = array_merge($filenames, $newfiles);
+                }
+            }
+            closedir($handle);
+        }
+        return $filenames;
     }
     
     /**
