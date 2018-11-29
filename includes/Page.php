@@ -33,7 +33,8 @@ use includes\BaseModel;
  *
  * Handle pages' settings, meta-information, display and menu
  */
-class Page extends BaseModel {
+class Page extends BaseModel
+{
 
     // Access levels
     public static $levels = array('none'=>-1,'member'=>0,'organizer'=>1,'admin'=>2);
@@ -52,9 +53,10 @@ class Page extends BaseModel {
      * Constructor
      * @param bool $name
      */
-    public function __construct($name=False) {
+    public function __construct($name = false)
+    {
         parent::__construct();
-        if ($name !== False) {
+        if ($name !== false) {
             $this->getInfo($name);
         }
     }
@@ -64,7 +66,8 @@ class Page extends BaseModel {
      * @param bool $op
      * @return bool
      */
-    public function setup($op = False) {
+    public function setup($op = false)
+    {
         return $this->getPages() !== false;
     }
 
@@ -73,7 +76,8 @@ class Page extends BaseModel {
      * @param array $post
      * @return bool|mysqli_result
      */
-    public function make($post=array()) {
+    public function make($post = array())
+    {
         return $this->db->insert($this->tablename, $this->parseData($post, array('levels')));
     }
 
@@ -81,7 +85,8 @@ class Page extends BaseModel {
      * Get info from the Page table
      * @param null $name
      */
-    public function getInfo($name=null) {
+    public function getInfo($name = null)
+    {
         $this->name = ($name == null) ? $this->name : $name;
         $data = $this->get(array('name'=>$this->name));
         if (!empty($data)) {
@@ -92,7 +97,8 @@ class Page extends BaseModel {
     /**
      * Check if this plugin is registered to the db
      */
-    public function isInstalled() {
+    public function isInstalled()
+    {
         return $this->isExist(array('name'=>$this->name));
     }
 
@@ -100,12 +106,13 @@ class Page extends BaseModel {
      * Check whether the user is logged in and has permissions
      * @return bool
      */
-    public function check_login() {
+    public function checkLogin()
+    {
         $split = explode('\\', $this->name);
         $page_level = (in_array($split[0], array_keys(self::$levels))) ? $split[0] : 'none';
         if (!SessionInstance::isLogged()) {
             if (self::$levels[$page_level] > -1) {
-                $result['msg'] = self::login_required();
+                $result['msg'] = self::loginRequired();
                 $result['status'] = false;
             } else {
                 $result['status'] = true;
@@ -129,7 +136,8 @@ class Page extends BaseModel {
      * @param $page: page name
      * @return bool
      */
-    public static function exist($page) {
+    public static function exist($page)
+    {
         return is_file(PATH_TO_PAGES . $page . '.php');
     }
 
@@ -191,7 +199,7 @@ class Page extends BaseModel {
         $content['content'] = null;
         $content['AppStatus'] = \includes\App::getInstance()->getSetting('status');
         $content['icon'] = (is_file(PATH_TO_IMG . $content['pageName'] . '_bk_40x40.png')) ? $content['pageName']: $content['parent'];
-        $status = $Page->check_login();
+        $status = $Page->checkLogin();
         if (strtolower($content['AppStatus']) == 'on' || $split[0] === 'admin' || ($status['status'] && $status['msg'] == 'admin')) {
             if ($status['status'] == false) {
                 $result = $status['msg'];
@@ -218,7 +226,8 @@ class Page extends BaseModel {
      * Forbidden access
      * @return array
      */
-    public static function forbidden() {
+    public static function forbidden()
+    {
         $result['content'] = self::render('error/403');
         $result['title'] = 'Error 403';
         $result['header'] = self::header('Error 403', 'error');
@@ -229,7 +238,8 @@ class Page extends BaseModel {
      * Render Error 404 - page not found
      * @return array
      */
-    public static function notFound() {
+    public static function notFound()
+    {
         $result['content'] = self::render('error/404');
         $result['title'] = 'Error 404';
         $result['header'] = self::header('Error 404', 'error');
@@ -240,7 +250,8 @@ class Page extends BaseModel {
      * Render Error 503
      * @return array
      */
-    public static function maintenance() {
+    public static function maintenance()
+    {
         $result['content'] = self::render('error/503');
         $result['title'] = 'Error 503';
         $result['header'] = self::header('Error 503', 'error');
@@ -253,7 +264,8 @@ class Page extends BaseModel {
      * @param string $title: page title
      * @return string
      */
-    public static function header($title, $icon=null) {
+    public static function header($title, $icon = null)
+    {
         if (is_null($icon)) {
             $icon = $title;
         }
@@ -285,7 +297,8 @@ class Page extends BaseModel {
      * Login requested
      * @return string
      */
-    public static function login_required() {
+    public static function loginRequired()
+    {
         $result['content'] = self::render('error/401');
         $result['title'] = 'Restricted area';
         $result['header'] = self::header('Restricted area', 'error');
@@ -296,7 +309,8 @@ class Page extends BaseModel {
      * Get application pages
      * @return bool|array: pages information if success, False otherwise
      */
-    public function getPages() {
+    public function getPages()
+    {
         // First cleanup Page table
         $this->cleanup();
 
@@ -309,7 +323,8 @@ class Page extends BaseModel {
      * Gets list of pages registered in the database
      * @return mixed
      */
-    public function getInstalledPages() {
+    public function getInstalledPages()
+    {
         return $this->db->column($this->tablename, 'name');
     }
 
@@ -320,7 +335,8 @@ class Page extends BaseModel {
      * @param array $excludes
      * @return bool|array
      */
-    private function browse($dir, $parent=null, array $excludes=array()) {
+    private function browse($dir, $parent = null, array $excludes = array())
+    {
         $content = scandir($dir);
         $temp_dir = array();
         $rank = 0;
@@ -349,7 +365,7 @@ class Page extends BaseModel {
                         'parent'=>$parent,
                         'show_menu'=>1,
                         'rank'=>$rank))) {
-                        return False;
+                        return false;
                     };
                 }
             } elseif (is_dir($dir . DS . $element) && !in_array($element, array_merge(array('.', '..'), $excludes))) {
@@ -363,7 +379,8 @@ class Page extends BaseModel {
     /**
      * Clean up Pages table. Remove pages from the DB if they are not present in the Views folder
      */
-    public function cleanup() {
+    public function cleanup()
+    {
         $folder = PATH_TO_PAGES;
         foreach ($this->getInstalledPages() as $page) {
             $path = $folder . strtolower($page) .DS;
@@ -377,15 +394,20 @@ class Page extends BaseModel {
      * Render organizer menu
      * @return string
      */
-    public static function organizer_menu() {
+    public static function organizerMenu()
+    {
         return "
-            <li class='main_section' id='organizer'><a href='#' class='submenu_trigger' id='addmenu-organizer'>organizer</a></li>   
+            <li class='main_section' id='organizer'>
+            <a href='#' class='submenu_trigger' id='addmenu-organizer'>organizer</a>
+            </li>   
             <nav class='submenu' id='addmenu-organizer'>
                 <ul>
                     <li class='menu-section'><a href='index.php?page=organizer/sessions' id='sessions'>Sessions</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/digest' id='digest'>Digest</a></li>
                     <li class='menu-section'><a href='index.php?page=organizer/reminder' id='reminder'>Reminder</a></li>
-                    <li class='menu-section'><a href='index.php?page=organizer/assignment' id='assignment'>Assignments</a></li>
+                    <li class='menu-section'>
+                    <a href='index.php?page=organizer/assignment' id='assignment'>Assignments</a>
+                    </li>
                 </ul>
             </nav>
         ";
@@ -395,7 +417,8 @@ class Page extends BaseModel {
      * Render admin menu
      * @return string
      */
-    public static function admin_menu() {
+    public static function adminMenu()
+    {
         return "
         <li class='main_section' id='admin'><a href='#' class='submenu_trigger' id='addmenu-admin'>admin</a></li>
         <nav class='submenu' id='addmenu-admin'>
@@ -414,12 +437,14 @@ class Page extends BaseModel {
      * Render menu section for registered members
      * @return string
      */
-    public static function member_menu() {
+    public static function memberMenu()
+    {
         return "
         <li class='main_section' id='tools'><a href='#' class='submenu_trigger' id='addmenu-member'>My tools</a></li>
         <nav class='submenu' id='addmenu-member'>
             <ul>
-                <li class='menu-section'><a href='index.php?page=member/submission' id='submission'>submit a presentation</a></li>
+                <li class='menu-section'><a href='index.php?page=member/submission' id='submission'>
+                submit a presentation</a></li>
                 <li class='menu-section'><a href='index.php?page=member/email' id='email'>email</a></li>
                 <li class='menu-section'><a href='index.php?page=member/news' id='news'>News</a></li>
                 <li class='menu-section'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
@@ -432,7 +457,8 @@ class Page extends BaseModel {
      * Render help menu
      * @return string
      */
-    public static function help_menu() {
+    public static function helpMenu()
+    {
         return "
         <li class='main_section' id='help'><a href='#' class='submenu_trigger' id='addmenu-help'>Help</a></li>
         <nav class='submenu' id='addmenu-help'>
@@ -448,35 +474,38 @@ class Page extends BaseModel {
      * Render main menu
      * @return string
      */
-    public static function menu() {
+    public static function menu()
+    {
         $organizer = null;
         $admin = null;
-        $member_menu = null;
+        $memberMenu = null;
         if (isset($_SESSION['logok']) && $_SESSION['logok']) {
-            $member_menu = self::member_menu();
+            $memberMenu = self::memberMenu();
             if (isset($_SESSION['status']) && in_array($_SESSION['status'], array('organizer', 'admin'))) {
-                $organizer = self::organizer_menu();
+                $organizer = self::organizerMenu();
             }
 
             if (isset($_SESSION['status']) && $_SESSION['status'] === 'admin') {
-                $admin = self::admin_menu();
+                $admin = self::adminMenu();
             }
         }
 
         return "
             <nav>
                 <ul>
-                    <li class='main_section menu-section' id='home'><a href='index.php?page=home' id='home'>home</a></li>
-                    <li class='main_section menu-section' id='news'><a href='index.php?page=news' id='news'>news</a></li>
-                    <li class='main_section menu-section' id='contact'><a href='index.php?page=contact' id='contact'>contact</a></li>
-                    {$member_menu}
+                    <li class='main_section menu-section' id='home'><a href='index.php?page=home' id='home'>
+                    home</a></li>
+                    <li class='main_section menu-section' id='news'><a href='index.php?page=news' id='news'>
+                    news</a></li>
+                    <li class='main_section menu-section' id='contact'><a href='index.php?page=contact' id='contact'>
+                    contact</a></li>
+                    {$memberMenu}
                     {$organizer}
                     {$admin}
-                    " . self::help_menu() . "
+                    " . self::helpMenu() . "
                 </ul>
             </nav>
             
         ";
     }
-
 }
