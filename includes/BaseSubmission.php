@@ -303,7 +303,7 @@ abstract class BaseSubmission extends BaseModel
     public static function registerDigest()
     {
         $DigestMaker = new DigestMaker();
-        $DigestMaker->register(get_class());
+        $DigestMaker->register(get_called_class());
     }
 
     // VIEW
