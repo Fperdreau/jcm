@@ -976,7 +976,8 @@ class Session extends BaseModel
                     </div>
                     <div style='display: inline-block;'>
                         <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                            <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; vertical-align:middle;'/>
+                            <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; 
+                            vertical-align:middle;'/>
                         </div>
                         <div style='display: inline-block; vertical-align: middle;'>{$data['room']}</div>
                     </div>
