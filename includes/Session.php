@@ -956,15 +956,15 @@ class Session extends BaseModel
                 </div>
                 <div style='display: inline-block; vertical-align: middle;'>{$data['date']}</div>
             </div>
-            <div style='display: table;  width: 100%; margin: 0; text-align: left; font-weight: 300; height: 30px; line-height: 30px; 
-                border: 0; padding: 0;'>
-                <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; padding: 5px; 
-                    font-weight: 600; color: #777; font-size:16px;'>
+            <div style='display: table;  width: 100%; margin: 0; text-align: left; font-weight: 300; height: 30px; 
+            line-height: 30px; border: 0; padding: 0;'>
+                <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; 
+                padding: 5px; font-weight: 600; color: #777; font-size:16px;'>
                     {$data['session_type']}
                 </div>
 
-                <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; padding: 5px; 
-                    text-align: right; font-size: 12px;'>
+                <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; 
+                padding: 5px; text-align: right; font-size: 12px;'>
                     <div style='display: inline-block;'>
                         <div style='display: inline-block; width: 20px; vertical-align: middle;'>
                             <img src='" . URL_TO_IMG . 'clock_bk.png' . "' style='width: 100%; vertical-align:middle;'/>
