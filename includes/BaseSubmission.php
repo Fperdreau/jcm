@@ -122,7 +122,7 @@ abstract class BaseSubmission extends BaseModel
         $id = htmlspecialchars($data['id']);
 
         // IF not a guest presentation, the one who posted is the planned speaker
-        if ($data['type'] !== "guest") {
+        if ($data['type'] !== "guest" && !isset($data['orator'])) {
             $data['orator'] = $_SESSION['username'];
         }
 
