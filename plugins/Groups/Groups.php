@@ -45,7 +45,7 @@ class Groups extends Plugin
         "username"=>array("CHAR(15)", false),
         "role"=>array("CHAR(10)", false),
         "presid"=>array("BIGINT(15)", false),
-        "sessionid"=>array("INT(11)", false),
+        "sessionId"=>array("INT(11)", false),
         "room"=>array("CHAR(10)", false),
         "primary"=>'id'
     );
@@ -145,7 +145,7 @@ class Groups extends Plugin
      */
     private function groupExist($session_id)
     {
-        $sql = "SELECT sessionid FROM {$this->tablename} WHERE sessionid={$session_id}";
+        $sql = "SELECT sessionId FROM {$this->tablename} WHERE sessionId={$session_id}";
         return $this->db->sendQuery($sql)->num_rows > 0;
     }
 
@@ -241,7 +241,7 @@ class Groups extends Plugin
                         'username' => $mbr['member'],
                         'role' => $mbr['role'],
                         'presid' => $presid,
-                        'sessionid' => $session['id'],
+                        'sessionId' => $session['id'],
                         'room' => $room
                     ))) {
                         return false;
@@ -252,7 +252,7 @@ class Groups extends Plugin
                         'username' => $mbr['member'],
                         'role' => $mbr['role'],
                         'presid' => $presid,
-                        'sessionid' => $session['id'],
+                        'sessionId' => $session['id'],
                         'room' => $room
                     ), array('id'=>$mbrData['id']))) {
                         return false;
@@ -391,7 +391,7 @@ class Groups extends Plugin
         $data = $this->getGroup($username);
         $presentation = new \includes\Presentation();
         if ($data !== false) {
-            $data['group'] = $this->showList($username);
+            $data['group'] = $this->showList($data, $username);
             $publication = $presentation->getInfo($data['presid']);
             $data['publication'] = Presentation::mailDetails($publication);
             $content['body'] = self::renderSection($data);
@@ -412,7 +412,7 @@ class Groups extends Plugin
     {
         $data = $this->getGroup($username);
         if ($data !== false) {
-            $data['group'] = $this->showList($username);
+            $data['group'] = $this->showList($data, $username);
             $publication = new Presentation($data['presid']);
             $data['publication'] = $publication->mail_details(true);
             $content['body'] = self::renderSection($data);
@@ -486,17 +486,22 @@ class Groups extends Plugin
      * @param $username
      * @return bool|array
      */
-    public function getGroup($username)
+    public function getGroup($username, $sessionId = null)
     {
-        $data = $this->get(array('username'=>$username));
+        if (is_null($sessionId)) {
+            $sessionData = $this->getSession()->getUpcoming(1);
+            $sessionId = $sessionData[key($sessionData)]['id'];
+        }
+        $session = $this->getSession()->get(array('id'=>$sessionId));
 
+        $data = $this->get(array('username'=>$username, 'sessionId'=>$sessionId));
         $groupusrs['members'] = array();
         $groupusrs['room'] = $data['room'];
-        $groupusrs['date'] = $data['date'];
+        $groupusrs['date'] = $session['date'];
         $groupusrs['presid'] = $data['presid'];
 
         if (!empty($data)) {
-            foreach ($this->all(array('groups'=>$data['groups'])) as $key => $row) {
+            foreach ($this->all(array('sessionId'=>$data['sessionId'], 'groupId'=>$data['groupId'])) as $key => $row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
             return $groupusrs;
@@ -510,12 +515,8 @@ class Groups extends Plugin
      * @param bool $username
      * @return string
      */
-    public function showList($username = false)
+    public function showList(array $group, $username)
     {
-        if ($username === false) {
-            $username = $_SESSION['username'];
-        }
-        $group = $this->getGroup($username);
         if (empty($group['members'])) {
             return 'No group has been made yet';
         } else {
@@ -556,11 +557,11 @@ class Groups extends Plugin
      * Display user's group (profile page or in email)
      * @return string
      */
-    public function show()
+    public function show($sessionId = null)
     {
         $username = $_SESSION['username'];
-        $data = $this->getGroup($username);
-        $content = $this->showList($username);
+        $data = $this->getGroup($username, $sessionId);
+        $content = $this->showList($data, $username);
         
         if (!empty($data['members'])) {
             $ids = array();
@@ -573,7 +574,9 @@ class Groups extends Plugin
             }
             $ids = implode(',', $ids);
             $groupContact = "
-                <div class='div_button'><a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>Contact my group</a></div>";
+                <div class='div_button'><a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>
+                    Contact my group</a>
+                </div>";
             $groupContent = "
                 <p>Here is your group assignment for the session held on {$data['date']} in room {$data['room']}.</p>
                 <div>{$content}</div>

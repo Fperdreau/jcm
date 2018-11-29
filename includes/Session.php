@@ -491,7 +491,7 @@ class Session extends BaseModel
 
     /**
      * Render session details
-     * 
+     *
      * @param array $data: session date
      * @return string
      */
@@ -868,7 +868,7 @@ class Session extends BaseModel
 
             </div>
         </div>
-        "; 
+        ";
     }
 
     /**
