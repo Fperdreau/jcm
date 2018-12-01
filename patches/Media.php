@@ -49,11 +49,17 @@ class Media
         foreach ($Media->all() as $key => $item) {
             $data = $Presentation->get(array('id_pres'=>$item['presid']));
             if (!empty($data)) {
+                $title = str_replace(' ', '_', $data['title']);
+                $title = substr($title, 0, 50);
                 if (!$Media->update(
-                    array('obj'=>'Presentation', 'obj_id'=>$data['id']),
+                    array('obj'=>'Presentation', 'obj_id'=>$data['id'], 'name'=>$title),
                     array('presid'=>$item['presid'])
                 )
                 ) {
+                    return false;
+                }
+            } else {
+                if (!$Media->delete(array('id'=>$item['id']))) {
                     return false;
                 }
             }
