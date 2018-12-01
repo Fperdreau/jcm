@@ -54,11 +54,16 @@ class Bookmark extends BaseModel
     public function delete(array $post)
     {
         if (SessionInstance::isLogged()) {
-            $data = $this->get(array(
-                'ref_id'=>$post['ref_id'],
-                'ref_obj'=>$post['ref_obj'],
-                'username'=>$_SESSION['username']
-            ));
+            if (!isset($post['id'])) {
+                $data = $this->get(array(
+                    'ref_id'=>$post['ref_id'],
+                    'ref_obj'=>$post['ref_obj'],
+                    'username'=>$_SESSION['username']
+                ));
+            } else {
+                $data['id'] = $post['id'];
+            }
+
             $result['status'] = $this->db->delete(
                 $this->tablename,
                 array('id'=>$data['id'])
