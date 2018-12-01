@@ -133,7 +133,7 @@ class AutoAssignment extends Plugin
         $max = self::$Assignment->getMax($session_type);
 
         $scoreQuery = "
-            SELECT a.username, a.norm_assign + d.norm_duration AS score
+            SELECT a.username, (1/a.norm_assign) + d.norm_duration AS score
             FROM (
                 /* Get normalized number of presentations per member */
                 SELECT j.username, j.journal_club/max_a.max_assign AS norm_assign
@@ -190,7 +190,7 @@ class AutoAssignment extends Plugin
                     FROM " . $this->db->getAppTables('Availability') . " a
                     WHERE a.date!='{$session['date']}'
                 )
-            ORDER BY score ASC
+            ORDER BY score DESC
             LIMIT 1
         ";
 
