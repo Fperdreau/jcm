@@ -133,8 +133,10 @@ class Pagination
             $last_url = $paging_info['curr_url'].$paging_info['tot_rows'];
             $next_url = $paging_info['curr_url'].($paging_info['curr_page']+1);
             $content .= "
-            <div><a href='{$next_url}' title='Page ". ($paging_info['curr_page'] + 1). "' id='paging_next'><img src='".URL_TO_IMG.'next.png'."'></a></div>
-            <div><a href='{$last_url}' title='Page {$paging_info['pages']}' id='paging_last'><img src='".URL_TO_IMG.'last_arrow.png'."'></a></div>
+            <div><a href='{$next_url}' title='Page ". ($paging_info['curr_page'] + 1). "' id='paging_next'>
+            <img src='".URL_TO_IMG.'next.png'."'></a></div>
+            <div><a href='{$last_url}' title='Page {$paging_info['pages']}' id='paging_last'>
+            <img src='".URL_TO_IMG.'last_arrow.png'."'></a></div>
             ";
         } else {
             $content .= "
@@ -171,5 +173,4 @@ class Pagination
         </div>
         ";
     }
-
 }

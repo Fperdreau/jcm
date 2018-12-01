@@ -120,7 +120,8 @@ class Posts extends BaseModel
         $posts_ids = $this->getLimited($category, $page_index, $pp, 'date DESC');
 
         if (!empty($posts_ids)) {
-            $news = "<div class='paging_container'>" . Pagination::getPaging($count, $pp, $page_number, $base_url) . "</div>";
+            $news = "<div class='paging_container'>" . Pagination::getPaging($count, $pp, $page_number, $base_url)
+            . "</div>";
             foreach ($posts_ids as $id) {
                 $data = $this->getInfo($id);
                 $user = new Users($data['username']);

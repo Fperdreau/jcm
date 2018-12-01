@@ -10,7 +10,8 @@ use includes\BaseModel;
  * Date: 25/04/2017
  * Time: 17:52
  */
-class Lab extends BaseModel {
+class Lab extends BaseModel
+{
 
     /**
      * Lab info
@@ -28,7 +29,8 @@ class Lab extends BaseModel {
     /**
      * Constructor
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
@@ -39,7 +41,8 @@ class Lab extends BaseModel {
      * @param array $settings
      * @return array
      */
-    public static function settingsForm(array $settings) {
+    public static function settingsForm(array $settings)
+    {
         return array(
             'title'=>'Lab information',
             'body'=>"
@@ -48,33 +51,37 @@ class Lab extends BaseModel {
                             <input type='submit' name='modify' value='Modify' class='processform'>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='name' placeholder='Name of your Lab' value='{$settings['name']}'>
+                            <input type='text' name='name' placeholder='Name of your Lab' 
+                            value='{$settings['name']}'>
                             <label for='name'>Name</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='street' placeholder='Street of your Lab' value='{$settings['street']}'>
+                            <input type='text' name='street' placeholder='Street of your Lab' 
+                            value='{$settings['street']}'>
                             <label for='street'>Street</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='postcode' placeholder='Postcode of your lab' value='{$settings['postcode']}'>
+                            <input type='text' name='postcode' placeholder='Postcode of your lab' 
+                            value='{$settings['postcode']}'>
                             <label for='postcode'>Post Code</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='city' placeholder='Your city' value='{$settings['city']}'>
+                            <input type='text' name='city' placeholder='Your city' 
+                            value='{$settings['city']}'>
                             <label for='city'>City</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='country' placeholder='Your country' value='{$settings['country']}'>
+                            <input type='text' name='country' placeholder='Your country' 
+                            value='{$settings['country']}'>
                             <label for='country'>Country</label>
                         </div>
                         <div class='form-group'>
-                            <input type='text' name='url' placeholder='URL to the Google map' value='{$settings['url']}'>
+                            <input type='text' name='url' placeholder='URL to the Google map' 
+                            value='{$settings['url']}'>
                             <label for='url'>Google Map's URL</label>
                         </div>
                         <div class='feedback' id='feedback_lab'></div>
                     </form>
             ");
     }
-
-
 }

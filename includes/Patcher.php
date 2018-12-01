@@ -132,8 +132,10 @@ class Patcher
                 }
 
                 if (empty($row['username']) || $row['username'] == "") {
-                    $sql = "SELECT username FROM " . $db->tablesname['Users'] . " WHERE username='{$row['orator']}' OR fullname LIKE '%{$row['orator']}%'";
-                    $userreq = $db->send_query($sql);
+                    $userreq = $db->send_query(
+                        "SELECT username FROM " . $db->tablesname['Users'] . " 
+                        WHERE username='{$row['orator']}' OR fullname LIKE '%{$row['orator']}%'"
+                    );
                     $user_data = mysqli_fetch_assoc($userreq);
                     if (!empty($data)) {
                         $data['orator'] = $user_data['username'];
@@ -153,8 +155,10 @@ class Patcher
                 if (empty($row['postid']) || $row['postid'] == "NULL") {
                     // Get uploader username
                     $userid = $row['username'];
-                    $sql = "SELECT username FROM " . $db->tablesname['Users'] . " WHERE username='$userid' OR fullname='$userid'";
-                    $userreq = $db->send_query($sql);
+                    $userreq = $db->send_query(
+                        "SELECT username FROM " . $db->tablesname['Users'] . " 
+                        WHERE username='$userid' OR fullname='$userid'"
+                    );
                     $data = mysqli_fetch_assoc($userreq);
 
                     $username = $data['username'];

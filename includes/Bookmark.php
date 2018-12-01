@@ -33,7 +33,7 @@ class Bookmark extends BaseModel
      */
     public function add(array $post)
     {
-        if (SessionInstance::isLogged() 
+        if (SessionInstance::isLogged()
         && !$this->isExist(array('ref_id'=>$post['ref_id'], 'ref_obj'=>$post['ref_obj']))) {
             $post['username'] = $_SESSION['username'];
             $result['status'] = $this->db->insert($this->tablename, $this->parseData($post)) !== false;

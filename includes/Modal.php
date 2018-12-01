@@ -153,5 +153,4 @@ class Modal
             'buttons'=> $buttons
         ));
     }
-
 }

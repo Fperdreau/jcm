@@ -27,7 +27,8 @@ namespace includes;
  * Class Config
  * This class handles application configuration
  */
-class Config {
+class Config
+{
 
     /**
      * @var $instance Config
@@ -68,7 +69,8 @@ class Config {
     /**
      * Config constructor.
      */
-    private function __construct() {
+    private function __construct()
+    {
         $this->id = uniqid();
         $this->file_name = PATH_TO_CONFIG . 'config.php';
         $this->settings = $this->load();
@@ -78,7 +80,8 @@ class Config {
      * Factory for config instance
      * @return Config
      */
-    public static function getInstance() {
+    public static function getInstance()
+    {
         if (is_null(self::$instance)) {
             self::$instance = new self();
         }
@@ -89,7 +92,8 @@ class Config {
      * Load configuration file
      * @return mixed|null
      */
-    private function load() {
+    private function load()
+    {
         if (is_file($this->file_name)) {
             require($this->file_name);
             return $config;
@@ -103,8 +107,11 @@ class Config {
      * @param $key
      * @return mixed|null
      */
-    public function get($key) {
-        if (is_null($this->settings)) return null;
+    public function get($key)
+    {
+        if (is_null($this->settings)) {
+            return null;
+        }
 
         if (!isset($this->settings[$key])) {
             return null;
@@ -116,8 +123,11 @@ class Config {
      * Return all settings
      * @return array|mixed|null
      */
-    public function getAll() {
-        if (is_null($this->settings)) return null;
+    public function getAll()
+    {
+        if (is_null($this->settings)) {
+            return null;
+        }
         return $this->settings;
     }
 
@@ -126,7 +136,8 @@ class Config {
      * @param $post
      * @return array
      */
-    public static function createConfig($post) {
+    public static function createConfig($post)
+    {
         $filename = PATH_TO_CONFIG . "config.php";
         $result = array('status'=>true, 'msg'=>null);
         if (is_file($filename)) {
@@ -173,5 +184,4 @@ class Config {
 
         return $result;
     }
-
 }

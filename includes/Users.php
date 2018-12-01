@@ -898,7 +898,7 @@ class Users extends BaseModel
      *
      * @return string|array
      */
-    public static function login_form_body()
+    public static function loginFormBody()
     {
         $leanModalUrlPwd = Router::buildUrl(
             'Users',
@@ -915,7 +915,8 @@ class Users extends BaseModel
             'type'=>'registration_form')
         );
         return "
-            <form id='login_form' method='post' action='" . URL_TO_APP . 'php/router.php?controller=Auth&action=login' . "'>
+            <form id='login_form' method='post' action='"
+            . URL_TO_APP . 'php/router.php?controller=Auth&action=login' . "'>
                 <input type='hidden' name='login' value='true'/>
                 <div class='form-group' style='width: 100%;'>
                     <input type='text' name='username' required autocomplete='on'>
@@ -945,11 +946,11 @@ class Users extends BaseModel
      *
      * @return array
      */
-    public static function login_form_modal()
+    public static function loginFormModal()
     {
         return array(
             'id'=>'login_form',
-            'content'=>self::login_form_body(),
+            'content'=>self::loginFormBody(),
             'title'=>'Login',
             'buttons'=>null
         );
@@ -959,7 +960,7 @@ class Users extends BaseModel
      * Render signup form
      * @return string
      */
-    public static function registration_form_body()
+    public static function registrationFormBody()
     {
         $leanModalUrlLogin = Router::buildUrl(
             'Users',
@@ -1019,7 +1020,7 @@ class Users extends BaseModel
      * Render admin creation form (for installation)
      * @return string
      */
-    public static function admin_creation_form()
+    public static function adminCreationForm()
     {
         return "
             <div class='feedback'></div>
@@ -1056,11 +1057,11 @@ class Users extends BaseModel
      * Render registration form for modal windows
      * @return array
      */
-    public static function registration_form_modal()
+    public static function registrationFormModal()
     {
         return array(
             'id'=>'registration_form',
-            'content'=>self::registration_form_body(),
+            'content'=>self::registrationFormBody(),
             'title'=>'Sign up',
             'buttons'=>null
         );
@@ -1070,7 +1071,7 @@ class Users extends BaseModel
      * Render change password form
      * @return string
      */
-    public static function change_password_form_body()
+    public static function changePasswordFormBody()
     {
         return "
         <!-- Change password section -->
@@ -1097,11 +1098,11 @@ class Users extends BaseModel
      * Render password modification form for modal windows
      * @return array
      */
-    public static function change_password_form_modal()
+    public static function changePasswordFormModal()
     {
         return array(
             'id'=>'change_password_form',
-            'content'=>self::change_password_form_body(),
+            'content'=>self::changePasswordFormBody(),
             'title'=>'Sign up',
             'buttons'=>null
         );

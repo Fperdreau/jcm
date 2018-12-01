@@ -95,7 +95,11 @@ class Settings extends BaseModel
         $includeList = scandir(PATH_TO_INCLUDES);
         $result = array();
         foreach ($includeList as $includeFile) {
-            if (!in_array($includeFile, array('.', '..', 'Settings.php', 'PasswordHash.php', 'Autoloader.php', 'BaseModel.php'))) {
+            if (!in_array(
+                $includeFile,
+                array('.', '..', 'Settings.php', 'PasswordHash.php', 'Autoloader.php', 'BaseModel.php')
+            )
+            ) {
                 $split = explode('.', $includeFile);
                 $className = $split[0];
                 $instClassName = '\\includes\\' . $className;

@@ -120,5 +120,4 @@ class Vote extends BaseModel
             <div class='vote_count'>{$data['count']}</div>
         </div>";
     }
-
 }
