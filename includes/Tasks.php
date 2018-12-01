@@ -826,7 +826,7 @@ class Tasks extends BaseModel
     }
 
     /**
-     * Render Task options
+     * Render object's options
      *
      * @param array $options
      * @return string
@@ -838,7 +838,8 @@ class Tasks extends BaseModel
             if (isset($settings['options']) && !empty($settings['options'])) {
                 $options = "";
                 foreach ($settings['options'] as $prop => $value) {
-                    $options .= "<option value='{$value}'>{$prop}</option>";
+                    $selected = $value == $settings['value'] ? 'selected' : null;
+                    $options .= "<option value='{$value}' {$selected}>{$prop}</option>";
                 }
                 $optProp = "<select name='{$optName}'>{$options}</select>";
             } else {
@@ -853,7 +854,6 @@ class Tasks extends BaseModel
         }
         return $opt;
     }
-
 
     /**
      * Render install/uninstall button
