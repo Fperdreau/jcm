@@ -362,9 +362,10 @@ class Groups extends Plugin
     private function updateGroup(array $session)
     {
         $sql = "SELECT * FROM {$this->tablename} WHERE sessionId={$session['id']}";
+        $req = $this->db->sendQuery($sql);
         $user = new Users();
         $groups = array();
-        foreach ($this->db->sendQuery($sql)->fetch_all(MYSQLI_ASSOC) as $key => $item) {
+        while ($item = $req->fetch_assoc()) {
             $userData = $user->get(array('username'=>$item['username']));
             if (empty($userData) || intval($userData['assign']) == 0 || $userData['status'] == 'admin') {
                 $this->delete(array('id'=>$item['id']));

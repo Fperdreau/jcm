@@ -73,8 +73,8 @@ class Posts
         $self = new \includes\Posts();
         if (!is_null($db->getAppTables('Post'))) {
             $sql = "SELECT * FROM {$db->getAppTables('Post')}";
-            $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
-            foreach ($data as $key => $item) {
+            $req = $db->sendQuery($sql);
+            while ($item = $req->fetch_assoc()) {
                 if (!$self->get(array('title LIKE'=>json_encode($item['title'])))) {
                     $id = $item['id'];
                     unset($item['id']);

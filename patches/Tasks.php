@@ -50,8 +50,8 @@ class Tasks
         $self->loadAll();
         if (!is_null($db->getAppTables('Crons'))) {
             $sql = "SELECT * FROM {$db->getAppTables('Crons')}";
-            $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
-            foreach ($data as $key => $item) {
+            $req = $db->sendQuery($sql);
+            while ($item = $req->fetch_assoc()) {
                 $info = $self->load($item['name']);
                 if (!is_null($info)) {
                     $newData = array(

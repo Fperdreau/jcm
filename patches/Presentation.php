@@ -67,8 +67,8 @@ class Presentation
         $self = new \includes\Presentation();
         if (!is_null($db->getAppTables('Presentations'))) {
             $sql = "SELECT * FROM {$db->getAppTables('Presentations')}";
-            $data = $db->sendQuery($sql)->fetch_all(MYSQL_ASSOC);
-            foreach ($data as $key => $item) {
+            $req = $db->sendQuery($sql);
+            while ($item = $req->fetch_assoc()) {
                 if (!$self->get(array('title LIKE'=>json_encode($item['title'])))) {
                     $id = $item['id'];
                     unset($item['id']);
