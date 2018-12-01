@@ -65,7 +65,11 @@ class AutoAssignment extends Plugin
             'options'=>array(),
             'value'=>10),
         'method'=>array(
-            'options'=>array('random', 'max', 'score'),
+            'options'=>array(
+                'random'=>'random',
+                'max'=>'max',
+                'score'=>'score'
+            ),
             'value'=>'random'
         )
     );
