@@ -460,7 +460,7 @@ class Tasks extends BaseModel
     }
 
     /**
-     * Returns Plugin's options form
+     * Returns Task's options form
      * @param string $name: plugin name
      * @return string: form
      */
