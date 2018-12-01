@@ -63,7 +63,11 @@ class AutoAssignment extends Plugin
     public $options = array(
         'nbsessiontoplan'=>array(
             'options'=>array(),
-            'value'=>10)
+            'value'=>10),
+        'method'=>array(
+            'options'=>array('random', 'max', 'score'),
+            'value'=>'random'
+        )
     );
 
     /**
@@ -112,28 +116,105 @@ class AutoAssignment extends Plugin
     }
 
     /**
-     * Get new speaker
+     * Pick members with the least number of presentations and longest time since last presentation
      *
-     * @param array $session: session data
-     * @param array $plannedSpeakers: List of planned speakers for this session
-     * @return string
+     * @param array $session: session info
+     * @param array $preAssigned: list of preassigned members (speakers)
+     * @return array
      */
-    private function getSpeaker(array $session, $plannedSpeakers)
+    private function getAssignable(array $session, array $preAssigned)
     {
-        set_time_limit(10);
+        // Get maximum number of assignments for the session type
+        $session_type = Assignment::prettyName($session['type'], true);
+        $max = self::$Assignment->getMax($session_type);
 
+        $scoreQuery = "
+            SELECT a.username, a.norm_assign + d.norm_duration AS score
+            FROM (
+                /* Get normalized number of presentations per member */
+                SELECT j.username, j.journal_club/max_a.max_assign AS norm_assign
+                FROM {$this->db->getAppTables('Assignment')} j
+                JOIN (
+                    SELECT username, {$session_type}, MAX({$session_type}) AS max_assign
+                    FROM {$this->db->getAppTables('Assignment')}
+                ) max_a
+            ) a
+            LEFT JOIN (
+                /* Get normalized time since last presentation per member */
+                SELECT p.username, p.since_last/max_d.max_duration AS norm_duration
+                FROM (
+                    /* Get time since last presentation per member */
+                    SELECT pres.username, MIN(pres.duration) AS since_last
+                    FROM (
+                        /* Get time since last presentation */
+                        SELECT p.username, TIMESTAMPDIFF(SECOND, p.date, NOW()) AS duration
+                        FROM {$this->db->getAppTables('Presentation')} p
+                        JOIN {$this->db->getAppTables('Session')} s
+                        ON p.session_id = s.id
+                        WHERE s.type = '{$session['type']}'
+                    ) pres
+                    GROUP BY pres.username
+                ) p
+                JOIN (
+                    /* Get maximum time since last presentation across all members*/
+                    SELECT MAX(pres.duration) AS max_duration
+                    FROM (
+                        /* Get time since last presentation */
+                        SELECT TIMESTAMPDIFF(SECOND, p.date, NOW()) AS duration
+                        FROM {$this->db->getAppTables('Presentation')} p
+                        JOIN {$this->db->getAppTables('Session')} s
+                        ON p.session_id = s.id
+                        WHERE s.type = '{$session['type']}'
+                    ) pres
+                ) max_d
+            ) d
+            ON a.username = d.username
+        ";
+
+        $speakersArray = !empty($preAssigned) ? 'AND u.username NOT IN (' . self::toString($preAssigned) . ')' : null;
+        $sql = "
+            /* Filter available members on session */
+            SELECT DISTINCT(sc.username) AS username, sc.score AS score
+            FROM (
+                {$scoreQuery}
+            ) sc
+            LEFT JOIN " . $this->db->getAppTables('Users') . " u
+            ON u.username=sc.username
+            WHERE u.assign=1 {$speakersArray}
+                AND u.username IN (
+                    SELECT username
+                    FROM " . $this->db->getAppTables('Availability') . " a
+                    WHERE a.date!='{$session['date']}'
+                )
+            ORDER BY score ASC
+            LIMIT 1
+        ";
+
+        $req = $this->db->sendQuery($sql);
+        $user = null;
+        while ($row = $req->fetch_assoc()) {
+            $user = $row['username'];
+        }
+        return $user;
+    }
+
+    /**
+     * Randomly pick members with the least number of presentations and available on session
+     *
+     * @param array $session: session info
+     * @param array $preAssigned: list of preassigned members (speakers)
+     * @return array
+     */
+    private function getAssignableMax(array $session, array $preAssigned)
+    {
         // Prettify session type
         $session_type = Assignment::prettyName($session['type'], true);
 
         // Get maximum number of assignments
         $max = self::$Assignment->getMax($session_type);
 
-        // Get all assignable users
         $allUsers = self::$Assignment->getAssignable($session_type, $max+1, $session['date']);
         $N = count($allUsers);
-
-        // Get speakers planned for this session
-        $speakers = array_diff($plannedSpeakers, array('TBA'));
 
         // Get assignable users
         $assignable = array();
@@ -144,26 +225,98 @@ class AutoAssignment extends Plugin
             $n += 1;
 
             // exclude the already assigned speakers for this session from the list of possible speakers
-            $assignable = array_values(array_diff($usersList, $speakers));
+            $assignable = array_values(array_diff($usersList, $preAssigned));
         }
 
-        if (empty($usersList) || empty($assignable)) {
-            // If there are no users registered yet, the speaker is to be announced.
-            $newSpeaker = 'TBA';
-        } else {
-            /* We randomly pick a speaker among organizers who have not chaired a session yet,
-             * apart from the other speakers of this session.
-             */
+        if (!empty($assignable)) {
             $ind = rand(0, count($assignable) - 1);
             $newSpeaker = $assignable[$ind];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Randomly pick members available on session
+     *
+     * @param array $session: session info
+     * @param array $preAssigned: list of preassigned members (speakers)
+     * @return array
+     */
+    private function getAssignableRand(array $session, array $preAssigned)
+    {
+        // Prettify session type
+        $session_type = Assignment::prettyName($session['type'], true);
+
+        $speakersArray = !empty($preAssigned) ? 'AND u.username NOT IN (' . self::toString($preAssigned) . ')' : null;
+        $sql = "
+            SELECT DISTINCT(u.username) 
+            FROM " . $this->db->getAppTables('Users') . " u
+            INNER JOIN " . $this->db->getAppTables('Assignment') . " p
+            ON u.username=p.username
+            WHERE u.assign=1 {$speakersArray}
+                AND u.username IN (
+                    SELECT username
+                    FROM " . $this->db->getAppTables('Availability') . " a
+                    WHERE a.date!='{$session['date']}'
+                )
+            ";
+        $req = $this->db->sendQuery($sql);
+
+        // Fetch results
+        $assignable = array();
+        while ($row = $req->fetch_assoc()) {
+            $assignable[] = $row['username'];
         }
 
-        // Update the assignment table
-        if (!self::$Assignment->updateTable($session_type, $newSpeaker, true)) {
+        if (!empty($assignable)) {
+            $N = count($assignable);
+            $ind = rand(0, $N - 1);
+            return $assignable[$ind];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get new speaker
+     *
+     * @param array $session: session data
+     * @param array $plannedSpeakers: List of planned speakers for this session
+     * @return string|bool
+     */
+    private function getSpeaker(array $session, $plannedSpeakers)
+    {
+        // Get speakers planned for this session
+        $speakers = array_diff($plannedSpeakers, array('TBA'));
+        $speakers = array_filter($speakers, 'strlen');
+
+        // Get all assignable users
+        switch ($this->options['method']['value']) {
+            case 'max':
+                $speaker = $this->getAssignableMax($session, $speakers);
+                break;
+            case 'score':
+                $speaker = $this->getAssignableScore($session, $speakers);
+                break;
+            case 'random':
+                $speaker = $this->getAssignableRand($session, $speakers);
+                break;
+        }
+
+        if (!is_null($speaker)) {
+            // Update the assignment table
+            $session_type = Assignment::prettyName($session['type'], true);
+            if (!self::$Assignment->updateTable($session_type, $speaker, true)) {
+                return false;
+            } else {
+                return $speaker;
+            }
+        } else {
             return false;
         }
 
-        return $newSpeaker;
+        return true;
     }
 
     /**
@@ -173,10 +326,11 @@ class AutoAssignment extends Plugin
      */
     public function assign($nb_session = null)
     {
+        // Number of session to plan
         $nb_session = (is_null($nb_session)) ? $this->options['nbsessiontoplan']['value']:$nb_session;
 
+        // Initialize output
         $result = array('status'=>true, 'msg'=>null, 'content'=>null);
-
         $created = 0;
         $updated = 0;
         $assignedSpeakers = array();
@@ -194,31 +348,26 @@ class AutoAssignment extends Plugin
         self::$Assignment->check();
 
         $Presentation = new Presentation();
-
         $Users = new Users();
         
         // Loop over sessions
         foreach ($this->getSession()->getUpcoming(intval($nb_session)) as $key => $item) {
-            // If session does not exist yet, we create a new one
-
-            $session = $this->getSession()->getInfo(array('id'=>$item['id']));
-
-            if ($session['type'] == 'none') {
+            // If session does not exist yet, we skip it
+            if ($item['type'] == 'none') {
                 continue;
             }
 
-            // Get list of planned speakers
-            $plannedSpeakers = $session['usernames'];
-            
             // If a session is planned for this day, we assign 1 speaker by slot
-            for ($p=0; $p<$session['slots']; $p++) {
+            for ($p=0; $p<$item['slots']; $p++) {
                 // Update info array
                 $session = $this->getSession()->getInfo(array('id'=>$item['id']));
+
+                // Get list of planned speakers
+                $plannedSpeakers = $session['usernames'];
 
                 // If there is already a presentation planned for this day,
                 // check if the speaker is a real member, otherwise
                 // we will assign a new one
-
                 if (isset($session['presids'][$p])) {
                     $PresentationId = $session['presids'][$p];
                     $doAssign = empty($session['usernames'][$p]);
@@ -246,7 +395,7 @@ class AutoAssignment extends Plugin
 
                 // Create/Update presentation
                 if ($new) {
-                    $result= $Presentation->edit(array(
+                    $result = $Presentation->edit(array(
                         'id'=>'false',
                         'title'=>'TBA',
                         'date'=>$session['date'],
@@ -255,6 +404,7 @@ class AutoAssignment extends Plugin
                         'orator'=>$speaker['username'],
                         'session_id'=>$session['id']
                     ));
+                    $PresentationId = $result['id'];
                     if ($result['status']) {
                         $created += 1;
                     }
@@ -288,7 +438,24 @@ class AutoAssignment extends Plugin
             }
         }
         $result['content'] = $assignedSpeakers;
-        $result['msg'] = "$created chair(s) created<br>$updated chair(s) updated";
+        $result['msg'] = "{$created} chair(s) created<br>{$updated} chair(s) updated";
         return $result;
+    }
+
+    /**
+     * Convert array to comma separated string
+     *
+     * @param array $data
+     * @return string
+     */
+    private static function toString(array $data)
+    {
+        $data = array_map(
+            function ($x) {
+                return "'{$x}'";
+            },
+            $data
+        );
+        return implode(',', $data);
     }
 }

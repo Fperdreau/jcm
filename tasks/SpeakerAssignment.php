@@ -89,7 +89,7 @@ class SpeakerAssignment extends Task
     public function sendReminders()
     {
         $result['status'] = true;
-        $result['msg'] = null;
+        $result['msg'] = 'No assignment reminder to send';
 
         $MailManager = new MailManager();
 
