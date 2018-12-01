@@ -42,11 +42,10 @@ function loadContent(el, final_callback) {
         url = el.data('url');
     } else if (el.attr('href') !== undefined) {
         url = el.attr('href');
-    } else {
-        url = 'php/form.php';
     }
 
     var callback = function (result) {
+        console.log(result);
         var html = result.content === undefined ? result : result.content;
         destination
             .html(html)
@@ -960,7 +959,6 @@ function process_post(el, e) {
             //var container_id = controller.toLowerCase() + '_form';
             var section = form.closest('.modal_section');
             var controller = section.attr('id');
-            console.log(controller);
             $('section#' + container_id + ', .modal_section#' + container_id).empty();
             var id = form.find('input[name="id"]').val().length > 0
             && form.find('input[name="id"]').length > 0 ? form.find('input[name="id"]').val() : undefined;
