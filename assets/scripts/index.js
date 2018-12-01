@@ -45,7 +45,6 @@ function loadContent(el, final_callback) {
     }
 
     var callback = function (result) {
-        console.log(result);
         var html = result.content === undefined ? result : result.content;
         destination
             .html(html)
