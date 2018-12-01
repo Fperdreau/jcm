@@ -133,7 +133,7 @@ abstract class BaseSubmission extends BaseModel
         }
 
         $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'), true);
-
+        $result['id'] = $id;
         if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
         } elseif ($created === 'exist') {
@@ -144,6 +144,7 @@ abstract class BaseSubmission extends BaseModel
             $result['msg'] = "Sorry, there is no session planned on this date.";
         } else {
             $result['msg'] = "Thank you for your submission!";
+            $result['id'] = $created;
         }
 
         return $result;
