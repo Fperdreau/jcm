@@ -28,7 +28,8 @@ namespace includes;
 
 use includes\BaseModel;
 
-class Media extends BaseModel{
+class Media extends BaseModel
+{
 
     /**
      * Media settings
@@ -54,7 +55,8 @@ class Media extends BaseModel{
      * Constructor
      * @param null $file_id
      */
-    function __construct($file_id=null) {
+    public function __construct($file_id = null)
+    {
         parent::__construct();
         $this->directory = PATH_TO_APP . '/uploads/';
         $this->maxsize = $this->settings['upl_maxsize'];
@@ -77,7 +79,7 @@ class Media extends BaseModel{
      * @param string $controller: reference controller name
      * @return bool
      */
-    public function delete_files($obj_id, $controller)
+    public function deleteFiles($obj_id, $controller)
     {
         foreach ($this->all(
             array('obj_id'=>$obj_id,
@@ -123,7 +125,7 @@ class Media extends BaseModel{
             $obj_name = get_called_class();
         }
         foreach ($file_names as $filename) {
-            if ($this->add_objId($filename, $id, $obj_name) !== true) {
+            if ($this->addObjId($filename, $id, $obj_name) !== true) {
                 return false;
             }
         }
@@ -134,16 +136,18 @@ class Media extends BaseModel{
      * Check correspondence between files present on the server and those registered in the db
      * @return bool
      */
-    protected function files2db() {
+    protected function files2db()
+    {
         $files = scandir($this->directory);
         foreach ($this->db->resultSet($this->tablename, array('filename')) as $filename) {
             // Delete Db entry if the file does not exit on the server
             if (!in_array($filename, $files)) {
                 $sql = "SELECT id FROM {$this->tablename} WHERE filename='{$filename}'";
                 $data = $this->db->sendQuery($sql)->fetch_assoc();
-                if  (!$this->db->delete($this->tablename, array('id'=>$data['id']))) {
-                    Logger::getInstance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' from database");
-                    return False;
+                if (!$this->db->delete($this->tablename, array('id'=>$data['id']))) {
+                    Logger::getInstance(APP_NAME, get_class($this))->error("Could not remove file '{$filename}' 
+                    from database");
+                    return false;
                 }
             }
         }
@@ -156,8 +160,8 @@ class Media extends BaseModel{
      * @param null $controller: reference controller
      * @return bool|mixed|mysqli_result|string
      */
-    public function make($file, $controller=null) {
-
+    public function make($file, $controller = null)
+    {
         // First check the file
         $result['error'] = $this->checkupload($file);
         if ($result['error'] !== true) {
@@ -183,14 +187,14 @@ class Media extends BaseModel{
 
         // Third: add to the Media table
         $content = $this->parseData($data, array('directory','maxsize','allowed_types'));
-        if (!$this->db->insert($this->tablename,$content)) {
+        if (!$this->db->insert($this->tablename, $content)) {
             $data['error'] = 'SQL: Could not add the file to the media table';
             Logger::getInstance(APP_NAME, get_class($this))->error($result['error']);
         } else {
             $data['id'] = $this->db->getLastId();
             $data['error'] = true;
-            $data['input'] = self::hidden_input($data);
-            $data['file_div'] = self::file_div($data);
+            $data['input'] = self::hiddenInput($data);
+            $data['file_div'] = self::fileDiv($data);
         }
 
         return $data;
@@ -200,7 +204,8 @@ class Media extends BaseModel{
      * @param $file_id
      * @return bool
      */
-    public function getInfo($file_id) {
+    public function getInfo($file_id)
+    {
         $data = $this->get(array('id'=>$file_id));
         $data['filename'] = PATH_TO_APP . 'uploads' . DS . $data['filename'];
         if (!empty($data)) {
@@ -216,13 +221,14 @@ class Media extends BaseModel{
      * Check consistency between the media table and the files actually stored on the server
      * @return bool
      */
-    private function checkfiles () {
+    private function checkfiles()
+    {
         // First check if the db points to an existing file
         if (!is_file($this->directory . $this->filename)) {
             // If not, we remove the data from the db
             $result = $this->delete(array('id'=>$this->id));
             if (!$result['status']) {
-                return False;
+                return false;
             }
         }
 
@@ -237,19 +243,31 @@ class Media extends BaseModel{
      * @param $obj_name
      * @return mixed
      */
-    public function add_objId($file_id, $obj_id, $obj_name) {
+    public function addObjId($file_id, $obj_id, $obj_name)
+    {
         $data = $this->get(array('id'=>$file_id, 'obj'=>$obj_name));
         if (!empty($data)) {
-            if ($this->db->update($this->tablename, array('obj_id'=>$obj_id), array('id'=>$file_id, 'obj'=>$obj_name))) {
-                Logger::getInstance(APP_NAME, get_class($this))->log("New id ({$obj_name}: {$obj_id}) associated with file ({$file_id})");
+            if ($this->db->update(
+                $this->tablename,
+                array('obj_id'=>$obj_id),
+                array('id'=>$file_id, 'obj'=>$obj_name)
+            )
+            ) {
+                Logger::getInstance(APP_NAME, get_class($this))->log(
+                    "New id ({$obj_name}: {$obj_id}) associated with file ({$file_id})"
+                );
                 return true;
             } else {
-                Logger::getInstance(APP_NAME, get_class($this))->error("Could not associate id ({$obj_name}: {$obj_id}) to file ({$file_id})");
+                Logger::getInstance(APP_NAME, get_class($this))->error(
+                    "Could not associate id ({$obj_name}: {$obj_id}) to file ({$file_id})"
+                );
                 return false;
             }
         } else {
             Logger::getInstance(APP_NAME, get_class($this))->error(
-                "Could not associate id ({$obj_name}: {$obj_id}) to file ({$file_id}) because this file does not exist in our database");
+                "Could not associate id ({$obj_name}: {$obj_id}) to file ({$file_id}) 
+                because this file does not exist in our database"
+            );
             return false;
         }
     }
@@ -306,7 +324,8 @@ class Media extends BaseModel{
      * @param $file
      * @return bool|string
      */
-    private function checkupload($file) {
+    private function checkupload($file)
+    {
         // Check $_FILES['upfile']['error'] value.
         if ($file['error'][0] != 0) {
             switch ($file['error'][0]) {
@@ -331,7 +350,7 @@ class Media extends BaseModel{
         $filename = basename($file['name'][0]);
         $ext = substr($filename, strrpos($filename, '.') + 1);
 
-        if (false === in_array($ext,$this->allowed_types)) {
+        if (false === in_array($ext, $this->allowed_types)) {
             return "Invalid file type";
         } else {
             return true;
@@ -343,7 +362,8 @@ class Media extends BaseModel{
      * @param $file
      * @return mixed
      */
-    public function upload($file) {
+    public function upload($file)
+    {
         $result['status'] = false;
         if (isset($file['tmp_name'][0]) && !empty($file['name'][0])) {
             $result['error'] = self::checkupload($file);
@@ -379,11 +399,12 @@ class Media extends BaseModel{
      * @param $type: file extension
      * @return array: file information (id and name)
      */
-    public function makeId($type) {
-        $rnd = date('Ymd')."_".rand(0,100);
+    public function makeId($type)
+    {
+        $rnd = date('Ymd') . "_" . rand(0, 100);
         $new_name = $rnd . '.' . $type;
         while (is_file($this->directory . $new_name)) {
-            $rnd = date('Ymd')."_".rand(0,100);
+            $rnd = date('Ymd') . "_" . rand(0, 100);
             $new_name = $rnd . '.' . $type;
         }
         return array('file_id' => $rnd, 'filename'=>$new_name);
@@ -396,7 +417,8 @@ class Media extends BaseModel{
      * @param array $settings
      * @return array
      */
-    public static function settingsForm(array $settings) {
+    public static function settingsForm(array $settings)
+    {
         return array(
             'title'=>'Media settings',
             'body'=>"
@@ -420,7 +442,8 @@ class Media extends BaseModel{
      * Generate list of allowed file types
      * @return null|string
      */
-    private static function getTypes() {
+    private static function getTypes()
+    {
         $self = new self();
         $types = explode(',', $self->settings['upl_types']);
 
@@ -438,12 +461,13 @@ class Media extends BaseModel{
      * @param string $id : uploader id (must be identical to the corresponding submission form)
      * @return string
      */
-    public static function uploader($controller, array $links=array(), $id='uploader') {
+    public static function uploader($controller, array $links = array(), $id = 'uploader')
+    {
         // Get files associated to this publication
         $filesList = "";
         if (!empty($links)) {
-            foreach ($links as $file_id=>$info) {
-                $filesList .= self::file_div($info);
+            foreach ($links as $file_id => $info) {
+                $filesList .= self::fileDiv($info);
             }
         }
 
@@ -473,7 +497,8 @@ class Media extends BaseModel{
      * @param array $data
      * @return string
      */
-    private static function hidden_input(array $data) {
+    private static function hiddenInput(array $data)
+    {
         return "<input type='hidden' name='upl_link' class='upl_link' id='{$data['id']}' value='{$data['id']}' />";
     }
 
@@ -482,7 +507,8 @@ class Media extends BaseModel{
      * @param array $data
      * @return string
      */
-    private static function file_div(array $data) {
+    private static function fileDiv(array $data)
+    {
         $url = URL_TO_APP . '/uploads/' . $data['filename'];
         return  "<div class='upl_info' id='upl_{$data['id']}'>
                     <div class='upl_name'><a href='{$url}' target='_blank'>{$data['name']}</a></div>
@@ -496,13 +522,14 @@ class Media extends BaseModel{
      * @param bool $email
      * @return array
      */
-    public static function download_menu(array $links, $email=false) {
+    public static function downloadMenu(array $links, $email = false)
+    {
         $content = array('menu'=>null, 'button'=>null);
         if (!empty($links)) {
             if ($email) {
                 // Show files list as a drop-down menu
                 $menu = null;
-                foreach ($links as $file_id=>$info) {
+                foreach ($links as $file_id => $info) {
                     $menu .= "
                         <div class='dl_info'>
                             <div class='dl_type'>".strtoupper($info['type'])."</div>
@@ -517,12 +544,13 @@ class Media extends BaseModel{
             } else {
                 // Show files list as links
                 $menu = null;
-                foreach ($links as $file_id=>$info) {
+                foreach ($links as $file_id => $info) {
                     $url_link = App::getAppUrl() . "uploads/".$info['filename'];
                     $menu .= "
                     <div style='display: inline-block; text-align: center; padding: 5px 10px 5px 10px;
                                 margin: 2px; cursor: pointer; background-color: #bbbbbb; font-weight: bold;'>
-                        <a href='$url_link' target='_blank' style='color: rgba(34,34,34, 1);'>".strtoupper($info['type'])."</a>
+                        <a href='$url_link' target='_blank' style='color: rgba(34,34,34, 1);'>"
+                         . strtoupper($info['type']) . "</a>
                     </div>";
                 }
                 $content['menu'] = "<div style='display: block; text-align: justify; width: 95%; min-height: 20px; 
@@ -541,7 +569,8 @@ class Media extends BaseModel{
      * @param $app_url
      * @return string
      */
-    public static function download_menu_email(array $links, $app_url) {
+    public static function downloadMenuEmail(array $links, $app_url)
+    {
         $icon_css = "display: inline-block;
             font-size: 10px;
             text-align: center;
@@ -559,7 +588,7 @@ class Media extends BaseModel{
         $filediv = "";
         if (!empty($links)) {
             $filecontent = "";
-            foreach ($links as $file_id=>$info) {
+            foreach ($links as $file_id => $info) {
                 $urllink = $app_url."uploads/".$info['filename'];
                 $filecontent .= "
                         <div style='{$icon_css}'>
@@ -572,5 +601,4 @@ class Media extends BaseModel{
 
         return $filediv;
     }
-
 }

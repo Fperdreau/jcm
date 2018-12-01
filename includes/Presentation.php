@@ -456,7 +456,7 @@ class Presentation extends BaseSubmission
     public static function mailDetails(array $data, $show = false)
     {
         // Make download menu if required
-        $file_div = $show ? Media::download_menu_email($data['media'], App::getAppUrl()) : null;
+        $file_div = $show ? Media::downloadMenuEmail($data['media'], App::getAppUrl()) : null;
 
         // Format presentation's type
         $type = ucfirst($data['type']);

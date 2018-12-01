@@ -101,7 +101,7 @@ abstract class BaseSubmission extends BaseModel
     {
         // Delete corresponding file
         $uploads = new Media();
-        if ($uploads->delete_files($id, self::getClassName())) {
+        if ($uploads->deleteFiles($id, self::getClassName())) {
             // Delete corresponding entry in the publication table
             return $this->delete(array('id'=>$id));
         } else {
@@ -226,6 +226,13 @@ abstract class BaseSubmission extends BaseModel
         }
     }
 
+    /**
+     * Get submission form
+     *
+     * @param string $type: object type (presentation, suggestion)
+     * @param int $id: object id
+     * @return string
+     */
     public function getFormContent($type, $id = null)
     {
         $className = get_class($this);
@@ -386,7 +393,7 @@ abstract class BaseSubmission extends BaseModel
         }
 
         // Download menu
-        $dl_menu = Media::download_menu($data['media'], $show);
+        $dl_menu = Media::downloadMenu($data['media'], $show);
         $file_div = $show ? $dl_menu['menu'] : null;
 
         // Section name
