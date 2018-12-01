@@ -373,6 +373,7 @@ class Plugins extends BaseModel
             $install_btn = self::installButton($pluginName, $info['installed']);
             $activate_btn = self::activateButton($pluginName, $info['status']);
 
+            $optionsUrl = Router::buildUrl('Plugins', 'getOptions');
             $plugin_list .= "
             <div class='plugDiv' id='plugin_{$pluginName}'>
                 <div class='plugHeader'>
@@ -380,8 +381,8 @@ class Plugins extends BaseModel
                         <div class='plugName'>{$pluginName}</div>
                     </div>
                     <div class='optBar'>
-                        <div class='loadContent workBtn settingsBtn' data-controller='" . __CLASS__ .
-                        "' data-action='getOptions' data-destination='.plugOpt#{$pluginName}' 
+                        <div class='loadContent workBtn settingsBtn' data-url='{$optionsUrl}' 
+                        data-destination='.plugOpt#{$pluginName}' 
                         data-name='{$pluginName}'></div>
                         {$install_btn}
                         {$activate_btn}
