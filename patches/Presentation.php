@@ -37,24 +37,8 @@ class Presentation
      */
     public static $patches = array(
         'patch1'=>'mergeTable',
-        'patch2'=>'patchUploads',
-        'patch3'=>'patchSessionId'
+        'patch2'=>'patchSessionId'
     );
-
-    /**
-     * Patch presentation table
-     *
-     * @return bool
-     */
-    public static function patch()
-    {
-        foreach ($patches as $key => $fun) {
-            if (!$result = call_user_func(array(__class__, $fun))) {
-                return $result;
-            }
-        }
-        return $result;
-    }
 
     /**
      * Copy content of old presentations table to new presentation table
@@ -83,23 +67,6 @@ class Presentation
 
             // Drop old Presentation table
             $db->deletetable($db->getAppTables('Presentations'));
-        }
-        return true;
-    }
-
-    /**
-     * Patch upload table: add object name ('Presentation').
-     */
-    public static function patchUploads()
-    {
-        $Publications = new \includes\Presentation();
-        $Media = new \includes\Media();
-        foreach ($Publications->all() as $key => $item) {
-            if ($Media->isExist(array('id'=>$item['id']))) {
-                if (!$Media->update(array('obj'=>'Presentation'), array('id'=>$item['id']))) {
-                    return false;
-                }
-            }
         }
         return true;
     }
