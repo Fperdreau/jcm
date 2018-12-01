@@ -50,6 +50,9 @@ class Plugins extends BaseModel
     public function __construct($plugin = false)
     {
         parent::__construct($plugin);
+        if ($this->db->tableExists($this->tablename)) {
+            $this->loadAll();
+        }
     }
 
     /**
@@ -146,16 +149,20 @@ class Plugins extends BaseModel
 
     /**
      * Instantiate a class from class name
-     * @param: class name (must be the same as the file name)
-     * @return Plugin
+     * @param string $name: class name (must be the same as the file name)
+     * @return Plugin|null
      */
-    public function getPlugin($pluginName)
+    public function getPlugin($name)
     {
-        if (empty($this->instances) || !in_array($pluginName, array_keys($this->instances))) {
-            $pluginName = '\\Plugins\\' . $pluginName;
-            $this->instances[$pluginName] = new $pluginName();
+        if (is_null($this->instances) || !in_array($name, array_keys($this->instances))) {
+            $className = '\\Plugins\\' . $name;
+            if (class_exists($className)) {
+                $this->instances[$name] = new $className();
+            } else {
+                return null;
+            }
         }
-        return $this->instances[$pluginName];
+        return $this->instances[$name];
     }
 
     /**
@@ -166,7 +173,7 @@ class Plugins extends BaseModel
     private function getPluginsList($page)
     {
         if ($page == false) {
-            $pluginList = array_diff(scandir(PATH_TO_PLUGINS), array('.', '..'));
+            $pluginList = array_diff(scandir(PATH_TO_PLUGINS), array('.','..','Autoloader.php'));
         } else {
             $pluginList = array();
             foreach ($this->all(array("page" => $page)) as $key => $item) {
@@ -198,7 +205,7 @@ class Plugins extends BaseModel
     {
         $plugins = array();
         foreach ($this->getPluginsList($page) as $key => $plugin_name) {
-            if (!empty($plugin_name) && !in_array($plugin_name, array('.','..','Autoloader.php'))) {
+            if (!empty($plugin_name)) {
                 $plugins[$plugin_name] = $this->load($plugin_name, $page);
             }
         }
@@ -222,16 +229,19 @@ class Plugins extends BaseModel
 
         // Instantiate plugin
         $thisPlugin = $this->getPlugin($name);
-
-        return array(
-            'installed'=>$installed,
-            'status'=>intval($thisPlugin->status),
-            'page'=>$thisPlugin->page,
-            'options'=>$thisPlugin->options,
-            'version'=>$thisPlugin->version,
-            'description'=>$thisPlugin->description,
-            'display'=>($installed && !is_null($page)) ? $thisPlugin->show() : null
-        );
+        if (is_null($thisPlugin)) {
+            return null;
+        } else {
+            return array(
+                'installed'=>$installed,
+                'status'=>intval($thisPlugin->status),
+                'page'=>$thisPlugin->page,
+                'options'=>$thisPlugin->options,
+                'version'=>$thisPlugin->version,
+                'description'=>$thisPlugin->description,
+                'display'=>($installed && !is_null($page)) ? $thisPlugin->show() : null
+            );
+        }
     }
 
     /**
@@ -299,6 +309,12 @@ class Plugins extends BaseModel
 
     /* VIEWS */
 
+    /**
+     * Render object's options
+     *
+     * @param array $options
+     * @return string
+     */
     private static function renderOptions(array $options)
     {
         $opt = '';
@@ -306,7 +322,8 @@ class Plugins extends BaseModel
             if (isset($settings['options']) && !empty($settings['options'])) {
                 $options = "";
                 foreach ($settings['options'] as $prop => $value) {
-                    $options .= "<option value='{$value}'>{$prop}</option>";
+                    $selected = $value == $settings['value'] ? 'selected' : null;
+                    $options .= "<option value='{$value}' {$selected}>{$prop}</option>";
                 }
                 $optProp = "<select name='{$optName}'>{$options}</select>";
             } else {
