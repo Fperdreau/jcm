@@ -467,9 +467,90 @@ class Db
      */
     public function makeorupdate($tablename, $tabledata, $overwrite = false)
     {
+        // Parse schema
+        $tableInfo = self::parseSchema($tabledata);
+
+        // If overwrite, then we simply create a new table and drop the previous one
+        Logger::getInstance(APP_NAME, get_class($this))->info("Checking table '{$tablename}'");
+
+        if ($overwrite || !$this->tableExists($tablename)) {
+            Logger::getInstance(APP_NAME, get_called_class())->info("Creating table '{$tablename}'");
+            $this->createtable($tablename, $tableInfo['data'], $overwrite);
+        } else {
+            Logger::getInstance(APP_NAME, get_called_class())->info("Updating table schema '{$tablename}'");
+            $this->updateTable($tablename, $tabledata);
+        }
+        return true;
+    }
+    
+    /**
+     * Update table schema
+     *
+     * @param [type] $tableName
+     * @param array $tableData
+     * @return void
+     */
+    private function updateTable($tableName, array $tableData)
+    {
+        // Get existent columns
+        $keys = $this->getColumns($tableName);
+        // Add new non existent columns or update previous version
+        $prevcolumn = "id";
+        foreach ($tableData as $column => $data) {
+            if ($column !== "primary" && $column != "id") {
+                $datatype = $data[0];
+                $default = (isset($data[1])) ? $data[1]:false;
+                $oldname = (isset($data[2])) ? $data[2]:false;
+
+                // Change the column's name if asked and if this column exists
+                if ($oldname !== false && in_array($oldname, $keys)) {
+                    $this->modifyColumnName($tableName, $oldname, $column, $datatype, $default);
+                // If the column does not exist already, then we simply add it to the table
+                } elseif (!in_array($column, $keys)) {
+                    $this->addColumn($tableName, $column, $datatype, $prevcolumn);
+                // Check if the column's data type is consistent with the new version
+                } else {
+                    $this->alterColumn($tableName, $column, $datatype, $default);
+                }
+                $prevcolumn = $column;
+            }
+        }
+    }
+
+    /**
+     * Remove obsolete columns
+     *
+     * @param string $tablename
+     * @param array $tabledata
+     * @return void
+     */
+    public function cleanTable($tablename, array $tabledata)
+    {
+        // Get updated columns
+        $keys = $this->getColumns($tablename);
+
+        // Remove deprecated columns
+        foreach ($keys as $col_name) {
+            if (!in_array($col_name, $tableInfo['columns'])) {
+                if (!$this->deleteColumn($tablename, $col_name)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Parse table schema
+     *
+     * @param array $tableData: table schema
+     * @return array
+     */
+    private static function parseSchema(array $tableData)
+    {
         $columns = array();
         $defcolumns = array();
-        foreach ($tabledata as $column => $data) {
+        foreach ($tableData as $column => $data) {
             $defcolumns[] = $column;
             if ($column == "primary") {
                 $columns[] = "PRIMARY KEY($data)";
@@ -485,58 +566,55 @@ class Db
         }
         $columndata = implode(',', $columns);
 
-        // If overwrite, then we simply create a new table and drop the previous one
-        Logger::getInstance(APP_NAME, get_class($this))->info("Checking table '{$tablename}'");
+        return array(
+            'columns' => $defcolumns,
+            'data' => $columndata
+        );
+    }
 
-        if ($overwrite || !$this->tableExists($tablename)) {
-            Logger::getInstance(APP_NAME, get_called_class())->info("Creating table '{$tablename}'");
-            $this->createtable($tablename, $columndata, $overwrite);
+    /**
+     * Change column name
+     *
+     * @param string $tableName
+     * @param string $colName
+     * @param string $newName
+     * @param string $dataType
+     * @param bool|mixed $default
+     * @return void
+     */
+    private function modifyColumnName($tableName, $colName, $newName, $dataType, $default = false)
+    {
+        if ($this->isColumn($tableName, $colName)) {
+            $sql = "ALTER TABLE $tablename CHANGE $colName $newName $dataType";
+            if ($default !== false) {
+                $sql .= " DEFAULT '$default'";
+            }
+            return $this->sendQuery($sql);
         } else {
-            Logger::getInstance(APP_NAME, get_called_class())->info("Updating table schema '{$tablename}'");
-
-            // Get existent columns
-            $keys = $this->getColumns($tablename);
-            // Add new non existent columns or update previous version
-            $prevcolumn = "id";
-            foreach ($tabledata as $column => $data) {
-                if ($column !== "primary" && $column != "id") {
-                    $datatype = $data[0];
-                    $default = (isset($data[1])) ? $data[1]:false;
-                    $oldname = (isset($data[2])) ? $data[2]:false;
-
-                    // Change the column's name if asked and if this column exists
-                    if ($oldname !== false && in_array($oldname, $keys)) {
-                        $sql = "ALTER TABLE $tablename CHANGE $oldname $column $datatype";
-                        if ($default !== false) {
-                            $sql .= " DEFAULT '$default'";
-                        }
-                        $this->sendQuery($sql);
-                    // If the column does not exist already, then we simply add it to the table
-                    } elseif (!in_array($column, $keys)) {
-                        $this->addColumn($tablename, $column, $datatype, $prevcolumn);
-                    // Check if the column's data type is consistent with the new version
-                    } else {
-                        $sql = "ALTER TABLE $tablename MODIFY $column $datatype";
-                        if ($default !== false) {
-                            $sql .= " DEFAULT '$default'";
-                        }
-                        $this->sendQuery($sql);
-                    }
-                    $prevcolumn = $column;
-                }
-            }
-
-            // Get updated columns
-            $keys = $this->getColumns($tablename);
-            // Remove deprecated columns
-            foreach ($keys as $key) {
-                if (!in_array($key, $defcolumns)) {
-                    $sql = "ALTER TABLE $tablename DROP COLUMN $key";
-                    $this->sendQuery($sql);
-                }
-            }
+            return false;
         }
-        return true;
+    }
+
+    /**
+     * Alter column properties
+     *
+     * @param string $tableName
+     * @param string $colName
+     * @param string $dataType
+     * @param boolean|mixed $default
+     * @return void
+     */
+    private function alterColumn($tableName, $colName, $dataType, $default = false)
+    {
+        if ($this->isColumn($tableName, $colName)) {
+            $sql = "ALTER TABLE $tableName MODIFY $colName $dataType";
+            if ($default !== false) {
+                $sql .= " DEFAULT '$default'";
+            }
+            return $this->sendQuery($sql);
+        } else {
+            return false;
+        }
     }
 
     /**
