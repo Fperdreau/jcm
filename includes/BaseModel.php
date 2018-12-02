@@ -214,6 +214,37 @@ abstract class BaseModel
     }
 
     /**
+     * Clean table schema (remove obsolete columns)
+     *
+     * @return void
+     */
+    public function cleanTable()
+    {
+        $className = strtolower(self::getClassName());
+        if (is_null($this->getTableData($className))) {
+            return array('status'=>true, 'msg'=>null);
+        }
+
+        try {
+            if ($this->db->cleanTable($this->getTableName(), $this->getTableData($className))) {
+                $result['status'] = true;
+                $result['msg'] = "'{$this->tablename}' table cleaned";
+                Logger::getInstance(APP_NAME, get_class($this))->info($result['msg']);
+            } else {
+                $result['status'] = false;
+                $result['msg'] = "'{$this->tablename}' table not cleaned";
+                Logger::getInstance(APP_NAME, get_class($this))->critical($result['msg']);
+            }
+            return $result;
+        } catch (Exception $e) {
+            Logger::getInstance(APP_NAME, get_class($this))->critical($e);
+            $result['status'] = false;
+            $result['msg'] = $e;
+            return $result;
+        }
+    }
+
+    /**
      * This function returns database table name from class name
      * @return string
      */

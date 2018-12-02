@@ -340,6 +340,28 @@ class App
     }
 
     /**
+     * Clean all tables
+     *
+     * @return array
+     */
+    public static function cleanDb()
+    {
+        $result = array('status'=>true, 'msg'=>null);
+        // Install all tables
+        $includeList = scandir(PATH_TO_INCLUDES);
+        foreach ($includeList as $includeFile) {
+            if (!in_array($includeFile, array('.', '..', 'Db.php', 'App.php', 'BaseModel.php'))) {
+                $class_name = explode('.', $includeFile);
+                $result = self::call($class_name[0], 'cleanTable');
+                if ($result['status'] === false) {
+                    return $result;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Execute post-installation
      *
      * @param $op
