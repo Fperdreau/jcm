@@ -105,14 +105,14 @@ class Template
                 'Users',
                 'getForm',
                 array(
-                    'type'=>'login_form', 'view'=>'modal'
+                    'type'=>'loginForm', 'view'=>'modal'
                     )
             );
             $leanModalUrlRegistration = Router::buildUrl(
                 'Users',
                 'getForm',
                 array(
-                    'type'=>'registration_form', 'view'=>'modal'
+                    'type'=>'registrationForm', 'view'=>'modal'
                     )
             );
             $showlogin = "

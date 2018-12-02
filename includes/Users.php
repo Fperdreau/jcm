@@ -700,7 +700,7 @@ class Users extends BaseModel
      */
     public function getForm($type, $view = 'body', $section = null)
     {
-        $methodName = $type . '_' . $view;
+        $methodName = $type . $view;
         if (method_exists($this, $methodName)) {
             return self::$methodName();
         } else {
@@ -905,14 +905,14 @@ class Users extends BaseModel
             'getForm',
             array(
             'view'=>'modal',
-            'type'=>'change_password_form')
+            'type'=>'changePasswordForm')
         );
         $leanModalUrlReg = Router::buildUrl(
             'Users',
             'getForm',
             array(
             'view'=>'modal',
-            'type'=>'registration_form')
+            'type'=>'registrationForm')
         );
         return "
             <form id='login_form' method='post' action='"
@@ -967,7 +967,7 @@ class Users extends BaseModel
             'getForm',
             array(
             'view'=>'modal',
-            'type'=>'login_form')
+            'type'=>'loginForm')
         );
         return  "
             <form method='post' action='" . URL_TO_APP . 'php/router.php?controller=Users&action=make' . "'>
