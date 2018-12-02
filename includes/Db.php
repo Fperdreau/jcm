@@ -529,6 +529,9 @@ class Db
         // Get updated columns
         $keys = $this->getColumns($tablename);
 
+        // Parse schema
+        $tableInfo = self::parseSchema($tabledata);
+
         // Remove deprecated columns
         foreach ($keys as $col_name) {
             if (!in_array($col_name, $tableInfo['columns'])) {
