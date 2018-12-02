@@ -27,27 +27,6 @@
  */
 
 /**
- * Get plugins list associated to the current page
- * @param page: current page
- * @param callback: callback function
- */
-function getPlugins(page, callback) {
-    jQuery.ajax({
-        url: 'php/form.php',
-        type: 'POST',
-        data: {
-            get_plugins: true,
-            page: page
-        },
-        async: true,
-        success: function(data) {
-            var json = jQuery.parseJSON(data);
-            callback(page, json);
-        }
-    });
-}
-
-/**
  * Show plugins within the page
  * @param page: current page
  * @param result: array providing plugins list
@@ -69,47 +48,6 @@ function showPlugins(page, result) {
     }
 }
 
-
-/**
- * Install dependency
- * @param el
- */
-function install(el) {
-    var name = $(this).attr('data-name');
-    var controller = $(this).attr('data-controller');
-    var action = $(this).attr('data-action');
-    var div = $(this).closest('.plugDiv');
-
-    jQuery.ajax({
-        url: 'php/router.php?controller=' + controller + '&action=' + action,
-        type: 'POST',
-        data: {
-            name: name
-        },
-        async: true,
-        beforeSend: function() {
-            if (action === 'install') {
-                $(el).removeClass('installBtn');
-            } else {
-                $(el).removeClass('uninstallBtn');
-            }
-            $(el).addClass('loadBtn');
-        },
-        success: function(data) {
-            validsubmitform(div, data, function (result) {
-                if (result.status === true) {
-                    var newClass = (action === 'install') ? 'uninstallBtn' : 'installBtn';
-                    var newAttr = (action === 'install') ? 'uninstall' : 'install';
-                    $(el)
-                        .attr('data-op', newAttr)
-                        .removeClass('loadBtn')
-                        .addClass(newClass);
-                }
-            });
-        }
-    });
-}
-
 /**
  * Execute action via AJAX call
  * @param el: node
@@ -118,10 +56,11 @@ function install(el) {
 function execute(el, states) {
     var name = el.data('name');
     var controller = el.data('controller');
-    var action = el.data('action');
+    var action = el.attr('data-action');
     var div = el.closest('.plugDiv');
     var curClass = action + 'Btn';
-    var newAttr = (action === states[0]) ? states[1] : states[0];
+    var idx = states.findIndex(k => k!=action);
+    var newAttr = states[idx];
     var newClass = newAttr + 'Btn';
 
     jQuery.ajax({
@@ -139,7 +78,7 @@ function execute(el, states) {
             validsubmitform(div, jQuery.parseJSON(data), function(result) {
                 if (result.status === true) {
                     $(el)
-                        .attr('data-action', action)
+                        .attr('data-action', newAttr)
                         .removeClass('loadBtn')
                         .addClass(newClass);
                 } else {
@@ -173,6 +112,11 @@ function showLogs(el) {
     }
 }
 
+/**
+ * Delete logs
+ *
+ * @param {*} el: DOM element
+ */
 function deleteLogs(el) {
     var name = el.attr('id');
     var div = el.closest('.plugDiv');
@@ -189,6 +133,11 @@ function deleteLogs(el) {
     });
 }
 
+/**
+ * Execute scheduled task
+ *
+ * @param {*} el: DOM element (button)
+ */
 function runTask(el) {
     var cron = el.attr('data-cron');
     var div = el.closest('.plugDiv');
