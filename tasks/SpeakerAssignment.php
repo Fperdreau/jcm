@@ -67,11 +67,11 @@ class SpeakerAssignment extends Task
      */
     public function run()
     {
-        $Assignment = new AutoAssignment();
         $Plugins = new Plugins();
         if (!$Plugins->isInstalled('autoAssignment')) {
             return 'You must install the Assignment plugin first!';
         }
+        $Assignment = $Plugins->getPlugin('autoAssignment');
         // Assign speakers
         $result = $Assignment->assign();
         $log = $result['msg'];
