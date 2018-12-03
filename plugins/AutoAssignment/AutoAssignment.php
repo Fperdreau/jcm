@@ -126,80 +126,95 @@ class AutoAssignment extends Plugin
      * @param array $preAssigned: list of preassigned members (speakers)
      * @return array
      */
-    private function getAssignable(array $session, array $preAssigned)
+    private function getAssignableScore(array $session, array $preAssigned)
     {
         // Get maximum number of assignments for the session type
         $session_type = Assignment::prettyName($session['type'], true);
         $max = self::$Assignment->getMax($session_type);
 
-        $scoreQuery = "
-            SELECT a.username, (1/a.norm_assign) + d.norm_duration AS score
-            FROM (
-                /* Get normalized number of presentations per member */
-                SELECT j.username, j.journal_club/max_a.max_assign AS norm_assign
-                FROM {$this->db->getAppTables('Assignment')} j
-                JOIN (
-                    SELECT username, {$session_type}, MAX({$session_type}) AS max_assign
-                    FROM {$this->db->getAppTables('Assignment')}
-                ) max_a
-            ) a
-            LEFT JOIN (
-                /* Get normalized time since last presentation per member */
-                SELECT p.username, p.since_last/max_d.max_duration AS norm_duration
-                FROM (
-                    /* Get time since last presentation per member */
-                    SELECT pres.username, MIN(pres.duration) AS since_last
-                    FROM (
-                        /* Get time since last presentation */
-                        SELECT p.username, TIMESTAMPDIFF(SECOND, p.date, NOW()) AS duration
-                        FROM {$this->db->getAppTables('Presentation')} p
-                        JOIN {$this->db->getAppTables('Session')} s
-                        ON p.session_id = s.id
-                        WHERE s.type = '{$session['type']}'
-                    ) pres
-                    GROUP BY pres.username
-                ) p
-                JOIN (
-                    /* Get maximum time since last presentation across all members*/
-                    SELECT MAX(pres.duration) AS max_duration
-                    FROM (
-                        /* Get time since last presentation */
-                        SELECT TIMESTAMPDIFF(SECOND, p.date, NOW()) AS duration
-                        FROM {$this->db->getAppTables('Presentation')} p
-                        JOIN {$this->db->getAppTables('Session')} s
-                        ON p.session_id = s.id
-                        WHERE s.type = '{$session['type']}'
-                    ) pres
-                ) max_d
-            ) d
-            ON a.username = d.username
-        ";
-
         $speakersArray = !empty($preAssigned) ? 'AND u.username NOT IN (' . self::toString($preAssigned) . ')' : null;
-        $sql = "
+
+        $scoreQuery = "
+            /* Get normalized number of presentations per member */
+            CREATE TEMPORARY TABLE IF NOT EXISTS norm_assignments (username VARCHAR(50), norm_assign FLOAT(5));
+            
+            INSERT INTO norm_assignments
+            SELECT j.username, 1/(j." . $session_type . "/max_a.max_assign) AS norm_assign
+            FROM " . $this->db->getAppTables('Assignment') . " j
+            JOIN (
+                SELECT username, {$session_type}, MAX({$session_type}) AS max_assign
+                FROM " . $this->db->getAppTables('Assignment') . "
+            ) max_a;
+            
+            /* Save maximum assignment score */
+            SELECT @max_assign_score := MAX(norm_assignments.norm_assign) FROM norm_assignments;
+            
+            /* Get elapsed time since presentation */
+            CREATE TEMPORARY TABLE IF NOT EXISTS durations (username VARCHAR(50), since_pres BIGINT(10));
+            
+            INSERT INTO durations SELECT username, TIMESTAMPDIFF(DAY, p.date, NOW()) AS since_pres
+            FROM " . $this->db->getAppTables('Presentation') . " p
+            JOIN " . $this->db->getAppTables('Session') . " s
+            ON p.session_id = s.id
+            WHERE s.type = '{$session['type']}';
+            
+            /* Get time since last presentation */
+            CREATE TEMPORARY TABLE IF NOT EXISTS time_since_last (username VARCHAR(50), min_duration BIGINT(10));
+            
+            INSERT INTO time_since_last 
+            SELECT u.username, IFNULL(MIN(durations.since_pres), 10*365) AS min_duration
+            FROM " . $this->db->getAppTables('Users') . " u
+            LEFT JOIN durations
+            ON durations.username=u.username
+            GROUP BY username;
+            
+            /* Copy temporary table since we cannot call it more than once within the same query */
+            CREATE TEMPORARY TABLE IF NOT EXISTS time_since_last2 SELECT * FROM time_since_last;
+            
+            /* Get normalized time since last presentation per member */
+            CREATE TEMPORARY TABLE IF NOT EXISTS norm_durations (username VARCHAR(50), norm_duration FLOAT(10));
+            
+            INSERT INTO norm_durations
+            SELECT time_since_last.username, time_since_last.min_duration/max_d.max_duration AS norm_duration
+            FROM time_since_last
+            JOIN (
+                /* Get maximum time since last presentation across all members*/
+                SELECT MAX(time_since_last2.min_duration) AS max_duration
+                FROM time_since_last2
+            ) max_d;
+            
             /* Filter available members on session */
-            SELECT DISTINCT(sc.username) AS username, sc.score AS score
+            SELECT sc.username AS username, sc.score AS score
             FROM (
-                {$scoreQuery}
+                SELECT a.username, IFNULL(a.norm_assign, @max_assign_score+1) + d.norm_duration AS score
+                FROM norm_assignments a
+                LEFT JOIN norm_durations d
+                ON a.username = d.username
             ) sc
-            LEFT JOIN " . $this->db->getAppTables('Users') . " u
+            LEFT JOIN jcm_users u
             ON u.username=sc.username
             WHERE u.assign=1 {$speakersArray}
-                AND u.username IN (
-                    SELECT username
-                    FROM " . $this->db->getAppTables('Availability') . " a
-                    WHERE a.date!='{$session['date']}'
-                )
+            AND u.username NOT IN (
+                SELECT username
+                FROM " . $this->db->getAppTables('Availability') . " a
+                WHERE a.date='{$session['date']}'
+            )
             ORDER BY score DESC
-            LIMIT 1
+            LIMIT 1;
+
+            /* Drop temporary tables */
+            DROP TEMPORARY TABLE norm_assignments;
+            DROP TEMPORARY TABLE durations;
+            DROP TEMPORARY TABLE time_since_last;
+            DROP TEMPORARY TABLE time_since_last2;
+            DROP TEMPORARY TABLE norm_durations;
         ";
 
-        $req = $this->db->sendQuery($sql);
-        $user = null;
-        while ($row = $req->fetch_assoc()) {
-            $user = $row['username'];
+        if (false != ($req = $this->db->sendMultiQuery($scoreQuery))) {
+            return $req[1]['username'];
+        } else {
+            return null;
         }
-        return $user;
     }
 
     /**
