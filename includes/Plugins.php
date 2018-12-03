@@ -158,6 +158,9 @@ class Plugins extends BaseModel
             $className = '\\Plugins\\' . $name;
             if (class_exists($className)) {
                 $this->instances[$name] = new $className();
+                if ($this->isInstalled($name)) {
+                    $this->instances[$name]->setInfo($this->get(array('name'=>$name)));
+                }
             } else {
                 return null;
             }
