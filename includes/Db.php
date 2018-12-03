@@ -240,7 +240,7 @@ class Db
 
     /**
      * Send query to the database
-     * @param $sql
+     * @param string $sql
      * @return bool|mysqli_result
      */
     public function sendQuery($sql)
@@ -251,6 +251,51 @@ class Db
             Logger::getInstance(APP_NAME, get_called_class())->error($msg);
         }
         return $req;
+    }
+
+    /**
+     * Send multiple queries to the database
+     * @param string $sql
+     * @return bool|array
+     */
+    public function sendMultiQuery($sql)
+    {
+        if ($this->bdd->multi_query($sql)) {
+            $data = array();
+            do { // while (true); // exit only on error or when there are no more queries to process
+                // check if query currently being processed hasn't failed
+                if (0 !== $this->bdd->errno) {
+                    $msg = "Database Error [{$this->bdd->errno}]: COMMAND [{$sql}]: {$this->bdd->error}";
+                    Logger::getInstance(APP_NAME, get_called_class())->error($msg);
+                    break;
+                }
+
+                // store and possibly process result of the query,
+                // both store_result & use_result will return false
+                // for queries that do not return results (INSERT for example)
+                if (false !== ($res = $this->bdd->store_result())) {
+                    $data[] = $res->fetch_assoc();
+                    $res->free();
+                }
+
+                // exit loop if there ar no more queries to process
+                if (false === ($this->bdd->more_results())) {
+                    break;
+                }
+
+                // get result of the next query to process
+                // don't bother to check for success/failure of the result
+                // since at the start of the loop there is an error check &
+                // report block.
+                $this->bdd->next_result();
+            } while (true); // exit only on error or when there are no more queries to process
+            return $data;
+        } else {
+            $msg = "Database Error [{$this->bdd->errno}]: COMMAND [{$sql}]: {$this->bdd->error}";
+            Logger::getInstance(APP_NAME, get_called_class())->error($msg);
+            return false;
+        }
+        return $data;
     }
 
     /**
