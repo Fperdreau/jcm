@@ -55,7 +55,14 @@ class AutoAssignment extends Plugin
      */
     public $description = "Automatically assigns members of the JCM (who agreed upon being assigned by settings 
     the corresponding option on their profile page) as speakers to the future sessions. 
-    The number of sessions to plan in advance can be set in the plugin's settings.";
+    The number of sessions to plan in advance can be set in the plugin's settings ('nbsessiontoplan').<br>
+    The method to select speakers can be chosen between: <br>
+    <ul>
+    <li>random: randomly select speaker amongst available and assignable members</li>
+    <li>max: randomly select speaker amongst available members with the least number of presentations</li>
+    <li>score: select speaker amongst members with the least number of presentations and with the oldest presentation</li>
+    <li>order: select speaker amongst available member with the oldest presentation</li>
+    </ul>";
     
     /**
      * @var array
@@ -68,7 +75,8 @@ class AutoAssignment extends Plugin
             'options'=>array(
                 'random'=>'random',
                 'max'=>'max',
-                'score'=>'score'
+                'score'=>'score',
+                'order'=>'order'
             ),
             'value'=>'random'
         )
@@ -298,6 +306,62 @@ class AutoAssignment extends Plugin
     }
 
     /**
+     * Pick members available on session and with less recent presentation
+     *
+     * @param array $session: session info
+     * @param array $preAssigned: list of preassigned members (speakers)
+     * @return array
+     */
+    private function getAssignableOrder(array $session, array $preAssigned)
+    {
+        // Prettify session type
+        $session_type = Assignment::prettyName($session['type'], true);
+
+        $speakersArray = !empty($preAssigned) ? 'AND u.username NOT IN (' . self::toString($preAssigned) . ')' : null;
+        $sql = "
+            SELECT u.username, since_last.min_duration AS min_duration
+            FROM " . $this->db->getAppTables('Users') . " u
+            LEFT JOIN (
+                SELECT u.username, IFNULL(MIN(durations.since_pres), 10*365) AS min_duration
+                FROM " . $this->db->getAppTables('Users') . " u
+                LEFT JOIN (
+                    SELECT username, TIMESTAMPDIFF(DAY, p.date, NOW()) AS since_pres
+                    FROM " . $this->db->getAppTables('Presentation') . " p
+                    JOIN " . $this->db->getAppTables('Session') . " s
+                    ON p.session_id = s.id
+                    WHERE s.type = '{$session['type']}'
+                ) durations
+                ON durations.username=u.username
+                GROUP BY username
+            ) since_last
+            ON u.username=since_last.username
+            WHERE u.assign=1 {$speakersArray}
+                AND u.username IN (
+                    SELECT username
+                    FROM " . $this->db->getAppTables('Availability') . " a
+                    WHERE a.date!='{$session['date']}'
+                )
+            ORDER BY min_duration DESC
+            LIMIT 1
+            ";
+        $req = $this->db->sendQuery($sql);
+
+        // Fetch results
+        $assignable = array();
+        while ($row = $req->fetch_assoc()) {
+            $assignable[] = $row['username'];
+        }
+
+        if (!empty($assignable)) {
+            $N = count($assignable);
+            $ind = rand(0, $N - 1);
+            return $assignable[$ind];
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Get new speaker
      *
      * @param array $session: session data
@@ -320,6 +384,9 @@ class AutoAssignment extends Plugin
                 break;
             case 'random':
                 $speaker = $this->getAssignableRand($session, $speakers);
+                break;
+            case 'order':
+                $speaker = $this->getAssignableOrder($session, $speakers);
                 break;
         }
 
