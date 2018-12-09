@@ -48,7 +48,7 @@ class AutoAssignment extends Plugin
     /**
      * @var string
      */
-    public $version = "1.1.1";
+    public $version = "1.2";
 
     /**
      * Plugin's description
