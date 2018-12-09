@@ -228,7 +228,7 @@ class Users extends BaseModel
      */
     public function getAll($assign = false)
     {
-        $search = array('active'=>1, 'status !='=>'admin');
+        $search = array('active'=>1);
         if ($assign) {
             $search['assign'] = 1;
         }
