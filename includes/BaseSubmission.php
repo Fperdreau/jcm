@@ -93,8 +93,8 @@ abstract class BaseSubmission extends BaseModel
     }
 
     /**
-     * Delete an item and its corresponding files
-     * @param int $id
+     * Delete an item, its corresponding files and assignments
+     * @param int $id: submission id
      * @return bool
      */
     public function deleteSubmission($id)
@@ -103,7 +103,12 @@ abstract class BaseSubmission extends BaseModel
         $uploads = new Media();
         if ($uploads->deleteFiles($id, self::getClassName())) {
             // Delete corresponding entry in the publication table
-            return $this->delete(array('id'=>$id));
+            $assignment = new Assignment();
+            if ($assignment->unlinkPresentation(array('id'=>$id), true)) {
+                return $this->delete(array('id'=>$id));
+            } else {
+                return false;
+            }
         } else {
             return false;
         }

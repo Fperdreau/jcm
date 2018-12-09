@@ -453,23 +453,120 @@ class Assignment extends BaseModel
 
     /**
      * Update speaker assignment: update assignment table and notify user
-     * @param Users $user
+     * @param string $username
      * @param array $info: array('type'=>renderTypes, 'date'=>session_date, 'presid'=>presentation_id)
      * @param bool $assign : assign (true) or unassign (false) user
      * @param bool $notify: notify user by email
      * @return bool
      */
-    public function updateAssignment(Users $user, array $info, $assign = true, $notify = false)
+    public function updateAssignment($username, array $info, $assign = true, $notify = false)
     {
-        if ($this->updateTable(self::prettyName($info['type'], true), $user->username, $assign)) {
+        $user = new Users();
+        $userData = $user->get(array('username'=>$username));
+        if ($this->updateTable(self::prettyName($info['type'], true), $userData['username'], $assign)) {
             Logger::getInstance(APP_NAME, get_class($this))->info(
-                "Assignments for {$user->username} have been updated"
+                "Assignments for {$userData['username']} have been updated"
             );
-            return true;
+            if ($notify) {
+                return self::notifyUpdate($userData['username'], $info, $assign);
+            } else {
+                return true;
+            }
         } else {
-            Logger::getInstance(APP_NAME, get_class($this))->info("Could not update assignments for {$user->username}");
+            Logger::getInstance(APP_NAME, get_class($this))->info(
+                "Could not update assignments for {$userData['username']}"
+            );
             return false;
         }
+    }
+
+    /**
+     * Unassign presentation
+     *
+     * @param int $id: presentation id
+     * @param bool $notify: send notification to speaker by email
+     * @return bool
+     */
+    public function unlinkPresentation(array $id, $notify = false)
+    {
+        // Get presentation data
+        $presentation = new Presentation();
+        $data = $presentation->get($id);
+
+        if (!empty($data['session_id'])) {
+            // Get session info
+            $session = new Session();
+            $sessionData = $session->getInfo(array('id'=>$data['session_id']));
+            return $this->updateAssignment(
+                $data['username'],
+                array(
+                    'type'=>$sessionData['type'],
+                    'date'=>$sessionData['date'],
+                    'presid'=>$data['id']
+                ),
+                false,
+                $notify
+            );
+        }
+        return true;
+    }
+
+    /**
+     * Renders email notifying presentation assignment
+     * @param string $username
+     * @param array $info: array('type'=>session_type,'date'=>session_date, 'presid'=>presentation_id)
+     * @param bool $assigned
+     * @return mixed
+     */
+    public static function notifyUpdate($username, array $info, $assigned = true)
+    {
+        // Return true if not real user
+        if ($username == 'TBA') {
+            return true;
+        }
+
+        $MailManager = new MailManager();
+        $user = new Users();
+        $userData = $user->get(array('username'=>$username));
+        if ($assigned) {
+            $dueDate = date('Y-m-d', strtotime($info['date'].' - 1 week'));
+            $content = self::invitationEmail(
+                $userData['username'],
+                $userData['fullname'],
+                $dueDate,
+                $info['date'],
+                $info['type'],
+                $info['presid']
+            );
+        } else {
+            $content = self::cancelationEmail($userData['fullname'], $info['date']);
+            self::notifyOrganizers($userData['fullname'], $info);
+        }
+
+        // Send email
+        $content['emails'] = $userData['id'];
+        $result = $MailManager->addToQueue($content);
+        return $result;
+    }
+
+    /**
+     * Notify organizers that a presentation has been manually canceled
+     * @param string $userFullname
+     * @param array $info
+     * @return mixed
+     */
+    public static function notifyOrganizers($userFullname, array $info)
+    {
+        $MailManager = new MailManager();
+        $user = new Users();
+        foreach ($user->getAdmin() as $key => $userInfo) {
+            $content = self::cancelationOrganizerEmail($userInfo['fullname'], $userFullname, $info['date']);
+            $content['emails'] = $userInfo['id'];
+            if (!$MailManager->addToQueue($content)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -587,5 +684,87 @@ class Assignment extends BaseModel
                 <div>{$info['fullname']}</div>   
                 {$session_type}
             </div>";
+    }
+
+    /**
+     * Content of presentation cancelation email sent to speaker
+     *
+     * @param string $fullname: user's full name
+     * @param string $date: presentation date
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function cancelationEmail($fullname, $date)
+    {
+        $contactURL = URL_TO_APP . "index.php?page=contact";
+        return array(
+            'body'=>"<div style='width: 100%; margin: auto;'>
+                <p>Hello {$fullname},</p>
+                <p>Your presentation planned on {$date} has been canceled. 
+                You are no longer required to give a presentation on this day.</p>
+                <p>If you need more information, please <a href='{$contactURL}'>contact</a> the organizers.</p>
+                </div>
+                ",
+            'subject'=>"Your presentation ($date) has been canceled"
+        );
+    }
+
+    /**
+     * Content of invitation email
+     *
+     * @param string $fullname: user's full name
+     * @param string $dueDate: deadline for submitting presentation
+     * @param string $date: date of presentation
+     * @param string $session_type: session type
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function invitationEmail($username, $fullname, $dueDate, $date, $session_type, $presId)
+    {
+        $contactURL = URL_TO_APP."index.php?page=contact";
+        $editUrl = URL_TO_APP."index.php?page=presentation&id={$presId}";
+        return array(
+            'body'=> "<div style='width: 100%; margin: auto;'>
+                    <p>Hello {$fullname},</p>
+                    <p>You have been automatically invited to present at a 
+                    <span style='font-weight: 500'>{$session_type}</span> 
+                    session on the <span style='font-weight: 500'>{$date}</span>.</p>
+                    <p>Please, submit your presentation on the Journal Club Manager before the 
+                    <span style='font-weight: 500'>{$dueDate}</span>.</p>
+                    <p>If you think you will not be able to present on the assigned date, please 
+                    <a href='{$contactURL}'>contact</a> the organizers as soon as possible.</p>
+                    <div>
+                        You can edit your presentation from this link: <a href='{$editUrl}'>{$editUrl}</a>
+                    </div>
+                </div>
+            ",
+            'subject'=> "Invitation to present on the {$date}"
+        );
+    }
+
+    /**
+     * Content of presentation cancelation email sent to organizers
+     *
+     * @param string $fullname: organizer's full name
+     * @param string $speaker: speaker's full name
+     * @param string $date: date of presentation
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function cancelationOrganizerEmail($fullname, $speaker, $date)
+    {
+        $url = URL_TO_APP . 'index.php?page=organizer/sessions';
+        return array(
+            'body'=>"<div style='width: 100%; margin: auto;'>
+                <p>Hello {$fullname},</p>
+                <p>This is to inform you that the presentation of 
+                <strong>{$speaker}</strong> planned on the <strong>{$date}</strong> has been canceled. 
+                You can either manually assign another speaker on this day in the 
+                <a href='{$url}'>Admin>Session</a> section or let the automatic 
+                assignment select a member for you.</p>
+                </div>
+            ",
+            'subject'=>"A presentation ($date) has been canceled"
+        );
     }
 }
