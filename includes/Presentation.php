@@ -354,7 +354,7 @@ class Presentation extends BaseSubmission
 
         // Render list of available speakers
         $speakerOpt = (is_null($cur_speaker)) ? "<option selected disabled>Select a speaker</option>" : null;
-        foreach ($Users->getAll() as $key => $speaker) {
+        foreach ($Users->getAll(true) as $key => $speaker) {
             $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
             $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
         }
