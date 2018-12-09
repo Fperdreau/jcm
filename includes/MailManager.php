@@ -178,6 +178,13 @@ class MailManager extends BaseModel
      */
     public function addToQueue(array $data)
     {
+        if (empty($data['emails'])) {
+            return array(
+                'status'=>false,
+                'msg'=>'No recipient provided'
+            );
+        }
+
         // Get emails from the provided list of IDs
         $mailing_list = $this::processRecipientsList($data['emails']);
 
