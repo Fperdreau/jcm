@@ -400,7 +400,7 @@ var initAvailabilityCalendar = function (el, data_availability) {
             selected = $(this).datepicker('getDate').getTime();
 
             jQuery.ajax({
-                url: "php/router.php?controller=Calendar&action=updateUserAvailability&date=" + dateText,
+                url: "php/router.php?controller=Availability&action=updateUserAvailability&date=" + dateText,
                 type: "post",
                 async: true,
                 success: function() {

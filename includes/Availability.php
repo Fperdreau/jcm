@@ -80,7 +80,6 @@ class Availability extends BaseModel
     public function updateUserAvailability($date)
     {
         $username = $_SESSION['username'];
-        //$date = $data['date'];
         $Presentation = new Presentation();
 
         $result['status'] = $this->edit(array('date'=>$date, 'username'=>$username));
@@ -98,7 +97,7 @@ class Availability extends BaseModel
                 $info['presid'] = $data['id'];
                 $result['status'] = $Presentation->deleteSubmission($data['id']);
                 if ($result['status']) {
-                    $result['status'] = $Assignment->updateAssignment($speaker, $info, false, true);
+                    $result['status'] = $Assignment->updateAssignment($username, $info, false, true);
                 }
             }
         }
