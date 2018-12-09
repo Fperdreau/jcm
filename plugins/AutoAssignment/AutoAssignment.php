@@ -514,8 +514,8 @@ class AutoAssignment extends Plugin
                 );
 
                 if ($newSpeaker !== 'TBA') {
-                    \includes\SessionManager::notifyUpdate(
-                        new Users($speaker['username']),
+                    self::$Assignment->notifyUpdate(
+                        $speaker['username'],
                         $info
                     );
                 }
