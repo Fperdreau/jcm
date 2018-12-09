@@ -1483,7 +1483,7 @@ $(document).ready(function () {
                     function() {
                         input.modalTrigger('close');
                     },
-                    'php/router.php?controller=Session&action=deleteSession&id=' + session_id + '&operation=' + operation
+                    'php/router.php?controller=SessionManager&action=deleteSession&id=' + session_id + '&operation=' + operation
                 );
             };
 
