@@ -1,6 +1,6 @@
 <?php
 /**
- * File for class AssignSpeakers
+ * File for class AutoAssignment
  *
  * PHP version 5
  *
