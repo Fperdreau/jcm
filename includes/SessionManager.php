@@ -140,6 +140,239 @@ class SessionManager
         return self::getSessionEditor($data, $data['date']);
     }
 
+     /**
+     * Update session information
+     *
+     * @return array
+     */
+    public function updateSession(array $data)
+    {
+        $session_id = $data['id'];
+        $operation = $data['operation'];
+        $date = $data['date'];
+
+        $session = new Session();
+        $sessionData = $session->getInfo(array('id'=>$session_id));
+
+        unset($data['date']);
+        unset($data['operation']);
+        unset($data['id']);
+        $result = array('status'=>false, 'msg'=>null);
+
+        if ($operation === 'present') {
+            // Only update the current event
+            $result['status'] = $this->notifyWrapper('update', $sessionData, $data);
+        } elseif ($operation === 'future') {
+            // Update all future occurences
+            $result['status'] = $this->updateAllEvents($data, $session_id, 'future');
+        } elseif ($operation === 'all') {
+            // Update all (past/future) occurences
+            $result['status'] = $this->updateAllEvents($data, $session_id, 'all');
+        } else {
+            Logger::getInstance(
+                APP_NAME,
+                get_class($this)
+            )->error("SessionManager::updateSession(): '{$operation}' is not a valid operation");
+        }
+
+        if ((int)$data['recurrent'] == 1) {
+            $data = $session->get(array('id'=>$session_id));
+            $session->repeat($data, $session->getSettings('max_nb_session'));
+        }
+
+        $result['msg'] = $result['status'] ? "Session has been modified" : 'Something went wrong';
+        return $result;
+    }
+
+    /**
+     * Update all or only upcoming occurences of an event
+     *
+     * @param array $post: Updated information
+     * @param string $id: id of current occurrence
+     * @param string $what: 'future': only upcoming occurences, 'all': past and future occurences
+     *
+     * @return bool
+     */
+    public function updateAllEvents(array $post, $id, $what)
+    {
+        $session = new Session();
+        // Get event id
+        $data = $session->getInfo(array('id'=>$id));
+
+        if ($what === 'future') {
+            $all = $session->all(
+                array('event_id'=>$data['event_id'],
+                'date >='=>$data['date'])
+            );
+        } else {
+            $all = $session->all(
+                array('event_id'=>$data['event_id'])
+            );
+        }
+
+        if (!empty($all)) {
+            foreach ($all as $key => $item) {
+                if (!$this->notifyWrapper('update', $item, $post)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete current and related sessions
+     *
+     * @param string $id: session id
+     * @param string $operation: 'present', 'future', 'all'
+     *
+     * @return array
+     */
+    public function deleteSession($id, $operation)
+    {
+        $result = array('status'=>false, 'msg'=>null);
+        $session = new Session();
+        $sessionData = $session->getInfo(array('id'=>$id));
+        if ($operation === 'present') {
+            // Only update the current event
+            $result['status'] = $this->notifyWrapper('delete', $sessionData);
+        } elseif ($operation === 'future') {
+            // Update all future occurrences
+            $result['status'] = $this->deleteAllEvents($id, 'future');
+        } elseif ($operation === 'all') {
+            // Update all (past/future) occurrences
+            $result['status'] = $this->deleteAllEvents($id, 'all');
+        } else {
+            Logger::getInstance(
+                APP_NAME,
+                get_class($this)
+            )->error("Session::deleteSession(): '{$operation}' is not a valid operation");
+        }
+        $result['msg'] = $result['status'] ? "Session has been deleted" : 'Something went wrong';
+        return $result;
+    }
+
+    /**
+     * Delete all or only upcoming occurences of an event
+     *
+     * @param $id: id of current occurence
+     * @param $what: 'future': only upcoming occurences, 'all': past and future occurences
+     * @return bool
+     */
+    public function deleteAllEvents($id, $what)
+    {
+        // Get event id
+        $session = new Session();
+        $data = $session->getInfo(array('id'=>$id));
+        if ($what === 'future') {
+            $all = $session->all(
+                array('event_id'=>$data['event_id'],
+                'date >='=>$data['date'])
+            );
+        } else {
+            $all = $session->all(
+                array('event_id'=>$data['event_id'])
+            );
+        }
+
+        if (!empty($all)) {
+            foreach ($all as $key => $item) {
+                if (!$this->notifyWrapper('delete', $item)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Update/delete session and notify
+     *
+     * @param string $action: update/delete
+     * @param array $sessionData: session data
+     * @param array $post: new session data
+     * @return bool: success or failure
+     */
+    private function notifyWrapper($action, array $sessionData, array $post = null)
+    {
+        $session = new Session;
+        switch ($action) {
+            case 'update':
+                if ($sessionData['type'] !== $post['type']) {
+                    if (!$this->modifyAssignments($sessionData, $post['type'])) {
+                        return false;
+                    }
+                }
+                if ($session->update($post, array('id'=>$sessionData['id']))) {
+                    // Notify user about the change of session type
+                    if (!self::notifyUpdate($action, 'speaker', $sessionData, $post)) {
+                        return false;
+                    }
+                    return self::notifyUpdate($action, 'organizer', $sessionData, $post);
+                } else {
+                    return false;
+                }
+                break;
+            case 'delete':
+                if ($this->modifyAssignments($sessionData)) {
+                    if ($session->delete(array('id'=>$sessionData['id']))) {
+                        // Notify user about the change of session type
+                        if (!self::notifyUpdate($action, 'speaker', $sessionData)) {
+                            return false;
+                        }
+                        return self::notifyUpdate($action, 'organizer', $sessionData);
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+                break;
+            default:
+                return false;
+        }
+    }
+    
+    /**
+     * Modify session type and notify speakers about the change
+     * @param array $data
+     * @param $new_type
+     * @return bool
+     */
+    public function modifyAssignments(array $data, $new_type = null)
+    {
+        $assignment = new Assignment();
+        $result = true;
+
+        $previous_type = $data['type'];
+
+        // Loop over presentations scheduled for this session
+        foreach ($data['presids'] as $id) {
+            $pres = new Presentation($id);
+            $user = new Users($pres->orator);
+            $userData = $user->get(array('username'=>$pres->orator));
+
+            // Unassign
+            $info = array(
+                'speaker'=>$userData['username'],
+                'type'=>$previous_type,
+                'presid'=>$pres->id,
+                'date'=>$data['date']
+            );
+
+            // Update assignment table
+            if ($assignment->updateAssignment($userData['username'], $info, false, false)) {
+                if (!is_null($new_type)) {
+                    // Update assignment table with new session type
+                    $info['type'] = $new_type;
+                    $result = $assignment->updateAssignment($userData['username'], $info, true, false);
+                }
+            }
+        }
+        return $result;
+    }
+
     /**
      * Render list of sessions in a day
      *
@@ -293,94 +526,49 @@ class SessionManager
         }
         return $content;
     }
-  
-    /**
-     * Renders email notifying presentation assignment
-     * @param Users $user
-     * @param array $info: array('type'=>session_type,'date'=>session_date, 'presid'=>presentation_id)
-     * @param bool $assigned
-     * @return mixed
-     */
-    public static function notifyUpdate(Users $user, array $info, $assigned = true)
-    {
-        $MailManager = new MailManager();
-        if ($assigned) {
-            $dueDate = date('Y-m-d', strtotime($info['date'].' - 1 week'));
-            $content = self::invitationEmail(
-                $user->username,
-                $user->fullname,
-                $dueDate,
-                $info['date'],
-                $info['type'],
-                $info['presid']
-            );
-        } else {
-            $content = self::cancelationUserEmail($user->fullname, $info['date']);
-        }
-
-        // Notify organizers of the cancellation but only for real users
-        if (!$assigned && $user->username !== 'TBA') {
-            self::notifyOrganizers($user, $info);
-        }
-
-        // Send email
-        $content['emails'] = $user->id;
-        $result = $MailManager->addToQueue($content);
-        return $result;
-    }
 
     /**
-     * Notify organizers that a presentation has been manually canceled
-     * @param Users $user
-     * @param array $info
-     * @return mixed
+     * Send notification email to organizer about session cancelation
+     *
+     * @param array $session
+     * @return bool
      */
-    public static function notifyOrganizers(Users $user, array $info)
+    private static function notifyUpdate($action, $recipients, array $session, array $post = null)
     {
+        $users = new Users();
         $MailManager = new MailManager();
-        foreach ($user->getAdmin() as $key => $userInfo) {
-            $content = self::cancelationOrganizerEmail($userInfo['fullname'], $user->fullname, $info['date']);
-            $content['emails'] = $userInfo['id'];
+        switch ($recipients) {
+            case 'organizer':
+                $recipientsData = $users->getAdmin(false);
+                break;
+            case 'speaker':
+                $recipientsData = array();
+                foreach ($session['usernames'] as $username) {
+                    $recipientsData[] = $users->get(array('username'=>$username));
+                }
+                break;
+            case 'all':
+                $recipientsData = array();
+                foreach ($session['usernames'] as $username) {
+                    $recipientsData[$username] = $users->all();
+                }
+                break;
+        }
+
+        foreach ($recipientsData as $key => $userInfo) {
+            $toSpeaker = in_array($userInfo['username'], $session['usernames']);
+            if ($action == 'delete') {
+                $content = self::cancelationEmail($userInfo['fullname'], $session['type'], $session['date'], $toSpeaker);
+                $content['emails'] = $userInfo['id'];
+            } elseif ($action == 'update') {
+                $content = self::modificationEmail($userInfo['fullname'], $session, $post, $toSpeaker);
+                $content['emails'] = $userInfo['id'];
+            }
             if (!$MailManager->addToQueue($content)) {
                 return false;
             }
         }
         return true;
-    }
-
-    /**
-     * Cancel session (when session type is set to none)
-     * @param Session $session
-     * @return bool
-     */
-    public static function cancelSession(Session $session)
-    {
-        $assignment = new Assignment();
-        $result = true;
-
-        // Loop over presentations scheduled for this session
-        foreach ($session->presids as $id) {
-            $pres = new Presentation($id);
-            $speaker = new Users($pres->orator);
-
-            // Delete presentation and notify speaker that his/her presentation has been canceled
-            if ($result = $pres->delete_pres($id)) {
-                $info = array(
-                    'speaker'=>$speaker->username,
-                    'type'=>$session->type,
-                    'presid'=>$pres->id,
-                    'date'=>$session->date
-                );
-                // Notify speaker
-                $result = $assignment->updateAssignment($speaker, $info, false, true);
-            }
-        }
-
-        // Update session information
-        if ($result) {
-            $result = $session->delete(array('id'=>$session->id));
-        }
-        return $result;
     }
 
     /**
@@ -392,8 +580,8 @@ class SessionManager
      */
     public function modifySessionType($id, $type)
     {
-        if (self::modifyAssignments(self::get(array('id'=>$id), $type))) {
-            $result = self::update(array('type'=>$type), array('id'=>$id));
+        if ($this->modifyAssignments(self::get(array('id'=>$id), $type))) {
+            $result = $this->update(array('type'=>$type), array('id'=>$id));
             if ($result['status']) {
                 $result['msg'] = "Session's type has been set to {$value}";
             }
@@ -402,56 +590,30 @@ class SessionManager
     }
 
     /**
-     * Modify session type and notify speakers about the change
-     * @param array $data
-     * @param $new_type
-     * @return bool
+     * View for email notifying user about modification of session type
+     *
+     * @param array $user: user info
+     * @param string $previous_type
+     * @param string $new_type
+     * @param string $date
+     * @return array
      */
-    public function modifyAssignments(array $data, $new_type)
+    private static function modificationSessionTypeEmail(array $user, $previous_type, $new_type, $date)
     {
-        $assignment = new Assignment();
-        $result = true;
-
-        $previous_type = $data['type'];
-
-        // Loop over presentations scheduled for this session
-        foreach ($data['presids'] as $id) {
-            $pres = new Presentation($id);
-            $speaker = new Users($pres->orator);
-
-            // Unassign
-            $info = array(
-                'speaker'=>$speaker->username,
-                'type'=>$previous_type,
-                'presid'=>$pres->id,
-                'date'=>$data['date']
+        $contactURL = URL_TO_APP . "index.php?page=contact";
+        return array(
+            'body' => "
+                <div style='width: 100%; margin: auto;'>
+                    <p>Hello {$user['fullname']},</p>
+                    <p>This is to inform you that the type of your session ({$date}) 
+                    has been modified and will be a <strong>{$new_type}</strong> instead of a 
+                    <strong>{$previous_type}</strong>.</p>
+                    <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
+                </div>
+                ",
+                'subject' => "Your session ($date) has been modified",
+                'emails' => $user['id']
             );
-
-            // Update assignment table with new session type
-            if ($assignment->updateAssignment($speaker, $info, false, false)) {
-                $info['type'] = $new_type;
-                $result = $assignment->updateAssignment($speaker, $info, true, false);
-            }
-
-            // Notify user about the change of session type
-            $MailManager = new MailManager();
-            $date = $info['date'];
-            $contactURL = URL_TO_APP . "index.php?page=contact";
-
-            $content['body'] = "
-            <div style='width: 100%; margin: auto;'>
-                <p>Hello $speaker->fullname,</p>
-                <p>This is to inform you that the type of your session ({$date}) 
-                has been modified and will be a <strong>{$new_type}</strong> instead of a 
-                <strong>{$previous_type}</strong>.</p>
-                <p>If you need more information, please <a href='$contactURL'>contact</a> the organizers.</p>
-            </div>
-            ";
-            $content['subject'] = "Your session ($date) has been modified";
-            $content['emails'] = $speaker->id;
-            $result = $MailManager->addToQueue($content);
-        }
-        return $result;
     }
 
     /**
@@ -467,11 +629,12 @@ class SessionManager
         $Presentation = new \includes\Presentation();
         $presData = $Presentation->get(array('id'=>$data['presid']));
 
+        $user = new Users();
         // Get previous speaker info
-        $previous = new Users($presData['username']);
+        $previous = $user->get(array('username' => $presData['username']));
 
         // get new speaker info
-        $speaker = new Users($data['speaker']);
+        $speaker = $user->get(array('username' => $data['speaker']));
 
         // Get session info
         $session = new Session();
@@ -484,29 +647,29 @@ class SessionManager
             'presid'=>$data['presid']
         );
 
-        $Assignment = new Assignment();
+        $assignment = new Assignment();
 
         // Send notification to previous speaker
-        if (!is_null($previous->username)) {
+        if (!is_null($previous['username'])) {
             // Only send notification to real users
-            $result['status'] = $Assignment->updateAssignment($previous, $info, false, true);
+            $result['status'] = $assignment->updateAssignment($previous['username'], $info, false, false);
         } else {
             $result['status'] = true;
         }
 
         // Send notification to new speaker
         if ($result['status']) {
-            if (!is_null($speaker->username)) {
+            if (!is_null($speaker['username'])) {
                 // Only send notification to real users
-                $result['status'] = $Assignment->updateAssignment($speaker, $info, true, true);
+                $result['status'] = $assignment->updateAssignment($speaker['username'], $info, true, false);
             } else {
                 $result['status'] = true;
             }
 
             // Update Presentation info
             if ($result['status']) {
-                if ($Presentation->update(array('username'=>$speaker->username), array('id'=>$data['presid']))) {
-                    $result['msg'] = "{$speaker->fullname} is the new speaker!";
+                if ($Presentation->update(array('username'=>$speaker['username']), array('id'=>$data['presid']))) {
+                    $result['msg'] = "{$speaker['fullname']} is the new speaker!";
                     $result['status'] = true;
                 } else {
                     $result['status'] = false;
@@ -515,10 +678,10 @@ class SessionManager
         }
 
         // Notify previous speaker
-        $this->notifyUpdate($previous, $info, $assigned = false);
+        $assignment::notifyUpdate($previous['username'], $info, $assigned = false);
 
         // Notify previous speaker
-        $this->notifyUpdate($speaker, $info, $assigned = true);
+        $assignment::notifyUpdate($speaker['username'], $info, $assigned = true);
 
         return $result;
     }
@@ -612,7 +775,7 @@ class SessionManager
         if (isset($data['id']) && !is_null($data['id'])) {
             // Form action url
             $url = Router::buildUrl(
-                'Session',
+                'SessionManager',
                 'updateSession'
             );
 
@@ -911,84 +1074,87 @@ class SessionManager
     }
 
     /**
-     * Content of invitation email
+     * Content of session cancelation email
      *
      * @param string $fullname: user's full name
-     * @param string $dueDate: deadline for submitting presentation
-     * @param string $date: date of presentation
-     * @param string $session_type: session type
-     *
-     * @return array: array('body'=>content of email, 'subject'=>email's title)
-     */
-    private static function invitationEmail($username, $fullname, $dueDate, $date, $session_type, $presId)
-    {
-        $contactURL = URL_TO_APP."index.php?page=contact";
-        $editUrl = URL_TO_APP."index.php?page=presentation&id={$presId}";
-        return array(
-            'body'=> "<div style='width: 100%; margin: auto;'>
-                    <p>Hello {$fullname},</p>
-                    <p>You have been automatically invited to present at a 
-                    <span style='font-weight: 500'>{$session_type}</span> 
-                    session on the <span style='font-weight: 500'>{$date}</span>.</p>
-                    <p>Please, submit your presentation on the Journal Club Manager before the 
-                    <span style='font-weight: 500'>{$dueDate}</span>.</p>
-                    <p>If you think you will not be able to present on the assigned date, please 
-                    <a href='{$contactURL}'>contact</a> the organizers as soon as possible.</p>
-                    <div>
-                        You can edit your presentation from this link: <a href='{$editUrl}'>{$editUrl}</a>
-                    </div>
-                </div>
-            ",
-            'subject'=> "Invitation to present on the {$date}"
-        );
-    }
-
-    /**
-     * Content of presentation cancelation email sent to speaker
-     *
-     * @param string $fullname: user's full name
-     * @param string $date: presentation date
-     *
-     * @return array: array('body'=>content of email, 'subject'=>email's title)
-     */
-    private static function cancelationUserEmail($fullname, $date)
-    {
-        $contactURL = URL_TO_APP . "index.php?page=contact";
-        return array(
-            'body'=>"<div style='width: 100%; margin: auto;'>
-                <p>Hello {$fullname},</p>
-                <p>Your presentation planned on {$date} has been manually canceled. 
-                You are no longer required to give a presentation on this day.</p>
-                <p>If you need more information, please <a href='{$contactURL}'>contact</a> the organizers.</p>
-                </div>
-                ",
-            'subject'=>"Your presentation ($date) has been canceled"
-        );
-    }
-
-    /**
-     * Content of presentation cancelation email sent to organizers
-     *
-     * @param string $fullname: organizer's full name
-     * @param string $speaker: speaker's full name
      * @param string $date: date of presentation
      *
      * @return array: array('body'=>content of email, 'subject'=>email's title)
      */
-    private static function cancelationOrganizerEmail($fullname, $speaker, $date)
+    private static function cancelationEmail($fullname, $type, $date, $toSpeaker = false)
     {
         $url = URL_TO_APP . 'index.php?page=organizer/sessions';
+
+        if ($toSpeaker) {
+            $content = "<p>This is to inform you that your assignment for the <strong>{$type}</strong> session 
+            planned on the <strong>{$date}</strong> has been canceled.";
+            $subject = "Your assignment ({$date}) has been canceled";
+        } else {
+            $content = "<p>This is to inform you that the {$type} session planned on the <strong>{$date}</strong>
+            has been canceled.";
+            $subject = "A session ({$date}) has been canceled";
+        }
         return array(
             'body'=>"<div style='width: 100%; margin: auto;'>
                 <p>Hello {$fullname},</p>
-                <p>This is to inform you that the presentation of 
-                <strong>{$speaker}</strong> planned on the <strong>{$date}</strong> has been canceled. 
-                You can either manually assign another speaker on this day in the 
-                <a href='{$url}'>Admin>Session</a> section or let the automatic 
-                assignment select a member for you.</p>
-                </div>
+                {$content}
             ",
-            'subject'=>"A presentation ($date) has been canceled"
+            'subject'=>$subject
+        );
+    }
+
+    /**
+     * Content of session update email
+     *
+     * @param string $fullname: user's full name
+     * @param string $date: date of presentation
+     *
+     * @return array: array('body'=>content of email, 'subject'=>email's title)
+     */
+    private static function modificationEmail($fullname, array $sessionData, array $post, $toSpeaker = false)
+    {
+        $url = URL_TO_APP . 'index.php?page=organizer/sessions';
+
+        $css = array();
+        $data = $sessionData;
+        foreach ($sessionData as $key => $value) {
+            if (isset($post[$key]) && $post[$key] !== $sessionData[$key]) {
+                $css[$key] = "font-weight: 500; color:#500;";
+                $data[$key] = $post[$key];
+            } else {
+                $css[$key] = null;
+            }
+        }
+
+        $content = "
+            <div style='background-color: rgba(255,255,255,.5); padding: 5px; margin-bottom: 10px;'>
+                <div style='margin: 0 5px 5px 0; {$css['type']}'><b>Type: </b>{$data['type']}</div>
+                <div style='display: inline-block; margin: 0 0 5px 0; {$css['date']}'><b>Date: </b>{$data['date']}</div>
+                <div style='display: inline-block; margin: 0 5px 5px 0;'>
+                    <span style='{$css['start_time']}'><b>From: </b>{$data['start_time']}</span>
+                    <span style='{$css['end_time']}'><b> To: </b>{$data['end_time']}</span>
+                </div>
+            <div style='display: inline-block; margin: 0 5px 5px 0; {$css['room']}'>
+                <b>Room: </b>{$data['room']}</div><br>
+            </div>";
+
+        if ($toSpeaker) {
+            $paragraph = "<p>This is to inform you that your <strong>{$data['type']}</strong> session planned on the 
+            <strong>{$data['date']}</strong> has been updated.";
+            $subject = "Your assignment ({$data['date']}) has been updated";
+        } else {
+            $paragraph = "<p>This is to inform you that the {$data['type']} session planned on the 
+            <strong>{$data['date']}</strong> has been updated.";
+            $subject = "A session ({$data['date']}) has been updated";
+        }
+
+        return array(
+            'body'=>"<div style='width: 100%; margin: auto;'>
+                <p>Hello {$fullname},</p>
+                {$paragraph}
+                <div>{$content}</div>
+            ",
+            'subject'=>$subject
         );
     }
 }
