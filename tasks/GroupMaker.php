@@ -56,12 +56,11 @@ class GroupMaker extends Task
     public function run()
     {
         $Plugins = new Plugins();
-        $Plugins->isInstalled('Groups');
         if (!$Plugins->isInstalled('Groups')) {
             return array('status'=>false, 'msg'=>'You must install the Group plugin first!');
         }
 
-        $groups = new Groups();
+        $groups = $Plugins->getPlugin('Groups');
         $result = $groups->run();
         if ($result['status'] && $this->options['send']['value'] == 1) {
             $result['msg'] .= $this->notify();
