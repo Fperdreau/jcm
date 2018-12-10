@@ -662,7 +662,7 @@ class MailManager extends BaseModel
 
         return "
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; 
-            color: #444444; font-weight: 300; font-size: 16px; width: 100%; height: auto; margin: 0;'>
+            color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='display: table; line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
                     <div style='display: table-row;'>
                         <div style='display: table-cell; padding: 10px 20px;  margin: 2% auto; background-color: #fff; 
@@ -741,7 +741,7 @@ class MailManager extends BaseModel
     private static function footer($url_browser, $profile_url, $auto = true)
     {
         $auto_msg = ($auto) ? "
-            <div style='border-top: 2px solid #323232;'>
+            <div >
                 This email has been sent automatically. You can choose to no longer receive email 
                 notifications by going to your
                 <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >
@@ -749,7 +749,7 @@ class MailManager extends BaseModel
             </div>
         " : null;
         return "
-        <div style='display: table-cell; padding:20px; margin: 5% auto; min-height: 30px; 
+        <div style='display: table-cell; border-top: 2px solid #323232; padding:20px; margin: 5% auto; min-height: 30px; 
         height: auto; line-height: 30px; text-align: center; color: #323232;'>
             <div style='text-align: center;'>{$url_browser}</div>
             {$auto_msg}
