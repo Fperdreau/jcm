@@ -70,9 +70,9 @@ class DigestMaker extends BaseMailMaker
     protected static function body(Users $user, $content)
     {
         return "
-        <div style='width: 100%; margin: auto;'>
+        <div style='width: 100%; margin: auto; text-align: center; font-size: 16px; font-weight: 500;'>
             <p>Hello {$user->firstname},</p>
-            <p>This is your Journal Club weekly digest.</p>
+            <p>Here is your Journal Club weekly digest.</p>
         </div>
         {$content}
         ";
