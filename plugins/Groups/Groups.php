@@ -174,7 +174,7 @@ class Groups extends Plugin
         }
 
         // Set the number of groups equal to the number of presentation for this day in case it exceeds it.
-        $ngroups = $session['slots'];
+        $ngroups = count($session['presids']);
 
         // If there is a mismatch between the number of slots and the number of predefined groups, we start
         // from scratch
@@ -361,6 +361,8 @@ class Groups extends Plugin
      */
     private function updateGroup(array $session)
     {
+        $this->checkSession($session);
+
         $sql = "SELECT * FROM {$this->tablename} WHERE sessionId={$session['id']}";
         $req = $this->db->sendQuery($sql);
         $user = new Users();
@@ -424,64 +426,30 @@ class Groups extends Plugin
             return array();
         }
     }
-    
-    /**
-     * Renders group information to be displayed in emails
-     * @param array $data
-     * @return string
-     */
-    public static function renderSection(array $data)
-    {
-        return "
-        <p>Here is your group assignment for the session held on <b>{$data['date']}</b>.</p>
-        <p>Your group will meet in room {$data['room']}.</p>
-        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; 
-        background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
-            {$data['group']}
-        </div>
-        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; 
-        background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
-            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
-            font-weight: 500; font-size: 1.2em;'>
-                Your group presentation
-            </div>
-            <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
-                {$data['publication']}
-            </div>
-        </div>
-        ";
-    }
 
     /**
-     * Renders Email notification
-     * @param Users $user
-     * @param array $data
-     * @return mixed
+     * Check correspondence between group info and session info
+     *
+     * @param array $session: session data
+     * @return bool
      */
-    public static function renderMail($data, Users $user)
+    private function checkSession(array $session)
     {
-        $result['body'] = "
-            <div style='width: 100%; margin: auto;'>
-                <p>Hello <span style='font-weight: 600;'>{$user->firstname}/span>,</p>
-                <p>Here is your assignment for our next journal club session that will be held on the
-                {$data['date']} in room <b> {$data['room']}</b>.</p>
-    
-                <div style='display: block; vertical-align: top; margin: auto;'>
-                    <div style='display: inline-block; padding: 10px; 
-                    margin: 0 30px 20px 0;background-color: rgba(255,255,255,1);'>
-                        " . $data['group'] . "
-                    </div>
-                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; 
-                    max-width: 60%; background-color: rgba(255,255,255,1);'>
-                         " . $data['publication'] . "
-                    </div>
-                </div>
-            </div>
-            ";
-        $result['subject'] = "Your group assignment - {$data['date']}";
-        return $result;
+        $sql = "SELECT COUNT(DISTINCT(groupId)) as count_grp 
+                FROM {$this->tablename}
+                WHERE sessionId=367";
+        $nb_groups = (int)$this->db->sendQuery($sql)->fetch_assoc();
+        if ($nb_groups !== count($session['presids'])) {
+            if (!$this->delete(array('sessionId'=>$session['id']))) {
+                return false;
+            } else {
+                return $this->makeGroups($session);
+            }
+        } else {
+            return true;
+        }
     }
-
+    
     /**
      * Get user's group
      * @param $username
@@ -494,14 +462,15 @@ class Groups extends Plugin
             $sessionId = $sessionData[key($sessionData)]['id'];
         }
         $session = $this->getSession()->getInfo(array('id'=>$sessionId));
-
         $data = $this->get(array('username'=>$username, 'sessionId'=>$sessionId));
-        $groupusrs['members'] = array();
-        $groupusrs['room'] = $data['room'];
-        $groupusrs['date'] = $session['date'];
-        $groupusrs['presid'] = $session['presids'][$data['groupId']];
-
-        if (!empty($data)) {
+        if (!empty($data)) {     
+            if (!$this->checkSession($session)) {
+                return $this->getGroup($username, $sessionId);
+            }      
+            $groupusrs['members'] = array();
+            $groupusrs['room'] = $data['room'];
+            $groupusrs['date'] = $session['date'];
+            $groupusrs['presid'] = $session['presids'][$data['groupId']];
             foreach ($this->all(array('sessionId'=>$data['sessionId'], 'groupId'=>$data['groupId'])) as $key => $row) {
                 $groupusrs['members'][$row['username']] = $row;
             }
@@ -560,8 +529,6 @@ class Groups extends Plugin
      */
     public function show($date = null)
     {
-        $username = $_SESSION['username'];
-
         if (!is_null($date)) {
             $sessionData = $this->getSession()->get(array('date'=>$date));
             $sessionId = $sessionData['id'];
@@ -572,9 +539,10 @@ class Groups extends Plugin
         }
 
         // Get group data
+        $username = $_SESSION['username'];
         $data = $this->getGroup($username, $sessionId);
 
-        if (!empty($data['members'])) {
+        if (!is_null($sessionData) && !empty($data['members'])) {
             $content = $this->showList($data, $username);
             $ids = array();
             foreach ($data['members'] as $grpmember => $info) {
@@ -640,6 +608,63 @@ class Groups extends Plugin
                 </div>
 
             ";
+    }
+
+    /**
+     * Renders group information to be displayed in emails
+     * @param array $data
+     * @return string
+     */
+    public static function renderSection(array $data)
+    {
+        return "
+        <p>Here is your group assignment for the session held on <b>{$data['date']}</b>.</p>
+        <p>Your group will meet in room {$data['room']}.</p>
+        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; 
+        background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
+            {$data['group']}
+        </div>
+        <div style='display: inline-block; padding: 10px; margin: 0 auto 20px auto; 
+        background-color: rgba(255,255,255,1); width: 45%; min-width: 250px; vertical-align: top;'>
+            <div style='color: #444444; margin-bottom: 10px;  border-bottom:1px solid #DDD; 
+            font-weight: 500; font-size: 1.2em;'>
+                Your group presentation
+            </div>
+            <div style='min-height: 50px; padding-bottom: 5px; margin: auto auto 0 auto;'>
+                {$data['publication']}
+            </div>
+        </div>
+        ";
+    }
+
+    /**
+     * Renders Email notification
+     * @param Users $user
+     * @param array $data
+     * @return mixed
+     */
+    public static function renderMail($data, Users $user)
+    {
+        $result['body'] = "
+            <div style='width: 100%; margin: auto;'>
+                <p>Hello <span style='font-weight: 600;'>{$user->firstname}/span>,</p>
+                <p>Here is your assignment for our next journal club session that will be held on the
+                {$data['date']} in room <b> {$data['room']}</b>.</p>
+    
+                <div style='display: block; vertical-align: top; margin: auto;'>
+                    <div style='display: inline-block; padding: 10px; 
+                    margin: 0 30px 20px 0;background-color: rgba(255,255,255,1);'>
+                        " . $data['group'] . "
+                    </div>
+                    <div style='display: inline-block; padding: 10px; margin: auto; vertical-align: top; 
+                    max-width: 60%; background-color: rgba(255,255,255,1);'>
+                         " . $data['publication'] . "
+                    </div>
+                </div>
+            </div>
+            ";
+        $result['subject'] = "Your group assignment - {$data['date']}";
+        return $result;
     }
 
     /**
