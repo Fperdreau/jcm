@@ -493,13 +493,13 @@ class Groups extends Plugin
             $sessionData = $this->getSession()->getUpcoming(1);
             $sessionId = $sessionData[key($sessionData)]['id'];
         }
-        $session = $this->getSession()->get(array('id'=>$sessionId));
+        $session = $this->getSession()->getInfo(array('id'=>$sessionId));
 
         $data = $this->get(array('username'=>$username, 'sessionId'=>$sessionId));
         $groupusrs['members'] = array();
         $groupusrs['room'] = $data['room'];
         $groupusrs['date'] = $session['date'];
-        $groupusrs['presid'] = $data['presid'];
+        $groupusrs['presid'] = $session['presids'][$data['groupId']];
 
         if (!empty($data)) {
             foreach ($this->all(array('sessionId'=>$data['sessionId'], 'groupId'=>$data['groupId'])) as $key => $row) {
