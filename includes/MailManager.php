@@ -665,8 +665,7 @@ class MailManager extends BaseModel
             color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
                 <div style='display: table; line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
                     <div style='display: table-row;'>
-                        <div style='display: table-cell; padding: 10px 20px;  margin: 2% auto; background-color: #fff; 
-                        font-size: 2em; text-align: center;'>
+                        <div style='display: table-cell; background-color: #fff; font-size: 2em; text-align: center;'>
                             <div style='{$css_title}'>
                                 <span style='font-size: 30px; font-weight: 400; color: #323232'>JCM</span>
                                 <span style='font-size: 25px; color: rgba(100,100,100,1);'>anager</span>
@@ -749,7 +748,7 @@ class MailManager extends BaseModel
             </div>
         " : null;
         return "
-        <div style='display: table-cell; border-top: 2px solid #323232; padding:20px; margin: 5% auto; min-height: 30px; 
+        <div style='display: table-cell; border-top: 2px solid #323232; padding: 10px 20px; min-height: 30px; 
         height: auto; line-height: 30px; text-align: center; color: #323232;'>
             <div style='text-align: center;'>{$url_browser}</div>
             {$auto_msg}
