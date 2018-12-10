@@ -651,35 +651,40 @@ class MailManager extends BaseModel
 
         $css_title = "
                 color: rgba(255,255,255,1);
-                text-align: left;
+                text-align: center;
                 font-size: 0;
-                font-weight: 300;
+                font-weight: 500;
                 margin: 0;
-                padding: 0;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #323232;
                 position: relative;
         ";
 
         return "
             <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; 
-            color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
-                <div style='line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
-                    <div style='padding: 10px 20px;  margin: 2% auto; width: 100%; 
-                    background-color: rgba(68, 68, 68, 1); border: 1px solid #e0e0e0; 
-                    font-size: 2em; text-align: center;'>
-                        <div style='{$css_title}'>
-                            <span style='font-size: 30px; font-weight: 400;'>JCM</span>
-                            <span style='font-size: 25px; color: rgba(200,200,200,.8);'>anager</span>
-                            <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>
-                            " . $lab_name . "</div>
+            color: #444444; font-weight: 300; font-size: 16px; width: 100%; height: auto; margin: 0;'>
+                <div style='display: table; line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
+                    <div style='display: table-row;'>
+                        <div style='display: table-cell; padding: 10px 20px;  margin: 2% auto; background-color: #fff; 
+                        font-size: 2em; text-align: center;'>
+                            <div style='{$css_title}'>
+                                <span style='font-size: 30px; font-weight: 400; color: #323232'>JCM</span>
+                                <span style='font-size: 25px; color: rgba(100,100,100,1);'>anager</span>
+                                <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>
+                                " . $lab_name . "</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div style='padding:20px;  margin: 2% auto; width: 100%; background-color: #F9F9F9; 
-                    border: 1px solid #e0e0e0; text-align: justify;'>
-                        {$content}
+                    <div style='display: table-row;'>
+                        <div style='display: table-cell; padding:20px; margin: 2% auto; text-align: justify;'>
+                            {$content}
+                        </div>
                     </div>
 
+                    <div style='display: table-row;'>
                     " . self::footer($show_in_browser, $profile_url, $auto) . "
+                    </div>
                 </div>
             </div>";
     }
@@ -736,7 +741,7 @@ class MailManager extends BaseModel
     private static function footer($url_browser, $profile_url, $auto = true)
     {
         $auto_msg = ($auto) ? "
-            <div style='border-top: 1px solid #e0e0e0;'>
+            <div style='border-top: 2px solid #323232;'>
                 This email has been sent automatically. You can choose to no longer receive email 
                 notifications by going to your
                 <a href='{$profile_url}' style='color: #CF5151; text-decoration: none;' target='_blank' >
@@ -744,8 +749,8 @@ class MailManager extends BaseModel
             </div>
         " : null;
         return "
-        <div style='padding:20px;  margin: 2% auto; width: 100%; border: 1px solid #e0e0e0; min-height: 30px; 
-        height: auto; line-height: 30px; text-align: center; background-color: #444444; color: #ffffff'>
+        <div style='display: table-cell; padding:20px; margin: 5% auto; min-height: 30px; 
+        height: auto; line-height: 30px; text-align: center; color: #323232;'>
             <div style='text-align: center;'>{$url_browser}</div>
             {$auto_msg}
             <div style='text-align: center; border-top: 1px solid #e0e0e0;'>Powered by 
