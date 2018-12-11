@@ -87,6 +87,10 @@ class Assignment extends BaseModel
      */
     public function updateAssignmentTable()
     {
+        // Check correspondence users/assignment tables
+        $this->check();
+
+        // Get presentations per user
         $this->getPresentations();
 
         return $this->showList($this->all());
@@ -400,7 +404,7 @@ class Assignment extends BaseModel
             FROM " . $this->db->getAppTables('Users') . " u
             INNER JOIN  " . $this->db->getAppTables('Assignment') . " p
             ON u.username=p.username
-            WHERE u.assign=1 AND u.status!='admin' AND p.{$session_type}<{$max}
+            WHERE u.assign=1 AND p.{$session_type}<{$max}
                 AND u.username IN (
                     SELECT username
                     FROM " . $this->db->getAppTables('Availability') . " a
