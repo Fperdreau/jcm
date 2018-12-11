@@ -323,10 +323,10 @@ class Session extends BaseModel
 
     /**
      * Display the details of session
-     * @param bool $mail
+     * @param int $id: session id
      * @return string
      */
-    public function showSession($id, $mail = false)
+    public function showSession($id)
     {
         $data = $this->all(array('id'=>$id));
         $data = reset($data);
@@ -686,18 +686,23 @@ class Session extends BaseModel
      *
      * @return string
      */
-    private static function emptySlot(array $data)
+    private static function emptySlot(array $data,  $mail = false)
     {
-        $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
-        $leanModalUrl = Router::buildUrl(
-            'Presentation',
-            'getForm',
-            array(
-                'view'=>'modal',
-                'operation'=>'edit',
-                'session_id'=>$data['id']
-            )
-        );
+        if ($mail) {
+            $url = URL_TO_APP . "index.php?page=member/submission&op=edit&date=" . $data['date'];
+        } else {
+            $url = Router::buildUrl(
+                'Presentation',
+                'getForm',
+                array(
+                    'view'=>'modal',
+                    'operation'=>'edit',
+                    'session_id'=>$data['id']
+                )
+            );
+        }
+
+        $addButton = "<a href='{$url}'>Add Presentation</a>";
 
         return "
         <div style='width: 100%; padding-bottom: 5px; margin: auto auto 10px auto; 
@@ -710,7 +715,7 @@ class Session extends BaseModel
             </div>
             <div style='width: 100%; text-align: justify; margin: auto; box-sizing: border-box;'>
                 <div style='max-width: 80%; margin: 5px;'>
-                    <div style='font-weight: bold; font-size: 20px;'>{$leanModalUrl}</div>
+                    <div style='font-weight: bold; font-size: 20px;'>{$addButton}</div>
                 </div>
 
             </div>
@@ -795,12 +800,10 @@ class Session extends BaseModel
      */
     private static function sessionDetails(array $data, $presentations)
     {
+        $room = empty($data['room']) ? 'TBA' : $data['room'];
         return "
             <div style='display: block; margin: 5px; padding: 0; text-align: justify; min-height: 20px; height: auto;
                 line-height: 20px; width: 100%; color: #222; font-weight: 900; font-size: 16px;'>
-                <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/>
-                </div>
                 <div style='display: inline-block; vertical-align: middle;'>{$data['date']}</div>
             </div>
             <div style='display: table;  width: 100%; margin: 0; text-align: left; font-weight: 300; height: 30px; 
@@ -813,19 +816,13 @@ class Session extends BaseModel
                 <div style='display: table-cell; vertical-align: top; min-height: 20px; line-height: 20px; 
                 padding: 5px; text-align: right; font-size: 12px;'>
                     <div style='display: inline-block;'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                            <img src='" . URL_TO_IMG . 'clock_bk.png' . "' style='width: 100%; vertical-align:middle;'/>
-                        </div>
                         <div style='display: inline-block; vertical-align: middle;'>
-                        " . date('H:i', strtotime($data['date'])) . ' - ' . date('H:i', strtotime($data['date'])) . "
+                            <span style='font-size: 15px; font-weight: 600; color: #222222;'>From </span>" . date('H:i', strtotime($data['date'])) . " 
+                            <span style='font-size: 15px; font-weight: 600; color: #222222;'>To</span> " . date('H:i', strtotime($data['date'])) . "
                         </div>
                     </div>
-                    <div style='display: inline-block;'>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                            <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; 
-                            vertical-align:middle;'/>
-                        </div>
-                        <div style='display: inline-block; vertical-align: middle;'>{$data['room']}</div>
+                    <div style='display: inline-block; vertical-align: middle; margin-left: 20px;'>
+                        <span style='font-size: 15px; font-weight: 600; color: #222222;'>Room </span>{$room}
                     </div>
                 </div>  
             </div>
