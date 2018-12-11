@@ -232,7 +232,7 @@ abstract class BaseMailMaker extends BaseModel
     {
         $result = $this->makeMail($_SESSION['username']);
         $AppMail = new MailManager();
-        return $AppMail->formatmail($result['body']);
+        return $AppMail->formatmail($result['body'], 1);
     }
 
     // VIEW
