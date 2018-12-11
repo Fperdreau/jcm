@@ -47,6 +47,10 @@ class Media
         $Presentation = new \includes\Presentation();
         $Media = new \includes\Media();
         foreach ($Media->all() as $key => $item) {
+            if (!isset($item['presid'])) {
+                return true;
+            }
+            
             $data = $Presentation->get(array('id_pres'=>$item['presid']));
             if (!empty($data)) {
                 $title = str_replace(' ', '_', $data['title']);
