@@ -123,23 +123,23 @@ class Suggestion extends BaseSubmission
      * @param bool $showButton: show "add" button
      * @return string
      */
-    public function getSuggestionSection($number = null, $showButton = true)
+    public function getSuggestionSection($number = null, $mail = false)
     {
         $limit = (is_null($number)) ? null : " LIMIT {$number}";
         $wish_list = null;
-        $username = isset($_SESSION['username']) ? $_SESSION['username'] : null;
+        $username = !$mail & isset($_SESSION['username']) ? $_SESSION['username'] : null;
 
         $Vote = new Vote();
         $Bookmark = new Bookmark();
 
         foreach ($this->getAll($limit) as $key => $item) {
             $vote_icon = $Vote->getIcon($item['id'], 'Suggestion', $username);
-            $bookmark_icon = $Bookmark->getIcon($item['id'], 'Suggestion', $username);
+            $bookmark_icon = !is_null($username) ? $Bookmark->getIcon($item['id'], 'Suggestion', $username) : null;
             $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
         }
 
         $wish_list = is_null($wish_list) ? self::emptyList() : $wish_list;
-        $addButton = $showButton & SessionInstance::isLogged() ? self::addButton() : null;
+        $addButton = !$mail & SessionInstance::isLogged() ? self::addButton() : null;
 
         return $addButton . $wish_list;
     }
@@ -184,7 +184,7 @@ class Suggestion extends BaseSubmission
      */
     public function makeMail($username = null)
     {
-        $content['body'] = $this->getSuggestionSection(4, false);
+        $content['body'] = $this->getSuggestionSection(4, true);
         $content['title'] = "Suggestions";
         return $content;
     }
