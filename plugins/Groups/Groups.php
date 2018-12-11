@@ -554,60 +554,91 @@ class Groups extends Plugin
             }
             $ids = implode(',', $ids);
 
-            $groupContact = "
-                <div class='div_button'>
-                <a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>
-                    Contact my group</a>
-                </div>";
-            $groupContent = "
-                <div class='group_header'>
-                    <div>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                            <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; 
-                            vertical-align:middle;'/>
-                        </div>
-                        <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
-                    </div>
-                    <div>
-                        <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                            <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; 
-                            vertical-align:middle;'/>
-                        </div>
-                        <div style='display: inline-block; vertical-align: middle;'>{$data['room']}</div>
-                    </div>
-                    <div class='group_contact_btn'>
-                        {$groupContact}
-                    </div>
-                </div>
-                <div>{$content}</div>
-            ";
+            $groupContent = self::groupOnPage($date, $data['room'], $ids, $content);
         } else {
-            $groupContent = "
-            <div class='group_header'>
-                <div>
-                    <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                        <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/>
-                    </div>
-                    <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
-                </div>
-            </div>
-            <div class='group_content'>
-                You have not been assigned to any group yet for this session.
-            </div>
-           ";
+            $groupContent = self::noGroup($date);
         }
-
-        // Date input
-        $sessionSelecter = self::dateInput($date);
         
+        return self::groupSection($date, $groupContent);
+    }
+
+    /**
+     * Render group section
+     *
+     * @param string $date
+     * @param string $content
+     * @return string
+     */
+    private static function groupSection($date, $content)
+    {
         return "
                 <h2>My group</h2>
                 <div class='section_content'>
-                {$sessionSelecter}
-                {$groupContent}
+                ". self::dateInput($date) ."
+                {$content}
                 </div>
 
             ";
+    }
+
+    /**
+     * Render group details on profile page
+     *
+     * @param string $date
+     * @param string $room
+     * @param string $ids
+     * @param string $content
+     * @return string
+     */
+    private static function groupOnPage($date, $room, $ids, $content)
+    {
+        return "
+        <div class='group_header'>
+            <div>
+                <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; 
+                    vertical-align:middle;'/>
+                </div>
+                <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
+            </div>
+            <div>
+                <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                    <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; 
+                    vertical-align:middle;'/>
+                </div>
+                <div style='display: inline-block; vertical-align: middle;'>{$room}</div>
+            </div>
+            <div class='group_contact_btn'>
+            <div class='div_button'>
+                <a href='" . URL_TO_APP . 'index.php?page=member/email&recipients_list=' . $ids . "'>
+                    Contact my group</a>
+                </div>
+            </div>
+        </div>
+        <div>{$content}</div>
+    ";
+    }
+
+    /**
+     * View when no group has been made for the selected date
+     *
+     * @param string $date: session date
+     * @return string
+     */
+    private static function noGroup($date)
+    {
+        return "
+        <div class='group_header'>
+            <div>
+                <div style='display: inline-block; width: 20px; vertical-align: middle;'>
+                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/>
+                </div>
+                <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
+            </div>
+        </div>
+        <div class='group_content'>
+            You have not been assigned to any group yet for this session.
+        </div>";
     }
 
     /**
