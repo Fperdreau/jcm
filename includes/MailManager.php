@@ -676,7 +676,7 @@ class MailManager extends BaseModel
                     </div>
 
                     <div style='display: table-row;'>
-                        <div style='display: table-cell; padding:20px; margin: 2% auto; text-align: justify;'>
+                        <div style='display: table-cell; padding: 20px 10px 100px 10px; margin: 2% auto; text-align: justify;'>
                             {$content}
                         </div>
                     </div>
