@@ -463,10 +463,7 @@ class Groups extends Plugin
         }
         $session = $this->getSession()->getInfo(array('id'=>$sessionId));
         $data = $this->get(array('username'=>$username, 'sessionId'=>$sessionId));
-        if (!empty($data)) {     
-            if (!$this->checkSession($session)) {
-                return $this->getGroup($username, $sessionId);
-            }      
+        if (!empty($data) & isset($session['presids'][$data['groupId']])) {     
             $groupusrs['members'] = array();
             $groupusrs['room'] = $data['room'];
             $groupusrs['date'] = $session['date'];
