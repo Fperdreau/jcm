@@ -145,6 +145,23 @@ class Suggestion extends BaseSubmission
     }
 
     /**
+     * Show this suggestion (in archives)
+     * @param $id: suggestion id
+     * @param bool $profile : adapt the display for the profile page
+     * @return string
+     */
+    public function show($id, $profile = false)
+    {
+        $data = $this->getInfo($id);
+        if ($profile === false) {
+            $speakerDiv = "<div class='pub_speaker warp'>{$data['fullname']}</div>";
+        } else {
+            $speakerDiv = "";
+        }
+        return self::showInList((object)$data, $speakerDiv);
+    }
+
+    /**
      * Alias for editor()
      *
      * @param string $view: requested view (modal or body)

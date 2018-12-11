@@ -282,6 +282,93 @@ abstract class BaseSubmission extends BaseModel
         }
     }
 
+     /**
+     * Get list of publications (sorted/archives page)
+     * @param null $filter
+     * @param null $user
+     * @return string
+     */
+    public function getAllList($filter = null, $user = null)
+    {
+        $fieldName = self::getClassName() == 'Presentation' ? 'date' : 'up_date';
+        if (is_null($filter) || $filter['year'] == 'all') {
+            $year_pub = $this->getByYears(null, $user, $fieldName);
+        } else {
+            $year_pub = $this->getByYears($filter, $user, $fieldName);
+        }
+        if (empty($year_pub)) {
+            return "Sorry, there is nothing to display here.";
+        }
+
+        $content = null;
+        foreach ($year_pub as $year => $list) {
+            $yearContent = null;
+            foreach ($list as $id) {
+                $yearContent .= $this->show($id);
+            }
+            $content .= self::yearContent($year, $yearContent);
+        }
+        return $content;
+    }
+
+    /**
+     * Generate years selection list
+     * @return string
+     */
+    public function generateYearsList()
+    {
+        $fieldName = self::getClassName() == 'Presentation' ? 'date' : 'up_date';
+        return self::yearsSelectionList($this->getYears($fieldName));
+    }
+
+    /**
+     * Get publication list by years
+     * @param null $filter
+     * @param null $username
+     * @return array
+     */
+    public function getByYears($filter = null, $username = null, $fieldName = 'date')
+    {
+        $search = array(
+            'title !='=>'TBA',
+            );
+        if (!is_null($filter)) {
+            $search["YEAR({$fieldName})"] = $filter;
+        }
+        if (!is_null($username)) {
+            $search['username'] = $username;
+        }
+
+        $data = $this->db->resultSet(
+            $this->tablename,
+            array("YEAR({$fieldName})", 'id'),
+            $search,
+            "ORDER BY {$fieldName} DESC"
+        );
+
+        $years = array();
+        foreach ($data as $key => $item) {
+            $years[$item["YEAR({$fieldName})"]][] = $item['id'];
+        }
+        return $years;
+    }
+
+    /**
+     * Collect years of presentations present in the database
+     * @return array
+     */
+    protected function getYears($fieldName = 'date')
+    {
+        $data = $this->all();
+        $sql = "SELECT DISTINCT(YEAR({$fieldName})) as year_date FROM {$this->tablename}";
+        $req = $this->db->sendQuery($sql);
+        $years = array();
+        while ($row = $req->fetch_assoc()) {
+            $years[] = $row['year_date'];
+        }
+        return $years;
+    }
+
     /**
      * Show submission details
      * @param bool $id: submission unique id
@@ -623,5 +710,88 @@ abstract class BaseSubmission extends BaseModel
     protected static function emptyList()
     {
         return "<p>Were you looking for suggestions? Sorry, there is none yet.</p>";
+    }
+
+    /**
+     * Render years selection list
+     * @param array $data
+     * @return string
+     */
+    protected static function yearsSelectionList(array $data)
+    {
+        $options = "<option value='all'>All</option>";
+        foreach ($data as $year) {
+            $options .= "<option value='$year'>$year</option>";
+        }
+        $url = Router::buildUrl(self::getClassName(), 'getAllList');
+        return "
+            <div class='form-group inline_field' style='width: 200px'>
+                <select name='year' class='archive_select' data-url='{$url}' data-destination='#archives_list'>
+                    {$options}
+                </select>
+                <label>Filter by year</label>
+            </div>
+        ";
+    }
+
+    /**
+     * Render list of presentations for a specific year
+     * @param $year
+     * @param $data
+     * @return string
+     */
+    private static function yearContent($year, $data)
+    {
+        return "
+        <section>
+            <h2 class='section_header'>$year</h2>
+            <div class='section_content'>
+                <div class='table_container'>
+                <div class='list-container list-heading'>
+                    <div>Date</div>
+                    <div>Title</div>
+                    <div>Speakers</div>
+                </div>
+                {$data}
+                </div>
+            </div>
+        </section>";
+    }
+
+    /**
+     * Render presentation in list
+     *
+     * @param \stdClass $presentation
+     * @param $speakerDiv
+     * @return string
+     */
+    public static function showInList(\stdClass $presentation, $speakerDiv)
+    {
+        $date = property_exists($presentation, 'date') ? $presentation->date: $presentation->up_date;
+        $date = date('d M y', strtotime($date));
+        $leanModalUrl = Router::buildUrl(
+            self::getClassName(),
+            'showDetails',
+            array(
+            'view'=>'modal',
+            'id'=>$presentation->id)
+        );
+        return "
+            <div class='pub_container' style='display: table-row; position: relative; 
+            box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
+            padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
+                <div style='display: table-cell; vertical-align: top; text-align: left; 
+                min-width: 50px; font-weight: bold;'>$date</div>
+                
+                <div style='display: table-cell; vertical-align: top; text-align: left; 
+                width: 60%; overflow: hidden; text-overflow: ellipsis;'>
+                    <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id}" . "' 
+                    class='leanModal' data-url='{$leanModalUrl}' data-section='presentation'>
+                        $presentation->title
+                    </a>
+                </div>
+                {$speakerDiv}
+            </div>
+        ";
     }
 }

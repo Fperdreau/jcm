@@ -120,34 +120,6 @@ class Presentation extends BaseSubmission
     }
 
     /**
-     * Get list of publications (sorted/archives page)
-     * @param null $filter
-     * @param null $user
-     * @return string
-     */
-    public function getAllList($filter = null, $user = null)
-    {
-        if (is_null($filter) || $filter['year'] == 'all') {
-            $year_pub = $this->getByYears(null, $user);
-        } else {
-            $year_pub = $this->getByYears($filter, $user);
-        }
-        if (empty($year_pub)) {
-            return "Sorry, there is nothing to display here.";
-        }
-
-        $content = null;
-        foreach ($year_pub as $year => $list) {
-            $yearContent = null;
-            foreach ($list as $id) {
-                $yearContent .= $this->show($id);
-            }
-            $content .= self::yearContent($year, $yearContent);
-        }
-        return $content;
-    }
-
-    /**
      * Check if presentation exists in the database
      * @param $title
      * @return bool
@@ -175,15 +147,6 @@ class Presentation extends BaseSubmission
             $speakerDiv = "";
         }
         return self::showInList((object)$data, $speakerDiv);
-    }
-
-    /**
-     * Generate years selection list
-     * @return string
-     */
-    public function generateYearsList()
-    {
-        return self::yearsSelectionList($this->getYears());
     }
 
     // MODEL
@@ -221,121 +184,7 @@ class Presentation extends BaseSubmission
         return $dates;
     }
 
-    /**
-     * Collect years of presentations present in the database
-     * @return array
-     */
-    public function getYears()
-    {
-        $dates = $this->db->column($this->tablename, 'date', array('type'=>'wishlist'), array('!='));
-        if (is_array($dates)) {
-            $years = array();
-            foreach ($dates as $date) {
-                $formated_date = explode('-', $date);
-                $years[] = $formated_date[0];
-            }
-            $years = array_unique($years);
-        } else {
-            $formated_date = explode('-', $dates);
-            $years[] = $formated_date[0];
-        }
-
-        return $years;
-    }
-
-    /**
-     * Get publication list by years
-     * @param null $filter
-     * @param null $username
-     * @return array
-     */
-    public function getByYears($filter = null, $username = null)
-    {
-        $search = array(
-            'title !='=>'TBA',
-            'type !='=>'wishlist');
-        if (!is_null($filter)) {
-            $search['YEAR(date)'] = $filter;
-        }
-        if (!is_null($username)) {
-            $search['username'] = $username;
-        }
-
-        $data = $this->db->resultSet(
-            $this->tablename,
-            array('YEAR(date)', 'id'),
-            $search,
-            'ORDER BY date DESC'
-        );
-
-        $years = array();
-        foreach ($data as $key => $item) {
-            $years[$item['YEAR(date)']][] = $item['id'];
-        }
-        return $years;
-    }
-
     // VIEW
-
-    /**
-     * Render list of presentations for a specific year
-     * @param $year
-     * @param $data
-     * @return string
-     */
-    private static function yearContent($year, $data)
-    {
-        return "
-        <section>
-            <h2 class='section_header'>$year</h2>
-            <div class='section_content'>
-                <div class='table_container'>
-                <div class='list-container list-heading'>
-                    <div>Date</div>
-                    <div>Title</div>
-                    <div>Speakers</div>
-                </div>
-                {$data}
-                </div>
-            </div>
-        </section>";
-    }
-
-    /**
-     * Render presentation in list
-     *
-     * @param \stdClass $presentation
-     * @param $speakerDiv
-     * @return string
-     */
-    public static function showInList(\stdClass $presentation, $speakerDiv)
-    {
-        $date = date('d M y', strtotime($presentation->date));
-        $leanModalUrl = Router::buildUrl(
-            self::getClassName(),
-            'showDetails',
-            array(
-            'view'=>'modal',
-            'id'=>$presentation->id)
-        );
-        return "
-            <div class='pub_container' style='display: table-row; position: relative; 
-            box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
-            padding: 0 5px 0 5px; height: 25px; line-height: 25px;'>
-                <div style='display: table-cell; vertical-align: top; text-align: left; 
-                min-width: 50px; font-weight: bold;'>$date</div>
-                
-                <div style='display: table-cell; vertical-align: top; text-align: left; 
-                width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id}" . "' 
-                    class='leanModal' data-url='{$leanModalUrl}' data-section='presentation'>
-                        $presentation->title
-                    </a>
-                </div>
-                {$speakerDiv}
-            </div>
-        ";
-    }
 
     /**
      * Render list of available speakers
@@ -686,27 +535,5 @@ class Presentation extends BaseSubmission
             ";
         $result['description'] = self::description();
         return $result;
-    }
-
-    /**
-     * Render years selection list
-     * @param array $data
-     * @return string
-     */
-    private static function yearsSelectionList(array $data)
-    {
-        $options = "<option value='all'>All</option>";
-        foreach ($data as $year) {
-            $options .= "<option value='$year'>$year</option>";
-        }
-        $url = Router::buildUrl('Presentation', 'getAllList');
-        return "
-            <div class='form-group inline_field' style='width: 200px'>
-                <select name='year' class='archive_select' data-url='{$url}' data-destination='#archives_list'>
-                    {$options}
-                </select>
-                <label>Filter by year</label>
-            </div>
-        ";
     }
 }

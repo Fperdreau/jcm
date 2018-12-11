@@ -449,7 +449,8 @@ class Page extends BaseModel
                 submit a presentation</a></li>
                 <li class='menu-section'><a href='index.php?page=member/email' id='email'>email</a></li>
                 <li class='menu-section'><a href='index.php?page=member/news' id='news'>News</a></li>
-                <li class='menu-section'><a href='index.php?page=member/archives' id='archives'>archives</a></li>
+                <li class='menu-section'><a href='index.php?page=member/presentations' id='archives'>presentations</a></li>
+                <li class='menu-section'><a href='index.php?page=member/suggestions' id='archives'>suggestions</a></li>
             </ul>
         </nav>
         ";
