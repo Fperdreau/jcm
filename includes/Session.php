@@ -318,7 +318,7 @@ class Session extends BaseModel
     {
         $data = $this->getUpcoming(1);
         $data = reset($data);
-        return self::renderSession($data);
+        return $this->renderSession($data, $mail);
     }
 
     /**
@@ -330,22 +330,23 @@ class Session extends BaseModel
     {
         $data = $this->all(array('id'=>$id));
         $data = reset($data);
-        return self::renderSession($data);
+        return $this->renderSession($data);
     }
 
     /**
      * Render session details
      *
      * @param array $data: session date
+     * @param bool $mail: email view if true
      * @return string
      */
-    private function renderSession(array $data)
+    private function renderSession(array $data, $mail = false)
     {
         if (!empty($data)) {
             if ($this->isAvailable(array('date'=>$data['date']))) {
                 return self::sessionDetails($data, Session::nothingPlannedThisDay());
             } else {
-                return self::sessionDetails($data, $this->getSessionDetails($data, $data['date']));
+                return self::sessionDetails($data, $this->getSessionDetails($data, $data['date'], $mail));
             }
         } else {
             return self::noUpcomingSession();
@@ -367,7 +368,7 @@ class Session extends BaseModel
             if (isset($data['content'][$i]) && !is_null($data['content'][$i]['id'])) {
                 $content .= Presentation::mailDetails(
                     $Pres->getInfo($data['content'][$i]['id']),
-                    true
+                    $mail
                 );
             } else {
                 $content .= self::emptySlot($data);
