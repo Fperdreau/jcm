@@ -133,9 +133,14 @@ class Suggestion extends BaseSubmission
         $Bookmark = new Bookmark();
 
         foreach ($this->getAll($limit) as $key => $item) {
-            $vote_icon = $Vote->getIcon($item['id'], 'Suggestion', $username);
-            $bookmark_icon = !is_null($username) ? $Bookmark->getIcon($item['id'], 'Suggestion', $username) : null;
-            $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
+            if ($mail) {
+                $vote_icon = $Vote->getIcon($item['id'], 'Suggestion', $username, true);
+                $wish_list .= self::inListMail((object)$item, $vote_icon, null);
+            } else {
+                $vote_icon = $Vote->getIcon($item['id'], 'Suggestion', $username);
+                $bookmark_icon = $Bookmark->getIcon($item['id'], 'Suggestion', $username);
+                $wish_list .= self::inList((object)$item, $vote_icon, $bookmark_icon);
+            }
         }
 
         $wish_list = is_null($wish_list) ? self::emptyList() : $wish_list;
@@ -298,9 +303,47 @@ class Suggestion extends BaseSubmission
                 </div>
                 {$keywords}
             </div>
-            <div class='tiny_icon_container'>
+            <div class='suggestion_buttons tiny_icon_container'>
                 {$vote}
                 {$bookmark}            
+            </div>
+
+        </div>";
+    }
+
+        /**
+     * Render suggestion in list (Email view)
+     *
+     * @param \stdClass $item
+     * @param null|string $vote
+     * @param null|string $bookmark
+     * @return string
+     */
+    public static function inListMail(\stdClass $item, $vote = null, $bookmark = null)
+    {
+        $update = self::formatDate($item->up_date);
+        $url = App::getAppUrl() . "index.php?page=suggestion&id={$item->id}";
+        $keywords = self::keywordsList($item->keywords);
+       
+        return "
+        <div style='display: table; width: auto; padding-left: 10px;' id='{$item->id}''>
+            <div style='display: table-cell; font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;
+            width: 15%;'>
+                {$update}
+            </div>
+            <div style='display: table-cell; width: auto;'>
+                <div class='suggestion_details'>
+                   <a href='{$url}' class='leanModal'>
+                        <div style='font-size: 16px;'>{$item->title}</div>
+                        <div style='font-style: italic; color: #000000; font-size: 12px;'>
+                            Suggested by <span style='color: #CF5151; font-size: 14px;'>{$item->fullname}</span>
+                        </div>
+                   </a>
+                </div>
+                {$keywords}
+            </div>
+            <div style='display: table-cell; width: 15%; text-align: right !important;' class=''>
+                {$vote}
             </div>
 
         </div>";

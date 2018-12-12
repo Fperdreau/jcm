@@ -91,10 +91,14 @@ class Vote extends BaseModel
      * @param $username
      * @return string
      */
-    public function getIcon($id, $ref_obj, $username)
+    public function getIcon($id, $ref_obj, $username, $mail = false)
     {
         $info = $this->getSummary($id, $ref_obj, $username);
-        return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$info['count']), $info['status']);
+        if (!$mail) {
+            return self::show(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$info['count']), $info['status']);
+        } else {
+            return self::showMail(array('ref_id'=>$id, 'ref_obj'=>$ref_obj, 'count'=>$info['count']), $info['status']);
+        }
     }
 
     // VIEWS
@@ -118,6 +122,28 @@ class Vote extends BaseModel
         data-ref_obj='{$data['ref_obj']}' data-operation='{$operation}'>
             <div class='tiny_icon vote_icon {$css_icon}'></div>
             <div class='vote_count'>{$data['count']}</div>
+        </div>";
+    }
+
+        /**
+     * Render vote button/icon
+     * @param array $data
+     * @param bool $status : liked or not by current user
+     * @return string
+     */
+    public static function showMail(array $data, $status)
+    {
+        if ($status) {
+            $css_icon = 'vote_liked';
+            $operation = 'delete';
+        } else {
+            $css_icon = 'vote_default';
+            $operation = 'add';
+        }
+        return "
+        <div>
+            <div style='display: inline-block; font-weight: 500;'>{$data['count']}</div>
+            <div style='display: inline-block; margin-left: 5px;'>votes</div>
         </div>";
     }
 }
