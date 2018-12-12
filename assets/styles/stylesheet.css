@@ -1783,7 +1783,7 @@ h3 {
 }
 
 .suggestion_details_container {
-    width: 69%;
+    width: auto;
     padding-left: 10px;
 }
 
@@ -1793,6 +1793,11 @@ h3 {
     vertical-align: top;
     font-size: 0.9em;
     width: 60px;
+}
+
+.suggestion_buttons {
+    width: 15%;
+    text-align: right !important;
 }
 
 
