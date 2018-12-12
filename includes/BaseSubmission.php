@@ -748,9 +748,9 @@ abstract class BaseSubmission extends BaseModel
             <div class='section_content'>
                 <div class='table_container'>
                 <div class='list-container list-heading'>
-                    <div>Date</div>
-                    <div>Title</div>
-                    <div>Speakers</div>
+                    <div style='width: 10%;'>Date</div>
+                    <div style='width: auto;'>Title</div>
+                    <div style='width: 20%;'>Member</div>
                 </div>
                 {$data}
                 </div>
