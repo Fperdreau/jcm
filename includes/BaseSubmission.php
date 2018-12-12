@@ -290,6 +290,10 @@ abstract class BaseSubmission extends BaseModel
      */
     public function getAllList($filter = null, $user = null)
     {
+        if (is_null($filter)) {
+            $filter = array('year' => date('Y'));
+        }
+
         $fieldName = self::getClassName() == 'Presentation' ? 'date' : 'up_date';
         if (is_null($filter) || $filter['year'] == 'all') {
             $year_pub = $this->getByYears(null, $user, $fieldName);

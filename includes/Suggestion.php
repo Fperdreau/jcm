@@ -146,7 +146,7 @@ class Suggestion extends BaseSubmission
         $wish_list = is_null($wish_list) ? self::emptyList() : $wish_list;
         $addButton = !$mail & SessionInstance::isLogged() ? self::addButton() : null;
 
-        return $addButton . $wish_list;
+        return $addButton . $wish_list. self::showMoreButton();
     }
 
     /**
@@ -258,7 +258,18 @@ class Suggestion extends BaseSubmission
             <div>
                 <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
                     class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion'>
-                    <input type='submit' value='Add' />
+                    <input type='submit' class='add-button' value='Add' />
+                </a>
+            </div>
+        ";
+    }
+
+    private static function showMoreButton()
+    {
+        return "
+            <div class='button_container'>
+                <a href='" . App::getAppUrl() . 'index.php?page=member/suggestions' . "'>
+                    <input type='button' value='Show More' />
                 </a>
             </div>
         ";
