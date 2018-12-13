@@ -1796,7 +1796,7 @@ h3 {
 }
 
 .suggestion_buttons {
-    width: auto;
+    width: 20%;
     text-align: right !important;
 }
 
