@@ -187,6 +187,7 @@ return array(
         "version"=>array('CHAR(10)',false),
         "description"=>array('TEXT',false),
         "time"=>array('DATETIME',false),
+        "start_time"=>array('DATETIME',false),
         "frequency"=>array('CHAR(15)',false),
         "path"=>array('VARCHAR(255)',false),
         "status"=>array('CHAR(3)',false),

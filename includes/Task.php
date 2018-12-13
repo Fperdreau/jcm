@@ -30,6 +30,13 @@ class Task
     public $time;
 
     /**
+     * Onset time of task execution
+     *
+     * @var datetime $start_time
+     */
+    public $start_time;
+
+    /**
      * @var string $frequency: running frequency (format: 'month,days,hours,minutes')
      */
     public $frequency = '0,0,0,0';

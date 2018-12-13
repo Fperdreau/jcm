@@ -46,7 +46,8 @@ class Tasks extends BaseModel
      * @var array
      */
     protected $settings = array(
-        'notify_admin_task'=>'yes'
+        'notify_admin_task'=>'yes',
+        'max_running_time'=>60
     );
 
     /**
@@ -300,6 +301,25 @@ class Tasks extends BaseModel
     }
 
     /**
+     * Check running status
+     *
+     * @param string $name: task name
+     * @return int: 1 if running, 0 otherwise
+     */
+    private function checkRunningStatus($name)
+    {
+        if ($this->getTask($name)->running == 1) {
+            $now = strtotime(date('Y-m-d H:i:s'));
+            $startTime = strtotime($this->getTask($name)->start_time);
+            $differenceInSeconds = $now - $startTime;
+            if (($now - $startTime) > $this->settings['max_running_time']) {
+                $this->unlock($name);
+            }
+        }
+        return $this->getTask($name)->running;
+    }
+
+    /**
      * Stop task
      * @param null|string $name: task name
      * @return mixed
@@ -321,7 +341,8 @@ class Tasks extends BaseModel
     public function lock($name)
     {
         $this->getTask($name)->running = 1;
-        return $this->update(array('running'=>1), array('name'=>$name));
+        $this->getTask($name)->start_time = date('Y-m-d H:i:s', time());
+        return $this->update(array('running'=>1, 'start_time'=>date('Y-m-d H:i:s', time())), array('name'=>$name));
     }
 
     /**
@@ -449,14 +470,15 @@ class Tasks extends BaseModel
         $jobs = $this->loadAll();
         $running_jobs = array();
         foreach ($jobs as $thisJob => $info) {
-            $jobTime = strtotime($info['time']);
+            $info['running'] = $this->checkRunningStatus($info['name']);
             $newTime = self::parseTime($info['time'], explode(',', $info['frequency']));
 
-            if ($info['installed'] && $info['status'] == 1 && $now >= strtotime($newTime)) {
+            if ($info['installed'] && $info['status'] == 1 && $info['running'] == 0 && $now >= strtotime($newTime)) {
                 $running_jobs[] = $thisJob;
             }
         }
         return $running_jobs;
+        exit;
     }
 
     /**
@@ -514,6 +536,7 @@ class Tasks extends BaseModel
                 'status' => $thisPlugin->status,
                 'path'=>$thisPlugin->path,
                 'time'=>$thisPlugin->time,
+                'start_time'=>$thisPlugin->start_time,
                 'frequency'=>$thisPlugin->frequency,
                 'options'=>$thisPlugin->options,
                 'description'=>$thisPlugin->description,
@@ -603,7 +626,7 @@ class Tasks extends BaseModel
      */
     public function index()
     {
-        return self::indexPage($this->show(), $this->settings['notify_admin_task']);
+        return self::indexPage($this->show(), $this->settings['notify_admin_task'], $this->settings['max_running_time']);
     }
     
     /**
@@ -636,9 +659,10 @@ class Tasks extends BaseModel
      *
      * @param string $content
      * @param bool $notify
+     * @param int $max_running_time
      * @return string
      */
-    private static function indexPage($content, $notify)
+    private static function indexPage($content, $notify, $max_running_time)
     {
         $url = Router::buildUrl(self::getClassName(), 'updateSettings');
         return "
@@ -661,6 +685,10 @@ class Tasks extends BaseModel
                                 <option value='no'>No</option>
                             </select>
                             <label>Get notified by email</label>
+                        </div>
+                        <div class='form-group' style='width: 300px;'>
+                            <input name='max_running_time' value='{$max_running_time}'/>
+                            <label>Maximum running time (in s)</label>
                         </div>
                         <input type='submit' name='modify' value='Modify' class='processform'>
                         <div class='feedback' id='feedback_site'></div>
@@ -707,9 +735,12 @@ class Tasks extends BaseModel
         $stopBtn = "<div class='stop_cron workBtn stopBtn' data-cron='{$info['name']}'></div>";
 
         // Next Task's running time
-        $datetime = $info['time'];
-        $date = date('Y-m-d', strtotime($datetime));
-        $time = date('H:i', strtotime($datetime));
+        $date = date('Y-m-d', strtotime($info['time']));
+        $time = date('H:i', strtotime($info['time']));
+        $next_time = $info['time'] == "0000-00-00 00:00:00" ? "Never" : $info['time'];
+
+        // Previous running time
+        $last_time = $info['start_time'] == "0000-00-00 00:00:00" ? "Never" : $info['start_time'];
 
         // Scheduler
         $frequency = (!empty($info['frequency'])) ? explode(',', $info['frequency']): array(0, 0, 0, 0);
@@ -721,7 +752,15 @@ class Tasks extends BaseModel
                 <div class='plugHeader'>
                     <div class='plug_header_panel'>
                         <div class='plugName'>{$info['name']}</div>
-                        <div class='plugTime' id='cron_time_{$info['name']}'>{$datetime}</div>
+                        <div class='plugTime_container'>
+                            <div class='plugTime'>
+                                <div>Last</div><div>{$last_time}</div>
+                            </div>
+                            <div class='plugTime'>
+                                <div>Next</div><div class='plugTime'>{$next_time}</div>
+                            </div>
+                        </div>
+
                     </div>
                     <div class='optBar'>
                         <div class='loadContent workBtn settingsBtn' data-url='{$optUrl}' 

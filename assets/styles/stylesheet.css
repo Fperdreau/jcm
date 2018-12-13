@@ -2522,10 +2522,6 @@ button.add_btn:active {
     display: inline-block;
 }
 
-.plug_header_panel.right {
-
-}
-
 .plugName {
     font-weight: 600;
     color: rgba(68,68,68,1);
@@ -2534,9 +2530,23 @@ button.add_btn:active {
     text-transform: uppercase;
 }
 
-.plugTime {
+.plugTime_container > div {
+    display: inline-block;
     font-size: 0.8em;
-    margin-bottom: 10px;
+}
+
+.plugTime_container > div:first-child {
+    margin-right: 10px;
+}
+
+.plugTime > div {
+    display: inline-block;
+}
+
+.plugTime >div:first-child {
+    font-size: 1em;
+    font-weight: 500;
+    margin-right: 5px;
 }
 
 .optBar {
