@@ -43,13 +43,13 @@ class Backup
     public static function backupDb($nbVersion)
     {
         // Create Backup Folder
-        $mysqlrelativedir = 'backup/mysql';
+        $mysqlrelativedir = 'backup' . DS . 'mysql';
         $mysqlSaveDir = PATH_TO_APP . DS . $mysqlrelativedir;
-        $fileNamePrefix = 'fullbackup_' . date('Y-m-d_H-i-s');
+        $fileNamePrefix = 'backupDb_' . date('Y-m-d_H-i-s');
         $filename = $mysqlSaveDir. DS .$fileNamePrefix.".sql";
 
-        if (!is_dir(PATH_TO_APP . '/backup')) {
-            mkdir(PATH_TO_APP . '/backup', 0777);
+        if (!is_dir(PATH_TO_APP . 'backup')) {
+            mkdir(PATH_TO_APP . 'backup', 0777);
         }
 
         if (!is_dir($mysqlSaveDir)) {
@@ -61,7 +61,7 @@ class Backup
             self::performBackup($filename);
 
             // Compress output file
-            self::gzipBackupFile($filename, $level = 9);
+            $outputFile = self::gzipBackupFile($filename, $level = 9);
 
             // Remove old versions
             self::cleanBackups($mysqlSaveDir, $nbVersion);
@@ -69,8 +69,67 @@ class Backup
             return array(
                 'status'=>true,
                 'msg'=>'Database Backup completed',
-                'filename'=>"$mysqlrelativedir/$fileNamePrefix.sql"
+                'filename'=>$outputFile
             );
+        } catch (\Exception $e) {
+            Logger::getInstance(APP_NAME, __CLASS__)->error($e);
+            return array(
+                'status'=>false,
+                'msg'=>'Sorry, something went wrong',
+                'filename'=>null
+            );
+        }
+    }
+
+    /**
+     * Full backup routine (files + database)
+     * @param $nbVersion: Number of previous backup versions to keep on the server (the remaining will be removed)
+     * @return mixed: array('status'=>boolean, 'msg'=>string)
+     */
+    public static function backupFiles($nbVersion)
+    {
+        $dirToSave = PATH_TO_APP;
+        $dirsNotToSaveArray = array(PATH_TO_APP . "backup");
+        $zipSaveDir = PATH_TO_APP . 'backup/complete';
+        $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
+
+        if (!is_dir(PATH_TO_APP . 'backup')) {
+            mkdir(PATH_TO_APP . 'backup', 0777);
+        }
+
+        if (!is_dir($zipSaveDir)) {
+            mkdir($zipSaveDir, 0777);
+        }
+
+        try {
+            $zipfile = $zipSaveDir. DS .$fileNamePrefix . '.zip';
+
+            // Check if backup does not already exist
+            $filenames = self::browse($dirToSave, $dirsNotToSaveArray);
+
+            $zip = new ZipArchive();
+
+            if ($zip->open($zipfile, ZIPARCHIVE::CREATE)!==true) {
+                return array(
+                    'status'=>false,
+                    'msg'=>"cannot open <$zipfile>",
+                    'filename'=>null
+                );
+            } else {
+                foreach ($filenames as $filename) {
+                    $zip->addFile($filename, $filename);
+                }
+                $zip->close();
+                return array(
+                    'status'=>true,
+                    'msg'=>'Files Backup completed',
+                    'filename'=>"$zipfile"
+                );
+            }
+
+            // Remove old versions
+            self::cleanBackups($zipSaveDir, $nbVersion);
+
         } catch (\Exception $e) {
             Logger::getInstance(APP_NAME, __CLASS__)->error($e);
             return array(
@@ -148,10 +207,6 @@ class Backup
                 self::saveToFile($filename, $out);
             }
         }
-
-        //$handle = fopen($filename, 'w+');
-        //fwrite($handle, $return);
-        //fclose($handle);
     }
 
     /**
@@ -282,7 +337,7 @@ class Backup
      * @param array $data
      * @return bool
      */
-    public static function mailBackup(array $data)
+    public static function mailBackup($filename)
     {
         $mail = new MailManager();
         $user = new Users();
@@ -291,7 +346,7 @@ class Backup
             try {
                 // Send backup via email
                 $content = array(
-                    'attachments'=> PATH_TO_APP . $data['filename'],
+                    'attachments'=> $filename,
                     'body'=> "Hello {$item['fullname']}, <br>
                         <p>This message has been sent automatically by the server. You may find a backup of your 
                         database in attachment.</p>",
@@ -335,51 +390,5 @@ class Backup
         }
         
         return $dest;
-    }
-
-    /**
-     * Full backup routine (files + database)
-     * @return string
-     */
-    public static function backupFiles()
-    {
-        try {
-            $dirToSave = PATH_TO_APP;
-            $dirsNotToSaveArray = array(PATH_TO_APP."backup");
-            $mysqlSaveDir = PATH_TO_APP.'/backup/mysql';
-            $zipSaveDir = PATH_TO_APP.'/backup/complete';
-            $fileNamePrefix = 'fullbackup_'.date('Y-m-d_H-i-s');
-
-            if (!is_dir(PATH_TO_APP.'/backup')) {
-                mkdir(PATH_TO_APP.'/backup', 0777);
-            }
-
-            if (!is_dir($zipSaveDir)) {
-                mkdir($zipSaveDir, 0777);
-            }
-
-            system("gzip ".$mysqlSaveDir."/".$fileNamePrefix.".sql");
-            system("rm ".$mysqlSaveDir."/".$fileNamePrefix.".sql");
-
-            $zipfile = $zipSaveDir.'/'.$fileNamePrefix.'.zip';
-
-            // Check if backup does not already exist
-            $filenames = self::browse($dirToSave, $dirsNotToSaveArray);
-
-            $zip = new ZipArchive();
-
-            if ($zip->open($zipfile, ZIPARCHIVE::CREATE)!==true) {
-                return "cannot open <$zipfile>";
-            } else {
-                foreach ($filenames as $filename) {
-                    $zip->addFile($filename, $filename);
-                }
-                $zip->close();
-                return "backup/complete/$fileNamePrefix.zip";
-            }
-        } catch (\Exception $e) {
-            Logger::getInstance(APP_NAME, __CLASS__)->error($e);
-            return false;
-        }
     }
 }
