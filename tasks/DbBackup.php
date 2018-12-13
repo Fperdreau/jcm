@@ -62,7 +62,7 @@ class DbBackup extends Task
         // Run cron job
         $result = Backup::backupDb($this->options['nb_version']['value']);
         if ($result['status']) {
-            $result['msg'] = "Backup successfully done: {$result['filename']}";
+            Backup::mailBackup($result['filename']); // Send backup file to admins
         }
         return $result;
     }

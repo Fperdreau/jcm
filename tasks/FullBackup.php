@@ -62,13 +62,12 @@ class FullBackup extends Task
     public function run()
     {
         // db backup
-        $backupFile = Backup::backupDb($this->options['nb_version']['value']); // backup database
-        Backup::mailBackup($backupFile); // Send backup file to admins
+        $result = Backup::backupDb($this->options['nb_version']['value']); // backup database
+        if ($result['status']) {
+            Backup::mailBackup($result['filename']); // Send backup file to admins
+        }
 
         // file backup
-        $zipFile = Backup::backupFiles(); // Backup site files (archive)
-        $fileLink = json_encode($zipFile);
-
-        return array('status'=>true, 'msg'=>"Full Backup successfully done: $fileLink");
+        return Backup::backupFiles($this->options['nb_version']['value']); // Backup site files (archive)
     }
 }

@@ -365,7 +365,7 @@ class MailManager extends BaseModel
     {
         $attachments = array();
         $Media = new Media();
-        foreach (explode(',', $data) as $file_id) {
+        foreach (explode(',', $data) as $key => $file_id) {
             if (is_file($file_id)) {
                 $attachments[] = $file_id;
             } else {
