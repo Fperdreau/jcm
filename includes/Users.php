@@ -1209,7 +1209,7 @@ class Users extends BaseModel
     private static function deactivationEmail($fullname, $email, $hash)
     {
         $authorize_url = App::getAppUrl() . "index.php?page=organizer/verify&email={$email}&hash={$hash}&result=true";
-        $newpwurl = App::getAppUrl() . "index.php?page=renew_pwd&hash={$hash}&email={$email}";
+        $newpwurl = App::getAppUrl() . "index.php?page=renew&hash={$hash}&email={$email}";
 
         return "
         <div style='width: 100%; margin: auto;'>
