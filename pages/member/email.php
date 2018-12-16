@@ -25,7 +25,7 @@ use includes\MailManager;
 // Get contact form
 $recipients_list = isset($pageParameters['recipients_list']) ? $pageParameters['recipients_list'] : null;
 $MailManager = new MailManager();
-$contactForm = $MailManager->getContactForm($recipients_list);
+$contactForm = $MailManager->getContactForm(array('recipients'=>$recipients_list));
 
 // Send mail
 echo "

@@ -219,7 +219,7 @@ class Mail
         $mail->WordWrap = 50;                                 // set word wrap to 50 characters
 
         // SMTP information
-        $mail->SMTPDebug = $this->settings['SMTP_debug'];     // enables SMTP debug information (for testing)
+        $mail->SMTPDebug = (int)$this->settings['SMTP_debug'];     // enables SMTP debug information (for testing)
         $mail->Debugoutput = 'html'; //Ask for HTML-friendly debug output
         $mail->Host = $this->settings['mail_host'];
         $mail->Port = $this->settings['mail_port'];

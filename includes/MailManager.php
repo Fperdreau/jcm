@@ -242,7 +242,6 @@ class MailManager extends BaseModel
                 $email['attachments'] = null;
             }
             if ($this->send($email, $recipients, $email['undisclosed'], null)) {
-                $this->update(array('status'=>1), array('id'=>$email['id']));
                 $sent += 1;
             }
             sleep(2); // Add some time interval before processing the next email
@@ -289,7 +288,7 @@ class MailManager extends BaseModel
      * @param bool $undisclosed : hide (true) or show(false) recipients list
      * @param array $settings : email host settings (for testing)
      *
-     * @return mixed
+     * @return mixed: array('status'=>boolean, 'msg'=>string)
      * @throws phpmailerException
      */
     public function send(array $data, array $mailing_list, $undisclosed = true, array $settings = null)
@@ -344,13 +343,15 @@ class MailManager extends BaseModel
         
         // Output result
         if ($result['status']) {
+            $this->update(array('status'=>1), array('id'=>$data['id']));
             $result['msg'] = "Your message has been sent!";
+            return true;
         } else {
+            $this->update(array('logs'=>$result['logs']), array('id'=>$data['id']));
             Logger::getInstance(APP_NAME, get_class($this))->error($result['logs']);
             $result['msg'] = 'Oops, something went wrong!';
+            return false;
         }
-
-        return $result;
     }
 
     /**
@@ -432,17 +433,16 @@ class MailManager extends BaseModel
     /**
      * Gets contact form
      *
-     * @param string|null $recipients : list of recipients
+     * @param array|null $recipients : list of recipients
      *
      * @return string
      */
-    public function getContactForm($recipients = null)
+    public function getContactForm(array $data = null)
     {
         $user = new Users();
-
-        if (!is_null($recipients)) {
+        if (!is_null($data) && isset($data['recipients'])) {
             $recipients_list = array();
-            foreach (explode(',', $recipients) as $id) {
+            foreach (explode(',', $data['recipients']) as $id) {
                 if (!empty($id)) {
                     $recipients_list[] = $user->getById($id);
                 }
@@ -533,8 +533,8 @@ class MailManager extends BaseModel
         if (isset($data['make_news']) && $data['make_news'] == 'yes') {
             $news = new Posts();
             $news->add(array(
-                'title'=>$content['subject'],
-                'content'=>$content['body'],
+                'title'=>$data['subject'],
+                'content'=>$data['body'],
                 'username'=>$_SESSION['username'],
                 'homepage'=>1
             ));
@@ -575,7 +575,17 @@ class MailManager extends BaseModel
         $content['subject'] = 'Test: email host settings'; // Give the email a subject
         $content['body'] = self::testEmail();
 
-        return $this->send($content, $to, true, $data);
+        if ($this->send($content, $to, true, $data)) {
+            return array(
+                'status'=>true,
+                'msg'=>'Message successfully sent'
+            );
+        } else {
+            return array(
+                'status'=>false,
+                'msg'=>'Sorry, something went wrong'
+            );
+        }
     }
 
     /**
@@ -610,29 +620,6 @@ class MailManager extends BaseModel
             $result['status'] = false;
         }
         return $result;
-    }
-
-    /**
-     * Send an email to the whole mailing list (but only to users who agreed upon receiving emails)
-     * @param $subject
-     * @param $body
-     * @param null $type
-     * @param null $attachment
-     * @return bool
-     * @throws Exception
-     * @throws phpmailerException
-     */
-    public function sendToMailingList($subject, $body, $type = null, $attachment = null)
-    {
-        $to = array();
-        foreach (self::getMailingList($type) as $fullname => $data) {
-            $to[] = $data['email'];
-        }
-        if ($this->send($to, $subject, $body, $attachment)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /* VIEWS */
@@ -826,7 +813,7 @@ class MailManager extends BaseModel
                 {$uploader}
             </div>
                     
-            <form method='post' action='php/form.php' id='email_form'>
+            <form method='post' id='email_form'>
                      
                 <!-- Recipients list -->
                 <div class='mailing_block select_emails_container'>
@@ -896,8 +883,8 @@ class MailManager extends BaseModel
         $protList = '';
         $protocols = ['ssl', 'tls', 'none'];
         foreach ($protocols as $opt) {
-            $selected = $settings['SMTP_secure'] == $opt ? 'selected' : null;
-            $protList .= "<option value='{$opt}' {$selected}}>" . strtoupper($opt) . "</option>";
+            $selected = $settings['SMTP_secure'] === $opt ? 'selected' : null;
+            $protList .= "<option value='{$opt}' {$selected}>" . strtoupper($opt) . "</option>";
         }
         return $protList;
     }

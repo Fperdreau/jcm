@@ -597,8 +597,14 @@ function sendToRecipients(el) {
         attachments = attachments.join(',');
         data = modArray(data, 'attachments', attachments);
 
+        var emptyForm = function() {
+            el.data('url', "php/router.php?controller=MailManager&action=getContactForm");
+            el.data('destination', '.mailing_container');
+            loadContent(el);
+        };
+
         // Process data
-        processAjax($('.mailing_container'), data, false, "php/router.php?controller=MailManager&action=sendToRecipients");
+        processAjax($('.mailing_container'), data, emptyForm, "php/router.php?controller=MailManager&action=sendToRecipients");
     };
 
     // Shall we publish this email content as news (in case the email is sent to everyone).
