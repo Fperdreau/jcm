@@ -442,7 +442,7 @@ class Users extends BaseModel
      * @param array $data: user data
      * @return bool
      */
-    public function sendActivationMail(array $data)
+    public function sendDeactivationMail(array $data)
     {
         $MailManager = new MailManager();
         $body = self::deactivationEmail($data['fullname'], $data['email'], $data['hash']);

@@ -123,7 +123,7 @@ class Auth extends BaseModel
      * Check number of unsuccessful login attempts.
      * Deactivate the user's account if this number exceeds the maximum
      * allowed number of attempts and send an email to the user with an activation link.
-     * @param array $data
+     * @param array $data: user info
      * @return int
      */
     private function checkAttempt(array $data)
@@ -131,16 +131,16 @@ class Auth extends BaseModel
         // Get attempt information
         $auth_inf = $this->get(array('username'=>$data['username']));
 
-        // Get user information
-        $user = $this->Users->get(array('username'=>$data['username']));
-
         // Get last login timestamp and amount of previous login attempts
         if (empty($auth_inf)) {
+            $new = true;
+            $auth_inf = array('username'=>$data['username']);
             $last_login = new \DateTime();
             $attempt = 0;
         } else {
+            $new = false;
             $last_login = new \DateTime($auth_inf['last_login']);
-            $attempt = $auth_inf['attempt'];
+            $attempt = (int)$auth_inf['attempt'];
         }
 
         // Time interval since last login attempt
@@ -148,24 +148,25 @@ class Auth extends BaseModel
         $diff = $now->diff($last_login);
 
         // Reset the number of attempts if last login attempt was 1 hour ago
-        $data['attempt'] = $diff->h >= 1 ? 0 : $attempt;
-        $data['attempt'] += 1;
+        $auth_inf['attempt'] = $diff->h >= 1 ? 0 : $attempt;
+        $auth_inf['attempt'] += 1;
 
         // If amount of attempts exceeds authorized limit, then deactivate user account and notify by email
-        if ($data['attempt'] >= $this->settings['max_nb_attempt']) {
+        if ($auth_inf['attempt'] >= $this->settings['max_nb_attempt']) {
             $this->Users->deactivate($data); // We deactivate the user's account
-            $this->Users->sendActivationMail($user);
             return false;
         }
-        $data['last_login'] = date('Y-m-d H:i:s');
+
+        // Update login time
+        $auth_inf['last_login'] = date('Y-m-d H:i:s');
 
         // Add/Update login attempt info
-        if (empty($auth_inf)) {
-            $this->add($data);
+        if ($new) {
+            $this->add($auth_inf);
         } else {
-            $this->update($data, array('username'=>$data['username']));
+            $this->update($auth_inf, array('username'=>$data['username']));
         }
-        return (int)($this->settings['max_nb_attempt'] - $data['attempt']);
+        return (int)($this->settings['max_nb_attempt'] - $auth_inf['attempt']);
     }
 
     /**
