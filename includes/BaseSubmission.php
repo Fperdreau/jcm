@@ -780,6 +780,7 @@ abstract class BaseSubmission extends BaseModel
             'view'=>'modal',
             'id'=>$presentation->id)
         );
+        $pageName = \strtolower(self::getClassName());
         return "
             <div class='pub_container' style='display: table-row; position: relative; 
             box-sizing: border-box; font-size: 0.85em;  text-align: justify; margin: 5px auto; 
@@ -789,8 +790,8 @@ abstract class BaseSubmission extends BaseModel
                 
                 <div style='display: table-cell; vertical-align: top; text-align: left; 
                 width: 60%; overflow: hidden; text-overflow: ellipsis;'>
-                    <a href='" . URL_TO_APP . "index.php?page=presentation&id={$presentation->id}" . "' 
-                    class='leanModal' data-url='{$leanModalUrl}' data-section='presentation'>
+                    <a href='" . URL_TO_APP . "index.php?page={$pageName}&id={$presentation->id}" . "' 
+                    class='leanModal' data-url='{$leanModalUrl}' data-section='{$pageName}'>
                         $presentation->title
                     </a>
                 </div>
