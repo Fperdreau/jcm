@@ -637,10 +637,8 @@ class MailManager extends BaseModel
         $profile_url = URL_TO_APP . 'index.php?page=member/profile';
 
         $css_title = "
-                color: rgba(255,255,255,1);
                 text-align: center;
                 font-size: 0;
-                font-weight: 500;
                 margin: 0;
                 padding-bottom: 10px;
                 border-bottom: 2px solid #323232;
@@ -648,27 +646,28 @@ class MailManager extends BaseModel
         ";
 
         return "
-            <div style='font-family: Ubuntu, Helvetica, Arial, sans-serif sans-serif; 
-            color: #444444; font-weight: 300; font-size: 14px; width: 100%; height: auto; margin: 0;'>
-                <div style='display: table; line-height: 1.2; min-width: 320px; width: 70%;  margin: 50px auto 0 auto;'>
+            <div style='font-family: Lato,Calibri,Arial,sans-serif; -ms-text-size-adjust:100%;
+            -webkit-text-size-adjust:none; -webkit-text-resize:100%; text-resize:100%; color: #444444; font-weight: 400; 
+            width: 100%; height: auto; margin: 0;'>
+                <div style='display: table; min-width: 320px; width: 600px; margin: auto;'>
                     <div style='display: table-row;'>
-                        <div style='display: table-cell; background-color: #fff; font-size: 2em; text-align: center;'>
+                        <div style='display: table-cell; background-color: #fff; text-align: center;'>
                             <div style='{$css_title}'>
-                                <span style='font-size: 30px; font-weight: 400; color: #323232'>JCM</span>
-                                <span style='font-size: 25px; color: rgba(100,100,100,1);'>anager</span>
-                                <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: right;'>
-                                " . $lab_name . "</div>
+                                <span style='font-size: 40px; font-weight: 400; color: #323232'>JCM</span>
+                                <span style='font-size: 35px; color: rgb(100,100,100);'>anager</span>
+                                <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: center; color: rgb(100,100,100);'>
+                                {$lab_name}</div>
                             </div>
                         </div>
                     </div>
 
-                    <div style='display: table-row;'>
-                        <div style='display: table-cell; padding: 20px 10px 100px 10px; margin: 2% auto; text-align: justify;'>
+                    <div style='display: table-row; font-weight: 400;'>
+                        <div style='display: table-cell; padding: 50px 10px 100px 10px; text-align: justify;'>
                             {$content}
                         </div>
                     </div>
 
-                    <div style='display: table-row;'>
+                    <div style='display: table-row; font-size: 12px; font-weight: 400;'>
                     " . self::footer($show_in_browser, $profile_url, $auto) . "
                     </div>
                 </div>
