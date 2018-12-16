@@ -148,7 +148,7 @@ class Template
      */
     private static function cssScripts()
     {
-        $list = self::loadCssScripts(PATH_TO_ASSETS . DS . 'styles');
+        $list = self::loadCssScripts(PATH_TO_ASSETS . DS . 'styles', array('install.min.css'), 'min');
         $list .= self::loadCssScripts(PATH_TO_PLUGINS);
         $list .= "<link type='text/css' rel='stylesheet' 
         href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>";
@@ -162,9 +162,9 @@ class Template
      * @param string $path: path to folder to scan
      * @return string
      */
-    private static function loadCssScripts($path)
+    private static function loadCssScripts($path, array $exclude = array(), $filter=null)
     {
-        $content = self::browse($path, 'css');
+        $content = self::browse($path, 'css', $exclude, $filter);
         $links = "";
         foreach ($content as $file) {
             $path = str_replace(PATH_TO_APP . DS, '', $file);
@@ -179,14 +179,20 @@ class Template
      * @param array $dirsNotToSaveArray
      * @return array
      */
-    private static function browse($dir, $extension)
+    private static function browse($dir, $extension, array $exclude = array(), $filter = null)
     {
         $filenames = array();
         if ($handle = opendir($dir)) {
             while (false !== ($file = readdir($handle))) {
                 $split = explode('.', $file);
                 $filename = $dir ."/". $file;
-                if (end($split) == $extension) {
+
+                if (!is_null($filter)) {
+                    $match = \preg_match("/" . $filter . "/", $file) == 1;
+                } else {
+                    $match = true;
+                }
+                if (end($split) == $extension && !in_array($file, $exclude) && $match) {
                     $filenames[] = $filename;
                 } elseif ($file != "." && $file != ".." && is_dir($dir.$file)) {
                     $newfiles = self::browse($dir.$file, $extension);
