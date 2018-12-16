@@ -163,7 +163,8 @@ class Bookmark extends BaseModel
      */
     public static function inList(array $bookmark, array $data)
     {
-        $url = App::getAppUrl() . "index.php?page=". strtolower($bookmark['ref_obj']). "&id={$bookmark['ref_id']}";
+        $pageName = strtolower($bookmark['ref_obj']);
+        $url = App::getAppUrl() . "index.php?page=". $pageName . "&id={$bookmark['ref_id']}";
         $routerUrl = Router::buildUrl(
             $bookmark['ref_obj'],
             'showDetails',
@@ -173,7 +174,7 @@ class Bookmark extends BaseModel
             <div class='bookmark_list_container'>
                 <div class='bookmark_title'>
                    <a href='{$url}' class='leanModal' data-url='{$routerUrl}' data-controller='{$bookmark['ref_obj']}' 
-                   data-action='showDetails' data-section='suggestion' data-params='{$bookmark['ref_id']},modal' 
+                   data-action='showDetails' data-section='{$pageName}' data-params='{$bookmark['ref_id']},modal' 
                    data-id='{$bookmark['ref_id']}'>
                     {$data['title']}
                     </a>
