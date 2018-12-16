@@ -405,7 +405,7 @@ class Posts extends BaseModel
      */
     public static function display(array $data, $user_name, $limit = true)
     {
-        $char_limit = 1000;
+        $char_limit = 250;
         $url = URL_TO_APP . 'index.php?page=news&show=' . $data['id'];
         $day = date('d M y', strtotime($data['date']));
         $txt_content = htmlspecialchars_decode($data['content']);
