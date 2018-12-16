@@ -145,8 +145,8 @@ class Suggestion extends BaseSubmission
 
         $wish_list = is_null($wish_list) ? self::emptyList() : $wish_list;
         $addButton = !$mail & SessionInstance::isLogged() ? self::addButton() : null;
-
-        return $addButton . $wish_list. self::showMoreButton();
+        $showMore = !$mail ? self::showMoreButton() : null;
+        return $addButton . $wish_list. $showMore;
     }
 
     /**
