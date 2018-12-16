@@ -478,7 +478,7 @@ class Presentation extends BaseSubmission
                         " . Media::uploader('Presentation', $links, 'presentation_form') . "
                     </div>
                     
-                    <form method='post' action='php/router.php?controller=Presentation&action={$operation}' 
+                    <form method='post' action='php/router.php?controller={$controller}&action={$operation}' 
                     enctype='multipart/form-data' id='presentation_form'>
                         
                         <div class='form_aligned_block matched_bg'>
