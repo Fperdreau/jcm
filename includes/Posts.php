@@ -94,7 +94,7 @@ class Posts extends BaseModel
                 // Associates this presentation to an uploaded file if there is one
                 if (!empty($post['link'])) {
                     $media = new Media();
-                    $media->addUpload(explode(',', $post['link']), $post['id'], __CLASS__);
+                    $media->addUpload(explode(',', $post['link']), $post['id'], self::getClassName());
                 }
                 return $id;
             } else {

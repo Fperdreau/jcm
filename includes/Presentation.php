@@ -80,7 +80,7 @@ class Presentation extends BaseSubmission
                 // Associates this presentation to an uploaded file if there is one
                 if (!empty($data['media'])) {
                     $media = new Media();
-                    if (!$media->addUpload(explode(',', $data['media']), $data['id'], __CLASS__)) {
+                    if (!$media->addUpload(explode(',', $data['media']), $data['id'], self::getClassName())) {
                         return false;
                     }
                 }
