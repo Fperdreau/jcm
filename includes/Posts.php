@@ -114,10 +114,14 @@ class Posts extends BaseModel
     public function index($category = null, $page_number = 1)
     {
         $pp = 10;
-        $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
-        $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
         $count = $this->getCount($category);
-        $posts_ids = $this->getLimited($category, $page_index, $pp, 'date DESC');
+        $totPageNumber = ceil($count/$pp);
+        $page_number = max(1, (int)$page_number);
+        $page_index = $page_number;
+        $page_start = (($page_index * $pp) - ($pp - 1))-1;
+
+        $base_url = URL_TO_APP . "index.php?page=news&curr_page=";
+        $posts_ids = $this->getLimited($category, $page_start, $pp, 'date DESC');
 
         if (!empty($posts_ids)) {
             $news = "<div class='paging_container'>" . Pagination::getPaging($count, $pp, $page_number, $base_url)
@@ -180,14 +184,15 @@ class Posts extends BaseModel
     public function getSelectionList(Users $user, $page_number = 1)
     {
         $pp = 10;
-        $page_index = ($page_number == 1) ? $page_number - 1 : $page_number;
+        $page_number = ($page_number < 1) ? 1 : $page_number;
+        $page_start = ($page_number * $pp) - ($pp - 1);
         $base_url = URL_TO_APP . "index.php?page=member/news&curr_page=";
         $count = $this->getCount();
 
         // Only show list of news posted by current user if user is not organizer/admin
         $posts_ids = Account::isAuthorized($user->username, 'organizer') ?
-                        $this->all(array(), array('limit_start'=>$page_index, 'limit'=>$pp)) :
-                        $this->all(array('username'=>$user->username), array('limit_start'=>$page_index, 'limit'=>$pp));
+                        $this->all(array(), array('limit_start'=>$page_start, 'limit'=>$pp)) :
+                        $this->all(array('username'=>$user->username), array('limit_start'=>$page_start, 'limit'=>$pp));
 
         if (!empty($posts_ids)) {
             $news = Pagination::getPaging($count, $pp, $page_number, $base_url);
@@ -490,7 +495,7 @@ class Posts extends BaseModel
                             
                             <!-- Delete button -->
                             <div class='action_icon'>
-                                <a href='' class='delete' data-controller='" . __CLASS__ . "' data-id='{$item['id']}'>
+                                <a href='' class='delete' data-controller='" . self::getClassName() . "' data-id='{$item['id']}'>
                                     <img src='" . URL_TO_IMG . 'trash.png' . "' />
                                 </a>
                             </div>

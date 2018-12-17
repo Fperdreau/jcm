@@ -130,7 +130,7 @@ class Pagination
 
         //<!-- Show last two pages if we're not near them -->
         if ($paging_info['curr_page'] < $paging_info['pages']) {
-            $last_url = $paging_info['curr_url'].$paging_info['tot_rows'];
+            $last_url = $paging_info['curr_url'].$paging_info['pages'];
             $next_url = $paging_info['curr_url'].($paging_info['curr_page']+1);
             $content .= "
             <div><a href='{$next_url}' title='Page ". ($paging_info['curr_page'] + 1). "' id='paging_next'>
