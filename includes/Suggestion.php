@@ -336,7 +336,7 @@ class Suggestion extends BaseSubmission
         $keywords = self::keywordsList($item->keywords);
        
         return "
-        <div style='display: table; width: auto; padding-left: 10px;' id='{$item->id}''>
+        <div style='display: table-row; width: auto; padding-left: 10px;' id='{$item->id}''>
             <div style='display: table-cell; font-weight: 600; color: #222222; vertical-align: top; font-size: 0.9em;
             width: 15%;'>
                 {$update}
