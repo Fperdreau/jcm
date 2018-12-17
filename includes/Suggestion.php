@@ -132,7 +132,7 @@ class Suggestion extends BaseSubmission
         $Vote = new Vote();
         $Bookmark = new Bookmark();
 
-        foreach ($this->getAll($limit) as $key => $item) {
+        foreach ($this->getAll($limit, 'count_vote DESC, up_date DESC') as $key => $item) {
             if ($mail) {
                 $vote_icon = $Vote->getIcon($item['id'], 'Suggestion', $username, true);
                 $wish_list .= self::inListMail((object)$item, $vote_icon, null);
@@ -216,10 +216,9 @@ class Suggestion extends BaseSubmission
      * Fetch list of suggestions
      * @param null $limit
      * @param string $order
-     * @param string $dir
      * @return array
      */
-    public function getAll($limit = null, $order = 'count_vote', $dir = 'DESC')
+    public function getAll($limit = null, $order = 'count_vote DESC')
     {
         $sql = "SELECT *, p.id as id, COUNT((v.ref_id)) as count_vote
                   FROM {$this->tablename} p 
@@ -230,7 +229,7 @@ class Suggestion extends BaseSubmission
                   LEFT JOIN " . Db::getInstance()->getAppTables('Vote') . " v
                     ON v.ref_id = p.id
                   GROUP BY p.id
-                  ORDER BY {$order} {$dir}" . $limit;
+                  ORDER BY {$order}" . $limit;
         $data = array();
         if ($req = $this->db->sendQuery($sql)) {
             while ($row = $req->fetch_assoc()) {
@@ -255,7 +254,7 @@ class Suggestion extends BaseSubmission
             array('view'=>'modal', 'operation'=>'edit')
         );
         return "
-            <div>
+            <div class='button_container' style='text-align:left;'>
                 <a href='" . App::getAppUrl() . 'index.php?page=submission&op=suggest' . "' 
                     class='leanModal' data-url='{$leanModalUrl}' data-section='suggestion'>
                     <input type='submit' class='add-button' value='Add' />
@@ -267,7 +266,7 @@ class Suggestion extends BaseSubmission
     private static function showMoreButton()
     {
         return "
-            <div class='button_container'>
+            <div class='button_container' style='text-align:center;'>
                 <a href='" . App::getAppUrl() . 'index.php?page=member/suggestions' . "'>
                     <input type='button' value='Show More' />
                 </a>

@@ -1697,7 +1697,7 @@ h3 {
 }
 
 .suggestion_container {
-    display: block;
+    display: table-row;
     position: relative;
     margin: 10px auto;
     font-size: 0.9em;
@@ -1765,6 +1765,7 @@ h3 {
 .suggestion_container > div {
     display: table-cell;
     text-align: left;
+    padding: 5px 2px;
 }
 
 .keywords_container {
