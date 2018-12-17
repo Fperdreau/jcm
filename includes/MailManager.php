@@ -656,7 +656,8 @@ class MailManager extends BaseModel
                                 <span style='font-size: 40px; font-weight: 400; color: #323232'>JCM</span>
                                 <span style='font-size: 35px; color: rgb(100,100,100);'>anager</span>
                                 <div style='font-size: 14px; font-style: italic; font-weight: 500; text-align: center; color: rgb(100,100,100);'>
-                                {$lab_name}</div>
+                                    {$lab_name}
+                                </div>
                             </div>
                         </div>
                     </div>

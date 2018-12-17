@@ -1087,17 +1087,19 @@ class SessionManager
 
         if ($toSpeaker) {
             $content = "<p>This is to inform you that your assignment for the <strong>{$type}</strong> session 
-            planned on the <strong>{$date}</strong> has been canceled.";
+            planned on the <strong>{$date}</strong> has been canceled.</p>";
             $subject = "Your assignment ({$date}) has been canceled";
         } else {
             $content = "<p>This is to inform you that the {$type} session planned on the <strong>{$date}</strong>
-            has been canceled.";
+            has been canceled.</p>";
             $subject = "A session ({$date}) has been canceled";
         }
         return array(
-            'body'=>"<div style='width: 100%; margin: auto;'>
-                <p>Hello {$fullname},</p>
-                {$content}
+            'body'=>"
+                <div style='width: 100%; margin: auto;'>
+                    <p>Hello {$fullname},</p>
+                    {$content}
+                </div>
             ",
             'subject'=>$subject
         );
@@ -1119,7 +1121,7 @@ class SessionManager
         $data = $sessionData;
         foreach ($sessionData as $key => $value) {
             if (isset($post[$key]) && $post[$key] !== $sessionData[$key]) {
-                $css[$key] = "font-weight: 500; color:#500;";
+                $css[$key] = "font-weight: 500; color:rgba(207,81,81,1);";
                 $data[$key] = $post[$key];
             } else {
                 $css[$key] = null;
@@ -1134,25 +1136,28 @@ class SessionManager
                     <span style='{$css['start_time']}'><b>From: </b>{$data['start_time']}</span>
                     <span style='{$css['end_time']}'><b> To: </b>{$data['end_time']}</span>
                 </div>
-            <div style='display: inline-block; margin: 0 5px 5px 0; {$css['room']}'>
-                <b>Room: </b>{$data['room']}</div><br>
+                <div style='display: inline-block; margin: 0 5px 5px 0; {$css['room']}'>
+                    <b>Room: </b>{$data['room']}
+                </div>
             </div>";
 
         if ($toSpeaker) {
             $paragraph = "<p>This is to inform you that your <strong>{$data['type']}</strong> session planned on the 
-            <strong>{$data['date']}</strong> has been updated.";
+            <strong>{$data['date']}</strong> has been updated.</p>";
             $subject = "Your assignment ({$data['date']}) has been updated";
         } else {
             $paragraph = "<p>This is to inform you that the {$data['type']} session planned on the 
-            <strong>{$data['date']}</strong> has been updated.";
+            <strong>{$data['date']}</strong> has been updated.</p>";
             $subject = "A session ({$data['date']}) has been updated";
         }
 
         return array(
-            'body'=>"<div style='width: 100%; margin: auto;'>
-                <p>Hello {$fullname},</p>
-                {$paragraph}
-                <div>{$content}</div>
+            'body'=>"
+                <div style='width: 100%; margin: auto;'>
+                    <p>Hello {$fullname},</p>
+                    {$paragraph}
+                    <div>{$content}</div>
+                </div>
             ",
             'subject'=>$subject
         );
