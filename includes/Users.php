@@ -465,9 +465,7 @@ class Users extends BaseModel
             $this->getUser($username['username']);
 
             $MailManager = new MailManager();
-            $body = $MailManager->formatmail(
-                self::passwordRequestEmail($this->fullname, $this->hash, $this->email)
-            );
+            $body = self::passwordRequestEmail($this->fullname, $this->hash, $this->email);
             $data = array('body'=>$body, 'subject'=>'Change password request', 'emails'=>$this->id);
             if ($MailManager->addToQueue($data)) {
                 $result['msg'] = "An email has been sent to your address with further instructions";
@@ -1240,11 +1238,9 @@ class Users extends BaseModel
         $reset_url = URL_TO_APP . "index.php?page=renew&hash={$hash}&email={$email}";
         return "
             Hello {$full_name},<br>
-            <p>You requested us to change your password.</p>
-            <p>To reset your password, click on this link:
-            <br><a href='{$reset_url}'>{$reset_url}</a></p>
-            <br>
-            <p>If you did not request this change, please ignore this email.</p>
+            <p>To reset your Journal Club Manager account password please click the link below.</p>
+            <p><a href='{$reset_url}'>{$reset_url}</a></p>
+            <p>If you did not request a password reset, please ignore this email.</p>
             ";
     }
 }
