@@ -92,92 +92,44 @@ class SpeakerAssignment extends Task
         $result['msg'] = 'No assignment reminder to send';
 
         $MailManager = new MailManager();
+        $user = new Users();
+        $session = new Session();
 
         // Get future sessions dates
         $today = date('Y-m-d');
         $dueDate = date('Y-m-d', strtotime($today . " + {$this->options['Days']['value']} day"));
-        $session = new Session($dueDate);
-
-        if (!$session->isAvailable(array('date'=>$dueDate))) {
+        $sessionData = $session->all(array('date'=>$dueDate));
+        if (!empty($sessionData)) {
             $n = 0;
-            foreach ($session->presids as $presid) {
-                $Presentation = new Presentation($presid);
-                $speaker = new Users($Presentation->username);
-                $content = $this->reminderEmail($speaker, array('date'=>$session->date, 'type'=>$session->type));
-                $content['emails'] = $speaker->id;
-                if ($MailManager->addToQueue($content)) {
-                    $result['status'] = true;
-                    $n++;
-                } else {
-                    $result['status'] = false;
-                    $result['msg'] = "Could not sent email to {$speaker->email}.";
+            foreach ($sessionData as $session_id => $sessionInfo) {
+                foreach ($sessionInfo['content'] as $key => $presentation) {
+                    $speakerData = $user->get(array('username'=>$presentation['username']));
+                    $content = $this->reminderEmail(
+                        $speakerData['fullname'],
+                        array('date'=>$sessionInfo['date'], 'type'=>$sessionInfo['type'])
+                    );
+                    $content['emails'] = $speakerData['id'];
+                    if ($MailManager->addToQueue($content)) {
+                        $result['status'] = true;
+                        $n++;
+                    } else {
+                        $result['status'] = false;
+                        $result['msg'] = "Could not sent email to {$speakerData['email']}.";
+                    }
                 }
             }
-            $result['msg'] = "Reminder sent to {$n}";
+            $result['msg'] = "Reminder sent to {$n} members";
         }
         return $result;
     }
 
     /**
-     * Make reminder notification email (including only information about the upcoming session)
-     * @param Users $user
-     * @param array $info
-     * @return mixed
-     */
-    public function makeMail(Users $user, array $info)
-    {
-        $sessionType = $info['type'];
-        $date = $info['date'];
-        $dueDate = date('Y-m-d', strtotime($date.' - 1 week'));
-        $contactURL = URL_TO_APP."index.php?page=contact";
-        $content['body'] = "
-            <div style='width: 100%; margin: auto;'>
-                <p>Hello $user->fullname,</p>
-                <p>You have been automatically invited to present at a <span style='font-weight: 500'>
-                $sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
-                <p>Please, submit your presentation on the Journal Club Manager before the 
-                <span style='font-weight: 500'>$dueDate</span>.</p>
-                <p>If you think you will not be able to present on the assigned date, 
-                please <a href='$contactURL'>contact</a> one of the organizers as soon as possible.</p>
-            </div>
-        ";
-        $content['subject'] = "Invitation to present on the $date";
-        return $content;
-    }
-
-    /** Notify user about session update
-     * @param Users $user
-     * @param array $info
-     * @return mixed
-     */
-    public function sessionUpdatedN(Users $user, array $info)
-    {
-        $sessionType = $info['type'];
-        $date = $info['date'];
-        $dueDate = date('Y-m-d', strtotime($date.' - 1 week'));
-        $contactURL = URL_TO_APP."index.php?page=contact";
-        $content['body'] = "
-            <div style='width: 100%; margin: auto;'>
-                <p>Hello $user->fullname,</p>
-                <p>You have been automatically invited to present at a <span style='font-weight: 500'>
-                $sessionType</span> session on the <span style='font-weight: 500'>$date</span>.</p>
-                <p>Please, submit your presentation on the Journal Club Manager before the 
-                <span style='font-weight: 500'>$dueDate</span>.</p>
-                <p>If you think you will not be able to present on the assigned date, 
-                please <a href='$contactURL'>contact</a> one of the organizers as soon as possible.</p>
-            </div>
-        ";
-        $content['subject'] = "Invitation to present on the $date";
-        return $content;
-    }
-
-    /**
      * Reminder email sent to user about his/her upcoming presentation
-     * @param Users $user
+     * @param string $fullname
      * @param array $info
      * @return mixed
      */
-    public function reminderEmail(Users $user, array $info)
+    public function reminderEmail($fullname, array $info)
     {
         $sessionType = $info['type'];
         $date = $info['date'];
@@ -185,13 +137,13 @@ class SpeakerAssignment extends Task
         $contactURL = URL_TO_APP."index.php?page=contact";
         $content['body'] = "
             <div style='width: 100%; margin: auto;'>
-                <p>Hello $user->fullname,</p>
+                <p>Hello {$fullname},</p>
                 <p>This is to remind you that you have a presentation (<span style='font-weight: 500'>
-                $sessionType</span>) planned on the a <span style='font-weight: 500'>$date</span>.</p>
+                {$sessionType}</span>) planned on the a <span style='font-weight: 500'>{$date}</span>.</p>
                 <p>Please, submit your presentation on the <i>Journal Club Manager</i> before the 
                 <span style='font-weight: 500'>{$dueDate}</span> if you have not already.</p>
                 <p>If you think you will not be able to present on the assigned date, 
-                please <a href='$contactURL'>contact</a> one of the organizers as soon as possible.</p>
+                please <a href='{$contactURL}'>contact</a> one of the organizers as soon as possible.</p>
             </div>
         ";
         $content['subject'] = "Reminder: invitation to present on the {$date}";
