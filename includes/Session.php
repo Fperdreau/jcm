@@ -396,6 +396,19 @@ class Session extends BaseModel
     }
 
     /**
+     * Check if user is a speaker in a session
+     *
+     * @param int $session_id
+     * @param string $username
+     * @return boolean
+     */
+    public function isSpeaker($session_id, $username)
+    {
+        $data = $this->getInfo(array('id'=>$session_id));
+        return in_array($username, $data['usernames']);
+    }
+
+    /**
      * Show session details
      *
      * @param bool $show

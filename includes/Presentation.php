@@ -65,31 +65,40 @@ class Presentation extends BaseSubmission
     public function make(array $data)
     {
         $Session = new Session();
-        if (!$Session->isFull($data['session_id'])) {
-            if ($data['title'] === 'TBA' || $this->isExist(array('title'=>$data['title'])) === false) {
-                // Upload datetime
-                $data['up_date'] = date('Y-m-d h:i:s');
+        if ($Session->isFull($data['session_id'])) {
+            return "booked";
+        }
 
-                // Add publication to the database
-                if ($this->db->insert($this->tablename, $this->parseData($data, array("media")))) {
-                    $data['id'] = $this->db->getLastId();
-                } else {
+        if ($Session->isSpeaker($data['session_id'], $data['username'])) {
+            return "assigned";
+        }
+
+        if ($data['title'] === 'TBA' || $this->isExist(array('title'=>$data['title'])) === false) {
+            // Upload datetime
+            $data['up_date'] = date('Y-m-d h:i:s');
+
+            // Add publication to the database
+            if ($this->db->insert($this->tablename, $this->parseData($data, array("media")))) {
+                $data['id'] = $this->db->getLastId();
+                $Assignment = new Assignment();
+                
+                if (!$Assignment->addPresentation(array('id'=>$data['id']), false)) {
                     return false;
                 }
-                
-                // Associates this presentation to an uploaded file if there is one
-                if (!empty($data['media'])) {
-                    $media = new Media();
-                    if (!$media->addUpload(explode(',', $data['media']), $data['id'], self::getClassName())) {
-                        return false;
-                    }
-                }
-                return $data['id'];
             } else {
-                return "exist";
+                return false;
             }
+            
+            // Associates this presentation to an uploaded file if there is one
+            if (!empty($data['media'])) {
+                $media = new Media();
+                if (!$media->addUpload(explode(',', $data['media']), $data['id'], self::getClassName())) {
+                    return false;
+                }
+            }
+            return $data['id'];
         } else {
-            return 'booked';
+            return "exist";
         }
     }
 

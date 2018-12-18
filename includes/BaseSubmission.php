@@ -137,7 +137,7 @@ abstract class BaseSubmission extends BaseModel
             $created = $this->make($data);
         }
 
-        $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session'), true);
+        $result['status'] = !in_array($created, array(false, 'exist', 'booked', 'no_session', 'assigned'), true);
         $result['id'] = $id;
         if ($created === false) {
             $result['msg'] = 'Oops, something went wrong';
@@ -147,6 +147,8 @@ abstract class BaseSubmission extends BaseModel
             $result['msg'] = "Sorry, the selected session is already full.";
         } elseif ($created === 'no_session') {
             $result['msg'] = "Sorry, there is no session planned on this date.";
+        } elseif ($created === 'assigned') {
+            $result['msg'] = "You already have a presentation on this session.";
         } else {
             $result['msg'] = "Thank you for your submission!";
             $result['id'] = $created;

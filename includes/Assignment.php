@@ -485,6 +485,37 @@ class Assignment extends BaseModel
     }
 
     /**
+     * Assign presentation
+     *
+     * @param int $id: presentation id
+     * @param bool $notify: send notification to speaker by email
+     * @return bool
+     */
+    public function addPresentation(array $id, $notify = false)
+    {
+        // Get presentation data
+        $presentation = new Presentation();
+        $data = $presentation->get($id);
+
+        if (!empty($data['session_id'])) {
+            // Get session info
+            $session = new Session();
+            $sessionData = $session->getInfo(array('id'=>$data['session_id']));
+            return $this->updateAssignment(
+                $data['username'],
+                array(
+                    'type'=>$sessionData['type'],
+                    'date'=>$sessionData['date'],
+                    'presid'=>$data['id']
+                ),
+                true,
+                $notify
+            );
+        }
+        return true;
+    }
+
+    /**
      * Unassign presentation
      *
      * @param int $id: presentation id
