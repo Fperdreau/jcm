@@ -646,6 +646,11 @@ class Assignment extends BaseModel
         ";
     }
 
+    /**
+     * Render update/reset buttons
+     *
+     * @return string
+     */
     private static function tableButtons()
     {
         $leanModalUrlReset = Router::buildUrl(
