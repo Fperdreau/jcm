@@ -335,7 +335,7 @@ class MailManager extends BaseModel
         // Send email
         $result = $this->Mail->send(
             $mailing_list,
-            $data['subject'],
+            $subject,
             $body,
             $attachments,
             $undisclosed
