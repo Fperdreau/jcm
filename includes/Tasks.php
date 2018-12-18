@@ -296,7 +296,7 @@ class Tasks extends BaseModel
             return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>$logs[0]);
         } else {
             $this::$logger->log("Task '{$name}' is already running");
-            return array('status'=>$result['status'], 'logs'=>$logs, 'msg'=>null);
+            return array('status'=>$result['status'], 'logs'=>null, 'msg'=>"Task '{$name}' is already running");
         }
     }
 
