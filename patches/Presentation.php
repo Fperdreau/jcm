@@ -37,7 +37,8 @@ class Presentation
      */
     public static $patches = array(
         'patch1'=>'mergeTable',
-        'patch2'=>'patchSessionId'
+        'patch2'=>'patchSessionId',
+        'patch3'=>'patchMediaTable'
     );
 
     /**
@@ -86,6 +87,38 @@ class Presentation
                 if (!$Publications->update(array('session_id'=>$session_info['id']), array('id'=>$item['id']))) {
                     \includes\Logger::getInstance(APP_NAME, __CLASS__)->error('Could not update publication 
                     table with new session id');
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Patch upload table: add object name ('Presentation').
+     */
+    public static function patchMediaTable()
+    {
+        $Presentation = new \includes\Presentation();
+        $Media = new \includes\Media();
+        foreach ($Media->all() as $key => $item) {
+            if (!isset($item['presid'])) {
+                return true;
+            }
+            
+            $data = $Presentation->get(array('id_pres'=>$item['presid']));
+            if (!empty($data)) {
+                $title = str_replace(' ', '_', $data['title']);
+                $title = substr($title, 0, 50);
+                if (!$Media->update(
+                    array('obj'=>'Presentation', 'obj_id'=>$data['id'], 'name'=>$title),
+                    array('presid'=>$item['presid'])
+                )
+                ) {
+                    return false;
+                }
+            } else {
+                if (!$Media->delete(array('id'=>$item['id']))) {
                     return false;
                 }
             }
