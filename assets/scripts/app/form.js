@@ -105,7 +105,7 @@ function removeLoadingButton(el) {
  * @param url: path to the php file
  * @param timing: duration of feedback message
  */
-var processAjax = function(formEl, data, callback, url, timing) {
+function processAjax(formEl, data, callback, url, timing) {
     var btn = formEl.find('input[type="submit"], .processform');
     jQuery.ajax({
         url: url,

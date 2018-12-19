@@ -65,6 +65,68 @@ function loadContent(el, final_callback) {
     processAjax(destination, data, callback, url);
 }
 
+function modifyAccount(el) {
+    var input = el;
+    var form = input.length > 0 ? $(input[0].form) : $();
+    var data = getData(form);
+
+    // Destination DOM element
+    var destination = $(el.data('destination'));
+    var container = (destination.length === 0) ? el.closest('section') : destination;
+    var action = data[1]['value'];
+    var username = data[0]['value'];
+
+    var refreshSection = function() {
+        var callback = function (result) {
+            if (destination !== undefined) {
+                var html = result.content === undefined ? result : result.content;
+                destination
+                    .html(html)
+                    .css('visibility', 'visible')
+                    .fadeIn(200);
+        
+                // Load WYSIWYG editor
+                loadWYSIWYGEditor();
+        
+                // Load JCM calendar
+                initCalendars();
+    
+                if (final_callback !== undefined) {
+                    final_callback(result);
+                }
+            }
+        };
+        processAjax($('#user_list'), null, callback, 
+            "php/router.php?controller=Users&action=generateuserslist");
+    }
+    
+    if (action == 'deactivate' || action == 'deleteUser') {
+        var actionStr = action == 'deactivate' ? 'deactivate' : 'delete';
+        trigger_modal(input, false);
+        confirmationBox(input, 'Are you sure you want to ' + actionStr + ' the account of ' + username + '?', actionStr.toUpperCase(), function (data) {
+            processAjax(
+                $('#user_list'),
+                {'username': username},
+                function() {
+                    input.modalTrigger('close');
+                    refreshSection();
+                },
+                'php/router.php?controller=Users&action=' + action
+            );
+        });
+    } else {
+        processAjax(
+            $('#user_list'),
+            {'username': username},
+            function() {
+                refreshSection();
+            },
+            'php/router.php?controller=Users&action=' + action
+        );
+    }
+    return true;
+}
+
 /**
  * Execute action on select input and load result in target div
  * 
@@ -1263,34 +1325,9 @@ $(document).ready(function () {
             "php/router.php?controller=Users&action=generateuserslist&filter=" + filter);
         })
 
-        // User Management tool: Modify user status
-        .on('change','.modify_status',function (e) {
+        .on('change', '.account_action', function(e) {
             e.preventDefault();
-            var div = $('#user_list');
-            var username = $(this).attr("data-user");
-            var option = $(this).val();
-            var data = {modify_status: true,username: username,option: option};
-            var callback = function (result) {
-                setTimeout(function () {
-                    $('#user_list').html(result.content);
-                },2000);
-            };
-            processAjax(div, data, callback, "php/form.php");
-        })
-
-        // User Management tool: Modify user status
-        .on('change','.account_action',function (e) {
-            e.preventDefault();
-            var div = $('#user_list');
-            var username = $(this).attr("data-user");
-            var action = $(this).val();
-            var data = {username: username};
-            var callback = function (result) {
-                setTimeout(function () {
-                    $('#user_list').html(result.content);
-                },2000);
-            };
-            processAjax(div, data, callback, "php/router.php?controller=Users&action=" + action);
+            modifyAccount($(this));
         })
 
         /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1380,6 +1417,7 @@ $(document).ready(function () {
             deleteType($(this));
         })
 
+        // Show repeat-associated fields
         .on('change', '.repeated_session', function(e) {
             var val = $(this).val();
             var form = $(this).length > 0 ? $($(this)[0].form) : $();

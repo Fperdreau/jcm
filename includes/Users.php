@@ -256,6 +256,9 @@ class Users extends BaseModel
      */
     public function generateuserslist($filter = 'lastname')
     {
+        if (is_array($filter)) {
+            $filter = 'lastname';
+        }
         return self::usersList($this->all(array(), array('dir'=>'ASC', 'order'=>$filter)));
     }
 
@@ -345,7 +348,7 @@ class Users extends BaseModel
     {
         $data = $this->get(array('username'=>$data['username']));
         if ($this->db->update($this->tablename, array('active'=>0), array("username"=>$data['username']))) {
-            if ($this->sendActivationMail($data)) {
+            if ($this->sendDeactivationMail($data)) {
                 $result['status'] = true;
                 $result['msg'] = "Account successfully deactivated. An email has been sent to the user!";
             } else {
@@ -796,7 +799,7 @@ class Users extends BaseModel
         return "
         <form action='php/router.php?controller=Users&action=activation' method='post'>
             <input type='hidden' name='username' value='{$item['username']}' />
-            <select name='action' class='actionOnSelect' 
+            <select name='action' class='account_action' 
             data-destination='#user_list' style='max-width: 75%;'>
                 <option selected disabled>Select an action</option>
                 {$activOption}
