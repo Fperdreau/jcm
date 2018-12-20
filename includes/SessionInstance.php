@@ -170,8 +170,7 @@ class SessionInstance
     {
         // Extend session duration
         if (SessionInstance::isLogged()) {
-            $_SESSION['login_start'] = time();
-            $_SESSION['login_expire'] = $_SESSION['login_start'] + self::TIMEOUT;
+            self::startLoggedSession($_SESSION['auth'], $_SESSION['status']);
             $result = array(
                 "start"=>$_SESSION['login_start'],
                 "expire"=>$_SESSION['login_expire'],
