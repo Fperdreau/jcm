@@ -42,12 +42,12 @@ class SessionInstance
     /**
      * Maximum duration of session (in seconds)
      */
-    const TIMEOUT = 30;
+    const TIMEOUT = 3600;
 
     /**
      * Warning timing (in seconds)
      */
-    const WARNING = 10;
+    const WARNING = 300;
 
     /**
      * Constructor
