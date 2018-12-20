@@ -693,12 +693,19 @@ class Db
     {
         $parsed = self::parse($fields, $where);
 
-        $req = $this->sendQuery("SELECT {$parsed['columns']} FROM {$table_name}" . " {$parsed['cond']}" . " {$opt}");
-        $data = array();
-        while ($row = $req->fetch_assoc()) {
-            $data[] = $row;
+        $sql = "SELECT {$parsed['columns']} FROM {$table_name}" . " {$parsed['cond']}" . " {$opt}";
+        $req = $this->sendQuery($sql);
+ 
+        if ($req) {
+            $data = array();
+            while ($row = $req->fetch_assoc()) {
+                $data[] = $row;
+            }
+            return $data;
+        } else {
+            Logger::getInstance(APP_NAME)->error("Invalid query: {$sql}");
+            return array();
         }
-        return $data;
     }
 
     /**
@@ -713,9 +720,15 @@ class Db
     {
         $parsed = self::parse($fields, $where);
 
-        $req = $this->sendQuery("SELECT {$parsed['columns']} FROM {$table_name}" . " {$parsed['cond']}" . " {$opt}");
+        $sql = "SELECT {$parsed['columns']} FROM {$table_name}" . " {$parsed['cond']}" . " {$opt}";
+        $req = $this->sendQuery($sql);
 
-        return $req->fetch_assoc();
+        if ($req) {
+            return $req->fetch_assoc();
+        } else {
+            Logger::getInstance(APP_NAME)->error("Invalid query: {$sql}");
+            return array();
+        }
     }
 
     /**
