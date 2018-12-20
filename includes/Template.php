@@ -32,6 +32,8 @@ class Template
                     <!-- Stylesheets -->
                     " . self::cssScripts() . "
 
+                    <link rel='shortcut icon' href=''>
+
                     <title>Journal Club Manager - Organize your journal club efficiently</title>
                 </head>
 
