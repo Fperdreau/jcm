@@ -752,7 +752,7 @@ function check_login() {
                 login_warning = json.warning;
                 login_remaining = json.remaining;
 
-                if (!login_expired & login_remaining <= login_warning && login_remaining > 0) {
+                if (!login_expired && (login_remaining <= login_warning) && (login_remaining > 0)) {
                     displaySessionTimeOut(login_remaining);
                 } else if (login_expired || login_remaining < 0) {
                     logout();

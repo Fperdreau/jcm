@@ -42,12 +42,12 @@ class SessionInstance
     /**
      * Maximum duration of session (in seconds)
      */
-    const TIMEOUT = 3600;
+    const TIMEOUT = 30;
 
     /**
      * Warning timing (in seconds)
      */
-    const WARNING = 300;
+    const WARNING = 10;
 
     /**
      * Constructor
@@ -170,11 +170,13 @@ class SessionInstance
     {
         // Extend session duration
         if (SessionInstance::isLogged()) {
-            $_SESSION['login_expire'] = time() + self::TIMEOUT;
+            $_SESSION['login_start'] = time();
+            $_SESSION['login_expire'] = $_SESSION['login_start'] + self::TIMEOUT;
             $result = array(
                 "start"=>$_SESSION['login_start'],
                 "expire"=>$_SESSION['login_expire'],
-                "warning"=>$_SESSION['login_warning']
+                "warning"=>$_SESSION['login_warning'],
+                "expired"=>false
             );
             return $result;
         } else {
