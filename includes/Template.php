@@ -32,8 +32,7 @@ class Template
                     <!-- Stylesheets -->
                     " . self::cssScripts() . "
 
-                    <link rel='shortcut icon' href=''>
-
+                    <link rel='shortcut icon' type='image/x-icon' href='assets/images/favicon.ico'>
                     <title>Journal Club Manager - Organize your journal club efficiently</title>
                 </head>
 
