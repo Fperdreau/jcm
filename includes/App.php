@@ -17,7 +17,7 @@ class App
     const VERSION = "1.5.0"; // Application's version
     const AUTHOR = "Florian Perdreau"; // Application's authors
     const REPOSITORY = "https://github.com/Fperdreau/jcm"; // Application's sources
-    const COPYRIGHT = "&copy; 2014-2017"; // Copyright
+    const COPYRIGHT = "&copy; 2014-2018"; // Copyright
     const LICENSE = "GNU AGPL v3"; // License
     const DESCRIPTION = "Journal Club Manager - an efficient way of organizing journal clubs";
 
