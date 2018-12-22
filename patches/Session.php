@@ -36,7 +36,8 @@ class Session
      * @var array
      */
     public static $patches = array(
-        'patch1'=>'patchTime'
+        'patch1'=>'patchTime',
+        'patch2'=>'cleanTable'
     );
     
     /**
@@ -71,5 +72,23 @@ class Session
         } else {
             return true;
         }
+    }
+
+    public static function cleanTable()
+    {
+        $Session = new \includes\Session();
+        foreach ($Session->all() as $key => $item) {
+            $date = date('m_d_Y', strtotime($item['date']));
+            $split = explode('_', $date);
+            $valid = checkdate(intval($split[0]), intval($split[1]), intval($split[2])) && intval($split[2]) > 1970;
+            if (!$valid || $item['type'] == 'none') {
+                if (!$Session->delete(array('id'=>$item['id']))) {
+                    \includes\Logger::getInstance(APP_NAME, __CLASS__)->info("Session {$item['id']} could not be 
+                    deleted");
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
