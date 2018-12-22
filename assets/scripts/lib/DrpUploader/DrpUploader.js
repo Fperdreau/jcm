@@ -307,7 +307,6 @@ function AnimateBack(el) {
          * @param url: path to the php file
          */
         _callAjax: function(data, callback, url) {
-            url = (url === undefined) ? 'php/form.php' : url;
             var loadingBack = this._animator;
             jQuery.ajax({
                 url: url,

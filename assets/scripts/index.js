@@ -812,55 +812,6 @@ function popLogin() {
     $('#login_button').click();
 }
 
-/**
- *
- * @returns {boolean}
- */
-function process_email() {
-    var form = $(this).length > 0 ? $($(this)[0].form) : $();
-    var el = $('.mailing_container');
-
-    // Check if recipients have been added
-    var div = $('.select_emails_container').find('.select_emails_list');
-    div.find('.mailing_recipients_empty').remove();
-    if (!$.trim( div.html() ).length) {
-        div.html('<p class="mailing_recipients_empty sys_msg warning leanmodal" id="warning">You must select ' +
-            'recipients before sending your email!</p>');
-        return true;
-    }
-
-    // Check if form has been filled in properly
-    if (!checkform(form)) {return false;}
-
-    var callback = function() {
-        // Get data
-        var data = form.serializeArray();
-        var content = tinyMCE.get('spec_msg').getContent();
-        var attachments = [];
-        form.find('input.upl_link').each(function() {
-            attachments.push($(this).val());
-        });
-        attachments = attachments.join(',');
-        data = modArray(data, 'body', content);
-        data = modArray(data, 'attachments', attachments);
-
-        // Process data
-        processAjax(el, data, null, "php/form.php");
-    };
-
-    // Shall we publish this email content as news (in case the email is sent to everyone).
-    var id = $('.select_emails_selector').val();
-    if ($('#make_news').val() === 'yes') {
-        trigger_modal($(this));
-        var msg = 'The option "Add as news" is set to "Yes", which means the content of your email will be ' +
-            'published as a news.' + ' Do you want to continue?';
-        confirmationBox($(this), msg, 'Continue', callback);
-    } else {
-        callback();
-        close_modal();
-    }
-    return true;
-}
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Modal windows
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -988,74 +939,6 @@ function process_bookmark(el) {
             }
         }
     });
-}
-
-/**
- * Process submission form
- * @param el: submit input selector
- * @param e: events
- * @returns {boolean}
- */
-function process_post(el, e) {
-    e.preventDefault();
-    var form = el.length > 0 ? $(el[0].form) : $();
-
-    // Check if the form has been fully completedf
-    if (!checkform(form)) { return false;}
-
-    // Check if files have been uploaded and attach them to this presentation
-    var uploadInput = form.find('.upl_link');
-    if (uploadInput[0]) {
-        var links = [];
-        uploadInput.each(function () {
-            var link = $(this).val();
-            links.push(link);
-        });
-        links = links.join(',');
-        form.append("<input type='hidden' name='link' value='"+links+"'>");
-    }
-
-    // Form data
-    var data = getData(form);
-
-    var controller = form.find('input[name="controller"]').val();
-
-    // Callback function
-    var callback = function (result) {
-        if (result.status === true) {
-            //var container_id = controller.toLowerCase() + '_form';
-            var section = form.closest('.modal_section');
-            var controller = section.attr('id');
-            $('section#' + container_id + ', .modal_section#' + container_id).empty();
-            var id = form.find('input[name="id"]').val().length > 0
-            && form.find('input[name="id"]').length > 0 ? form.find('input[name="id"]').val() : undefined;
-            var operation = id !== undefined ? 'edit' : 'new';
-
-            get_submission_form({
-                'controller': controller,
-                'action': 'get_form',
-                'operation': operation,
-                'id': id,
-                'destination': '#' + controller.toLowerCase() + '_container'}
-            );
-
-        } else {
-            return false;
-        }
-    };
-
-    // Find tinyMCE textarea and gets their content
-    var tinyMCE_el = form.find('.wygiwgm');
-    if (is_editor_active(tinyMCE_el) && tinyMCE.get(tinyMCE_el.attr('id')).getContent().length > 0) {
-        tinyMCE_el.each(function() {
-            var content = tinyMCE.get($(this).attr('id')).getContent();
-            data = modArray(data, $(this).attr('name'), content);
-        })
-    }
-
-    // AJAX call
-    processAjax(el.closest('.form_container'), data, callback, "php/form.php");
-    e.stopImmediatePropagation();
 }
 
 /**
@@ -1657,47 +1540,6 @@ $(document).ready(function () {
         })
 
         .on('click', '.extend_session', function() { extend_session(); })
-
-        /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-         Submission triggers
-         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
-        .on('click', '.get_suggestion_list', function(e) {
-            var data = {'get_suggestion_list': true};
-            // First we remove any existing submission form
-            var callback = function (result) {
-                modalpubform
-                    .html(result)
-                    .fadeIn(200);
-            };
-            processAjax(modalpubform, data, callback, "php/form.php");
-        })
-
-        .on('click', '.load_content', function(e) {
-            e.preventDefault();
-            var query = $(this).attr("href");
-            var vars = query.split("?");
-            var pairs = vars[1].split("&");
-            var args = {};
-            for (var i=0; i<pairs.length; i++) {
-                var pair = pairs[i].split("=");
-                args[pair[0]] = pair[1];
-            }
-
-            var operation = (args['op'] !== undefined) ? args['op'] : false;
-            if (operation === 'wishpick') {
-                var data = {'get_suggestion_list': true};
-                // First we remove any existing submission form
-                var callback = function (result) {
-                    el
-                        .html(result)
-                        .fadeIn(200);
-                };
-                processAjax(el, data, callback, "php/form.php");
-            } else {
-                get_submission_form($(this).data());
-            }
-        })
 
     /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      Modal Window

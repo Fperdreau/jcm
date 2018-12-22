@@ -91,49 +91,6 @@ function execute(el, states) {
 }
 
 /**
- * Show logs associated with scheduled task
- * @param el: DOM element
- */
-function showLogs(el) {
-    var name = el.attr('id');
-    var div = $('.plugLog#' + name);
-    if (!div.is(':visible')) {
-        jQuery.ajax({
-            type: 'post',
-            url: 'php/form.php',
-            data: {showLog: name},
-            success: function(data) {
-                var json = jQuery.parseJSON(data);
-                $('.plugLog#' + name).html(json).toggle();
-            }
-        });
-    } else {
-        div.toggle();
-    }
-}
-
-/**
- * Delete logs
- *
- * @param {*} el: DOM element
- */
-function deleteLogs(el) {
-    var name = el.attr('id');
-    var div = el.closest('.plugDiv');
-    jQuery.ajax({
-        type: 'post',
-        url: 'php/form.php',
-        data: {
-            deleteLog: name
-        },
-        async: true,
-        success: function(data) {
-            validsubmitform(div,data);
-        }
-    });
-}
-
-/**
  * Execute scheduled task
  *
  * @param {*} el: DOM element (button)
@@ -202,43 +159,6 @@ $(document).ready(function() {
     /**
      * Modify plugin/scheduled task settings
      */
-        .on('input','.modSettings', function(e){
-            e.preventDefault();
-            var input = $(this);
-            var option = $(this).data('option');
-            var name = $(this).data('name');
-            var op = $(this).data('op');
-            var value = $(this).val();
-            jQuery.ajax({
-                url: 'php/form.php',
-                type: 'POST',
-                data: {
-                    modSettings: name,
-                    option: option,
-                    op: op,
-                    value: value
-                },
-                async: true,
-                success: function(data) {
-                    var json = jQuery.parseJSON(data);
-                    if (json === true || json !== false) {
-                        if (op == 'cron') {
-                            $('#cron_time_'+name).html(json);
-                        }
-                        input.addClass('valid_input');
-                        setTimeout(function(){
-                            input.removeClass('valid_input');
-                        }, 500);
-                    } else {
-                        input.addClass('wrong_input');
-                        setTimeout(function(){
-                            input.removeClass('wrong_input');
-                        }, 500);
-                    }
-                }
-            });
-        })
-
         .on('click', '.modCron', function(e) {
             e.preventDefault();
             e.stopImmediatePropagation();
