@@ -89,6 +89,13 @@ class Presentation
                     table with new session id');
                     return false;
                 }
+            } else if ($item['title'] == 'TBA' && !$Session->isExist(array('date'=>$item['date']))) {
+                if (!$Publications->delete(array('id'=>$item['id']))) {
+                    \includes\Logger::getInstance(APP_NAME, __CLASS__)->error(
+                        "Could not delete publication [id: {$item['id']}"
+                    );
+                    return false;
+                }
             }
         }
         return true;
