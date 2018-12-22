@@ -154,7 +154,7 @@ class Users extends BaseModel
     {
         $username = $post['username'];
         if (!$this->update($post, array('username'=>$username))) {
-            Logger::getInstance(APP_NAME, get_class($this))->error("Could not create session on {$this->date}");
+            Logger::getInstance(APP_NAME, get_class($this))->error("Could not update information for user '{$username}'");
             return array(
                 'status'=>false,
                 'msg'=>'Oops, something went wrong'
