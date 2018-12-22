@@ -145,6 +145,28 @@ class Users extends BaseModel
     }
 
     /**
+     * Update user information
+     *
+     * @param array $post: data
+     * @return array: success or failure
+     */
+    public function modify(array $post)
+    {
+        $username = $post['username'];
+        if (!$this->update($post, array('username'=>$username))) {
+            Logger::getInstance(APP_NAME, get_class($this))->error("Could not create session on {$this->date}");
+            return array(
+                'status'=>false,
+                'msg'=>'Oops, something went wrong'
+            );
+        }
+        return array(
+            'status'=>true,
+            'msg'=>'Information updated'
+        );
+    }
+
+    /**
      * Send verification/confirmation email after account creation
      *
      * @param string $status: account status

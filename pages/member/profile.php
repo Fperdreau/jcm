@@ -38,7 +38,7 @@ $result = "
             <section>
                 <h2>Personal information</h2>
                 <div class='section_content'>
-                <form method='post' action='php/form.php' class='form' id='profile_persoinfo_form'>
+                <form method='post' action='php/router.php?controller=Users&action=modify' class='form' id='profile_persoinfo_form'>
                     <div class='submit_btns'>
                         <input type='submit' name='user_modify' value='Modify' class='processform'/>
                     </div>
@@ -73,7 +73,6 @@ $result = "
                         <label>Presentations: </label>
                     </div>
                     <input type='hidden' name='username' value='$user->username'/>
-                    <input type='hidden' name='user_modify' value='true' />
                     <div class='feedback' id='feedback_perso'></div>
                 </form>
                 </div>
@@ -82,7 +81,7 @@ $result = "
         <section>
             <h2>Contact information</h2>
             <div class='section_content'>
-            <form method='post' action='php/form.php' class='processform' id='profile_emailinfo_form'>
+            <form method='post' action='php/router.php?controller=Users&action=modify' class='processform' id='profile_emailinfo_form'>
                 <div class='submit_btns'>
                     <input type='submit' name='user_modify' value='Modify' class='processform'/>
                 </div>
@@ -114,7 +113,6 @@ $result = "
                     </select>
                     <label for='reminder'>I want to be assigned as speaker</label>
                 </div>
-                <input type='hidden' name='user_modify' value='true' />
                 <input type='hidden' name='username' value='$user->username'/>
                 <div class='feedback' id='feedback_mail'></div>
             </form>
