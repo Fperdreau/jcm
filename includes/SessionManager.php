@@ -60,14 +60,18 @@ class SessionManager
      */
     public static function getCalendarContent($date = null, $nSession = 4)
     {
-        if (!is_null($date)) {
-            // Repeat sessions
-            self::factory()->repeatAll($date);
-            
-            return self::getDayContent(self::factory()->all(array('s.date'=>$date)), $date, false);
-        } else {
-            return self::selectADate();
+        if (is_null($date) || is_array($date)) {
+            $data = self::factory()->getUpcoming(1);
+            if (empty($data)) {
+                return self::selectADate();
+            } else {
+                $date = reset($data)['date'];
+            }
         }
+        // Repeat sessions
+        self::factory()->repeatAll($date);
+
+        return self::getDayContent(self::factory()->all(array('s.date'=>$date)), $date, false);
     }
 
     /**
@@ -133,8 +137,13 @@ class SessionManager
      *
      * @return string
      */
-    public static function loadSessionEditor($id)
+    public static function loadSessionEditor($id = null)
     {
+        if (is_array($id)) {
+            // Get next session
+            $data = self::factory()->getUpcoming(1);
+            $id = reset($data)['id'];
+        }
         $data = self::factory()->all(array('s.id'=>$id));
         $data = $data[$id];
         return self::getSessionEditor($data, $data['date']);

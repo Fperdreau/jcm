@@ -204,6 +204,18 @@ var get_submission_form = function (data) {
     processAjax(el, data, callback, url);
 };
 
+/**
+ * Refresh content of form after action
+ * @param id : session id
+ */
+function refreshSessionEditor(form, id) {
+    var idInUrl = id !== undefined ? '&id=' + id : '';
+    var container = form.closest('#session_editor');
+    container.attr('data-url', 'php/router.php?controller=SessionManager&action=getCalendarContent' + idInUrl);
+    container.attr('data-destination','#session_editor');
+    loadContent(container);
+}
+
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Dialog boxes
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -1366,6 +1378,7 @@ $(document).ready(function () {
 
                 // Process data
                 processAjax(form, data, function() {
+                    refreshSessionEditor(form, session_id);
                     input.modalTrigger('close');
                 }, url);
             };
@@ -1404,10 +1417,12 @@ $(document).ready(function () {
              * @param {string} session_id 
              */
             var process = function(operation, session_id) {
+
                 processAjax(
                     form,
                     form.serializeArray(),
                     function() {
+                        refreshSessionEditor(form);
                         input.modalTrigger('close');
                     },
                     'php/router.php?controller=SessionManager&action=deleteSession&id=' + session_id + '&operation=' + operation
