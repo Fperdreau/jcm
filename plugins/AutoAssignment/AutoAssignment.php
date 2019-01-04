@@ -319,7 +319,7 @@ class AutoAssignment extends Plugin
 
         $speakersArray = !empty($preAssigned) ? 'AND u.username NOT IN (' . self::toString($preAssigned) . ')' : null;
         $sql = "
-            SELECT u.username, since_last.min_duration AS min_duration
+            SELECT u.username, ABS(since_last.min_duration) AS min_duration
             FROM " . $this->db->getAppTables('Users') . " u
             LEFT JOIN (
                 SELECT u.username, IFNULL(MIN(durations.since_pres), 10*365) AS min_duration
