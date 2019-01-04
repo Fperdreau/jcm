@@ -17,7 +17,7 @@ class Template
      *
      * @return string
      */
-    public static function layout()
+    public static function layout($content = null)
     {
         $menu = Page::menu();
 
@@ -71,6 +71,7 @@ class Template
                                     <div class='wrapper'>
                                         <div id='section_title'></div>
                                         <div id='section_content'></div>
+                                        {$content}
                                     </div>
                                     <div class='plugins'></div>
                                 </div>

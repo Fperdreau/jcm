@@ -242,6 +242,8 @@ class Page extends BaseModel
      */
     public static function notFound()
     {
+        header('HTTP/1.0 404 Not Found');
+
         $result['content'] = self::render('error/404');
         $result['title'] = 'Error 404';
         $result['header'] = self::header('Error 404', 'error');
@@ -280,7 +282,7 @@ class Page extends BaseModel
      * @param $page
      * @return mixed|string
      */
-    public static function render($page, array $variables = array())
+    public static function render($page, array $variables = array(), $onPage = false)
     {
         // Start buffering
         ob_start("ob_gzhandler");
@@ -292,7 +294,12 @@ class Page extends BaseModel
         include_once(PATH_TO_PAGES . $page . '.php');
 
         // End of buffering
-        return ob_get_clean();
+        $pagecontent = ob_get_clean();
+        if (!Router::isAjax()) {
+            echo $pagecontent;
+        } else {
+            return $pagecontent;
+        }    
     }
 
     /**
