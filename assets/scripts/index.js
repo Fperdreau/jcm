@@ -1485,11 +1485,6 @@ $(document).ready(function () {
             get_submission_form($(this).data());
         })
 
-        // Show download list
-        .on('click','.dl_btn',function () {
-            $(".dlmenu").toggle();
-        })
-
         // Show uploaded file
         .on('click','.link_name',function () {
             var uplname = $(this).attr('id');

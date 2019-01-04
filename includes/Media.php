@@ -531,10 +531,10 @@ class Media extends BaseModel
                 $menu = null;
                 foreach ($links as $file_id => $info) {
                     $menu .= "
-                        <div class='dl_info'>
+                        <div class='dl_info link_name' id='{$info['filename']}'>
                             <div class='dl_type'>".strtoupper($info['type'])."</div>
-                            <div class='dl_name' id='{$info['filename']}'>{$info['name']}</div>
-                            <div class='icon_btn dl_btn link_name' id='{$info['filename']}'></div>
+                            <div class='dl_name'>{$info['name']}</div>
+                            <div class='icon_btn dl_btn'></div>
                         </div>";
                 }
                 $content['menu'] = "
