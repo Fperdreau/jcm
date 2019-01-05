@@ -43,4 +43,4 @@ along with Journal Club Manager.  If not, see <http://www.gnu.org/licenses/>.
 * SMTP server or a Google Mail account
 
 ## Instructions
-Instructions about how to install and use the *Journal Club Manager* can be found in the [manual](manual.md).
+Instructions about how to install and use the *Journal Club Manager* can be found in the [manual](manual.html).
