@@ -377,7 +377,7 @@ class Assignment extends BaseModel
      */
     public function all(array $id = null, array $filter = null)
     {
-        $sql = "SELECT p.*, u.fullname
+        $sql = "SELECT p.*, u.fullname, u.assign
                 FROM {$this->tablename} p
                 LEFT JOIN {$this->db->genName('Users')} u
                 ON p.username=u.username";
@@ -686,7 +686,7 @@ class Assignment extends BaseModel
     public static function showList(array $data)
     {
         $content = "";
-        $headers = array_diff(array_keys($data[0]), array('id', 'fullname', 'username'));
+        $headers = array_diff(array_keys($data[0]), array('id', 'fullname', 'username', 'assign'));
         foreach ($data as $key => $info) {
             $content .= self::showSingle($info, $headers);
         }
@@ -719,8 +719,14 @@ class Assignment extends BaseModel
         foreach ($session_types as $heading) {
             $session_type .= "<div>{$info[$heading]}</div>";
         }
+
+        if ($info['assign'] == 0) {
+            $css = "style='color: rgb(175,175,175); background: rgba(200, 200, 200, 0.5);'";
+        } else {
+            $css = null;
+        }
         return "
-            <div class='list-container'>
+            <div class='list-container' {$css}>
                 <div>{$info['fullname']}</div>   
                 {$session_type}
             </div>";
