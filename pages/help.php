@@ -92,7 +92,7 @@
                     <ul>
                         <li><span class="help_bullet_bold">Mailing system</span>: <span class="appName">
                                 <?php echo includes\App::APP_NAME; ?></span> includes a mailing system to notify members
-                            about upcoming journal club sessions, recent news or the last wishes added by the other
+                            about upcoming journal club sessions, recent news or the last suggestions added by the other
                             users.</li>
                         <li><span class="help_bullet_bold">Automatic assignment</span>: <span class="appName">
                                 <?php echo includes\App::APP_NAME; ?></span> can automatically assign members as speaker
@@ -433,8 +433,8 @@
                 <div class="help_section_content">
                     <div class="help_section_content_first">
                         JCM members have the possibility to either submit a new presentation (<em>Submit</em>), to
-                        suggest a presentation to other members (<em>Make a wish</em>)
-                        or to submit a presentation suggested by other members (<em>Select a wish</em>).
+                        suggest a presentation to other members (<em>Make a suggestion</em>)
+                        or to submit a presentation suggested by other members (<em>Select a suggestion</em>).
                     </div>
                     <div class="help_section_content_last img_container">
                         <img class="help_img" src="<?php echo URL_TO_IMG; ?>help/submission_menu.png"
@@ -475,12 +475,12 @@
 
                     <div class="help_section_container">
                         <div class="help_section_header">
-                            <h3 id="suggest-a-paper"><a href="#suggest-a-paper" name="suggest-a-paper">Make a wish</a>
+                            <h3 id="suggest-a-paper"><a href="#suggest-a-paper" name="suggest-a-paper">Add a suggestion</a>
                             </h3>
                         </div>
                         <div class="help_section_content">
                             <div class="help_section_content_full">
-                                <p>The procedure for making a wish (suggest a presentation) is similar to submitting a
+                                <p>The procedure for making a suggestion (suggest a presentation) is similar to submitting a
                                     new presentation except that the user
                                     does not have to provide a date (see <a href="#submit-a-new-publication">Submit a
                                         new presentation</a>).</p>
@@ -492,12 +492,12 @@
                         <div class="help_section_header">
                             <h3 id="select-a-paper-from-the-wish-list"><a href="#select-a-paper-from-the-wish-list"
                                                                           name="select-a-paper-from-the-wish-list">
-                                    Select a paper from the wish list</a></h3>
+                                    Select a paper from the suggestions list</a></h3>
                         </div>
                         <div class="help_section_content">
                             <div class="help_section_content_full">
                                 <p>You can choose to submit a presentation suggested by other members. To do so, click
-                                    on "Select a wish" in submission menu. You will be prompted
+                                    on "Select a suggestion" in submission menu. You will be prompted
                                 with a selection list of all suggested presentations. Select the one you wish to
                                     present, and choose a date for your presentation. You can also edit the presentation
                                     information and/or add/delete files attached to this presentation.</p>
@@ -537,6 +537,9 @@
                             <li><strong>Hide recipients:</strong> if set to "yes", then recipients email addresses
                                 and identities will not be visible. Note that this will also prevent recipients to
                                 "reply to all".</li>
+                            <li><strong>Add as news:</strong> if set to "yes", then email will be also published as news. This option 
+                                is automatically set to yes when the recipients field is set to "all". Note that in this case, it is still
+                                possible to manually set this option to "no".</li>
                             <li><strong>Subject:</strong> Your email's subject</li>
                             <li><strong>Message:</strong> Your email's content</li>
                         </ul>
@@ -552,9 +555,9 @@
                     <div class="help_section_content_full">
                         <p><span class="appName"><?php echo includes\App::APP_NAME; ?></span> includes a blog-like section
                             ("News", accessible from the main menu) where members can post announcements or news that
-                            might be interesting to the other members of visitors. The latest news are also displayed on
-                            the application home page and can be included in the weekly digest email. News can be posted
-                            from <span class="menu_path">My Tools>Add a news</span>.
+                            might be interesting to the other members or visitors. The latest news are also displayed on
+                            the application home page and can be included in the weekly digest email. News can be posted and edited
+                            from <span class="menu_path">My Tools>News</span>.
                         </p>
                     </div>
                     <div class="help_section_content_first">
@@ -579,11 +582,23 @@
 
             <div class="help_section_container">
                 <div class="help_section_header">
-                    <h2 id="archives"><a href="#archives" name="archives">Archives</a></h2>
+                    <h2 id="archives"><a href="#archives" name="archives">Presentations</a></h2>
                 </div>
                 <div class="help_section_content">
                     <div class="help_section_content_full">
-                        <p>Here, you can find all the previous presentations and download the associated files. Archives
+                        <p>Here, you can find all presentations and download the associated files. Archives
+                            can be filtered by year.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help_section_container">
+                <div class="help_section_header">
+                    <h2 id="archives"><a href="#archives" name="archives">Suggestions</a></h2>
+                </div>
+                <div class="help_section_content">
+                    <div class="help_section_content_full">
+                        <p>Here, you can find all suggestions and download the associated files. Archives
                             can be filtered by year.</p>
                     </div>
                 </div>
@@ -1079,7 +1094,7 @@
                                 <p><strong>Mailing:</strong> send weekly digest including the last news, details about
                                     the
                                     upcoming session, the list of the future
-                                    sessions and the list of the newest wishes.</p>
+                                    sessions and the list of the newest suggestions.</p>
                                 <p><strong>Notification</strong>: Send list of last submissions by email.</p>
                                 <p><strong>Reminder</strong>: send reminder for the upcoming session.</p>
                                 <p><strong>SpeakerAssignment</strong>: automatically assigned speakers to each
@@ -1137,7 +1152,7 @@
                             <p>This is the home page of your <span class="appName"><?php echo includes\App::APP_NAME; ?>
                                 </span>.
                             Here, you can find the last posted news, information about the upcoming sessions and the
-                            wish list.</p>
+                            suggestions list.</p>
                         </div>
                         <div class="help_section_content_last img_container">
                             <a href="<?php echo URL_TO_IMG; ?>help/home.png">
