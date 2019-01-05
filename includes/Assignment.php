@@ -458,7 +458,7 @@ class Assignment extends BaseModel
     /**
      * Update speaker assignment: update assignment table and notify user
      * @param string $username
-     * @param array $info: array('type'=>renderTypes, 'date'=>session_date, 'presid'=>presentation_id)
+     * @param array $info: array('type'=>session_type, 'date'=>session_date, 'presid'=>presentation_id)
      * @param bool $assign : assign (true) or unassign (false) user
      * @param bool $notify: notify user by email
      * @return bool
@@ -466,10 +466,11 @@ class Assignment extends BaseModel
     public function updateAssignment($username, array $info, $assign = true, $notify = false)
     {
         $user = new Users();
+        $operation = $assign ? "incremented" : "decremented";
         $userData = $user->get(array('username'=>$username));
         if ($this->updateTable(self::prettyName($info['type'], true), $userData['username'], $assign)) {
             Logger::getInstance(APP_NAME, get_class($this))->info(
-                "Assignments for {$userData['username']} have been updated"
+                "Assignments for {$userData['username']} have been {$operation}"
             );
             if ($notify) {
                 return self::notifyUpdate($userData['username'], $info, $assign);

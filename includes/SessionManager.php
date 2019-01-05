@@ -324,9 +324,9 @@ class SessionManager
                 }
                 break;
             case 'delete':
-                if ($this->modifyAssignments($sessionData)) {
+                if ($this->deleteAssignments($sessionData)) {
                     if ($session->delete(array('id'=>$sessionData['id']))) {
-                        // Notify user about the change of session type
+                        // Notify user about the cancelation of session
                         if (!self::notifyUpdate($action, 'speaker', $sessionData)) {
                             return false;
                         }
@@ -340,7 +340,40 @@ class SessionManager
                 break;
             default:
                 return false;
+                break;
         }
+    }
+
+    /**
+     * Unassign presentations corresponding to session
+     *
+     * @param array $data: session info
+     * @return bool: success or failure
+     */
+    public function deleteAssignments(array $data) {
+        $assignment = new Assignment();
+        $session_type = $data['type'];
+
+        // Loop over presentations scheduled for this session
+        foreach ($data['presids'] as $id) {
+            $pres = new Presentation($id);
+            $user = new Users($pres->orator);
+            $userData = $user->get(array('username'=>$pres->orator));
+
+            // Unassign
+            $info = array(
+                'speaker'=>$userData['username'],
+                'type'=>$session_type,
+                'presid'=>$pres->id,
+                'date'=>$data['date']
+            );
+
+            // Update assignment table
+            if (!$assignment->updateAssignment($userData['username'], $info, false, false)) {
+                return false;
+            };
+        }
+        return true;
     }
     
     /**

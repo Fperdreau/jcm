@@ -366,7 +366,7 @@ class AutoAssignment extends Plugin
      *
      * @param array $session: session data
      * @param array $plannedSpeakers: List of planned speakers for this session
-     * @return string|bool
+     * @return string|bool: return speaker username if operation succeeded, false otherwise
      */
     private function getSpeaker(array $session, $plannedSpeakers)
     {
@@ -391,18 +391,10 @@ class AutoAssignment extends Plugin
         }
 
         if (!is_null($speaker)) {
-            // Update the assignment table
-            $session_type = Assignment::prettyName($session['type'], true);
-            if (!self::$Assignment->updateTable($session_type, $speaker, true)) {
-                return false;
-            } else {
-                return $speaker;
-            }
+            return $speaker;
         } else {
             return false;
         }
-
-        return true;
     }
 
     /**
@@ -514,10 +506,7 @@ class AutoAssignment extends Plugin
                 );
 
                 if ($newSpeaker !== 'TBA') {
-                    self::$Assignment->notifyUpdate(
-                        $speaker['username'],
-                        $info
-                    );
+                    self::$Assignment->notifyUpdate($speaker['username'], $info, true);
                 }
 
                 $assignedSpeakers[$session['date']][] = $info;
