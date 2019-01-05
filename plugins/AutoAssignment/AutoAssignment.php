@@ -282,10 +282,10 @@ class AutoAssignment extends Plugin
             INNER JOIN " . $this->db->getAppTables('Assignment') . " p
             ON u.username=p.username
             WHERE u.assign=1 {$speakersArray}
-                AND u.username IN (
-                    SELECT username
+                AND u.username NOT IN (
+                    SELECT DISTINCT(username)
                     FROM " . $this->db->getAppTables('Availability') . " a
-                    WHERE a.date!='{$session['date']}'
+                    WHERE a.date='{$session['date']}'
                 )
             ";
         $req = $this->db->sendQuery($sql);
@@ -336,10 +336,10 @@ class AutoAssignment extends Plugin
             ) since_last
             ON u.username=since_last.username
             WHERE u.assign=1 {$speakersArray}
-                AND u.username IN (
-                    SELECT username
+                AND u.username NOT IN (
+                    SELECT DISTINCT(username)
                     FROM " . $this->db->getAppTables('Availability') . " a
-                    WHERE a.date!='{$session['date']}'
+                    WHERE a.date='{$session['date']}'
                 )
             ORDER BY min_duration DESC
             LIMIT 1
