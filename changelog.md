@@ -9,9 +9,12 @@
 - Improved user interface and page loading speed
 - Corrected bug that prevented the user to delete his/her account
 - Automatically log out user if inactive for more than a given duration
-- Added Help section.
-- Added About section.
-- Added pagination for News page.
+- Improved scheduled tasks system
+- Added Help section
+- Added About section
+- Added pagination for News page
+- Added possiblity to bookmark presentations
+- Added possibility to vote for suggestions
 
 ### Mailing
 
@@ -29,8 +32,12 @@
 
 ### Plugins
 
-- Groups: only make groups for the next session 1) if a session is planned on this day and 2) if groups have not already
- been made.
+- Groups: only make groups for the next session 1) if a session is planned on this day and 2) if groups have not already been made. Groups can be made in advance and users can browse their future groups from the profile page.
+- AutoAssignment: Automatic assignments can be made by using different selection procedures:
+  - random: randomly select speaker
+  - max: randomly select speaker from member having the least number of presentations
+  - order: select speaker with the longest time interval between the target session and the planned presentation
+  - score: select speaker with smallest number of presentations and oldest presentation.
   
 ## Release: 1.4.3
 
