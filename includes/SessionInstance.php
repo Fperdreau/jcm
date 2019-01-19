@@ -94,7 +94,11 @@ class SessionInstance
      */
     public function get($key)
     {
-        return $_SESSION[$key];
+        if (isset($_SESSION[$key])) {
+            return $_SESSION[$key];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -143,7 +147,7 @@ class SessionInstance
     /**
      * Check login status
      *
-     * @return void
+     * @return array|bool
      */
     public static function checkLogin()
     {

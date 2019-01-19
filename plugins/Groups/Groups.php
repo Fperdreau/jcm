@@ -150,15 +150,6 @@ class Groups extends Plugin
     }
 
     /**
-     * Clear the group table
-     * @return bool|mysqli_result
-     */
-    private function clearTable()
-    {
-        return $this->db->clearTable($this->tablename);
-    }
-
-    /**
      * Randomly assigns groups to users for the next session
      * @param array $session: next session
      * @return array|bool
@@ -416,8 +407,9 @@ class Groups extends Plugin
         $data = $this->getGroup($username);
         if ($data !== false) {
             $data['group'] = $this->showList($data, $username);
-            $publication = new Presentation($data['presid']);
-            $data['publication'] = $publication->mail_details(true);
+            $presentation = new Presentation($data['presid']);
+            $presentationData = $presentation->get(array('id'=>$data['presid']));
+            $data['publication'] = Presentation::mailDetails($presentationData, true);
             $content['body'] = self::renderSection($data);
             $content['title'] = 'Your Group assignment';
             $content['subject'] = "Your Group assignment: {$data['date']}";
@@ -449,10 +441,11 @@ class Groups extends Plugin
             return true;
         }
     }
-    
+
     /**
      * Get user's group
      * @param $username
+     * @param null $sessionId
      * @return bool|array
      */
     public function getGroup($username, $sessionId = null)
@@ -479,6 +472,7 @@ class Groups extends Plugin
 
     /**
      * Display user's group (profile page or in email)
+     * @param array $group
      * @param bool $username
      * @return string
      */
@@ -522,21 +516,30 @@ class Groups extends Plugin
 
     /**
      * Display user's group (profile page or in email)
+     * @param null|string $date
      * @return string
      */
     public function show($date = null)
     {
+        // Get group data
+        $username = isset($_SESSION['username']) ? $_SESSION['username'] : null;
+        if (is_null($username)) {
+            return self::groupSection($date, self::noGroup($date));
+        }
+
         if (!is_null($date)) {
             $sessionData = $this->getSession()->get(array('date'=>$date));
             $sessionId = $sessionData['id'];
         } else {
             $sessionData = $this->getSession()->getUpcoming(1);
+            if (!$sessionData) {
+                return self::groupSection($date, self::noGroup($date));
+            }
+
             $sessionId = $sessionData[key($sessionData)]['id'];
             $date = $sessionData[key($sessionData)]['date'];
         }
 
-        // Get group data
-        $username = $_SESSION['username'];
         $data = $this->getGroup($username, $sessionId);
 
         if (!is_null($sessionData) && !empty($data['members'])) {
@@ -593,15 +596,15 @@ class Groups extends Plugin
         <div class='group_header'>
             <div>
                 <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; 
-                    vertical-align:middle;'/>
+                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "' style='width: 100%; 
+                    vertical-align:middle;' alt='calendar icon'/>
                 </div>
                 <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
             </div>
             <div>
                 <div style='display: inline-block; width: 20px; vertical-align: middle;'>
                     <img src='" . URL_TO_IMG . 'location_bk.png' . "' style='width: 100%; 
-                    vertical-align:middle;'/>
+                    vertical-align:middle;' alt='location icon'/>
                 </div>
                 <div style='display: inline-block; vertical-align: middle;'>{$room}</div>
             </div>
@@ -628,7 +631,7 @@ class Groups extends Plugin
         <div class='group_header'>
             <div>
                 <div style='display: inline-block; width: 20px; vertical-align: middle;'>
-                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "'style='width: 100%; vertical-align:middle;'/>
+                    <img src='". URL_TO_IMG . 'calendar_bk.png' . "' style='width: 100%; vertical-align:middle;' alt='calender icon'/>
                 </div>
                 <div style='display: inline-block; vertical-align: middle;'>{$date}</div>
             </div>
