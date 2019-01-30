@@ -203,11 +203,8 @@ class Presentation extends BaseSubmission
      *
      * @return string
      */
-    public static function speakerList($cur_speaker = null, $selectable = false, $modifiable = false, $idPres = null)
+    public static function speakerList($cur_speaker, $selectable = false, $modifiable = false, $idPres = null)
     {
-        if (is_null($cur_speaker)) {
-            $cur_speaker = $_SESSION['username'];
-        }
         $Users = new Users();
 
         // Render list of available speakers
@@ -465,9 +462,9 @@ class Presentation extends BaseSubmission
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
 
         // Speaker input
-        $orator = \property_exists($Presentation, 'orator') ? $Presentation->orator : $_SESSION['username'];
+        $userName = \property_exists($Presentation, 'username') ? $Presentation->username : $_SESSION['username'];
         $modifiable = $idPres !== 'false' & $organizer;
-        $speakerList = self::speakerList($orator, $organizer, $modifiable, $idPres);
+        $speakerList = self::speakerList($userName, $organizer, $modifiable, $idPres);
 
         // Make submission's type selection list
         $type_list = TypesManager::getTypeSelectInput('Presentation');
