@@ -1035,18 +1035,6 @@ class SessionManager
     }
 
     /**
-     * Show presentation slot as empty
-     *
-     * @return string
-     */
-    public static function emptySlotEdit()
-    {
-        return self::slotContainerBody(array('name'=>'Free slot', 'button'=>null, 'content'=>
-            "<span style='font-size: 14px; font-weight: 500; color: #777;'>" . Presentation::speakerList() . "</span>
-            "));
-    }
-
-    /**
      * Template for slot container
      * @param array $data
      * @param null $div_id
