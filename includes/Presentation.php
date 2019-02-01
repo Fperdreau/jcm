@@ -208,7 +208,7 @@ class Presentation extends BaseSubmission
         $Users = new Users();
 
         // Render list of available speakers
-        $speakerOpt = (is_null($cur_speaker)) ? "<option selected disabled>Select a speaker</option>" : null;
+        $speakerOpt = '';
         foreach ($Users->getAll(true) as $key => $speaker) {
             $selectOpt = ($speaker['username'] == $cur_speaker) ? 'selected' : null;
             $speakerOpt .= "<option value='{$speaker['username']}' {$selectOpt}>{$speaker['fullname']}</option>";
@@ -370,7 +370,8 @@ class Presentation extends BaseSubmission
 
     /**
      * Render submission editor
-     * @param array|null $post
+     * @param array|null $data
+     * @param null $session_id
      * @return array
      */
     public function editor(array $data = null, $session_id = null)
@@ -403,9 +404,6 @@ class Presentation extends BaseSubmission
         // Get operation type
         $operation = (!empty($data['operation']) && $data['operation'] !== 'false') ? $data['operation'] : 'edit';
 
-        // Get presentation type
-        $type = (!empty($data['type']) && $data['type'] !== 'false') ? $data['type'] : null;
-
         return Presentation::form(
             new Users($_SESSION['username']),
             (object)$presentationData,
@@ -434,23 +432,23 @@ class Presentation extends BaseSubmission
     /**
      * Generate submission form and automatically fill it up with data provided by Presentation object.
      * @param Users $user
-     * @param \StdClass $Presentation
+     * @param object $Presentation
      * @param string $operation
-     * @param bool $type
      * @param array $data
+     * @param bool $organizer
      *
      * @return array
      */
     public static function form(
         Users $user,
-        $Presentation = null,
+        $Presentation,
         $operation = "edit",
         array $data = null,
         $organizer = true
     ) {
 
         // Presentation date
-        $date = array_key_exists('date', $data) ? $data['date'] : $Presentation->date;
+        $date = !is_null($data) && array_key_exists('date', $data) ? $data['date'] : $Presentation->date;
 
         // Session id assigned to current presentation
         $session_id = array_key_exists('session_id', $data) ? $data['session_id'] : $Presentation->session_id;
@@ -462,7 +460,8 @@ class Presentation extends BaseSubmission
         $idPres = ($Presentation->id != "") ? $Presentation->id : 'false';
 
         // Speaker input
-        $userName = \property_exists($Presentation, 'username') ? $Presentation->username : $_SESSION['username'];
+        $userName = \property_exists($Presentation, 'username') && !is_null($Presentation->username)
+            ? $Presentation->username : $_SESSION['username'];
         $modifiable = $idPres !== 'false' & $organizer;
         $speakerList = self::speakerList($userName, $organizer, $modifiable, $idPres);
 
@@ -532,7 +531,7 @@ class Presentation extends BaseSubmission
                             <input type='submit' name='{$operation}' class='submit_pres' />
                             <input type='hidden' name='selected_date' id='selected_date' value='{$date}'/>
                             <input type='hidden' name='session_id' value='{$session_id}'/>
-                            <input type='hidden' name='username' value='$user->username'/>
+                            <input type='hidden' name='username' value='$userName'/>
                             <input type='hidden' id='id' name='id' value='{$idPres}'/>
                         </div>
                     </form>

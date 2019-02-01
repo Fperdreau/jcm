@@ -102,7 +102,7 @@ class Suggestion extends BaseSubmission
             $next = reset($next);
             return Presentation::form(
                 new Users($_SESSION['username']),
-                $Suggestion,
+                (object)$data,
                 'select',
                 array(
                     'date'=>$next['date'],
@@ -113,7 +113,10 @@ class Suggestion extends BaseSubmission
             $this->getInfo($id);
             return Suggestion::form(new Users($_SESSION['username']), $this, $operation, $type);
         } else {
-            return self::notFound();
+            $out['title'] = 'Page Not Found';
+            $out['content'] = self::notFound();
+            $out['description'] = 'Page Not Found';
+            return $out;
         }
     }
 

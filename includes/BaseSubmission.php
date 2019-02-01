@@ -131,6 +131,7 @@ abstract class BaseSubmission extends BaseModel
             $data['orator'] = $_SESSION['username'];
         }
 
+        $data['username'] = $data['type'] !== 'guest' ? $data['orator'] : $data['username'];
         if ($id !== "false") {
             $created = $this->modify($data, $id);
         } else {
@@ -423,24 +424,25 @@ abstract class BaseSubmission extends BaseModel
     public static function menu($destination = 'body', $style = 'submitMenu_fixed')
     {
         $modal = $destination == 'body' ? 'loadContent' : "leanModal";
+        $view = $destination;
         $leanModalUrl_presentation = Router::buildUrl(
             'Presentation',
             'getForm',
             array(
-            'view'=>'modal',
+            'view'=>$view,
             'operation'=>'edit')
         );
         $leanModalUrl_suggestion = Router::buildUrl(
             'Suggestion',
             'getForm',
             array(
-            'view'=>'modal',
+            'view'=>$view,
             'operation'=>'edit')
         );
         $leanModalUrl_select = Router::buildUrl(
             'Suggestion',
             'getSelectionList',
-            array('view'=>'modal')
+            array('view'=>$view)
         );
         return "
             <div class='{$style}'>
@@ -637,7 +639,7 @@ abstract class BaseSubmission extends BaseModel
     {
         $sectionName = strtolower(self::getClassName()) . '_form';
         return "
-        <section id='{$sectionName}}'>
+        <section id='{$sectionName}'>
             <h2>{$content['title']}</h2>
             <p class='page_description'>{$content['description']}</p>       
             <div class='section_content'>{$content['content']}</div>
